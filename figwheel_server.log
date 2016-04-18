@@ -1,0 +1,113 @@
+[0mCompiling "resources/public/js/main.js" from ["src/cljs"]...
+notifying browser that file changed:  resources/public/js/goog/deps.js
+notifying browser that file changed:  resources/public/js/cljs_deps.js
+notifying browser that file changed:  out/starcity/core.js
+[32mSuccessfully compiled "resources/public/js/main.js" in 0.234 seconds.[0m
+[0mCompiling "resources/public/js/main.js" from ["src/cljs"]...
+WARNING: Use of undeclared Var starcity.core/simple-example at line 18 src/cljs/starcity/core.cljs
+notifying browser that file changed:  resources/public/js/cljs_deps.js
+notifying browser that file changed:  out/starcity/core.js
+[32mSuccessfully compiled "resources/public/js/main.js" in 1.982 seconds.[0m
+[0mCompiling "resources/public/js/main.js" from ["src/cljs"]...
+WARNING: Use of undeclared Var starcity.core/simple-example at line 20 src/cljs/starcity/core.cljs
+notifying browser that file changed:  out/starcity/core.js
+[32mSuccessfully compiled "resources/public/js/main.js" in 0.169 seconds.[0m
+[0mCompiling "resources/public/js/main.js" from ["src/cljs"]...
+WARNING: Use of undeclared Var starcity.core/simple-example at line 20 src/cljs/starcity/core.cljs
+notifying browser that file changed:  out/starcity/core.js
+[32mSuccessfully compiled "resources/public/js/main.js" in 0.175 seconds.[0m
+[0mCompiling "resources/public/js/main.js" from ["src/cljs"]...
+notifying browser that file changed:  out/starcity/core.js
+[32mSuccessfully compiled "resources/public/js/main.js" in 0.147 seconds.[0m
+[0mCompiling "resources/public/js/main.js" from ["src/cljs"]...
+notifying browser that file changed:  resources/public/js/goog/deps.js
+notifying browser that file changed:  resources/public/js/cljs_deps.js
+notifying browser that file changed:  out/starcity/core.js
+[32mSuccessfully compiled "resources/public/js/main.js" in 0.371 seconds.[0m
+[0mCompiling "resources/public/js/main.js" from ["src/cljs"]...
+notifying browser that file changed:  out/starcity/core.js
+[32mSuccessfully compiled "resources/public/js/main.js" in 0.233 seconds.[0m
+[0mCompiling "resources/public/js/main.js" from ["src/cljs"]...
+notifying browser that file changed:  out/starcity/core.js
+[32mSuccessfully compiled "resources/public/js/main.js" in 0.181 seconds.[0m
+[0mCompiling "resources/public/js/main.js" from ["src/cljs"]...
+notifying browser that file changed:  out/starcity/core.js
+[32mSuccessfully compiled "resources/public/js/main.js" in 0.502 seconds.[0m
+[0mCompiling "resources/public/js/main.js" from ["src/cljs"]...
+notifying browser that file changed:  out/starcity/core.js
+[32mSuccessfully compiled "resources/public/js/main.js" in 0.282 seconds.[0m
+[0mCompiling "resources/public/js/main.js" from ["src/cljs"]...
+notifying browser that file changed:  out/starcity/core.js
+[32mSuccessfully compiled "resources/public/js/main.js" in 0.179 seconds.[0m
+[0mCompiling "resources/public/js/main.js" from ["src/cljs"]...
+notifying browser that file changed:  resources/public/js/cljs_deps.js
+notifying browser that file changed:  out/starcity/dev.js
+[32mSuccessfully compiled "resources/public/js/main.js" in 0.164 seconds.[0m
+[0mCompiling "resources/public/js/main.js" from ["src/cljs"]...
+notifying browser that file changed:  resources/public/js/cljs_deps.js
+notifying browser that file changed:  out/starcity/dev.js
+[32mSuccessfully compiled "resources/public/js/main.js" in 0.156 seconds.[0m
+[0mCompiling "resources/public/js/main.js" from ["src/cljs"]...
+WARNING: No such namespace: example, could not locate example.cljs, example.cljc, or Closure namespace "" at line 5 src/cljs/starcity/dev.cljs
+WARNING: Use of undeclared Var example/run at line 5 src/cljs/starcity/dev.cljs
+notifying browser that file changed:  out/starcity/dev.js
+[32mSuccessfully compiled "resources/public/js/main.js" in 0.181 seconds.[0m
+[0mCompiling "resources/public/js/main.js" from ["src/cljs"]...
+notifying browser that file changed:  out/starcity/dev.js
+[32mSuccessfully compiled "resources/public/js/main.js" in 0.163 seconds.[0m
+[0mCompiling "resources/public/js/main.js" from ["src/cljs"]...
+notifying browser that file changed:  out/starcity/core.js
+[32mSuccessfully compiled "resources/public/js/main.js" in 0.153 seconds.[0m
+[0mCompiling "resources/public/js/main.js" from ["src/cljs"]...
+[31mCompiling "resources/public/js/main.js" failed.
+[0mjava.lang.AssertionError: No ns form found in src/cljs/starcity/dev.cljs
+ at cljs.analyzer$parse_ns$fn__2774.invoke (analyzer.cljc:2731)
+    cljs.analyzer$parse_ns.invoke (analyzer.cljc:2682)
+    cljs.analyzer$parse_ns.invoke (analyzer.cljc:2673)
+    cljs.compiler$find_source.invoke (compiler.cljc:1389)
+    clojure.core$map$fn__4553.invoke (core.clj:2624)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.next (RT.java:674)
+    clojure.core/next (core.clj:64)
+    clojure.core$reduce1.invoke (core.clj:909)
+    clojure.core$set.invoke (core.clj:3960)
+    cljs.closure$add_dependency_sources.invoke (closure.clj:731)
+    cljs.closure$build.invoke (closure.clj:1807)
+    cljs.build.api$build.invoke (api.clj:207)
+    figwheel_sidecar.components.cljs_autobuild$cljs_build.invoke (cljs_autobuild.clj:22)
+    figwheel_sidecar.build_middleware.injection$hook$fn__16413.invoke (injection.clj:139)
+    figwheel_sidecar.build_middleware.notifications$hook$fn__16740.invoke (notifications.clj:187)
+    figwheel_sidecar.build_middleware.clj_reloading$hook$fn__16816.invoke (clj_reloading.clj:115)
+    figwheel_sidecar.build_middleware.javascript_reloading$hook$fn__16862.invoke (javascript_reloading.clj:60)
+    figwheel_sidecar.components.cljs_autobuild$eval16877$figwheel_start_and_end_messages__16880$fn__16882.invoke (cljs_autobuild.clj:45)
+    figwheel_sidecar.components.cljs_autobuild.CLJSAutobuild$fn__16907$fn__16908.invoke (cljs_autobuild.clj:137)
+    figwheel_sidecar.utils$sync_exec$fn__2823$fn__2824.invoke (utils.clj:13)
+    figwheel_sidecar.utils$sync_exec$fn__2823.invoke (utils.clj:12)
+    clojure.core$binding_conveyor_fn$fn__4444.invoke (core.clj:1919)
+    clojure.lang.AFn.applyToHelper (AFn.java:154)
+    clojure.lang.RestFn.applyTo (RestFn.java:132)
+    clojure.lang.Agent$Action.doRun (Agent.java:114)
+    clojure.lang.Agent$Action.run (Agent.java:163)
+    java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1145)
+[32mSuccessfully compiled "resources/public/js/main.js" in 0.033 seconds.[0m
+[0mCompiling "resources/public/js/main.js" from ["src/cljs"]...
+notifying browser that file changed:  resources/public/js/goog/deps.js
+notifying browser that file changed:  resources/public/js/cljs_deps.js
+notifying browser that file changed:  out/starcity/core.js
+[32mSuccessfully compiled "resources/public/js/main.js" in 0.227 seconds.[0m
+[0mCompiling "resources/public/js/main.js" from ["src/cljs"]...
+notifying browser that file changed:  out/starcity/core.js
+[32mSuccessfully compiled "resources/public/js/main.js" in 0.179 seconds.[0m
+[0mCompiling "resources/public/js/main.js" from ["src/cljs"]...
+notifying browser that file changed:  out/starcity/core.js
+[32mSuccessfully compiled "resources/public/js/main.js" in 0.13 seconds.[0m
+[0mCompiling "resources/public/js/main.js" from ["src/cljs"]...
+notifying browser that file changed:  out/starcity/core.js
+[32mSuccessfully compiled "resources/public/js/main.js" in 0.142 seconds.[0m
+[0mCompiling "resources/public/js/main.js" from ["src/cljs"]...
+notifying browser that file changed:  resources/public/js/goog/deps.js
+notifying browser that file changed:  resources/public/js/cljs_deps.js
+notifying browser that file changed:  out/starcity/core.js
+[32mSuccessfully compiled "resources/public/js/main.js" in 0.308 seconds.[0m
