@@ -1,1 +1,21 @@
 #+TITLE: Starcity Web Application
+
+* Usage
+
+** Prerequisites
+
++ Clojure
++ [[http://leiningen.org][leiningen]]
+
+** Install
+
+Clone down the repo.
+
+** Run
+
+Boot up a Clojure repl within the project, and use the command `(go)` to start
+the system; then, navigate to `localhost:8080`.
+
+* Purpose
+
+This is the main web application for Starcity.
