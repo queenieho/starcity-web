@@ -1,4 +1,6 @@
-#+TITLE: Starcity Web Application
+* Starcity Web
+
+This is the main web application for Starcity.
 
 * Usage
 
@@ -15,7 +17,3 @@ Clone down the repo.
 
 Boot up a Clojure repl within the project, and use the command `(go)` to start
 the system; then, navigate to `localhost:8080`.
-
-* Purpose
-
-This is the main web application for Starcity.
