@@ -1,3 +1,55 @@
 #+TITLE: Starcity Notes
 
-* Starcity Application Process
+* Web App Flow
+
+** Landing Page
+
++ Capture interest
++ Allow log-in
++ Direct to typeform-based "personality screen"
+
+
+** Personality Screen
+
+*** Purpose
+
+*** Questions
+
+** User Dashboard
+
+This is the interface that an user sees upon "logging in". Login will happen in
+one of two ways:
+
+1. The user receives an email saying that he/she passed the personality
+   screening, and then be prompted to set a password or whatever.
+2. Returns to the landing page and logs in.
+
+*** Purpose
+
+The "user dashboard" serves two primary purposes:
+
+**** Completion of Application Process
+
+After passing the personality screen, we'll need some more personal information
+from the user:
+
++ Social Security
++ Driver's License
++ References
+  + Personal
+  + Rental
++ Proof of Income
++ etc.
+
+This information will be used to perform a *background check* and a *credit
+check*. We'll probably need to ask for permission from the user to perform these
+checks.
+
+After we've performed the checks, we'll need to have the user sign documentation
+and provide a deposit. Linking a bank account will be part of this step.
+
+**** Management of Account During Residency
+
+After the application process is complete and a tenant is "living" in the
+building, he/she will use the dashboard as a place to view transaction history
+for rent, and probably other things. These are TBD.

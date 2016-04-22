@@ -7,7 +7,9 @@
 (def system nil)
 
 (def config
-  {:web-port 8080})
+  {:web-port 8080
+   :db       {:uri        "datomic:mem://localhost:4334/starcity"
+              :schema-dir "resources/datomic/schemas"}})
 
 (defn init []
   (alter-var-root #'system

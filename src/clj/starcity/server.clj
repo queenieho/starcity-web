@@ -21,7 +21,8 @@
 ;; Routes
 
 (def routes
-  ["/" {"" :index}])
+  ["/" [["" :index]
+        [true :index]]])
 
 ;; =============================================================================
 ;; Handlers
@@ -33,32 +34,41 @@
       :index (ok (landing-page req))
       req)))
 
-(defn app-handler []
-  (-> handler
+(defn wrap-handler
+  [& components]
+  (fn [req]
+    (handler (reduce (fn [acc [id c]]
+                       (assoc acc id c))
+                     req
+                     components))))
+
+(defn app-handler [datomic]
+  (-> (wrap-handler
+       [:datomic datomic])
       (wrap-keyword-params)
       (wrap-params)
       (wrap-resource "public")))
 
-(defn app-handler-dev []
+(defn app-handler-dev [datomic]
   (fn [req]
-    ((app-handler) req)))
+    ((app-handler datomic) req)))
 
 ;; =============================================================================
 ;; WebServer
 
-(defrecord WebServer [port handler container]
+(defrecord WebServer [port handler container datomic]
   component/Lifecycle
   (start [component]
     (if container
-      (let [req-handler (handler)
+      (let [req-handler (handler datomic)
             container   (run-jetty req-handler {:port port :join? false})]
         (assoc component :container container))
-      (assoc component :handler (handler))))
+      (assoc component :handler (handler datomic))))
   (stop [component]
     (.stop container)))
 
 (defn dev-server [port]
-  (WebServer. port app-handler-dev true))
+  (WebServer. port app-handler-dev true nil))
 
 (defn prod-server []
-  (WebServer. nil app-handler false))
+  (WebServer. nil app-handler false nil))

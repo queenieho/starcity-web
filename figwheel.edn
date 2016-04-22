@@ -4,7 +4,7 @@
    :source-paths ["src/cljs"]
    :figwheel true
    :build-options {:main starcity.core
-                   :asset-path "js"
+                   :asset-path "js/out"
                    :output-to "resources/public/js/main.js"
                    :output-dir "resources/public/js/out"
                    :verbose false
