@@ -7,15 +7,21 @@
   :jvm-opts ^:replace ["-XX:MaxPermSize=128m" "-Xms512m" "-Xmx512m" "-server"]
 
   :dependencies [[org.clojure/clojure "1.7.0"]
+                 ;; cljs
                  [org.clojure/clojurescript "1.7.170"]
                  [reagent "0.5.1"]
                  [re-frame "0.7.0"]
                  [re-com "0.8.1"]
+                 [secretary "1.2.3"]
+                 ;; clj
                  [bidi "1.21.1"]
                  [cheshire "5.5.0"]
                  [ring/ring "1.4.0"]
                  [hiccup "1.0.5"]
-                 [com.stuartsierra/component "0.3.1"]]
+                 [com.stuartsierra/component "0.3.1"]
+                 [com.datomic/datomic-free "0.9.5350"
+                  :exclusions [joda-time]]
+                 [me.raynes/fs "1.4.6"]]
 
   :profiles {:dev {:source-paths ["src/dev" "src/clj" "src/cljs"]
                    :plugins [[lein-figwheel "0.5.0-2"]]

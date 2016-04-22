@@ -1,7 +1,8 @@
 (ns starcity.core
   (:require [com.stuartsierra.component :as component]
             [figwheel-sidecar.repl-api :as ra]
-            [starcity.server :as server]))
+            [starcity.server :as server]
+            [starcity.datomic :as datomic]))
 
 (defrecord Figwheel []
   component/Lifecycle
@@ -17,7 +18,10 @@
     config))
 
 (defn dev-system [config]
-  (let [{:keys [web-port]} config]
+  (let [{:keys [web-port db]} config]
     (component/system-map
-     :webserver (server/dev-server web-port)
+     :datomic (datomic/datomic db)
+     :webserver (component/using
+                 (server/dev-server web-port)
+                 [:datomic])
      :figwheel (map->Figwheel (figwheel-sidecar.system/fetch-config)))))

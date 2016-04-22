@@ -9,9 +9,9 @@
 ;;   [])
 
 (def ^{:private true} HEAD-CSS
-  ["css/bootstrap.css"
-   "css/material-design-iconic-font.min.css"
-   "css/re-com.css"])
+  ["assets/css/bootstrap.css"
+   "assets/css/material-design-iconic-font.min.css"
+   "assets/css/re-com.css"])
 
 (def ^{:private true} HEAD-FONTS
   ["http://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic"
