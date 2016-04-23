@@ -6,7 +6,10 @@
             [ring.middleware.params :refer [wrap-params]]
             [bidi.bidi :as bidi]
             [com.stuartsierra.component :as component]
-            [starcity.views.landing :refer [landing-page]]))
+            [starcity.views.landing :refer [landing-page]]
+            [taoensso.timbre :as timbre]))
+
+(timbre/refer-timbre)
 
 ;; =============================================================================
 ;; Helpers
@@ -30,6 +33,7 @@
 (defn handler [req]
   (let [match (bidi/match-route routes (:uri req)
                                 :request-method (:request-method req))]
+    (trace "RECEIVED REQUEST: " req)
     (case (:handler match)
       :index (ok (landing-page req))
       req)))
@@ -44,12 +48,12 @@
 
 (defn app-handler [datomic]
   (-> (wrap-handler
-       [:datomic datomic])
+       [:datomic datomic])              ; TODO: write macro
       (wrap-keyword-params)
       (wrap-params)
       (wrap-resource "public")))
 
-(defn app-handler-dev [datomic]
+(defn dev-handler [datomic]
   (fn [req]
     ((app-handler datomic) req)))
 
@@ -59,16 +63,18 @@
 (defrecord WebServer [port handler container datomic]
   component/Lifecycle
   (start [component]
+    (debugf "Starting server on port %d" port)
     (if container
       (let [req-handler (handler datomic)
             container   (run-jetty req-handler {:port port :join? false})]
         (assoc component :container container))
       (assoc component :handler (handler datomic))))
   (stop [component]
+    (debug "Shutting down server")
     (.stop container)))
 
 (defn dev-server [port]
-  (WebServer. port app-handler-dev true nil))
+  (WebServer. port dev-handler true nil))
 
 (defn prod-server []
   (WebServer. nil app-handler false nil))

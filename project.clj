@@ -21,7 +21,8 @@
                  [com.stuartsierra/component "0.3.1"]
                  [com.datomic/datomic-free "0.9.5350"
                   :exclusions [joda-time]]
-                 [me.raynes/fs "1.4.6"]]
+                 [me.raynes/fs "1.4.6"]
+                 [com.taoensso/timbre "4.3.1"]]
 
   :profiles {:dev {:source-paths ["src/dev" "src/clj" "src/cljs"]
                    :plugins [[lein-figwheel "0.5.0-2"]]
