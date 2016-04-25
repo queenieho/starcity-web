@@ -2,8 +2,6 @@
 
 This is the main web application for Starcity.
 
-Does it autorebuild?
-
 * Usage
 
 ** Prerequisites

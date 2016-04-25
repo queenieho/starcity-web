@@ -41,4 +41,5 @@
    [:body
     [:div#app
      [:h1 "Hello, Starcity!"]]
-    (apply include-js BODY-JS)]))
+    ;; (apply include-js BODY-JS)
+    ]))
