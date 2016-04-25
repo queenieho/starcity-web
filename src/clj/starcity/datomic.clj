@@ -37,7 +37,7 @@
   (let [schemas (read-all-schemas dir)
         idents (new-idents conn (remove #(nil? (:db/valueType %)) schemas))]
     (when-not (empty? idents)
-      (debug ";; Creating new attrs with idents: " (map :db/ident idents))
+      (debugf "Creating new attrs with idents: %s" (map :db/ident idents))
       @(d/transact conn (vec idents)))))
 
 ;; =============================================================================

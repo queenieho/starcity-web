@@ -47,34 +47,27 @@
                      components))))
 
 (defn app-handler [datomic]
-  (-> (wrap-handler
-       [:datomic datomic])              ; TODO: write macro
-      (wrap-keyword-params)
-      (wrap-params)
-      (wrap-resource "public")))
-
-(defn dev-handler [datomic]
   (fn [req]
-    ((app-handler datomic) req)))
+    (-> req
+        (wrap-handler
+         [:datomic datomic])              ; TODO: write macro
+        (wrap-keyword-params)
+        (wrap-params)
+        (wrap-resource "public"))))
 
 ;; =============================================================================
 ;; WebServer
 
-(defrecord WebServer [port handler container datomic]
+(defrecord WebServer [port datomic]
   component/Lifecycle
   (start [component]
     (debugf "Starting server on port %d" port)
-    (if container
-      (let [req-handler (handler datomic)
-            container   (run-jetty req-handler {:port port :join? false})]
-        (assoc component :container container))
-      (assoc component :handler (handler datomic))))
+    (assoc component :server (run-jetty (app-handler datomic)
+                                        {:port port :join? false})))
   (stop [component]
     (debug "Shutting down server")
-    (.stop container)))
+    (.stop (:server component))
+    component))
 
-(defn dev-server [port]
-  (WebServer. port dev-handler true nil))
-
-(defn prod-server []
-  (WebServer. nil app-handler false nil))
+(defn server [port]
+  (map->WebServer {:port port}))
