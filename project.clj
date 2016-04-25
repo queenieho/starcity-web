@@ -30,6 +30,7 @@
                                [org.clojars.strongh/lein-init-script "1.3.1"]]
                 :dependencies [[figwheel-sidecar "0.5.0-2"]]}
    :production {:source-paths ["src/clj" "src/cljs"]
+                :aot  [starcity.core]
                 :lis-opts {:redirect-output-to "/var/log/starcity-init-script.log"
                            :jvm-opts ["-XX:MaxPermSize=128m"
                                       "-Xms256m"
@@ -40,5 +41,4 @@
                  :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
 
   :main starcity.core
-  :aot  [starcity.core]
   )

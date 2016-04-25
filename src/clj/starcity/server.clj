@@ -33,27 +33,26 @@
 (defn handler [req]
   (let [match (bidi/match-route routes (:uri req)
                                 :request-method (:request-method req))]
-    (trace "RECEIVED REQUEST: " req)
+    (info "RECEIVED REQUEST: " req)
     (case (:handler match)
       :index (ok (landing-page req))
       req)))
 
 (defn wrap-handler
-  [& components]
+  [& kvs]
+  (assert (even? (count kvs)))
   (fn [req]
     (handler (reduce (fn [acc [id c]]
                        (assoc acc id c))
                      req
-                     components))))
+                     (partition 2 kvs)))))
 
 (defn app-handler [datomic]
-  (fn [req]
-    (-> req
-        (wrap-handler
-         [:datomic datomic])              ; TODO: write macro
-        (wrap-keyword-params)
-        (wrap-params)
-        (wrap-resource "public"))))
+  (-> (wrap-handler
+       :datomic datomic)
+      (wrap-keyword-params)
+      (wrap-params)
+      (wrap-resource "public")))
 
 ;; =============================================================================
 ;; WebServer

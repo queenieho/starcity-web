@@ -41,5 +41,6 @@
    [:body
     [:div#app
      [:h1 "Hello, Starcity!"]]
+    ;; TODO: advanced cljs
     ;; (apply include-js BODY-JS)
     ]))
