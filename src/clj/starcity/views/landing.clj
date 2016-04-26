@@ -40,7 +40,7 @@
    (head "Starcity")
    [:body
     [:div#app
-     [:h1 "Hello, Starcity!"]]
+     [:h1 "Hello, Jocelyn!"]]
     ;; TODO: advanced cljs
     ;; (apply include-js BODY-JS)
     ]))

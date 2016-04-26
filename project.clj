@@ -29,16 +29,14 @@
                 :plugins      [[lein-figwheel "0.5.0-2"]
                                [org.clojars.strongh/lein-init-script "1.3.1"]]
                 :dependencies [[figwheel-sidecar "0.5.0-2"]]}
+   :uberjar    {:aot :all}
    :production {:source-paths ["src/clj" "src/cljs"]
-                :aot  [starcity.core]
-                :lis-opts {:redirect-output-to "/var/log/starcity-init-script.log"
-                           :jvm-opts ["-XX:MaxPermSize=128m"
-                                      "-Xms256m"
-                                      "-Xmx512m"
-                                      "-server"]}}}
+                :lis-opts     {:redirect-output-to "/var/log/starcity-web-init.log"
+                               :jvm-opts           ["-Xms256m"
+                                                    "-Xmx512m"
+                                                    "-server"]}}}
 
   :repl-options {:init-ns          user
                  :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
 
-  :main starcity.core
-  )
+  :main starcity.core)
