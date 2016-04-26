@@ -29,7 +29,7 @@
                 :plugins      [[lein-figwheel "0.5.0-2"]
                                [org.clojars.strongh/lein-init-script "1.3.1"]]
                 :dependencies [[figwheel-sidecar "0.5.0-2"]]}
-   :uberjar    {:aot :all}
+   :uberjar    {:aot [starcity.core]}
    :production {:source-paths ["src/clj" "src/cljs"]
                 :lis-opts     {:redirect-output-to "/var/log/starcity-web-init.log"
                                :jvm-opts           ["-Xms256m"
