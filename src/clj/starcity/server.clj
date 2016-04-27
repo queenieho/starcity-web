@@ -33,7 +33,7 @@
 (defn handler [req]
   (let [match (bidi/match-route routes (:uri req)
                                 :request-method (:request-method req))]
-    (info "RECEIVED REQUEST: " req)
+    (trace "RECEIVED REQUEST: " req)
     (case (:handler match)
       :index (ok (landing-page req))
       req)))
