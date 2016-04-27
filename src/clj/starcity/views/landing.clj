@@ -40,7 +40,8 @@
    (head "Starcity")
    [:body
     [:div#app
-     [:h1 "Hello, Starcity!"]]
+     [:h1 "Hello, Starcity!"]
+     [:p "TODO: Add some content"]]
     ;; TODO: advanced cljs compilation
     ;; (apply include-js BODY-JS)
     ]))
