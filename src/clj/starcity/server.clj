@@ -6,7 +6,8 @@
             [ring.middleware.params :refer [wrap-params]]
             [bidi.bidi :as bidi]
             [com.stuartsierra.component :as component]
-            [starcity.views.landing :refer [landing-page]]
+            [starcity.views.landing :as landing]
+            [starcity.views.login :as login]
             [taoensso.timbre :as timbre]))
 
 (timbre/refer-timbre)
@@ -23,9 +24,13 @@
 ;; =============================================================================
 ;; Routes
 
+;; (def routes
+;;   ["/" [["" :index]
+;;         [true :index]]])
 (def routes
-  ["/" [["" :index]
-        [true :index]]])
+  ["/" {""      :index
+        "login" :login
+        true    :index}])
 
 ;; =============================================================================
 ;; Handlers
@@ -35,7 +40,8 @@
                                 :request-method (:request-method req))]
     (trace "RECEIVED REQUEST: " req)
     (case (:handler match)
-      :index (ok (landing-page req))
+      :index (ok (landing/page req))
+      :login (ok (login/page req))
       req)))
 
 (defn wrap-handler
