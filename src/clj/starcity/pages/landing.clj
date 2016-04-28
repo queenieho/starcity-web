@@ -1,5 +1,6 @@
-(ns starcity.views.landing
-  (:require [starcity.views.base :refer [base]]))
+(ns starcity.pages.landing
+  (:require [starcity.pages.base :refer [base]]
+            [starcity.pages.util :refer [ok]]))
 
 ;; =============================================================================
 ;; Constants
@@ -8,11 +9,13 @@
 ;; =============================================================================
 ;; Components
 
+(defn- landing-view []
+  (base
+   [:div#app
+    [:h1 "Hello, Starcity!"]]))
 
 ;; =============================================================================
 ;; API
 
-(defn page [req]
-  (base
-   [:div#app
-    [:h1 "Hello, Starcity!"]]))
+(defn handle [req]
+  (ok (landing-view)))

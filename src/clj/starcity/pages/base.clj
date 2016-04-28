@@ -1,4 +1,4 @@
-(ns starcity.views.base
+(ns starcity.pages.base
   (:require [hiccup.core :refer [html]]
             [hiccup.page :refer [html5 include-css include-js]]))
 

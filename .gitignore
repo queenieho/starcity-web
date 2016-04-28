@@ -13,3 +13,4 @@ pom.xml.asc
 *.log            # TODO: move to /logs
 /logs
 /init-script
+figwheel_server.log

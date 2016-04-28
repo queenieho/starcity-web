@@ -7,7 +7,8 @@
 (defn dev-setup
   []
   (merge-config!
-   {:appenders
+   {:level :trace
+    :appenders
     {:spit (appenders/spit-appender {:fname "logs/server.log"})}}))
 
 (defn prod-setup
