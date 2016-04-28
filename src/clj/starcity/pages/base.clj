@@ -24,18 +24,35 @@
    "http://fonts.googleapis.com/css?family=Roboto+Condensed:400,300"])
 
 (def ^{:private true} BODY-JS
-  ["/js/main.js"])
+  ["/js/jquery.min.js"
+   "/js/bootstrap.min.js"
+   "/js/main.js"])
 
 ;; =============================================================================
 ;; Components
 
 (defn- head [title css]
-  [:head
-   [:meta {:charset "utf-8"}]
-   [:meta {:http-equiv "X-UA-Compatible" :content "IE=edge"}]
-   [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
-   (apply include-css (concat HEAD-CSS css HEAD-FONTS))
-   [:title title]])
+  (letfn [(apple-touch-icon [size]
+            [:link {:rel   "apple-touch-icon"
+                    :sizes size
+                    :href  (format "/apple-icon-%s.png" size)}])]
+    (let [sizes ["57x57" "60x60" "72x72" "76x76" "114x114" "120x120" "144x144"
+                 "152x152" "180x180"]]
+      [:head
+       [:meta {:charset "utf-8"}]
+       [:meta {:http-equiv "X-UA-Compatible" :content "IE=edge"}]
+       [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
+       (map apple-touch-icon sizes)
+       [:link {:rel "icon" :type "image/png" :sizes "192x192" :href "android-icon-192x192.png"}]
+       [:link {:rel "icon" :type "image/png" :sizes "32x32" :href "favicon-32x32.png"}]
+       [:link {:rel "icon" :type "image/png" :sizes "96x96" :href "favicon-96x96.png"}]
+       [:link {:rel "icon" :type "image/png" :sizes "16x16" :href "favicon-16x16.png"}]
+       [:link {:rel "manifest" :href "/manifest.json"}] ; ???
+       [:meta {:name "msapplication-TileColor" :content "#ffffff"}]
+       [:meta {:name "msapplication-TileImage" :content "/ms-icon-144x144.png"}]
+       [:meta {:name "theme-color" :content "#ffffff"}]
+       (apply include-css (concat HEAD-CSS css HEAD-FONTS))
+       [:title title]])))
 
 ;; =============================================================================
 ;; API
