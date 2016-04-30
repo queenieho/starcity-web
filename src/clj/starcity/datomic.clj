@@ -3,7 +3,7 @@
             [me.raynes.fs :as fs]
             [com.stuartsierra.component :as component]
             [taoensso.timbre :as timbre])
-  (:use [starcity.datomic.utils])
+  (:use [starcity.datomic.util])
   (:import datomic.Util))
 
 (timbre/refer-timbre)
@@ -24,7 +24,7 @@
              (filter #(= (:db/ident attr) (:db/ident %)) (all-attrs conn))))]
     (remove exists? new)))
 
-(defn- read-all-schemas
+(defn- read-edn
   [dir]
   (->> (for [f (fs/list-dir dir)]
          (with-open [f (clojure.java.io/reader f)]
@@ -34,7 +34,7 @@
 (defn- install-schema
   "Ensure that any newly added attrs get transacted when the system is started."
   [conn dir]
-  (let [schemas (read-all-schemas dir)
+  (let [schemas (read-edn dir)
         idents (new-idents conn (remove #(nil? (:db/valueType %)) schemas))]
     (when-not (empty? idents)
       (debug "Creating new attrs with idents: " (map :db/ident idents))
@@ -43,18 +43,23 @@
 ;; =============================================================================
 ;; Component
 
-(defrecord Datomic [uri schema-dir]
+(defrecord Datomic [uri schema-dir seed-dir]
   component/Lifecycle
   (start [component]
     (debugf "Establishing Datomic Connection @ URI: %s" uri)
     (d/create-database uri)
     (let [conn (d/connect uri)]
       (install-schema conn schema-dir)
+      (when seed-dir
+        (debugf "Seeding database from %s" seed-dir)
+        (try
+          @(d/transact conn (vec (read-edn seed-dir))) ; hacky, but works!
+          (catch Exception e)))
       (assoc component :conn conn :part :db.part/user))) ; move :part to config
   (stop [component]
     (debug "Closing Datomic Connection")
     (dissoc component :conn)))
 
 (defn datomic
-  [{:keys [uri schema-dir]}]
-  (map->Datomic {:schema-dir schema-dir :uri uri}))
+  [{:keys [uri schema-dir seed-dir]}]
+  (map->Datomic {:schema-dir schema-dir :uri uri :seed-dir seed-dir}))
