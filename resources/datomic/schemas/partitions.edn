@@ -1,0 +1,3 @@
+[{:db/id #db/id[:db.part/db]
+  :db/ident :starcity
+  :db.install/_partition :db.part/db}]

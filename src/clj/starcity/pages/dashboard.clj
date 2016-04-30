@@ -11,7 +11,7 @@
 ;; Components
 
 (defn- dashboard-view [req]
-  (let [username (get-in req [:session :identity])]
+  (let [username (get-in req [:session :identity :account/email])]
     (base
      [:div.container
       [:h2 (str "Welcome " username "!")]

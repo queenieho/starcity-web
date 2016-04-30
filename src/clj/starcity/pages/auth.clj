@@ -1,6 +1,7 @@
 (ns starcity.pages.auth
   (:require [starcity.pages.base :refer [base]]
             [starcity.pages.util :refer [ok]]
+            [starcity.models.account :as account]
             [ring.util.response :as response]))
 
 ;; =============================================================================
@@ -29,19 +30,13 @@
 ;; =============================================================================
 ;; Authentication
 
-;; TODO: Actually look up and store the password in db
-(def ^{:private true} authdata
-  {"test@test.com" "password"})
-
 (defn- authenticate
   "Authenticate the user by checking email and password."
-  [{:keys [params session] :as req}]
-  (let [username       (:email params)
-        password       (:password params)
-        found-password (get authdata username)]
-    (if (and found-password (= found-password password))
+  [{:keys [params session db] :as req}]
+  (let [{:keys [email password]} params]
+    (if-let [user (account/authenticate db email password)]
       (let [next-url (get-in req [:query-params :next] REDIRECT-AFTER-LOGIN)
-            session' (assoc session :identity (keyword username))]
+            session' (assoc session :identity user)]
         (-> (response/redirect next-url)
             (assoc :session session')))
       (ok (login-view req)))))
