@@ -1,9 +1,9 @@
 (ns starcity.datomic
   (:require [datomic.api :as d]
-            [starcity.datomic.utils :refer :all]
             [me.raynes.fs :as fs]
             [com.stuartsierra.component :as component]
             [taoensso.timbre :as timbre])
+  (:use [starcity.datomic.utils])
   (:import datomic.Util))
 
 (timbre/refer-timbre)
@@ -37,7 +37,7 @@
   (let [schemas (read-all-schemas dir)
         idents (new-idents conn (remove #(nil? (:db/valueType %)) schemas))]
     (when-not (empty? idents)
-      (debugf "Creating new attrs with idents: %s" (map :db/ident idents))
+      (debug "Creating new attrs with idents: " (map :db/ident idents))
       @(d/transact conn (vec idents)))))
 
 ;; =============================================================================
@@ -50,10 +50,10 @@
     (d/create-database uri)
     (let [conn (d/connect uri)]
       (install-schema conn schema-dir)
-      (assoc component :connection conn)))
+      (assoc component :conn conn :part :db.part/user))) ; move :part to config
   (stop [component]
     (debug "Closing Datomic Connection")
-    (dissoc component :connection)))
+    (dissoc component :conn)))
 
 (defn datomic
   [{:keys [uri schema-dir]}]

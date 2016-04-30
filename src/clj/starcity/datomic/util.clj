@@ -45,3 +45,49 @@
                (mapv (partial d/entity db) items)))
        (apply concat)
        (first)))
+
+(defn entity-if-exists
+  [db id]
+  (qe1 '[:find ?eid :in $ ?eid :where [?eid]] db id))
+
+(defn find-by
+  "Returns the unique entity identified by attr and val."
+  [db attr val]
+  (qe1 '[:find ?e
+         :in $ ?attr ?val
+         :where [?e ?attr ?val]]
+       db attr val))
+
+(defn find-all-by
+  "Returns all entities possessing attr."
+  [db attr]
+  (qes '[:find ?e
+         :in $ ?attr
+         :where [?e ?attr]]
+       db attr))
+
+(defn one
+  "Looks up a record by id or attribute val."
+  ([db id]
+   (d/entity db id))
+  ([db attr v]
+   (find-by db attr v)))
+
+(defn qfs
+  "Returns the first of each query result."
+  [query db & args]
+  (->> (apply d/q query db args)
+       (mapv first)))
+
+(defn modes
+  "Returns the set of modes."
+  [coll]
+  (->> (frequencies coll)
+       (reduce
+        (fn [[modes ct] [k v]]
+          (cond
+            (< v ct) [modes ct]
+            (= v ct) [(conj modes k) ct]
+            (> v ct) [#{k} v]))
+        [#{} 2])
+       first))
