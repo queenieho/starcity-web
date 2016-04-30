@@ -41,7 +41,8 @@
 (def config
   {:web-port 8080
    :db       {:uri        "datomic:mem://localhost:4334/starcity"
-              :schema-dir "resources/datomic/schemas"}})
+              :schema-dir "resources/datomic/schemas"
+              :seed-dir   "resources/datomic/seed"}})
 
 ;; =============================================================================
 ;; Reloaded Workflow
