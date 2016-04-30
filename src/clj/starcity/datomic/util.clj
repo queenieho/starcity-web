@@ -1,4 +1,4 @@
-(ns starcity.datomic.utils
+(ns starcity.datomic.util
   (:require [datomic.api :as d]))
 
 (defn ident
