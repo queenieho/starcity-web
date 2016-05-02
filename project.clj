@@ -22,7 +22,9 @@
                  [com.datomic/datomic-free "0.9.5350"
                   :exclusions [joda-time]]
                  [me.raynes/fs "1.4.6"]
+                 [cpath-clj "0.1.2"]
                  [com.taoensso/timbre "4.3.1"]
+                 [org.clojure/tools.nrepl "0.2.12"]
                  [buddy "0.13.0"]]
 
   :profiles
