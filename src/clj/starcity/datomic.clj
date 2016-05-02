@@ -1,8 +1,9 @@
 (ns starcity.datomic
   (:require [datomic.api :as d]
-            [me.raynes.fs :as fs]
+            [cpath-clj.core :as cp]
             [com.stuartsierra.component :as component]
-            [taoensso.timbre :as timbre])
+            [taoensso.timbre :as timbre]
+            [clojure.java.io :as io])
   (:use [starcity.datomic.util])
   (:import datomic.Util))
 
@@ -26,18 +27,19 @@
 
 (defn- read-edn
   [dir]
-  (->> (for [f (fs/list-dir dir)]
-         (with-open [f (clojure.java.io/reader f)]
-           (Util/readAll f)))
-       (flatten)))
+  (let [resources (cp/resources dir)]
+    (->> (for [[filename _] resources]
+           (with-open [f (-> (str dir filename) io/resource io/reader)]
+             (Util/readAll f)))
+         (flatten))))
 
 (defn- install-schema
   "Ensure that any newly added attrs get transacted when the system is started."
   [conn dir]
   (let [schemas (read-edn dir)
-        idents (new-idents conn (remove #(nil? (:db/valueType %)) schemas))]
+        idents  (new-idents conn (remove #(nil? (:db/valueType %)) schemas))]
     (when-not (empty? idents)
-      (debug "Creating new attrs with idents: " (map :db/ident idents))
+      (debugf "Creating new attrs with idents: %s" (pr-str (map :db/ident idents)))
       @(d/transact conn (vec idents)))))
 
 ;; =============================================================================
