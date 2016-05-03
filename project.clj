@@ -12,7 +12,7 @@
                  [reagent "0.5.1"]
                  [re-frame "0.7.0"]
                  [re-com "0.8.1"]
-                 [secretary "1.2.3"]
+                 [secretary "1.2.3"]    ; cljs routing
                  ;; clj
                  [bidi "1.21.1"]
                  [cheshire "5.5.0"]
@@ -25,7 +25,8 @@
                  [cpath-clj "0.1.2"]
                  [com.taoensso/timbre "4.3.1"]
                  [org.clojure/tools.nrepl "0.2.12"]
-                 [buddy "0.13.0"]]
+                 [buddy "0.13.0"]
+                 [bouncer "1.0.0"]]
 
   :profiles
   {:dev        {:source-paths ["src/dev" "src/clj" "src/cljs"]
