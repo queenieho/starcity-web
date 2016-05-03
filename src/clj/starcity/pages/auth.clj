@@ -1,7 +1,10 @@
 (ns starcity.pages.auth
   (:require [starcity.pages.base :refer [base]]
-            [starcity.pages.util :refer [ok]]
+            [starcity.pages.util :refer [ok malformed]]
             [starcity.models.account :as account]
+            [bouncer.core :as b]
+            [bouncer.validators :as v]
+            [clojure.string :refer [trim]]
             [ring.util.response :as response]))
 
 ;; =============================================================================
@@ -12,43 +15,93 @@
 ;; =============================================================================
 ;; Components
 
-(defn- content [req]
+(defn- content
+  [req errors email]
   [:div.container
    [:form.form-signin {:action "/login" :method "post"}
     [:h2.form-signin-heading "Please sign in"]
+    (for [e errors]
+      [:div.alert.alert-danger {:role "alert"} e])
     [:label.sr-only {:for "inputEmail"} "Email address"]
     [:input#input-email.form-control
-     {:name "email" :type "email" :placeholder "Email address" :required true :autofocus true}]
-    [:label.sr-only {:for "inputPassword"} "Password"]
-    [:input#input-password.form-control
-     {:name "password" :type "password" :placeholder "Password" :required true}]
+     {:name        "email"
+      :type        "email"
+      :placeholder "Email address"
+      :required    true
+      :autofocus   (when (= email "") true)
+      :value       email}]
+    [:div.form-group
+     [:label.sr-only {:for "inputPassword"} "Password"]
+     [:input#input-password.form-control
+      {:name "password" :type "password" :placeholder "Password" :required true
+       :autofocus (when (not= email "") true)}]]
     [:button.btn.btn-lg.btn-primary.btn-block {:type "submit"} "Sign in"]]])
 
-(defn- login-view [req]
-  (base (content req) :css ["signin.css"]))
+(defn- render-login [req & {:keys [errors email] :or {errors [] email ""}}]
+  (base (content req errors email) :css ["signin.css"]))
 
 ;; =============================================================================
 ;; Authentication
 
+;; 1. Need to validate the email to ensure that it's a valid email
+;; 2. Password must be longer than 8 characters
+;; 3.
+
+(defn- required
+  [message]
+  [v/required :message message])
+
+(defn- validate-credentials
+  [credentials]
+  (b/validate
+   credentials
+   {:email    [(required "An email address is required.")
+               [v/email :message "That email address is invalid."]]
+    :password [(required "A password is required.")
+               [v/min-count 8 :message "Your password should be at least 8 characters long."]]}))
+
+(defn- errors-from
+  "Extract errors from a bouncer error map."
+  [[errors _]]
+  (reduce (fn [acc [_ es]] (concat acc es)) [] errors))
+
+(defn- valid?
+  [[errors result]]
+  (if (nil? errors)
+    result
+    false))
+
+(defn- clean-credentials
+  [credentials]
+  (-> (update credentials :email trim)
+      (update :password trim)))
+
 (defn- authenticate
   "Authenticate the user by checking email and password."
   [{:keys [params session db] :as req}]
-  (let [{:keys [email password]} params]
-    (if-let [user (account/authenticate db email password)]
-      (let [next-url (get-in req [:query-params :next] REDIRECT-AFTER-LOGIN)
-            session' (assoc session :identity user)]
-        (-> (response/redirect next-url)
-            (assoc :session session')))
-      (ok (login-view req)))))
+  (let [vresult (-> params clean-credentials validate-credentials)]
+    (if-let [{:keys [email password]} (valid? vresult)]
+      (if-let [user (account/authenticate db email password)]
+        ;; success
+        (let [next-url (get-in req [:query-params :next] REDIRECT-AFTER-LOGIN)
+              session  (assoc session :identity user)]
+          (-> (response/redirect next-url)
+              (assoc :session session)))
+        ;; authentication failure
+        (malformed (render-login req
+                                 :errors ["The credentials you entered are invalid; please try again."]
+                                 :email email))) ; TODO: Need more here?
+      ;; validation failure
+      (malformed (render-login req :errors (errors-from vresult) :email (:email params))))))
 
 ;; =============================================================================
 ;; API
 
 (defn handle-login [req]
   (case (:request-method req)
-    :get  (ok (login-view req))
+    :get  (ok (render-login req))
     :post (authenticate req)
-    (ok (login-view req))))
+    (ok (render-login req))))
 
 (defn handle-logout [req]
   (-> (response/redirect "/login")

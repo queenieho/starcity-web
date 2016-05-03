@@ -12,15 +12,15 @@
   (assert (= 1 (count (first query-result))))
   (ffirst query-result))
 
-(defprotocol Eid
-  (e [_]))
+;; (defprotocol Eid
+;;   (e [_]))
 
-(extend-protocol Eid
-  java.lang.Long
-  (e [n] n)
+;; (extend-protocol Eid
+;;   java.lang.Long
+;;   (e [n] n)
 
-  datomic.Entity
-  (e [ent] (:db/id ent)))
+;;   datomic.Entity
+;;   (e [ent] (:db/id ent)))
 
 (defn qe
   "Returns the single entity returned by a query."

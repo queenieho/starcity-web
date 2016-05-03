@@ -7,3 +7,8 @@
   (assoc response :headers {"Content-Type" "text/html; charset=utf-8"}))
 
 (def ok (comp html-response response))
+
+(defn malformed [body]
+  (-> (response body)
+      (html-response)
+      (assoc :status 400)))

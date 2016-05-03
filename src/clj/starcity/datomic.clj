@@ -3,8 +3,8 @@
             [cpath-clj.core :as cp]
             [com.stuartsierra.component :as component]
             [taoensso.timbre :as timbre]
-            [clojure.java.io :as io])
-  (:use [starcity.datomic.util])
+            [clojure.java.io :as io]
+            [starcity.datomic.util :refer [qes]])
   (:import datomic.Util))
 
 (timbre/refer-timbre)
