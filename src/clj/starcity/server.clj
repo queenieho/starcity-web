@@ -13,6 +13,7 @@
             [starcity.pages.landing :as landing]
             [starcity.pages.auth :as auth]
             [starcity.pages.dashboard :as dashboard]
+            [starcity.pages.rental-application :as rental]
             [taoensso.timbre :as timbre]))
 
 (timbre/refer-timbre)
@@ -27,6 +28,7 @@
   ["/" {""       :index
         "login"  :login
         "logout" :logout
+        "apply"  :apply
         "me"     :dashboard
 
         true     :index ; catch-all
@@ -42,6 +44,7 @@
       :login     (auth/handle-login req)
       :logout    (auth/handle-logout req)
       :dashboard (dashboard/handle req)
+      :apply     (rental/handle req)
       req)))
 
 (defn wrap-log

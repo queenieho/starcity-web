@@ -1,4 +1,4 @@
-(ns starcity.pages.dashboard
+(ns starcity.pages.rental-application
   (:require [starcity.pages.base :refer [base]]
             [starcity.pages.util :refer [ok]]
             [ring.util.response :as response]
@@ -10,12 +10,11 @@
 ;; =============================================================================
 ;; Components
 
-(defn- render-dashboard [req]
+(defn- render-application [req]
   (let [username (get-in req [:session :identity :account/email])]
     (base
-     [:div.container
-      [:h2 (str "Welcome " username "!")]
-      [:a {:href "/logout"} "Log Out"]])))
+     [:div#app]
+     :js ["app/main.js"])))
 
 ;; =============================================================================
 ;; API
@@ -23,4 +22,4 @@
 (defn handle [req]
   (if-not (authenticated? req)
     (throw-unauthorized)
-    (ok (render-dashboard req))))
+    (ok (render-application req))))

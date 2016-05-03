@@ -45,8 +45,7 @@
 (defn main
   []
   [:div.container
-   [:div.row
-    [:div.col-]]])
+   [:h1 "Rental Application from Reagent"]])
 
 (register-handler
  :initialize

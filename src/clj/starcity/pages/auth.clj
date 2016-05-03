@@ -16,12 +16,13 @@
 ;; Components
 
 (defn- content
-  [req errors email]
+  [req errors email next-url]
   [:div.container
    [:form.form-signin {:action "/login" :method "post"}
     [:h2.form-signin-heading "Please sign in"]
     (for [e errors]
       [:div.alert.alert-danger {:role "alert"} e])
+    [:input {:type "hidden" :name "next" :value next-url}]
     [:label.sr-only {:for "inputEmail"} "Email address"]
     [:input#input-email.form-control
      {:name        "email"
@@ -38,7 +39,9 @@
     [:button.btn.btn-lg.btn-primary.btn-block {:type "submit"} "Sign in"]]])
 
 (defn- render-login [req & {:keys [errors email] :or {errors [] email ""}}]
-  (base (content req errors email) :css ["signin.css"]))
+  ;; NOTE: Preserves the next url through the POST req by using a hidden input
+  (let [next-url (get-in req [:params :next] REDIRECT-AFTER-LOGIN)]
+    (base (content req errors email next-url) :css ["signin.css"])))
 
 ;; =============================================================================
 ;; Authentication
@@ -83,7 +86,7 @@
     (if-let [{:keys [email password]} (valid? vresult)]
       (if-let [user (account/authenticate db email password)]
         ;; success
-        (let [next-url (get-in req [:query-params :next] REDIRECT-AFTER-LOGIN)
+        (let [next-url (get-in req [:params :next])
               session  (assoc session :identity user)]
           (-> (response/redirect next-url)
               (assoc :session session)))
