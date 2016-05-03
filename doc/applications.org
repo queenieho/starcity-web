@@ -1,0 +1,154 @@
+#+TITLE: Application & Lease Questions
+
+* Rental Application
+
+** Personal Information
+
+*** Basic Information
+
+**** Full Name
+**** Phone numbers
+- Cell
+- Work
+- Home
+**** SSN
+**** Driver's License #
+- State
+
+*** Residence History
+
+1. Current Address
+2. Previous Address
+
+**** TODO Think of a better name
+**** Common
+
+- Street Address
+- City
+- State
+- Zip
+- How long lived
+- Why leaving/left?
+
+***** Rental?
+
+- Phone
+  - Alternative phone
+- Landlord/Manager name
+- Why leaving?
+- Rent ($)
+
+*** Employer Information
+
+1. Present
+   - Gross Monthly Income before deductions ($)
+   - Other income ($)
+     - Source
+2. Former
+   - Reason Left
+
+**** Common
+
+- Position
+- Duration ("How long?")
+- Address
+- Phone
+
+** References
+
+*** Credit
+
+May include store credit cards, car loans, small loans, etc. (What's etc.
+consist of?)
+
+Supply us with a copy of your credit report, OR a non-refundable fee of $X and a
+a reservation fee of $Y are required for processing the application.
+
+**** Bank Account
+
+- Bank Name
+- Branch
+- Account(s)
+  - Checking/Savings/Loan
+- City
+- State
+- Approximate Balance
+- How long open?
+
+**** TODO Other Active Credit Reference
+
+- Name
+- Account #
+- Expiration Date
+- Type of account (what are available types?)
+- Credit Limit
+- How long open?
+- Are payables current?
+
+**** TODO Need some number of credit references -- how many (2)?
+
+**** Other Questions
+
+- Have you ever been evicted?
+- Have you ever had a foreclosure/reposession? If yes:
+  - Date
+  - Explanation
+- Have you ever filed for bankruptcy? If yes:
+  - Chapter 7/Chapter 13?
+  - Explanation
+- Have you ever been convicted of a crime, other than a traffic violation? If yes:
+  - Explanation
+
+*** Personal
+
+- Date of desired occupancy
+- Anticipated length of stay
+
+**** Personal References
+
+See "Reference" below.
+
+***** TODO How many required?
+
+**** Emergency Contacts
+
+See "Reference" below.
+
+***** TODO How many required?
+
+**** Motor Vehicles
+
+See "Motor Vehicle" below.
+
+***** TODO How many required?
+
+**** Pets
+
+See "Pet" below.
+
+***** TODO How many required?
+
+**** Reference
+
+- Name
+- Relationship
+- Phone
+- Address
+- City
+- State
+- Zip
+
+**** Pet
+
+- Name
+- Type
+- Weight
+**** Motor Vehicle
+
+- Make
+- Color
+- Model
+- Year
+- License Plate #
+- State
+- Monthly Payment
