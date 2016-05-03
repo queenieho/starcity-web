@@ -9,7 +9,7 @@ pom.xml.asc
 /.nrepl-port
 .hgignore
 .hg/
-/resources/public/js/out
+/resources/public/js/app
 *.log            # TODO: move to /logs
 /logs
 /init-script

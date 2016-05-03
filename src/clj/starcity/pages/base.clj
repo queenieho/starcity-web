@@ -10,8 +10,13 @@
 
 (def BASE-CSS-DIR "assets/css")
 
+(def BASE-JS-DIR "js")
+
 (defn- css-path [filename]
   (format "%s/%s" BASE-CSS-DIR filename))
+
+(defn- js-path [filename]
+  (format "%s/%s" BASE-JS-DIR filename))
 
 (def ^{:private true} HEAD-CSS
   (map css-path
@@ -24,9 +29,9 @@
    "http://fonts.googleapis.com/css?family=Roboto+Condensed:400,300"])
 
 (def ^{:private true} BODY-JS
-  ["/js/jquery.min.js"
-   "/js/bootstrap.min.js"
-   "/js/main.js"])
+  (map js-path
+       ["jquery.min.js"
+        "bootstrap.min.js"]))
 
 ;; =============================================================================
 ;; Components
@@ -57,14 +62,10 @@
 ;; =============================================================================
 ;; API
 
-;; TODO: http://getbootstrap.com/examples/cover/
-
-(defn base [content & {:keys [css] :or {css []}}]
+(defn base [content & {:keys [css js] :or {css [] js []}}]
   (html5
    {:lang "en"}
    (head "Starcity" (map css-path css))
    [:body
     content
-    ;; TODO: advanced cljs compilation
-    ;; (apply include-js BODY-JS)
-    ]))
+    (apply include-js (->> (map js-path js) (concat BODY-JS)))]))

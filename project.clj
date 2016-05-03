@@ -28,19 +28,36 @@
                  [buddy "0.13.0"]
                  [bouncer "1.0.0"]]
 
+  :plugins [[lein-cljsbuild "1.1.3"]]
+
   :profiles
   {:dev        {:source-paths ["src/dev" "src/clj" "src/cljs"]
                 :plugins      [[lein-figwheel "0.5.0-2"]
                                [org.clojars.strongh/lein-init-script "1.3.1"]]
                 :dependencies [[figwheel-sidecar "0.5.0-2"]]}
+
    :uberjar    {:aot [starcity.core]}
-   :production {:source-paths ["src/clj" "src/cljs"]
+
+   :production {:prep-tasks   ["compile" ["cljsbuild" "once"]]
+                :source-paths ["src/clj" "src/cljs"]
                 :lis-opts     {:redirect-output-to "/var/log/starcity-web-init.log"
                                :jvm-opts           ["-Xms256m"
                                                     "-Xmx512m"
-                                                    "-server"]}}}
+                                                    "-server"]}
+                :cljsbuild
+                {:builds {:main
+                          {:source-paths ["src/cljs"]
+                           :jar          true
+                           :compiler     {:optimizations :advanced
+                                          :elide-asserts true
+                                          :pretty-print  false
+                                          :output-dir    "resources/public/js/app/out"
+                                          :output-to     "resources/public/js/app/main.js"}}}}}}
 
   :repl-options {:init-ns          user
                  :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
+
+  :clean-targets ^{:protect false} ["resources/public/js/app"
+                                    :target-path]
 
   :main starcity.core)
