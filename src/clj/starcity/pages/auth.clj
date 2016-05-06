@@ -46,10 +46,6 @@
 ;; =============================================================================
 ;; Authentication
 
-;; 1. Need to validate the email to ensure that it's a valid email
-;; 2. Password must be longer than 8 characters
-;; 3.
-
 (defn- required
   [message]
   [v/required :message message])

@@ -62,10 +62,10 @@
 ;; =============================================================================
 ;; API
 
-(defn base [content & {:keys [css js] :or {css [] js []}}]
+(defn base [content & {:keys [body-class css js] :or {body-class "" css [] js []}}]
   (html5
    {:lang "en"}
    (head "Starcity" (map css-path css))
-   [:body
+   [:body {:class body-class}
     content
     (apply include-js (->> (map js-path js) (concat BODY-JS)))]))

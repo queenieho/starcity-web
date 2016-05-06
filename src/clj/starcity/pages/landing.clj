@@ -10,30 +10,16 @@
 ;; Components
 
 (defn- landing-content []
-  [:div.site-wrapper
-   [:div.site-wrapper-inner
-    [:div.cover-container
-     [:div.masthead.clearfix
-      [:div.inner
-       [:h3.masthead-brand "Starcity"]
-       [:nav
-        [:ul.nav.masthead-nav
-         [:li.active [:a {:href "/"} "Home"]]
-         [:li [:a {:href "#About"} "About"]]
-         [:li [:a {:href "#contact"} "Contact"]]]]]]
-
-     [:div.inner.cover
-      [:h1.cover-heading "Starcity"]
-      [:p.lead "Coming Soon."]
-      [:p.lead
-       [:a.btn.btn-lg.btn-default {:href "#"} "Learn more"]]]
-
-     [:div.mastfoot
-      [:div.inner
-       [:p "Yep."]]]]]])
+  [:div.page-container
+   [:div.navbar.navbar-static-top
+    [:div.navbar-inner
+     [:div.container
+      [:a.brand {:href "/"}
+       [:img {:alt "Starcity" :src "/assets/img/starcity-logo.png"}]
+       [:a#login_btn.btn.btn-navbar {:href "/login"} "Log in"]]]]]])
 
 (defn- landing-view []
-  (base (landing-content) :css ["cover.css"]))
+  (base (landing-content) :css ["landing.css"] :body-class "starcity-page-landing"))
 
 ;; =============================================================================
 ;; API
