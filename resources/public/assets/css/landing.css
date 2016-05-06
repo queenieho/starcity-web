@@ -1,0 +1,276 @@
+/*Starcity */
+
+/*CSS Reset for browser-compatibility*/
+
+/* http://meyerweb.com/eric/tools/css/reset/ 2. v2.0 | 20110126
+  License: none (public domain)*/
+
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+}
+ HTML5 display-role reset for older browsers 
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+  display: block;
+}
+body {
+  line-height: 1;
+}
+ol, ul {
+  list-style: none;
+}
+blockquote, q {
+  quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+  content: '';
+  content: none;
+}
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+} 
+
+
+/*Starcity Code*/
+
+body {
+  margin: 0;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 18px;
+  line-height: 20px;
+  color: #333;
+  background-color: #fff;
+}
+
+body {
+  display: block;
+  margin: 8px;
+}
+
+body.static {
+  background-color: #fff;
+  background-position: 0 -28px;
+}
+
+body.starcity-page-landing {
+  padding: 0;
+  background: #f8f8f8;
+  color: #474a54;
+}
+
+div {
+  display: block;
+}
+
+.navbar.navbar-static-top {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.navbar {
+  position: absolute;
+  width: 100%;
+  z-index: 10;
+}
+
+.navbar-static-top {
+  position: static;
+  margin-bottom: 0;
+}
+
+.navbar {
+  overflow: visible;
+  margin-bottom: 20px;
+}
+
+.navbar-inner:before, .navbar-inner:after {
+  display: table;
+  content: "";
+  line-height: 0;
+}
+
+@media screen and (max-width: 1299px) {
+  body.starcity-page-landing .navbar .navbar-inner {
+  margin: 0px 50px;
+  width: auto;
+  padding: 16px 0;
+  }
+}
+
+body.starcity-page-landing .navbar .navbar-inner {
+  width: 1220px;
+  margin: auto;
+}
+
+/*??*/
+body.starcity-page-landing .navbar .navbar-inner {
+  background: none;
+}
+
+@media screen and (max-width: 979px) {
+  .navbar .navbar-inner {
+    height: auto !important;
+  }
+}
+
+.navbar .navbar-inner {
+  color: #fff;
+  box-shadow: none;
+  border: 0;
+  height: 42px;
+  filter: none;
+  background: #2B71B1;
+  padding: 16px 0;
+  border-radius: 0;
+}
+
+.navbar-static-top .navbar-inner {
+  border-radius: 0;
+}
+
+.navbar-inner {
+  min-height: 40px;
+  padding-left: 20px;
+  padding-right: 20px;
+  background-color: #fafafa;
+  background-repeat: repeat-x;
+}
+
+.container:before, .container:after {
+  display: table;
+  content: "";
+  line-height: 0;
+}
+
+body.starcity-page-landing .navbar .navbar-inner .container {
+  margin: 0;
+  width: auto;
+}
+
+@media (max-width: 979px) {
+  .navbar .container {
+    width: auto;
+    padding: 0;
+  }
+}
+
+.container {
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.navbar .navbar-inner .btn {
+  background: transparent;
+  border: 2px solid transparent;
+}
+
+@media (max-width: 979px) {
+  .navbar .btn-navbar {
+    display: block;
+  }
+}
+
+@media screen and (max-width: 979px) {
+  .navbar-inner .btn-navbar {
+    position: relative;
+    z-index: 9999;
+  }
+}
+
+.navbar .btn-navbar {
+  float: right;
+  padding: 7px 10px;
+  margin-left: 5px;
+  margin-right: 5px;
+  color: #fff;
+  text-shadow: 0 -1px 0 rgba(0,0,0,0.25);
+}
+
+.navbar .btn {
+  margin-top: 6px;
+}
+
+a:link {
+    text-decoration: none;
+}
+
+#login_btn {
+  background: rgba(21,21,170,.8);
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+.navbar .navbar-inner .brand {
+  padding: 6px 20px 12px 20px;
+}
+
+img {
+  width: 200px;
+}
+
+@media screen and (max-width: 1299px) {
+  body.starcity-page-landing .brand {
+    margin-left: -20px;
+  }
+}
+
+@media (max-width: 979px) {
+  .navbar .brand {
+    padding-left: 10px;
+    padding-right: 10px;
+    margin: 0 0 0 -5px;
+  }
+}
+
+.navbar .brand {
+  float: left;
+  display: block;
+  padding: 10px 20px 10px;
+  margin-left: 20px;
+  font-size: 20px;
+  font-weight: 200;
+  color: #777;
+  text-shadow: 0 1px 0 #ffffff;
+}
+
+footer {
+  background-color: #f8f8f8;
+  font-size: 14px;
+  padding: 50px 50px 70px 50px;
+  margin: 100px;
+  line-height: 1.6;
+  display: block;
+}
+
+
+/*nav {
+  background: rgba(40, 133, 160, .5);
+  margin: 20px 0 20px 0;
+  padding: 10px 0 10px 0;
+}
+#signup {
+  display: inline-block;
+  margin: 10px;
+  border: 1px solid black;
+  border-radius: 3px;
+  } */
