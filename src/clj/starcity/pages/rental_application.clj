@@ -15,8 +15,7 @@
     (base
      [:div#app]
      ;; TODO: Better workflow regarding minification...optimus
-     :js ["bower/formatter.js/dist/formatter.js"
-          "app/main.js"])))
+     :js ["app/main.js"])))
 
 ;; =============================================================================
 ;; API
