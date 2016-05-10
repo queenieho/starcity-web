@@ -10,6 +10,7 @@ pom.xml.asc
 .hgignore
 .hg/
 /resources/public/js/app
+/resources/public/js/bower
 *.log            # TODO: move to /logs
 /logs
 /init-script

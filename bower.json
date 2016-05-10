@@ -1,0 +1,21 @@
+{
+  "name": "starcity-web",
+  "homepage": "https://github.com/jalehman/starcity-web",
+  "authors": [
+    "Josh Lehman <jalehman37@gmail.com>"
+  ],
+  "description": "Starcity web app",
+  "main": "",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "resources/public/assets",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+  }
+}

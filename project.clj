@@ -11,8 +11,7 @@
                  [org.clojure/clojurescript "1.7.170"]
                  [reagent "0.5.1"]
                  [re-frame "0.7.0"]
-                 [re-com "0.8.1"]
-                 [secretary "1.2.3"]    ; cljs routing
+                 [secretary "1.2.3"]
                  ;; clj
                  [bidi "1.21.1"]
                  [cheshire "5.5.0"]
@@ -48,11 +47,14 @@
                 {:builds {:main
                           {:source-paths ["src/cljs"]
                            :jar          true
-                           :compiler     {:optimizations :advanced
-                                          :elide-asserts true
-                                          :pretty-print  false
-                                          :output-dir    "resources/public/js/app/out"
-                                          :output-to     "resources/public/js/app/main.js"}}}}}}
+                           :compiler     {:optimizations    :advanced
+                                          :elide-asserts    true
+                                          :pretty-print     false
+                                          :externs          []
+                                          :output-dir       "resources/public/js/app/out"
+                                          :output-to        "resources/public/js/app/main.js"
+                                          :closure-warnings {:externs-validation :off
+                                                             :non-standard-jsdoc :off}}}}}}}
 
   :repl-options {:init-ns          user
                  :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}

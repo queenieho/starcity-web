@@ -1,56 +1,45 @@
 (ns starcity.core
   (:require-macros [reagent.ratom :refer [reaction]])
   (:require [starcity.routes :as routes]
+            [starcity.application.core :as application]
+            [starcity.state :as state]
             [reagent.core :as reagent]
             [re-frame.core :refer [register-handler
                                    path
                                    register-sub
                                    dispatch
                                    dispatch-sync
-                                   subscribe]]
-            [re-com.core :as com]))
+                                   subscribe]]))
 
 ;; =============================================================================
 ;; Constants
 
 (enable-console-print!)
 
-(def app-db (reagent/atom {}))
+(comment
+  ;; A "phone" should look like:
+  {:priority :primary
+   :number   "2345678910" ; string or number? Probably string. We'll never do
+                                        ; math on it.
+   :type     :cell})
 
-;; =============================================================================
-;; input-text
-
-(defn handle-input-text
-  [app-state [_ text]]
-  (assoc-in app-state [:input-text] text))
-
-(register-handler :input-text/changed handle-input-text)
-
-(register-sub
- :input-text
- (fn [db _]
-   (reaction (get-in @db [:input-text]))))
-
-(defn input-text
-  []
-  (let [text (subscribe [:input-text])]
-    (fn []
-      [com/input-text
-       :model @text
-       :on-change #(dispatch [:input-text/changed %])])))
 
 ;; =============================================================================
 ;; Entrypoint
 
 (defn main
   []
-  [:div.container
-   [:h1 "Rental Application from Reagent"]])
+  [application/main])
 
 (register-handler
  :initialize
  (fn [db _]
-   {:input-text "Hello, world!"}))
+   {:application
+    {:personal
+     {:basic {:name           {:first "" :last ""}
+              :phones         [{:number "" :priority :primary :type :cell}]
+              :ssn            ""
+              :driver-license {:number "" :state nil}}}}}))
 
 (register-handler
  :app/nav

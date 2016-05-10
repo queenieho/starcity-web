@@ -8,9 +8,14 @@
 
 **** Full Name
 **** Phone numbers
+
 - Cell
 - Work
 - Home
+
+Let's instead mandate a *primary* phone number that can be of any type, /e.g./
+~#{:cell :work :home}~; then, any number of *secondary* conditions can be added.
+
 **** SSN
 **** Driver's License #
 - State

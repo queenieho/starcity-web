@@ -14,7 +14,9 @@
   (let [username (get-in req [:session :identity :account/email])]
     (base
      [:div#app]
-     :js ["app/main.js"])))
+     ;; TODO: Better workflow regarding minification...optimus
+     :js ["bower/formatter.js/dist/formatter.js"
+          "app/main.js"])))
 
 ;; =============================================================================
 ;; API
