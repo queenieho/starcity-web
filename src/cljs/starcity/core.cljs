@@ -2,10 +2,8 @@
   (:require-macros [reagent.ratom :refer [reaction]])
   (:require [starcity.routes :as routes]
             [starcity.application.core :as application]
-            [starcity.state :as state]
             [reagent.core :as reagent]
             [re-frame.core :refer [register-handler
-                                   path
                                    register-sub
                                    dispatch
                                    dispatch-sync

@@ -1,13 +1,10 @@
 (ns starcity.application.basic
-  (:require-macros [reagent.ratom :refer [reaction]])
-  (:require [starcity.components.form :as form]
-            [starcity.util :refer [event-value]]
-            [reagent.core :as reagent]
-            [re-frame.core :refer [register-handler
-                                   register-sub
-                                   dispatch
-                                   subscribe]]
-            [clojure.set :refer [difference]]))
+  (:require [clojure.set :refer [difference]]
+            [re-frame.core
+             :refer
+             [dispatch register-handler register-sub subscribe]]
+            [starcity.components.form :as form])
+  (:require-macros [reagent.ratom :refer [reaction]]))
 
 ;; =============================================================================
 ;; Helpers

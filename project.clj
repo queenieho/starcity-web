@@ -11,7 +11,9 @@
                  [org.clojure/clojurescript "1.7.170"]
                  [reagent "0.5.1"]
                  [re-frame "0.7.0"]
+                 ;; routing
                  [secretary "1.2.3"]
+                 [venantius/accountant "0.1.7"]
                  ;; clj
                  [bidi "1.21.1"]
                  [cheshire "5.5.0"]
