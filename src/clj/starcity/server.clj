@@ -28,7 +28,7 @@
   ["/" {""       :index
         "login"  :login
         "logout" :logout
-        "apply"  :apply
+        "apply"  {true :apply}
         "me"     :dashboard
 
         true     :index ; catch-all
@@ -39,6 +39,7 @@
 
 (defn handler [{:keys [uri request-method] :as req}]
   (let [match (bidi/match-route routes uri :request-method request-method)]
+    (debug "The match is:" match)
     (case (:handler match)
       :index     (landing/handle req)
       :login     (auth/handle-login req)
