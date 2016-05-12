@@ -14,18 +14,26 @@
 
 (defn hook-browser-navigation! []
   (accountant/configure-navigation!
-   {:nav-handler #(secretary/dispatch! %)
+   {:nav-handler  #(secretary/dispatch! %)
     :path-exists? #(secretary/locate-route %)}))
 
 (defn app-routes []
-  (defroute "/apply" []
+  (secretary/reset-routes!)             ; for dev purposes...doesn't seem to be working
+
+  (defroute home "/apply" []
     (dispatch [:app/nav :home]))
 
-  (defroute "/apply/test1" []
-    (dispatch [:app/nav :about]))
+  (defroute basic "/apply/basic" []
+    (dispatch [:app/nav :basic]))
 
+  (defroute residence "/apply/residence" []
+    (dispatch [:app/nav :residence]))
+
+  (defroute "/apply/*" []
+    (accountant/navigate! APP-ROOT-URI))
 
   ;; --------------------
+
   (hook-browser-navigation!)
 
   (accountant/dispatch-current!))

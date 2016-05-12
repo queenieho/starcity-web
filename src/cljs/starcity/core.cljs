@@ -14,24 +14,12 @@
 
 (enable-console-print!)
 
-(comment
-  ;; A "phone" should look like:
-  {:priority :primary
-   :number   "2345678910" ; string or number? Probably string. We'll never do
-                                        ; math on it.
-   :type     :cell})
-
-
 ;; =============================================================================
-;; Entrypoint
-
-(defn main
-  []
-  [application/main])
+;; App-wide handlers
 
 (register-handler
- :initialize
- (fn [db _]
+ :app/initialize
+ (fn [_ _]
    {:application
     {:personal
      {:basic {:name           {:first "" :last ""}
@@ -41,14 +29,31 @@
 
 (register-handler
  :app/nav
- (fn [db evt]
-   (prn evt)
-   db))
+ (fn [app-state [_ route]]
+   (println "Received route dispatch to:" route)
+   (assoc-in app-state [:current-route] route)))
+
+;; =============================================================================
+;; App-wide Subscriptions
+
+(register-sub
+ :app/current-route
+ (fn [db _]
+   (reaction (:current-route @db))))
+
+
+;; =============================================================================
+;; Entrypoint
+
+(defn main
+  []
+  [application/main])
+
 
 (defn ^:export run
   []
   (routes/app-routes)
-  (dispatch-sync [:initialize])
+  (dispatch-sync [:app/initialize])
   (reagent/render [main]
                   (.getElementById js/document "app")))
 
