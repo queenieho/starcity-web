@@ -27,7 +27,9 @@
                  [com.taoensso/timbre "4.3.1"]
                  [org.clojure/tools.nrepl "0.2.12"]
                  [buddy "0.13.0"]
-                 [bouncer "1.0.0"]]
+                 [bouncer "1.0.0"]
+                 [prismatic/plumbing "0.5.3"]
+                 [prismatic/schema "1.1.1"]]
 
   :plugins [[lein-cljsbuild "1.1.3"]]
 

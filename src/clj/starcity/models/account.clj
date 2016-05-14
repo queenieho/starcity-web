@@ -1,10 +1,10 @@
 (ns starcity.models.account
-  (:require [datomic.api :as d]
-            [buddy.hashers :as hashers]
+  (:require [buddy.hashers :as hashers]
             [clojure.string :refer [trim]]
+            [datomic.api :as d]
             [starcity.datomic.util :refer [one]]
-            [starcity.util :refer :all]
-            [starcity.models.util :refer :all]))
+            [starcity.models.util :refer :all]
+            [starcity.util :refer :all]))
 
 ;; =============================================================================
 ;; Password Hashing

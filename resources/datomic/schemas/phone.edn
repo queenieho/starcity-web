@@ -1,0 +1,24 @@
+;; =============================================================================
+;; Phone
+
+[{:db/id #db/id[:db.part/db]
+  :db/ident :phone/number
+  :db/valueType :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db.install/_attribute :db.part/db}
+
+ ;; Not enforcing these at schema level -- enum seems like overkill
+ ;; 5/12/16
+ {:db/id #db/id[:db.part/db]
+  :db/ident :phone/type
+  :db/valueType :db.type/keyword
+  :db/cardinality :db.cardinality/one
+  :db/doc "The type of phone number: #{:cell :work :home}"
+  :db.install/_attribute :db.part/db}
+
+ {:db/id #db/id[:db.part/db]
+  :db/ident :phone/priority
+  :db/valueType :db.type/keyword
+  :db/cardinality :db.cardinality/one
+  :db/doc "The priority of phone number: #{:primary :secondary}"
+  :db.install/_attribute :db.part/db}]

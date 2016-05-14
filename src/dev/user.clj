@@ -5,9 +5,12 @@
             [starcity.logger :as logger]
             [starcity.server :as server]
             [starcity.datomic :as datomic]
-            [taoensso.timbre :as timbre]))
+            [taoensso.timbre :as timbre]
+            [schema.core :as s]))
 
 (timbre/refer-timbre)
+
+(s/set-fn-validation! true) ; turn on validation globally during development
 
 ;; =============================================================================
 ;; Figwheel

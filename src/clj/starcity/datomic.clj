@@ -37,7 +37,8 @@
   "Ensure that any newly added attrs get transacted when the system is started."
   [conn dir]
   (let [schemas (read-edn dir)
-        idents  (new-idents conn (remove #(nil? (:db/valueType %)) schemas))]
+        idents  (new-idents conn schemas ;; (remove #(nil? (:db/valueType %)) schemas)
+                            )]
     (when-not (empty? idents)
       (debugf "Creating new attrs with idents: %s" (pr-str (map :db/ident idents)))
       @(d/transact conn (vec idents)))))
@@ -56,7 +57,8 @@
         (debugf "Seeding database from %s" seed-dir)
         (try
           @(d/transact conn (vec (read-edn seed-dir))) ; hacky, but works!
-          (catch Exception e)))
+          (catch Exception e
+            (warn "Exception encountered while seeding database!" e))))
       (assoc component :conn conn :part :db.part/user))) ; move :part to config
   (stop [component]
     (debug "Closing Datomic Connection")

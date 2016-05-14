@@ -1,16 +1,71 @@
 ;; =============================================================================
 ;; Application
 
-[{:db/id #db/id[:db.part/db]
-  :db/ident :rental-application/applicant
-  :db/valueType :db.type/ref
+[
+ ;; {:db/id #db/id[:db.part/db]
+ ;;  :db/ident :rental-application/applicant
+ ;;  :db/valueType :db.type/ref
+ ;;  :db/cardinality :db.cardinality/one
+ ;;  :db/doc "Reference to the applicant's account."
+ ;;  :db.install/_attribute :db.part/db}
+
+ {:db/id #db/id[:db.part/db]
+  :db/ident :rental-application/first-name
+  :db/valueType :db.type/string
   :db/cardinality :db.cardinality/one
-  :db/doc "Reference to the applicant's account."
+  :db/fulltext true
+  :db/doc "The applicant's first name."
   :db.install/_attribute :db.part/db}
 
  {:db/id #db/id[:db.part/db]
-  :db/ident :rental-application/created-on
+  :db/ident :rental-application/middle-name
+  :db/valueType :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/fulltext true
+  :db/doc "The applicant's middle name."
+  :db.install/_attribute :db.part/db}
+
+ {:db/id #db/id[:db.part/db]
+  :db/ident :rental-application/last-name
+  :db/valueType :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/fulltext true
+  :db/doc "The applicant's last name."
+  :db.install/_attribute :db.part/db}
+
+ {:db/id #db/id[:db.part/db]
+  :db/ident :rental-application/phones
+  :db/valueType :db.type/ref
+  :db/cardinality :db.cardinality/many
+  :db/isComponent true
+  :db/doc "Phone number(s) for the applicant."
+  :db.install/_attribute :db.part/db}
+
+ {:db/id #db/id[:db.part/db]
+  :db/ident :rental-application/ssn
+  :db/valueType :db.type/string
+  :db/cardinality :db.cardinality/one
+  :db/doc "The user's encrypted social security number."
+  :db.install/_attribute :db.part/db}
+
+ {:db/id #db/id[:db.part/db]
+  :db/ident :rental-application/drivers-license
+  :db/valueType :db.type/ref
+  :db/cardinality :db.cardinality/one
+  :db/isComponent true
+  :db/doc "The user's driver's license information."
+  :db.install/_attribute :db.part/db}
+
+ {:db/id #db/id[:db.part/db]
+  :db/ident :rental-application/started-on
   :db/valueType :db.type/instant
   :db/cardinality :db.cardinality/one
-  :db/doc "The time at which the application was created."
+  :db/doc "The time at which the application was started."
+  :db.install/_attribute :db.part/db}
+
+ {:db/id #db/id[:db.part/db]
+  :db/ident :rental-application/completed-on
+  :db/valueType :db.type/instant
+  :db/cardinality :db.cardinality/one
+  :db/doc "The time at which the application was completed."
   :db.install/_attribute :db.part/db}]
