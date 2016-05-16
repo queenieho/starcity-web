@@ -2,6 +2,7 @@
   (:require [clojure.tools.namespace.repl :refer [refresh]]
             [com.stuartsierra.component :as component]
             [figwheel-sidecar.repl-api :as ra]
+            [figwheel-sidecar.system :refer [fetch-config]]
             [starcity.logger :as logger]
             [starcity.server :as server]
             [starcity.datomic :as datomic]
@@ -37,9 +38,9 @@
     (component/system-map
      :datomic (datomic/datomic db)
      :webserver (component/using
-                 (server/server web-port)
+                 (server/server web-port :development)
                  [:datomic])
-     :figwheel (map->Figwheel (figwheel-sidecar.system/fetch-config)))))
+     :figwheel (map->Figwheel (fetch-config)))))
 
 (def config
   {:web-port 8080

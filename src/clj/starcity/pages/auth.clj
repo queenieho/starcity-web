@@ -2,6 +2,8 @@
   (:require [starcity.pages.base :refer [base]]
             [starcity.pages.util :refer [ok malformed]]
             [starcity.models.account :as account]
+            [starcity.middleware :refer [get-component]]
+            [starcity.util :refer :all]
             [bouncer.core :as b]
             [bouncer.validators :as v]
             [clojure.string :refer [trim]]
@@ -10,7 +12,7 @@
 ;; =============================================================================
 ;; Constants
 
-(def ^{:private true} REDIRECT-AFTER-LOGIN "/me")
+(def ^{:private true} REDIRECT-AFTER-LOGIN "/apply")
 
 ;; =============================================================================
 ;; Components
@@ -77,8 +79,9 @@
 
 (defn- authenticate
   "Authenticate the user by checking email and password."
-  [{:keys [params session db] :as req}]
-  (let [vresult (-> params clean-credentials validate-credentials)]
+  [{:keys [params session] :as req}]
+  (let [db      (get-component req :db)
+        vresult (-> params clean-credentials validate-credentials)]
     (if-let [{:keys [email password]} (valid? vresult)]
       (if-let [user (account/authenticate db email password)]
         ;; success

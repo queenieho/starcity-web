@@ -1,7 +1,7 @@
 {:server-port 3449
  :builds
  [{:id "main"
-   :source-paths ["src/cljs"]
+   :source-paths ["src/cljs" "src/dev"]
    :figwheel true
    :build-options {:main starcity.core
                    :asset-path "/js/app/out"

@@ -59,10 +59,13 @@
 ;; =============================================================================
 ;; API
 
-(defn base [content & {:keys [body-class css js] :or {body-class "" css [] js []}}]
+(defn base [content & {:keys [body-class css js cljs-devtools?]
+                       :or   {body-class "" css [] js []}}]
   (html5
    {:lang "en"}
    (head "Starcity" (map css-path css))
    [:body {:class body-class}
     content
-    (apply include-js (->> (map js-path js) (concat BODY-JS)))]))
+    (apply include-js (->> (map js-path js) (concat BODY-JS)))
+    (when cljs-devtools?
+      [:script "goog.require('user.devtools')"])]))
