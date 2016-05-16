@@ -1,0 +1,68 @@
+;; A data-based representation of the questions that will need to be asked
+
+[{:section :basic-information
+  :groups  [{:group  :name
+             :label  "Name"
+             :fields [{:type :text :key :first-name :required true}
+                      {:type :text :key :middle-name :required false}
+                      {:type :text :key :last-name :required true}]}
+
+            {:group       :ssn
+             :label       "Social Security Number"
+             :description "TODO: We need your Social Security Number in order to..."
+             :fields      {:type :text :key :ssn :required true :placeholder "e.g. 123-45-6789"}}
+
+            {:group    :drivers-license
+             :label    "Driver's License"
+             :required false ; TODO: Is driver's license required?
+             :fields   [{:type :text :key :number :required true :label "Driver's License Number"}
+                        {:type :select :key :state :required true :options ["CA" "FL" "WA"]}]} ; TODO: States
+            ]}
+
+ {:section :residence-history-current
+  :title   "Residence History: Current"
+  :groups  [{:group  :address
+             :fields [{:type :text :key :street-address :required true}
+                      {:type :text :key :city :required true}
+                      {:type :select :key :state :options ["CA" "FL" "WA"] :required true}
+                      {:type :text :key :zip :label "Postal Code" :required true}]}
+
+            {:group  :history
+             :fields [{:type :text :key :duration :required true :label "How long have you lived here?"}
+                      {:type :textarea :key :reason-leaving :required true :label "Why are you leaving?"}]}
+
+            {:group  :is-rental
+             :fields {:type :yn :key :rental :required true :label "Are you renting?"}}
+
+            ;; The answer to :is-rental determines whether or not this section is present
+            ;; {:group  :rental
+            ;;  :fields [{:type :text :key :primary-phone :required true :label "TODO: Phone number"}
+            ;;           {:type :text :key :alternative-phone :required false :label "Alternative Phone Number"}
+            ;;           {:type :text :key :landlord :required true :label "Landlord or Manager Name"}
+            ;;           {:type :currency :key :rent :required true :label "What was your monthly rent?" :placeholder "e.g. $2000"}]}
+
+            ]}
+
+ {:section :residence-history-previous
+  :title   "Residence History: Previous"
+  :groups  [{:group  :address
+             :fields [{:type :text :key :street-address :required true}
+                      {:type :text :key :city :required true}
+                      {:type :select :key :state :options ["CA" "FL" "WA"] :required true}
+                      {:type :text :key :zip :label "Postal Code" :required true}]}
+
+            {:group  :history
+             :fields [{:type :text :key :duration :required true :label "How long did you live there?"}
+                      {:type :textarea :key :reason-leaving :required true :label "Why did you leave?"}]}
+
+            {:group  :is-rental
+             :fields {:type :yn :key :rental :required true :label "Was this a rental?"}}
+
+            ;; The answer to :is-rental determines whether or not this section is present
+            ;; {:group  :rental
+            ;;  :fields [{:type :text :key :primary-phone :required true :label "TODO: Phone number"}
+            ;;           {:type :text :key :alternative-phone :required false :label "Alternative Phone Number"}
+            ;;           {:type :text :key :landlord :required true :label "Landlord or Manager Name"}
+            ;;           {:type :currency :key :rent :required true :label "What was your monthly rent?" :placeholder "e.g. $2000"}]}
+
+            ]}]
