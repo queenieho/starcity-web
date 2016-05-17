@@ -38,7 +38,7 @@
 (register-handler
  :app/initialize
  (fn [_ _]
-   {:progress :basic/drivers-license
+   {:progress :basic/name
     :sections (make-sections SECTIONS)
     :basic    {:name           {:first "" :last ""}
                :phones         [{:priority :primary :type :cell}]
@@ -81,13 +81,11 @@
 (register-sub
  :progress/section
  (fn [db _]
-   (prn "Section change!" (:progress @db))
    (reaction (-> @db :progress namespace keyword))))
 
 (register-sub
  :progress/group
  (fn [db _]
-   (prn "Group change!" (:progress @db))
    (reaction (-> @db :progress name keyword))))
 
 ;; =============================================================================
