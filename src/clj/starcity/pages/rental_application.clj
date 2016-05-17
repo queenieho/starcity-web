@@ -16,8 +16,8 @@
         username    (get-in req [:session :identity :account/email])]
     (base
      [:div#app]
-     ;; TODO: Better workflow regarding minification...optimus
      :js ["app/main.js"]
+     :css ["forms.css"]
      :cljs-devtools? (= :development environment))))
 
 ;; =============================================================================
