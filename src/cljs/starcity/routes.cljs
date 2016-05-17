@@ -1,29 +1,39 @@
 (ns starcity.routes
-  (:require-macros [secretary.core :refer [defroute]])
-  (:import goog.History)
-  (:require [secretary.core :as secretary]
-            [goog.events :as events]
-            [goog.history.EventType :as EventType]
-            [re-frame.core :refer [dispatch]]))
+  (:require [accountant.core :as accountant]
+            [re-frame.core :refer [dispatch]]
+            [secretary.core :as secretary])
+  (:require-macros [secretary.core :refer [defroute]]))
+
+;; NOTE: See https://gist.github.com/city41/aab464ae6c112acecfe1
+;; NOTE: See http://www.lispcast.com/mastering-client-side-routing-with-secretary-and-goog-history
+
+(def APP-ROOT-URI "/apply")
+
+(defn navigate! [route]
+  (accountant/navigate! (str APP-ROOT-URI route)))
 
 (defn hook-browser-navigation! []
-  (doto (History.)
-    (events/listen
-     EventType/NAVIGATE
-     (fn [event]
-       (secretary/dispatch! (.-token event))))
-    (.setEnabled true)))
+  (accountant/configure-navigation!
+   {:nav-handler  #(secretary/dispatch! %)
+    :path-exists? #(secretary/locate-route %)}))
 
 (defn app-routes []
-  (secretary/set-config! :prefix "#")
-  ;; --------------------
-  ;; define routes here
-  (defroute "/" []
+  (secretary/reset-routes!)             ; for dev purposes...doesn't seem to be working
+
+  (defroute home "/apply" []
     (dispatch [:app/nav :home]))
 
-  (defroute "/about" []
-    (dispatch [:app/nav :about]))
+  (defroute basic "/apply/basic" []
+    (dispatch [:app/nav :basic]))
 
+  (defroute residence "/apply/residence" []
+    (dispatch [:app/nav :residence]))
+
+  (defroute "/apply/*" []
+    (accountant/navigate! APP-ROOT-URI))
 
   ;; --------------------
-  (hook-browser-navigation!))
+
+  (hook-browser-navigation!)
+
+  (accountant/dispatch-current!))

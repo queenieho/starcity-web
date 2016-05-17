@@ -31,11 +31,33 @@
   :db.install/_attribute :db.part/db}
 
  {:db/id #db/id[:db.part/db]
+  :db/ident :account/application
+  :db/valueType :db.type/ref
+  :db/cardinality :db.cardinality/one
+  :db/doc "The rental application associated with this account."
+  :db.install/_attribute :db.part/db}
+
+ {:db/id #db/id[:db.part/db]
   :db/ident :account/activated
   :db/valueType :db.type/boolean
   :db/cardinality :db.cardinality/one
   :db/doc "Is the user's account activated?"
   :db.install/_attribute :db.part/db}
+
+ {:db/id #db/id[:db.part/db]
+  :db/ident :account/role
+  :db/valueType :db.type/ref
+  :db/cardinality :db.cardinality/one
+  :db/doc "User's roles"
+  :db.install/_attribute :db.part/db}
+
+ ;; TODO: How to get these into the starcity partition?
+ {:db/id #db/id[:db.part/user]
+  :db/ident :account.role/applicant}
+ {:db/id #db/id[:db.part/user]
+  :db/ident :account.role/tenant}
+ {:db/id #db/id[:db.part/user]
+  :db/ident :account.role/admin}
 
  ;; TODO: determine if `approved' flag is necessary
 

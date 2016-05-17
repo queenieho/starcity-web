@@ -11,7 +11,10 @@
                  [org.clojure/clojurescript "1.7.170"]
                  [reagent "0.5.1"]
                  [re-frame "0.7.0"]
+                 [reagent-reforms "0.4.4-SNAPSHOT"]
+                 ;; routing
                  [secretary "1.2.3"]
+                 [venantius/accountant "0.1.7"]
                  ;; clj
                  [bidi "1.21.1"]
                  [cheshire "5.5.0"]
@@ -25,7 +28,9 @@
                  [com.taoensso/timbre "4.3.1"]
                  [org.clojure/tools.nrepl "0.2.12"]
                  [buddy "0.13.0"]
-                 [bouncer "1.0.0"]]
+                 [bouncer "1.0.0"]
+                 [prismatic/plumbing "0.5.3"]
+                 [prismatic/schema "1.1.1"]]
 
   :plugins [[lein-cljsbuild "1.1.3"]]
 
@@ -33,7 +38,8 @@
   {:dev        {:source-paths ["src/dev" "src/clj" "src/cljs"]
                 :plugins      [[lein-figwheel "0.5.0-2"]
                                [org.clojars.strongh/lein-init-script "1.3.1"]]
-                :dependencies [[figwheel-sidecar "0.5.0-2"]]}
+                :dependencies [[figwheel-sidecar "0.5.0-2"]
+                               [binaryage/devtools "0.6.1"]]}
 
    :uberjar    {:aot [starcity.core]}
 

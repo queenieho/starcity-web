@@ -1,6 +1,7 @@
 (ns starcity.pages.rental-application
   (:require [starcity.pages.base :refer [base]]
             [starcity.pages.util :refer [ok]]
+            [starcity.middleware :refer [get-environment]]
             [ring.util.response :as response]
             [buddy.auth :refer [authenticated? throw-unauthorized]]
             [taoensso.timbre :as timbre]))
@@ -11,12 +12,13 @@
 ;; Components
 
 (defn- render-application [req]
-  (let [username (get-in req [:session :identity :account/email])]
+  (let [environment (get-environment req)
+        username    (get-in req [:session :identity :account/email])]
     (base
      [:div#app]
-     ;; TODO: Better workflow regarding minification...optimus
-     :js ["bower/formatter.js/dist/formatter.js"
-          "app/main.js"])))
+     :js ["app/main.js"]
+     :css ["forms.css"]
+     :cljs-devtools? (= :development environment))))
 
 ;; =============================================================================
 ;; API

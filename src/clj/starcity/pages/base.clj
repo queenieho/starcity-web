@@ -13,16 +13,13 @@
 (def BASE-JS-DIR "js")
 
 (defn- css-path [filename]
-  (format "%s/%s" BASE-CSS-DIR filename))
+  (format "/%s/%s" BASE-CSS-DIR filename))
 
 (defn- js-path [filename]
-  (format "%s/%s" BASE-JS-DIR filename))
+  (format "/%s/%s" BASE-JS-DIR filename))
 
 (def ^{:private true} HEAD-CSS
-  (map css-path
-       ["bootstrap.css"
-        "material-design-iconic-font.min.css"
-        "re-com.css"]))
+  (map css-path ["bootstrap.css"]))
 
 (def ^{:private true} HEAD-FONTS
   ["http://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic"
@@ -48,10 +45,10 @@
        [:meta {:http-equiv "X-UA-Compatible" :content "IE=edge"}]
        [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
        (map apple-touch-icon sizes)
-       [:link {:rel "icon" :type "image/png" :sizes "192x192" :href "android-icon-192x192.png"}]
-       [:link {:rel "icon" :type "image/png" :sizes "32x32" :href "favicon-32x32.png"}]
-       [:link {:rel "icon" :type "image/png" :sizes "96x96" :href "favicon-96x96.png"}]
-       [:link {:rel "icon" :type "image/png" :sizes "16x16" :href "favicon-16x16.png"}]
+       [:link {:rel "icon" :type "image/png" :sizes "192x192" :href "/android-icon-192x192.png"}]
+       [:link {:rel "icon" :type "image/png" :sizes "32x32" :href "/favicon-32x32.png"}]
+       [:link {:rel "icon" :type "image/png" :sizes "96x96" :href "/favicon-96x96.png"}]
+       [:link {:rel "icon" :type "image/png" :sizes "16x16" :href "/favicon-16x16.png"}]
        [:link {:rel "manifest" :href "/manifest.json"}]
        [:meta {:name "msapplication-TileColor" :content "#ffffff"}]
        [:meta {:name "msapplication-TileImage" :content "/ms-icon-144x144.png"}]
@@ -62,10 +59,13 @@
 ;; =============================================================================
 ;; API
 
-(defn base [content & {:keys [body-class css js] :or {body-class "" css [] js []}}]
+(defn base [content & {:keys [body-class css js cljs-devtools?]
+                       :or   {body-class "" css [] js []}}]
   (html5
    {:lang "en"}
    (head "Starcity" (map css-path css))
    [:body {:class body-class}
     content
-    (apply include-js (->> (map js-path js) (concat BODY-JS)))]))
+    (apply include-js (->> (map js-path js) (concat BODY-JS)))
+    (when cljs-devtools?
+      [:script "goog.require('user.devtools')"])]))

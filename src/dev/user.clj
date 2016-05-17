@@ -2,12 +2,16 @@
   (:require [clojure.tools.namespace.repl :refer [refresh]]
             [com.stuartsierra.component :as component]
             [figwheel-sidecar.repl-api :as ra]
+            [figwheel-sidecar.system :refer [fetch-config]]
             [starcity.logger :as logger]
             [starcity.server :as server]
             [starcity.datomic :as datomic]
-            [taoensso.timbre :as timbre]))
+            [taoensso.timbre :as timbre]
+            [schema.core :as s]))
 
 (timbre/refer-timbre)
+
+(s/set-fn-validation! true) ; turn on validation globally during development
 
 ;; =============================================================================
 ;; Figwheel
@@ -34,9 +38,9 @@
     (component/system-map
      :datomic (datomic/datomic db)
      :webserver (component/using
-                 (server/server web-port)
+                 (server/server web-port :development)
                  [:datomic])
-     :figwheel (map->Figwheel (figwheel-sidecar.system/fetch-config)))))
+     :figwheel (map->Figwheel (fetch-config)))))
 
 (def config
   {:web-port 8080
