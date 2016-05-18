@@ -1,6 +1,7 @@
 (ns starcity.pages.dashboard
   (:require [starcity.pages.base :refer [base]]
             [starcity.pages.util :refer [ok]]
+            [starcity.middleware :refer [get-environment]]
             [ring.util.response :as response]
             [buddy.auth :refer [authenticated? throw-unauthorized]]
             [taoensso.timbre :as timbre]))
@@ -11,11 +12,13 @@
 ;; Components
 
 (defn- render-dashboard [req]
-  (let [username (get-in req [:session :identity :account/email])]
+  (let [environment (get-environment req)
+        username    (get-in req [:session :identity :account/email])]
     (base
-     [:div.container
-      [:h2 (str "Welcome " username "!")]
-      [:a {:href "/logout"} "Log Out"]])))
+     [:div#app]
+     :js ["app/main.js"]
+     :css ["forms.css"]
+     :cljs-devtools? (= :development environment))))
 
 ;; =============================================================================
 ;; API

@@ -12,7 +12,7 @@
 ;; =============================================================================
 ;; Constants
 
-(def ^{:private true} REDIRECT-AFTER-LOGIN "/apply")
+(def ^{:private true} REDIRECT-AFTER-LOGIN "/me")
 
 ;; =============================================================================
 ;; Components

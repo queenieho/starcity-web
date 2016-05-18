@@ -34,8 +34,7 @@
   ["/" {""       :index
         "login"  :login
         "logout" :logout
-        "apply"  {true :apply}
-        "me"     :dashboard
+        "me"     {true :dashboard}
 
         true     :index ; catch-all
         }])
@@ -50,7 +49,6 @@
       :login     (auth/handle-login req)
       :logout    (auth/handle-logout req)
       :dashboard (dashboard/handle req)
-      :apply     (rental/handle req)
       req)))
 
 
