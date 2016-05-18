@@ -1,11 +1,13 @@
 {:server-port 3449
  :builds
- [{:id "main"
-   :source-paths ["src/cljs" "src/dev"]
-   :figwheel true
-   :build-options {:main starcity.core
-                   :asset-path "/js/app/out"
-                   :output-to "resources/public/js/app/main.js"
-                   :output-dir "resources/public/js/app/out"
-                   :verbose false
+ [{:id            "main"
+   :source-paths  ["src/cljs" "src/dev"]
+   :figwheel      true
+   :build-options {:main                 starcity.core
+                   :asset-path           "/js/app/out"
+                   :output-to            "resources/public/js/app/main.js"
+                   :output-dir           "resources/public/js/app/out"
+                   :verbose              false
+                   :source-map           true
+                   :optimizations        :none
                    :source-map-timestamp true}}]}

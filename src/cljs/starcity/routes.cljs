@@ -7,10 +7,27 @@
 ;; NOTE: See https://gist.github.com/city41/aab464ae6c112acecfe1
 ;; NOTE: See http://www.lispcast.com/mastering-client-side-routing-with-secretary-and-goog-history
 
-(def APP-ROOT-URI "/apply")
+;; =============================================================================
+;; Constants
 
+(def ^:private ROOT "/me")
+
+;; =============================================================================
+;; Helpers
+
+(defn- prefix [uri]
+  (str ROOT uri))
+
+(defn- phase-id->location
+  [phase-id]
+  (get {2 :phase/two} phase-id :unknown))
+
+;; =============================================================================
+;; API
+
+;; TODO: Ensure it's form the app root URI
 (defn navigate! [route]
-  (accountant/navigate! (str APP-ROOT-URI route)))
+  (accountant/navigate! route))
 
 (defn hook-browser-navigation! []
   (accountant/configure-navigation!
@@ -18,19 +35,16 @@
     :path-exists? #(secretary/locate-route %)}))
 
 (defn app-routes []
-  (secretary/reset-routes!)             ; for dev purposes...doesn't seem to be working
 
-  (defroute home "/apply" []
-    (dispatch [:app/nav :home]))
+  (defroute home ROOT []
+    (dispatch [:app/nav :home {}]))
 
-  (defroute basic "/apply/basic" []
-    (dispatch [:app/nav :basic]))
+  (defroute phase (prefix "/phase/:phase-id/:section/:group") {:as params}
+    (let [{:keys [phase-id] :as params} (update params :phase-id js/parseInt)]
+      (dispatch [:app/nav (phase-id->location phase-id) params])))
 
-  (defroute residence "/apply/residence" []
-    (dispatch [:app/nav :residence]))
-
-  (defroute "/apply/*" []
-    (accountant/navigate! APP-ROOT-URI))
+  (defroute (prefix "/*") []
+    (accountant/navigate! ROOT))
 
   ;; --------------------
 

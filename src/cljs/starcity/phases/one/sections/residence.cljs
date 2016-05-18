@@ -1,4 +1,4 @@
-(ns starcity.sections.residence
+(ns starcity.phases.one.sections.residence
   (:require-macros [reagent.ratom :refer [reaction]])
   (:require [reagent.core :as reagent :refer [atom]]
             [reforms.reagent :include-macros true :as f]
