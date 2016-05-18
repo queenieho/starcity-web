@@ -17,7 +17,6 @@
             [starcity.pages.landing :as landing]
             [starcity.pages.auth :as auth]
             [starcity.pages.dashboard :as dashboard]
-            [starcity.pages.rental-application :as rental]
             ;; util
             [com.stuartsierra.component :as component]
             [taoensso.timbre :as timbre]))
