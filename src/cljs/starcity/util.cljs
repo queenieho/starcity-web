@@ -16,3 +16,6 @@
 
 (defn error [& args]
   (.apply js/console.error js/console (to-array args)))
+
+(defn by-class [class-name]
+  (array-seq (.getElementsByClassName js/document class-name)))
