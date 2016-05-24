@@ -12,6 +12,7 @@
                  [reagent "0.5.1"]
                  [re-frame "0.7.0"]
                  [reagent-reforms "0.4.4-SNAPSHOT"]
+                 [cljsjs/field-kit "2.0.4-0"]
                  ;; routing
                  [secretary "1.2.3"]
                  [venantius/accountant "0.1.7"]
