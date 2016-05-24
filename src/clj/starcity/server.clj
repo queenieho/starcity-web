@@ -17,6 +17,7 @@
             [starcity.pages.landing :as landing]
             [starcity.pages.auth :as auth]
             [starcity.pages.dashboard :as dashboard]
+            [starcity.pages.util :refer [ok]]
             ;; util
             [com.stuartsierra.component :as component]
             [taoensso.timbre :as timbre]))
@@ -30,12 +31,15 @@
 ;; Routes
 
 (def routes
-  ["/" {""       :index
-        "login"  :login
-        "logout" :logout
-        "me"     {true :dashboard}
+  ["/" {""                :index
+        "login"           :login
+        "signup"          {""          :signup
+                           "/complete" :signup/complete}
+        "signup-complete" :signup-complete
+        "logout"          :logout
+        "me"              {true :dashboard}
 
-        true     :index ; catch-all
+        true              :index ; catch-all
         }])
 
 ;; =============================================================================
@@ -44,10 +48,12 @@
 (defn handler [{:keys [uri request-method] :as req}]
   (let [match (bidi/match-route routes uri :request-method request-method)]
     (case (:handler match)
-      :index     (landing/handle req)
-      :login     (auth/handle-login req)
-      :logout    (auth/handle-logout req)
-      :dashboard (dashboard/handle req)
+      :index           (landing/handle req)
+      :login           (auth/handle-login req)
+      :logout          (auth/handle-logout req)
+      :signup          (auth/handle-signup req)
+      :signup/complete (auth/handle-signup-complete req) ; TODO
+      :dashboard       (dashboard/handle req)
       req)))
 
 
