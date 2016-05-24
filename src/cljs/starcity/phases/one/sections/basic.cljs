@@ -7,7 +7,7 @@
                                    register-sub
                                    dispatch
                                    subscribe]]
-            [clojure.string :refer [capitalize]]
+            [clojure.string :refer [capitalize] :as s]
             [clojure.set :refer [difference]]
             [starcity.phases.common :as phase]
             [starcity.ui.field-kit :as fk]
@@ -16,7 +16,7 @@
 ;; =============================================================================
 ;; Constants
 
-(def ^:private PHONE-TYPES #{:cell :home :work})
+(def ^:private +phone-types+ #{:cell :home :work})
 
 ;; =============================================================================
 ;; Subscriptions
@@ -97,11 +97,30 @@
 ;; =============================================================================
 ;; Components: Phone Numbers
 
+(defn- phone-number?
+  [s]
+  (let [s   (s/replace (or s "") #"[\s-\(\)\+]" "")
+        num (count s)]
+    (if (= (first s) "1")
+      (= num 11)
+      (= num 10))))
+
+(defn- phone-number
+  [korks error-message]
+  (fn [cursor]
+    (let [s (get-in cursor korks)]
+      (when-not (or (phone-number? s) (and (empty? s) (> (first korks) 0)))
+        (v/validation-error [korks] error-message)))))
+
 (defn- validate-phones
   [data ui-state]
-  (v/validate!
-   data ui-state
-   (v/present [0 :number] "Please enter a phone number.")))
+  (let [vs (map (fn [i]
+                  (phone-number [i :number] "Please enter a valid phone number."))
+                (range (count @data)))]
+    (apply v/validate!
+           data ui-state
+           (v/present [0 :number] "Please enter a phone number.")
+           vs)))
 
 (defn- make-phone
   ([]
@@ -113,7 +132,7 @@
 
 (defn- next-phone-type
   [selected-types]
-  (first (difference PHONE-TYPES selected-types)))
+  (first (difference +phone-types+ selected-types)))
 
 (defn- phone-id [i]
   (str "phone-field-" i))
@@ -122,13 +141,15 @@
   (let [form-data (r/atom @(subscribe [:basic/phones]))
         ui-state  (r/atom {})
         registry  (fk/make-registry)
-        options   (mapv (fn [t] [t (-> t name capitalize)]) PHONE-TYPES)]
+        options   (mapv (fn [t] [t (-> t name capitalize)]) +phone-types+)]
     (letfn [(install-fk! []
               (doseq [i (range (count @form-data))]
-                (fk/install! registry (phone-id i) fk/phone-formatter)))]
+                (fk/install! registry (phone-id i) fk/phone-formatter
+                             (fn [[_ text]]
+                               (swap! form-data assoc-in [i :number] text)))))]
       (r/create-class
-       {:display-name         "phone-group"
-        :component-did-mount  install-fk!
+       {:display-name        "phone-group"
+        :component-did-mount install-fk!
         :component-did-update install-fk!
         :reagent-render
         (fn []
@@ -161,11 +182,24 @@
 ;; =============================================================================
 ;; Components: Social Security Number
 
+(defn- social-security-number?
+  [s]
+  (let [s (s/replace (or s "") #"[\s-]" "")]
+    (= (count s) 9)))
+
+(defn- social-security-number
+  [korks error-message]
+  (fn [cursor]
+    (let [s (get-in cursor korks)]
+      (when-not (social-security-number? s)
+        (v/validation-error [korks] error-message)))))
+
 (defn- validate-ssn
   [data ui-state]
   (v/validate!
    data ui-state
-   (v/present [:ssn] "Please enter your social security number.")))
+   (v/present [:ssn] "Please enter your social security number.")
+   (social-security-number [:ssn] "Please enter a valid social security number.")))
 
 (defn- ssn-group [phase-id]
   (let [data     (r/atom {:ssn @(subscribe [:basic/ssn])})
@@ -174,7 +208,8 @@
     (r/create-class
      {:display-name "ssn-group"
       :component-did-mount
-      #(fk/install! registry "ssn-field" fk/ssn-formatter)
+      #(fk/install! registry "ssn-field" fk/ssn-formatter
+                    (fn [[_ text]] (swap! data assoc :ssn text)))
       :reagent-render
       (fn []
         (f/panel

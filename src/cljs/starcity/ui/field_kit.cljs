@@ -14,8 +14,9 @@
   (get @registry element-id))
 
 (defn- fk-text-field [element formatter did-change]
-  (let [tf (js/FieldKit.TextField. element formatter)]
-    (.setDelegate tf (clj->js {:textDidChange #(did-change (.value %))}))
+  (let [tf             (js/FieldKit.TextField. element formatter)
+        delegate-attrs {:textDidChange #(did-change [(.value %) (.text %)])}]
+    (.setDelegate tf (clj->js delegate-attrs))
     tf))
 
 (defn- install!* [registry element-id formatter did-change]
