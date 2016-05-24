@@ -25,8 +25,7 @@
                                   :last-name  (trim last-name)
                                   :email      (-> email trim lower-case)
                                   :password   (-> password trim hash-password)
-                                  :activated  false
-                                  :approved   false})
+                                  :activated  false})
         tid     (d/tempid part)
         tx      @(d/transact conn [(assoc account :db/id tid)])]
     (d/resolve-tempid (d/db conn) (:tempids tx) tid)))

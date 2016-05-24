@@ -72,11 +72,15 @@
         vresult (-> params clean-credentials validate-credentials)]
     (if-let [{:keys [email password]} (valid? vresult)]
       (if-let [user (account/authenticate db email password)]
-        ;; success
-        (let [next-url (get-in req [:params :next])
-              session  (assoc session :identity user)]
-          (-> (response/redirect next-url)
-              (assoc :session session)))
+        (if (:account/activated user)
+          ;; success
+          (let [next-url (get-in req [:params :next])
+                session  (assoc session :identity user)]
+            (-> (response/redirect next-url)
+                (assoc :session session)))
+          ;; account not activated
+          (malformed (render req :errors ["Please click the activation link in your inbox before attempting to log in."]
+                             :email email)))
         ;; authentication failure
         (malformed (render req
                            :errors ["The credentials you entered are invalid; please try again."]
