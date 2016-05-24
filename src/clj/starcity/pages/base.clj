@@ -22,8 +22,8 @@
   (map css-path ["bootstrap.css"]))
 
 (def ^{:private true} HEAD-FONTS
-  ["http://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic"
-   "http://fonts.googleapis.com/css?family=Roboto+Condensed:400,300"])
+  ["https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic"
+   "https://fonts.googleapis.com/css?family=Roboto+Condensed:400,300"])
 
 (def ^{:private true} BODY-JS
   (map js-path
