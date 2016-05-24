@@ -4,6 +4,7 @@
             [starcity.models.account :as account]
             [starcity.middleware :refer [get-component]]
             [starcity.util :refer :all]
+            [buddy.auth :refer [authenticated?]]
             [bouncer.core :as b]
             [bouncer.validators :as v]
             [clojure.string :refer [trim]]
@@ -101,7 +102,9 @@
 
 (defn handle-login [req]
   (case (:request-method req)
-    :get  (ok (render-login req))
+    :get  (if (authenticated? req)
+            (response/redirect "/me")
+            (ok (render-login req)))
     :post (authenticate req)
     (ok (render-login req))))
 
