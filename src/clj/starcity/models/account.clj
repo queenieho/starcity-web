@@ -1,10 +1,9 @@
 (ns starcity.models.account
   (:require [buddy.hashers :as hashers]
-            [clojure.string :refer [trim]]
+            [clojure.string :refer [trim lower-case]]
             [datomic.api :as d]
             [starcity.datomic.util :refer [one]]
-            [starcity.models.util :refer :all]
-            [starcity.util :refer :all]))
+            [starcity.models.util :refer :all]))
 
 ;; =============================================================================
 ;; Password Hashing
@@ -21,16 +20,19 @@
 (defn create!
   "Create a new user record in the database, and return the user's id upon
   successful creation."
-  [{:keys [conn part] :as db} first-name last-name email password]
+  [{:keys [conn part] :as db} email password first-name last-name]
   (let [account (mapify :account {:first-name (trim first-name)
                                   :last-name  (trim last-name)
-                                  :email      (clean-text email)
+                                  :email      (-> email trim lower-case)
                                   :password   (-> password trim hash-password)
-                                  :activated  false
-                                  :approved   false})
+                                  :activated  false})
         tid     (d/tempid part)
         tx      @(d/transact conn [(assoc account :db/id tid)])]
     (d/resolve-tempid (d/db conn) (:tempids tx) tid)))
+
+(defn exists?
+  [{:keys [conn]} email]
+  (one (d/db conn) :account/email email))
 
 (defn authenticate
   "Return the user record found under `username' iff a user record exists for
