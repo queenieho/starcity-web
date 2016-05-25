@@ -17,5 +17,5 @@
     (stop-server (:server component))
     component))
 
-(defn nrepl-server [port]
-  (map->ReplServer {:port port}))
+(defn nrepl-server [config]
+  (map->ReplServer config))

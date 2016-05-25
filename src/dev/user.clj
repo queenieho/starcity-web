@@ -6,6 +6,7 @@
             [starcity.logger :as logger]
             [starcity.server :as server]
             [starcity.datomic :as datomic]
+            [starcity.config :refer [config]]
             [taoensso.timbre :as timbre]
             [schema.core :as s]))
 
@@ -33,20 +34,14 @@
 ;; Development System
 
 (defn dev-system [config]
-  (let [{:keys [web-port db]} config]
+  (let [{:keys [webserver datomic profile]} config]
     (logger/dev-setup)
     (component/system-map
-     :datomic (datomic/datomic db)
+     :datomic (datomic/datomic datomic)
      :webserver (component/using
-                 (server/server web-port :development)
+                 (server/server webserver profile)
                  [:datomic])
      :figwheel (map->Figwheel (fetch-config)))))
-
-(def config
-  {:web-port 8080
-   :db       {:uri        "datomic:mem://localhost:4334/starcity"
-              :schema-dir "datomic/schemas"
-              :seed-dir   "datomic/seed"}})
 
 ;; =============================================================================
 ;; Reloaded Workflow
@@ -55,7 +50,7 @@
 
 (defn init []
   (alter-var-root #'system
-                  (constantly (dev-system config))))
+                  (constantly (dev-system (config :development)))))
 
 (defn start []
   (alter-var-root #'system component/start))

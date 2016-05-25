@@ -57,10 +57,10 @@
       req)))
 
 
-(defn app-handler [env datomic]
+(defn app-handler [profile datomic]
   (-> handler
       (wrap-logging)
-      (wrap-environment env)
+      (wrap-environment profile)
       (wrap-components :db datomic)
       (wrap-authorization auth-backend)
       (wrap-authentication auth-backend)
@@ -73,19 +73,16 @@
 ;; =============================================================================
 ;; WebServer
 
-(defrecord WebServer [port env datomic]
+(defrecord WebServer [port profile datomic]
   component/Lifecycle
   (start [component]
     (debugf "Starting server on port %d" port)
-    (assoc component :server (run-jetty (app-handler env datomic)
+    (assoc component :server (run-jetty (app-handler profile datomic)
                                         {:port port :join? false})))
   (stop [component]
     (debug "Shutting down server")
     (.stop (:server component))
     component))
 
-(defn server
-  ([port]
-   (server port :production))
-  ([port env]
-   (map->WebServer {:port port :env env})))
+(defn server [{:keys [port]} profile]
+  (map->WebServer {:port port :profile profile}))

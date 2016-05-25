@@ -17,13 +17,13 @@
                  [secretary "1.2.3"]
                  [venantius/accountant "0.1.7"]
                  ;; clj
+                 [aero "1.0.0-beta3"]
                  [bidi "1.21.1"]
                  [cheshire "5.5.0"]
                  [ring/ring "1.4.0"]
                  [hiccup "1.0.5"]
                  [com.stuartsierra/component "0.3.1"]
-                 [com.datomic/datomic-free "0.9.5350"
-                  :exclusions [joda-time]]
+                 [com.datomic/datomic-free "0.9.5350" :exclusions [joda-time]]
                  [me.raynes/fs "1.4.6"]
                  [cpath-clj "0.1.2"]
                  [com.taoensso/timbre "4.3.1"]
