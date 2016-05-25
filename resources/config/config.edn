@@ -1,4 +1,4 @@
-{:secrets   #include #join [#env HOME "/.secrets.edn"]
+{; :secrets   #include #join [#env HOME "/.secrets.edn"]
 
  :webserver {:port #profile {:development 8080
                              :production  8080}}
