@@ -74,7 +74,10 @@ body.static {
 
 body.starcity-page-landing {
   padding: 0;
-  background: #f8f8f8;
+  /*background: *f8f8f8;*/
+  background: #F1F2B5;
+  background: -webkit-linear-gradient(to right, #F1F2B5, #135058);
+  background: linear-gradient(to right, #F1F2B5, #135058);
   color: #474a54;
 }
 
@@ -82,7 +85,7 @@ div {
   display: block;
 }
 
-.navbar.navbar-static-top {
+.navbar.navbar-static-top { 
   margin-left: 0;
   margin-right: 0;
 }
@@ -111,7 +114,7 @@ div {
 
 @media screen and (max-width: 1299px) {
   body.starcity-page-landing .navbar .navbar-inner {
-  margin: 0px 50px;
+  margin: 0px 50px; 
   width: auto;
   padding: 16px 0;
   }
@@ -177,7 +180,7 @@ body.starcity-page-landing .navbar .navbar-inner .container {
 .container {
   margin-right: auto;
   margin-left: auto;
-}
+  }
 
 .navbar .navbar-inner .btn {
   background: transparent;
@@ -202,7 +205,7 @@ body.starcity-page-landing .navbar .navbar-inner .container {
   padding: 7px 10px;
   margin-left: 5px;
   margin-right: 5px;
-  color: #fff;
+  color: #777;
   text-shadow: 0 -1px 0 rgba(0,0,0,0.25);
 }
 
@@ -215,17 +218,17 @@ a:link {
 }
 
 #login_btn {
-  background: rgba(21,21,170,.8);
-  border-radius: 8px;
-  font-size: 16px;
+  color: #fff;
+  font-size: 18px;
+  font-family: 'proxima-nova', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 .navbar .navbar-inner .brand {
-  padding: 6px 20px 12px 20px;
+  /*padding: 6px 20px 12px 20px; */
 }
 
 img {
-  width: 200px;
+  width: 80px;
 }
 
 @media screen and (max-width: 1299px) {
@@ -249,7 +252,7 @@ img {
   margin-left: 20px;
   font-size: 20px;
   font-weight: 200;
-  color: #777;
+  color: #fff;
   text-shadow: 0 1px 0 #ffffff;
 }
 
@@ -260,6 +263,150 @@ footer {
   margin: 100px;
   line-height: 1.6;
   display: block;
+}
+
+.page-container #page {
+    /*background: 16A085;
+    background: -webkit-linear-gradient(to left, #16A085, #F4D03F);
+    background: linear-gradient(to left, #16A085, #F4D03F);*/
+    background: transparent;
+    border-radius: 2px;
+}
+
+
+.container {
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.introsection {
+    display: flex;
+    -webkit-box-pack: center;
+    justify-content: center;
+    background: transparent;
+    /*background: #16A085;
+    background: -webkit-linear-gradient(to left, #16A085, #F4D03F);
+    background: linear-gradient(to left, #16A085, #F4D03F); */
+    background-size: cover
+    background-position: left top;
+}
+
+.introcontent {
+    padding-top: 100px; /*does this adjust white space? - yes */
+    padding-bottom: 130px;
+    -webkit-box-pack: justify;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+    display: block;
+    width: auto;
+    max-width: 1220px !important;
+}
+
+.introslogan {
+    display: flex;
+    -webkit-box-pack: center;
+    justify-content: center;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    flex-direction: column;
+}
+
+.introslogan h1 {
+    text-transform: uppercase;
+    color: rgba(0, 0, 0, 0.8);
+    /*font-weight: bold;*/
+    letter-spacing: 0.1em;
+    font-size: 49px;
+    max-width: 960px;
+    margin: auto;
+    text-align: center;
+    line-height: 1.6;
+}
+
+.introslogan h2 {
+    font-size: 36px;
+    margin-top: 35px;
+    text-align: center;
+    line-height: 1.6;
+    color: rgba(0, 0, 0, 0.8); 
+}
+.introsignedout .introcontent p {
+    margin-top: 5px;
+}
+
+.introslogan p {
+    color: rgba(0, 0, 0, 0.8);
+    font-size: 24px;
+    max-width: 800px;
+    margin-bottom: 50px;
+  }
+
+.introcontent p {
+    margin: auto;
+    text-align: center;
+    line-height: 1.6;
+}
+
+p {
+    display: block;
+    -webkit-margin-before: 1em;
+    -webkit-margin-after: 1em;
+    -webkit-margin-start: 0px;
+    -webkit-margin-end: 0px;
+}
+
+.introsignedout .introcontent .form-container {
+    display: flex;
+    -webkit-box-pack: center;
+    justify-content: center;
+}
+
+.introsignedout .introcontent form {
+    display: flex;
+    -webkit-box-pack: center;
+    justify-content: center;
+    max-width: 520px;
+    padding: 20px;
+    margin-top: 50px;
+    margin-bottom: 0px;
+    background-color: rgba(0, 0, 0, 0.25);
+    border-radius: 8px;
+}
+
+form {
+    margin: 0 0 20px 0;
+}
+
+.introsignedout .introcontent input[type="text"] {
+    box-sizing: border-box;
+    height: 55px !important;
+}
+
+.introsignedout .introcontent .email-field {
+    margin-right: 10px;
+    width: 280px;
+}
+
+.introsignedout .introcontent input {
+    margin-bottom: 0;
+    padding: 18px;
+    padding-bottom: 16px;
+    font-size: 17px;
+    border-radius: 4px;
+    font-family: 'proxima-nova', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+input[type="submit"] {
+    width: auto;
+    cursor: pointer;
+    -webkit-appearance: button;
+}
+
+.submit-btn {
+    background-image: linear-gradient(#3384c3, #2375b4);
+    background-color: #2B71B1;
+    color: #fff;
+    border-color: #2A68A5;
 }
 
 
