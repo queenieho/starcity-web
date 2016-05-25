@@ -1,0 +1,12 @@
+{; :secrets   #include #join [#env HOME "/.secrets.edn"]
+
+ :webserver {:port #profile {:development 8080
+                             :production  8080}}
+
+ :datomic   {:uri        #profile
+             {:development "datomic:mem://localhost:4334/starcity"
+              :production  "datomic:mem://localhost:4334/starcity"}
+             :schema-dir "datomic/schemas"
+             :seed-dir   "datomic/seed"}
+
+ :nrepl     {:port 7889}}
