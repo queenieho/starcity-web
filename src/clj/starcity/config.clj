@@ -39,7 +39,8 @@
   (assert (#{:production :development} profile)
           (format "Profile must be one of #{:production :development}, not %s!" profile))
   (let [defaults (read-config (config-file "config.edn"))]
-    (merge-with merge
-                defaults
-                (read-config (config-for-profile profile))
-                (read-secrets +secrets-file+))))
+    (-> (merge-with merge
+                    defaults
+                    (read-config (config-for-profile profile))
+                    (read-secrets +secrets-file+))
+        (assoc :profile profile))))
