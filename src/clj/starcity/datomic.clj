@@ -46,7 +46,7 @@
 ;; =============================================================================
 ;; Component
 
-(defrecord Datomic [uri schema-dir seed-dir]
+(defrecord Datomic [uri schema-dir seed-dir partition]
   component/Lifecycle
   (start [component]
     (debugf "Establishing Datomic Connection @ URI: %s" uri)
@@ -59,11 +59,10 @@
           @(d/transact conn (vec (read-edn seed-dir))) ; hacky, but works!
           (catch Exception e
             (warn "Exception encountered while seeding database!" e))))
-      (assoc component :conn conn :part :db.part/user))) ; move :part to config
+      (assoc component :conn conn :part partition))) ; move :part to config
   (stop [component]
     (debug "Closing Datomic Connection")
     (dissoc component :conn)))
 
-(defn datomic
-  [{:keys [uri schema-dir seed-dir]}]
-  (map->Datomic {:schema-dir schema-dir :uri uri :seed-dir seed-dir}))
+(defn datomic [config]
+  (map->Datomic config))

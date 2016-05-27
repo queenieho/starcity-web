@@ -17,7 +17,6 @@
                  [secretary "1.2.3"]
                  [venantius/accountant "0.1.7"]
                  ;; clj
-                 [aero "1.0.0-beta3"]
                  [bidi "1.21.1"]
                  [cheshire "5.5.0"]
                  [ring/ring "1.4.0"]

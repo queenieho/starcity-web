@@ -1,0 +1,1 @@
+{:datomic {:uri "datomic:mem://localhost:4334/starcity"}}

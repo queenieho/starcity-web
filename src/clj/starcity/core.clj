@@ -5,7 +5,7 @@
             [starcity.datomic :as datomic]
             [starcity.logger :as logger]
             [starcity.nrepl :as nrepl]
-            [starcity.config :refer [config]]
+            [starcity.config :refer [get-config]]
             [taoensso.timbre :as timbre]))
 
 (timbre/refer-timbre)
@@ -21,4 +21,4 @@
                  [:datomic]))))
 
 (defn -main [& args]
-  (component/start (system (config :production))))
+  (component/start (system (get-config :production))))

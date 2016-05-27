@@ -6,7 +6,7 @@
             [starcity.logger :as logger]
             [starcity.server :as server]
             [starcity.datomic :as datomic]
-            [starcity.config :refer [config]]
+            [starcity.config :refer [get-config]]
             [taoensso.timbre :as timbre]
             [schema.core :as s]))
 
@@ -50,7 +50,7 @@
 
 (defn init []
   (alter-var-root #'system
-                  (constantly (dev-system (config :development)))))
+                  (constantly (dev-system (get-config :development)))))
 
 (defn start []
   (alter-var-root #'system component/start))
