@@ -26,9 +26,14 @@
          [:h1 "Reimagining Urban Living"]
          [:h2 "What does home mean to you?"]
          [:p "Help shape community-centric housing in San Francisco."]]
-        [:div.form-container 
-         [:form {:action "#" :method "GET"}
-          [:input.email-field {:type "text" :name "email" :id "user_email" :placeholder "Enter your email address"}]
+        [:div.form-container
+         [:form {:action "register" :method "GET"}
+          [:input.email-field
+           {:type        "email"
+            :name        "email"
+            :id          "user_email"
+            :required    true
+            :placeholder "Enter your email address"}]
           [:input.submit-btn {:type "submit" :value "Join us"}]]]]]]]]])
 
 (defn- landing-view []

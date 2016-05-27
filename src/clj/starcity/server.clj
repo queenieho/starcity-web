@@ -15,6 +15,7 @@
                                          wrap-exception-handling]]
             ;; pages
             [starcity.pages.landing :as landing]
+            [starcity.pages.register :as register]
             [starcity.pages.auth :as auth]
             [starcity.pages.dashboard :as dashboard]
             [starcity.pages.util :refer [ok]]
@@ -32,6 +33,7 @@
 
 (def routes
   ["/" {""                :index
+        "register"        :register
         "login"           :login
         "signup"          {""          :signup
                            "/complete" :signup/complete}
@@ -49,6 +51,7 @@
   (let [match (bidi/match-route routes uri :request-method request-method)]
     (case (:handler match)
       :index           (landing/handle req)
+      :register        (register/handle req)
       :login           (auth/handle-login req)
       :logout          (auth/handle-logout req)
       :signup          (auth/handle-signup req)
