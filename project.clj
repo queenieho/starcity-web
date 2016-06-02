@@ -21,7 +21,7 @@
                  [cheshire "5.5.0"]
                  [ring/ring "1.4.0"]
                  [hiccup "1.0.5"]
-                 [com.stuartsierra/component "0.3.1"]
+                 [mount "0.1.10"]
                  [com.datomic/datomic-free "0.9.5350" :exclusions [joda-time]]
                  [me.raynes/fs "1.4.6"]
                  [cpath-clj "0.1.2"]

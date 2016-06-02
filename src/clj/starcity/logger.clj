@@ -1,18 +1,14 @@
 (ns starcity.logger
   (:require [taoensso.timbre.appenders.core :as appenders]
-            [taoensso.timbre :as timbre :refer [merge-config! set-level!]]))
+            [taoensso.timbre :as timbre :refer [merge-config! set-level!]]
+            [starcity.config :refer [config]]
+            [mount.core :as mount :refer [defstate]]))
 
-(timbre/refer-timbre)
-
-(defn dev-setup
-  []
+(defn- setup-logger
+  [{:keys [level logfile] :as conf}]
   (merge-config!
-   {:level :trace
-    :appenders
-    {:spit (appenders/spit-appender {:fname "logs/server.log"})}}))
+   {:level     level
+    :appenders {:spit (appenders/spit-appender {:fname logfile})}}))
 
-(defn prod-setup
-  []
-  (merge-config!
-   {:appenders
-    {:spit (appenders/spit-appender {:fname "/var/log/starcity/server.log"})}}))
+(defstate logger
+  :start (setup-logger (:logger config)))

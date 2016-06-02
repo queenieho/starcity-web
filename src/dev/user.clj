@@ -1,12 +1,12 @@
 (ns user
   (:require [clojure.tools.namespace.repl :refer [refresh]]
-            [com.stuartsierra.component :as component]
+            [mount.core :as mount :refer [defstate]]
             [figwheel-sidecar.repl-api :as ra]
             [figwheel-sidecar.system :refer [fetch-config]]
-            [starcity.logger :as logger]
-            [starcity.server :as server]
-            [starcity.datomic :as datomic]
-            [starcity.config :refer [get-config]]
+            [starcity.logger]
+            [starcity.server]
+            [starcity.datomic]
+            [starcity.config]
             [taoensso.timbre :as timbre]
             [schema.core :as s]))
 
@@ -17,51 +17,25 @@
 ;; =============================================================================
 ;; Figwheel
 
-(defrecord Figwheel []
-  component/Lifecycle
-  (start [config]
-    (when-not (ra/figwheel-running?)
-      (debug "Starting Figwheel server")
-      (ra/start-figwheel! config))
-    config)
-  (stop [config]
-    (debug "Not stopping Figwheel server!")
-    ;; Figwheel shouldn't get reset!
-    ;; (ra/stop-figwheel!)
-    config))
+(defn- start-figwheel [config]
+  (when-not (ra/figwheel-running?)
+    (debug "Starting Figwheel server")
+    (ra/start-figwheel! config)))
 
-;; =============================================================================
-;; Development System
-
-(defn dev-system [config]
-  (let [{:keys [webserver datomic profile]} config]
-    (logger/dev-setup)
-    (component/system-map
-     :datomic (datomic/datomic datomic)
-     :webserver (component/using
-                 (server/server webserver profile)
-                 [:datomic])
-     :figwheel (map->Figwheel (fetch-config)))))
+(defstate ^{:on-reload :noop}
+  figwheel
+  :start (start-figwheel (fetch-config)))
 
 ;; =============================================================================
 ;; Reloaded Workflow
 
-(def system nil)
+(def start mount/start)
 
-(defn init []
-  (alter-var-root #'system
-                  (constantly (dev-system (get-config :development)))))
-
-(defn start []
-  (alter-var-root #'system component/start))
-
-(defn stop []
-  (alter-var-root #'system
-                  (fn [s] (when s (component/stop s)))))
+(def stop mount/stop)
 
 (defn go []
-  (init)
-  (start))
+  (start)
+  :ready)
 
 (defn reset []
   (stop)

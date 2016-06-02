@@ -24,29 +24,6 @@
               uri params request-method))
     (handler req)))
 
-(defn wrap-components
-  "Middleware to inject components into the request map."
-  [handler & kvs]
-  (assert (even? (count kvs)))
-  (let [components (partition 2 kvs)]
-    (fn [req]
-      (handler (reduce (fn [acc [k c]]
-                         (assoc-in acc [::components k] c))
-                       req
-                       components)))))
-
-(defn get-component [req k]
-  (get-in req [::components k]))
-
-(defn wrap-environment
-  "Inject a keyword identifying the current run environment into requests."
-  [handler env]
-  (fn [req]
-    (handler (assoc req ::environment env))))
-
-(defn get-environment [req]
-  (get req ::environment))
-
 (defn- unauthorized-handler
   [request metadata]
   (cond

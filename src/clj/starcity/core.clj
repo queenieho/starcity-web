@@ -1,24 +1,12 @@
 (ns starcity.core
   (:gen-class)
-  (:require [com.stuartsierra.component :as component]
-            [starcity.server :as server]
-            [starcity.datomic :as datomic]
-            [starcity.logger :as logger]
-            [starcity.nrepl :as nrepl]
-            [starcity.config :refer [get-config]]
-            [taoensso.timbre :as timbre]))
-
-(timbre/refer-timbre)
-
-(defn system [config]
-  (let [{:keys [webserver datomic nrepl profile]} config]
-    (logger/prod-setup)
-    (component/system-map
-     :datomic (datomic/datomic datomic)
-     :nrepl (nrepl/nrepl-server nrepl)
-     :webserver (component/using
-                 (server/server webserver profile)
-                 [:datomic]))))
+  (:require [starcity.server]
+            [starcity.datomic]
+            [starcity.logger]
+            [starcity.nrepl]
+            [starcity.config]
+            [starcity.environment]
+            [mount.core :as mount]))
 
 (defn -main [& args]
-  (component/start (system (get-config :production))))
+  (mount/start-with {#'starcity.environment/environment :production}))

@@ -4,4 +4,7 @@
              :seed-dir   "datomic/seed"
              :partition  :db.part/user}
 
+ :logger    {:level   :trace
+             :logfile "logs/server.log"}
+
  :nrepl     {:port 7889}}

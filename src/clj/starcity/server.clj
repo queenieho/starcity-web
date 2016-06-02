@@ -8,9 +8,7 @@
             [ring.middleware.session :refer [wrap-session]]
             [buddy.auth.middleware :refer [wrap-authentication
                                            wrap-authorization]]
-            [starcity.middleware :refer [wrap-components
-                                         wrap-environment
-                                         wrap-logging
+            [starcity.middleware :refer [wrap-logging
                                          auth-backend
                                          wrap-exception-handling]]
             ;; pages
@@ -20,7 +18,8 @@
             [starcity.pages.dashboard :as dashboard]
             [starcity.pages.util :refer [ok]]
             ;; util
-            [com.stuartsierra.component :as component]
+            [mount.core :as mount :refer [defstate]]
+            [starcity.config :refer [config]]
             [taoensso.timbre :as timbre]))
 
 (timbre/refer-timbre)
@@ -60,11 +59,9 @@
       req)))
 
 
-(defn app-handler [profile datomic]
+(def app-handler
   (-> handler
       (wrap-logging)
-      (wrap-environment profile)
-      (wrap-components :db datomic)
       (wrap-authorization auth-backend)
       (wrap-authentication auth-backend)
       (wrap-keyword-params)
@@ -74,18 +71,18 @@
       (wrap-exception-handling)))
 
 ;; =============================================================================
-;; WebServer
+;; API
 
-(defrecord WebServer [port profile datomic]
-  component/Lifecycle
-  (start [component]
-    (debugf "Starting server on port %d" port)
-    (assoc component :server (run-jetty (app-handler profile datomic)
-                                        {:port port :join? false})))
-  (stop [component]
-    (debug "Shutting down server")
-    (.stop (:server component))
-    component))
+(defn- start-server
+  [{:keys [port] :as conf}]
+  (debugf "Starting server on port %d" port)
+  (run-jetty app-handler {:port port :join? false}))
 
-(defn server [{:keys [port]} profile]
-  (map->WebServer {:port port :profile profile}))
+(defn- stop-server
+  [server]
+  (debug "Shutting down web server")
+  (.stop server))
+
+(defstate web-server
+  :start (start-server (:webserver config))
+  :stop  (stop-server web-server))

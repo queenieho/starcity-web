@@ -3,7 +3,7 @@
             [starcity.pages.util :refer [malformed]]
             [starcity.pages.auth.common :refer :all]
             [starcity.models.account :as account]
-            [starcity.middleware :refer [get-component]]
+            [starcity.datomic :refer [db]]
             [bouncer.core :as b]
             [bouncer.validators :as v]
             [clojure.string :refer [trim capitalize lower-case]]
@@ -96,8 +96,7 @@
 (defn signup
   ""
   [{:keys [params session] :as req}]
-  (let [db      (get-component req :db)
-        vresult (-> params clean-params validate)]
+  (let [vresult (-> params clean-params validate)]
     (if-let [{:keys [email password first-name last-name]} (valid? vresult)]
       (if-not (account/exists? db email)
         ;; success
