@@ -17,11 +17,12 @@
                  [secretary "1.2.3"]
                  [venantius/accountant "0.1.7"]
                  ;; clj
+                 [cprop "0.1.8"]
                  [bidi "1.21.1"]
                  [cheshire "5.5.0"]
                  [ring/ring "1.4.0"]
                  [hiccup "1.0.5"]
-                 [com.stuartsierra/component "0.3.1"]
+                 [mount "0.1.10"]
                  [com.datomic/datomic-free "0.9.5350" :exclusions [joda-time]]
                  [me.raynes/fs "1.4.6"]
                  [cpath-clj "0.1.2"]
@@ -36,19 +37,13 @@
 
   :profiles
   {:dev        {:source-paths ["src/dev" "src/clj" "src/cljs"]
-                :plugins      [[lein-figwheel "0.5.0-2"]
-                               [org.clojars.strongh/lein-init-script "1.3.1"]]
+                :plugins      [[lein-figwheel "0.5.0-2"]]
                 :dependencies [[figwheel-sidecar "0.5.0-2"]
                                [binaryage/devtools "0.6.1"]]}
 
-   :uberjar    {:aot [starcity.core]}
-
-   :production {:prep-tasks   ["compile" ["cljsbuild" "once"]]
+   :uberjar    {:aot [starcity.core]
+                :prep-tasks   ["compile" ["cljsbuild" "once"]]
                 :source-paths ["src/clj" "src/cljs"]
-                :lis-opts     {:redirect-output-to "/var/log/starcity-web-init.log"
-                               :jvm-opts           ["-Xms256m"
-                                                    "-Xmx512m"
-                                                    "-server"]}
                 :cljsbuild
                 {:builds {:main
                           {:source-paths ["src/cljs"]
@@ -60,7 +55,9 @@
                                           :output-dir       "resources/public/js/app/out"
                                           :output-to        "resources/public/js/app/main.js"
                                           :closure-warnings {:externs-validation :off
-                                                             :non-standard-jsdoc :off}}}}}}}
+                                                             :non-standard-jsdoc :off}}}}}}
+
+   }
 
   :repl-options {:init-ns          user
                  :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}

@@ -1,7 +1,7 @@
 (ns starcity.pages.dashboard
   (:require [starcity.pages.base :refer [base]]
             [starcity.pages.util :refer [ok]]
-            [starcity.middleware :refer [get-environment]]
+            [starcity.environment :refer [environment]]
             [ring.util.response :as response]
             [buddy.auth :refer [authenticated? throw-unauthorized]]
             [taoensso.timbre :as timbre]))
@@ -12,8 +12,7 @@
 ;; Components
 
 (defn- render-dashboard [req]
-  (let [environment (get-environment req)
-        username    (get-in req [:session :identity :account/email])]
+  (let [username (get-in req [:session :identity :account/email])]
     (base
      [:div#app]
      :js ["app/main.js"]

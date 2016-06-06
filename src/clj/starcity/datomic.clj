@@ -1,10 +1,11 @@
 (ns starcity.datomic
   (:require [datomic.api :as d]
             [cpath-clj.core :as cp]
-            [com.stuartsierra.component :as component]
             [taoensso.timbre :as timbre]
             [clojure.java.io :as io]
-            [starcity.datomic.util :refer [qes]])
+            [starcity.config :refer [config]]
+            [starcity.datomic.util :refer [qes]]
+            [mount.core :as mount :refer [defstate]])
   (:import datomic.Util))
 
 (timbre/refer-timbre)
@@ -43,26 +44,30 @@
       (debugf "Creating new attrs with idents: %s" (pr-str (map :db/ident idents)))
       @(d/transact conn (vec idents)))))
 
+(defn- seed-db [conn seed-dir]
+  (when seed-dir
+    (debugf "Seeding database from %s" seed-dir)
+    (try
+      @(d/transact conn (vec (read-edn seed-dir))) ; hacky, but works!
+      (catch Exception e
+        (warn "Exception encountered while seeding database!" e)))))
+
+(defn- new-connection [{:keys [uri schema-dir seed-dir]}]
+  (infof "Establishing Datomic Connection @ URI: %s" uri)
+  (d/create-database uri)
+  (let [conn (d/connect uri)]
+    (install-schema conn schema-dir)
+    (seed-db conn seed-dir)
+    conn))
+
+(defn- disconnect [{:keys [uri]} conn]
+  (infof "Releasing Datomic connection @ %s" uri)
+  (.release conn))
+
 ;; =============================================================================
-;; Component
+;; API
 
-(defrecord Datomic [uri schema-dir seed-dir partition]
-  component/Lifecycle
-  (start [component]
-    (debugf "Establishing Datomic Connection @ URI: %s" uri)
-    (d/create-database uri)
-    (let [conn (d/connect uri)]
-      (install-schema conn schema-dir)
-      (when seed-dir
-        (debugf "Seeding database from %s" seed-dir)
-        (try
-          @(d/transact conn (vec (read-edn seed-dir))) ; hacky, but works!
-          (catch Exception e
-            (warn "Exception encountered while seeding database!" e))))
-      (assoc component :conn conn :part partition))) ; move :part to config
-  (stop [component]
-    (debug "Closing Datomic Connection")
-    (dissoc component :conn)))
-
-(defn datomic [config]
-  (map->Datomic config))
+(defstate ^{:on-reload :noop} db
+  :start {:conn (new-connection (:datomic config))
+          :part (get-in config [:datomic :partition])}
+  :stop  (disconnect (:datomic config) (:conn db)))

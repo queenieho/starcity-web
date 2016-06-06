@@ -1,21 +1,16 @@
 (ns starcity.nrepl
   (:require [clojure.tools.nrepl.server :refer [start-server stop-server]]
-            [com.stuartsierra.component :as component]
-            [taoensso.timbre :as timbre]))
-
-(timbre/refer-timbre)
+            [starcity.config :refer [config]]
+            [mount.core :as mount :refer [defstate]]
+            [taoensso.timbre :refer [debugf]]))
 
 ;; =============================================================================
-;; Component
+;; API
 
-(defrecord ReplServer [port]
-  component/Lifecycle
-  (start [component]
-    (debugf "Starting nREPL server on port %d" port)
-    (assoc component :server (start-server :port port)))
-  (stop [component]
-    (stop-server (:server component))
-    component))
+(defn- start-nrepl [{:keys [port]}]
+  (debugf "Starting nREPL server on port %d" port)
+  (start-server :port port))
 
-(defn nrepl-server [config]
-  (map->ReplServer config))
+(defstate nrepl
+  :start (start-nrepl (:nrepl config))
+  :stop  (stop-server nrepl))

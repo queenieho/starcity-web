@@ -3,7 +3,7 @@
             [starcity.pages.util :refer [malformed]]
             [starcity.pages.auth.common :refer :all]
             [starcity.models.account :as account]
-            [starcity.middleware :refer [get-component]]
+            [starcity.datomic :refer [db]]
             [bouncer.core :as b]
             [bouncer.validators :as v]
             [clojure.string :refer [trim lower-case]]
@@ -68,8 +68,7 @@
 (defn authenticate
   "Authenticate the user by checking email and password."
   [{:keys [params session] :as req}]
-  (let [db      (get-component req :db)
-        vresult (-> params clean-credentials validate-credentials)]
+  (let [vresult (-> params clean-credentials validate-credentials)]
     (if-let [{:keys [email password]} (valid? vresult)]
       (if-let [user (account/authenticate db email password)]
         (if (:account/activated user)
