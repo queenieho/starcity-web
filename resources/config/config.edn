@@ -2,9 +2,13 @@
 
  :datomic   {:schema-dir "datomic/schemas"
              :seed-dir   "datomic/seed"
-             :partition  :db.part/user}
+             :partition  #immuconf/default :db.part/user
+             :uri        #immuconf/override "A DB URI must be specified!"}
 
- :logger    {:level   :trace
-             :logfile "logs/server.log"}
+ :logger    {:level   #immuconf/default :trace
+             :logfile #immuconf/default "logs/server.log"}
+
+ :mailchimp {:username #immuconf/override "Must specify Mailchimp username!"
+             :password #immuconf/override "Must specify Mailchimp password!"}
 
  :nrepl     {:port 7889}}

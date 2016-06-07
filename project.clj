@@ -6,7 +6,7 @@
 
   :jvm-opts ^:replace ["-XX:MaxPermSize=128m" "-Xms512m" "-Xmx512m" "-server"]
 
-  :dependencies [[org.clojure/clojure "1.8.0"]
+  :dependencies [[org.clojure/clojure "1.9.0-alpha3"]
                  ;; cljs
                  [org.clojure/clojurescript "1.7.170"]
                  [reagent "0.5.1"]
@@ -17,7 +17,7 @@
                  [secretary "1.2.3"]
                  [venantius/accountant "0.1.7"]
                  ;; clj
-                 [cprop "0.1.8"]
+                 [levand/immuconf "0.1.0"]
                  [bidi "1.21.1"]
                  [cheshire "5.5.0"]
                  [ring/ring "1.4.0"]
