@@ -1,3 +1,0 @@
-{:datomic {:uri "datomic:mem://localhost:4334/starcity"}
- :logger  {:level   :info
-           :logfile "/var/log/starcity/server.log"}}
