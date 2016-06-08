@@ -1,7 +1,17 @@
 (ns starcity.pages.register
   (:require [starcity.pages.base :refer [base]]
             [starcity.pages.util :refer [ok]]
-            [taoensso.timbre :refer [debug]]))
+            [starcity.services.mailchimp :as mailchimp]
+            [ring.util.response :as response]
+            [taoensso.timbre :refer [debug infof]]))
+
+;; =============================================================================
+;; Helpers
+
+(defn- log-subscriber-request
+  [email {:keys [status body]}]
+  (infof "MAILCHIMP :: add subscriber :: email - %s :: status - %s :: body - %s"
+         email status body))
 
 ;; =============================================================================
 ;; Components
@@ -18,5 +28,8 @@
 ;; API
 
 (defn handle [{:keys [params] :as req}]
-  (debug "The params are:" params)
-  (ok (view req)))
+  (if-let [email (:email params)]
+    (do
+      (mailchimp/add-interested-subscriber! email (partial log-subscriber-request email))
+      (ok (view req)))
+    (ok (view req))))

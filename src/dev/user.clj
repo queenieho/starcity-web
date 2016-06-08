@@ -7,6 +7,7 @@
             [starcity.server]
             [starcity.datomic]
             [starcity.config]
+            [starcity.services.mailchimp]
             [taoensso.timbre :as timbre]
             [schema.core :as s]))
 

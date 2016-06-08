@@ -1,5 +1,6 @@
 (ns starcity.server
   (:require [ring.adapter.jetty :refer [run-jetty]] ; server
+            [org.httpkit.server :refer [run-server]]
             [bidi.bidi :as bidi]                    ; routing
             ;; middleware
             [ring.middleware.resource :refer [wrap-resource]]
@@ -36,7 +37,6 @@
         "login"           :login
         "signup"          {""          :signup
                            "/complete" :signup/complete}
-        "signup-complete" :signup-complete
         "logout"          :logout
         "me"              {true :dashboard}
 
@@ -54,7 +54,7 @@
       :login           (auth/handle-login req)
       :logout          (auth/handle-logout req)
       :signup          (auth/handle-signup req)
-      :signup/complete (auth/handle-signup-complete req) ; TODO
+      :signup/complete (auth/handle-signup-complete req)
       :dashboard       (dashboard/handle req)
       req)))
 
@@ -76,12 +76,12 @@
 (defn- start-server
   [{:keys [port] :as conf}]
   (debugf "Starting server on port %d" port)
-  (run-jetty app-handler {:port port :join? false}))
+  (run-server app-handler {:port port}))
 
 (defn- stop-server
   [server]
   (debug "Shutting down web server")
-  (.stop server))
+  (server))
 
 (defstate web-server
   :start (start-server (:webserver config))

@@ -7,4 +7,7 @@
  :logger    {:level   :trace
              :logfile "logs/server.log"}
 
- :nrepl     {:port 7889}}
+ :nrepl     {:port 7889}
+
+ :mailchimp {:data-center "us13"
+             :lists       {:subscribers "357c7315fb"}}}

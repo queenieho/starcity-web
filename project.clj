@@ -7,18 +7,20 @@
   :jvm-opts ^:replace ["-XX:MaxPermSize=128m" "-Xms512m" "-Xmx512m" "-server"]
 
   :dependencies [[org.clojure/clojure "1.9.0-alpha3"]
+                 [org.clojure/core.async "0.2.374"]
+                 [org.clojure/clojurescript "1.9.36"]
+                 [org.clojure/tools.nrepl "0.2.12"]
                  ;; cljs
-                 [org.clojure/clojurescript "1.7.170"]
                  [reagent "0.5.1"]
                  [re-frame "0.7.0"]
                  [reagent-reforms "0.4.4-SNAPSHOT"]
                  [cljsjs/field-kit "2.0.4-0"]
-                 ;; routing
                  [secretary "1.2.3"]
                  [venantius/accountant "0.1.7"]
                  ;; clj
-                 [bidi "1.21.1"]
-                 [cheshire "5.5.0"]
+                 [http-kit "2.1.19"]
+                 [bidi "2.0.9"]
+                 [cheshire "5.6.1"]
                  [ring/ring "1.4.0"]
                  [hiccup "1.0.5"]
                  [mount "0.1.10"]
@@ -26,11 +28,12 @@
                  [me.raynes/fs "1.4.6"]
                  [cpath-clj "0.1.2"]
                  [com.taoensso/timbre "4.3.1"]
-                 [org.clojure/tools.nrepl "0.2.12"]
                  [buddy "0.13.0"]
                  [bouncer "1.0.0"]
+                 ;; util
                  [prismatic/plumbing "0.5.3"]
-                 [prismatic/schema "1.1.1"]]
+                 [prismatic/schema "1.1.1"]
+                 ]
 
   :plugins [[lein-cljsbuild "1.1.3"]]
 
