@@ -16,3 +16,4 @@ pom.xml.asc
 /init-script
 .cljs_rhino_repl/*
 figwheel_server.log
+.DS_Store
