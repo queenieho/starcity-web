@@ -1,423 +1,174 @@
-/*Starcity */
-
-/*CSS Reset for browser-compatibility*/
-
-/* http://meyerweb.com/eric/tools/css/reset/ 2. v2.0 | 20110126
-  License: none (public domain)*/
-
-
-html, body, div, span, applet, object, iframe,
-h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, acronym, address, big, cite, code,
-del, dfn, em, img, ins, kbd, q, s, samp,
-small, strike, strong, sub, sup, tt, var,
-b, u, i, center,
-dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed,
-figure, figcaption, footer, header, hgroup,
-menu, nav, output, ruby, section, summary,
-time, mark, audio, video {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  font-size: 100%;
-  font: inherit;
-  vertical-align: baseline;
-}
- HTML5 display-role reset for older browsers 
-article, aside, details, figcaption, figure,
-footer, header, hgroup, menu, nav, section {
-  display: block;
-}
-body {
-  line-height: 1;
-}
-ol, ul {
-  list-style: none;
-}
-blockquote, q {
-  quotes: none;
-}
-blockquote:before, blockquote:after,
-q:before, q:after {
-  content: '';
-  content: none;
-}
-table {
-  border-collapse: collapse;
-  border-spacing: 0;
-} 
-
-
-/*Starcity Code*/
+/* GLOBAL STYLES
+-------------------------------------------------- */
+/* Padding below the footer and lighter body text */
 
 body {
-  margin: 0;
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 18px;
-  line-height: 20px;
-  color: #333;
-  background-color: #fff;
-}
-
-body {
-  display: block;
-  margin: 8px;
-}
-
-body.static {
-  background-color: #fff;
-  background-position: 0 -28px;
-}
-
-body.starcity-page-landing {
-  padding: 0;
-  /*background: *f8f8f8;*/
-  background: #F1F2B5;
-  background: -webkit-linear-gradient(to right, #F1F2B5, #135058);
-  background: linear-gradient(to right, #F1F2B5, #135058);
-  color: #474a54;
-}
-
-div {
-  display: block;
-}
-
-.navbar.navbar-static-top { 
-  margin-left: 0;
-  margin-right: 0;
-}
-
-.navbar {
-  position: absolute;
-  width: 100%;
-  z-index: 10;
-}
-
-.navbar-static-top {
-  position: static;
-  margin-bottom: 0;
-}
-
-.navbar {
-  overflow: visible;
-  margin-bottom: 20px;
-}
-
-.navbar-inner:before, .navbar-inner:after {
-  display: table;
-  content: "";
-  line-height: 0;
-}
-
-@media screen and (max-width: 1299px) {
-  body.starcity-page-landing .navbar .navbar-inner {
-  margin: 0px 50px; 
-  width: auto;
-  padding: 16px 0;
-  }
-}
-
-body.starcity-page-landing .navbar .navbar-inner {
-  width: 1220px;
-  margin: auto;
-}
-
-/*??*/
-body.starcity-page-landing .navbar .navbar-inner {
-  background: none;
-}
-
-@media screen and (max-width: 979px) {
-  .navbar .navbar-inner {
-    height: auto !important;
-  }
-}
-
-.navbar .navbar-inner {
-  color: #fff;
-  box-shadow: none;
-  border: 0;
-  height: 42px;
-  filter: none;
-  background: #2B71B1;
-  padding: 16px 0;
-  border-radius: 0;
-}
-
-.navbar-static-top .navbar-inner {
-  border-radius: 0;
-}
-
-.navbar-inner {
-  min-height: 40px;
-  padding-left: 20px;
-  padding-right: 20px;
-  background-color: #fafafa;
-  background-repeat: repeat-x;
-}
-
-.container:before, .container:after {
-  display: table;
-  content: "";
-  line-height: 0;
-}
-
-body.starcity-page-landing .navbar .navbar-inner .container {
-  margin: 0;
-  width: auto;
-}
-
-@media (max-width: 979px) {
-  .navbar .container {
-    width: auto;
-    padding: 0;
-  }
-}
-
-.container {
-  margin-right: auto;
-  margin-left: auto;
-  }
-
-.navbar .navbar-inner .btn {
-  background: transparent;
-  border: 2px solid transparent;
-}
-
-@media (max-width: 979px) {
-  .navbar .btn-navbar {
-    display: block;
-  }
-}
-
-@media screen and (max-width: 979px) {
-  .navbar-inner .btn-navbar {
-    position: relative;
-    z-index: 9999;
-  }
-}
-
-.navbar .btn-navbar {
-  float: right;
-  padding: 7px 10px;
-  margin-left: 5px;
-  margin-right: 5px;
-  color: #777;
-  text-shadow: 0 -1px 0 rgba(0,0,0,0.25);
-}
-
-.navbar .btn {
-  margin-top: 6px;
-}
-
-a:link {
-    text-decoration: none;
-}
-
-#login_btn {
-  color: #fff;
-  font-size: 18px;
-  font-family: 'proxima-nova', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-}
-
-.navbar .navbar-inner .brand {
-  /*padding: 6px 20px 12px 20px; */
-}
-
-img {
-  width: 80px;
-}
-
-@media screen and (max-width: 1299px) {
-  body.starcity-page-landing .brand {
-    margin-left: -20px;
-  }
-}
-
-@media (max-width: 979px) {
-  .navbar .brand {
-    padding-left: 10px;
-    padding-right: 10px;
-    margin: 0 0 0 -5px;
-  }
-}
-
-.navbar .brand {
-  float: left;
-  display: block;
-  padding: 10px 20px 10px;
-  margin-left: 20px;
-  font-size: 20px;
-  font-weight: 200;
-  color: #fff;
-  text-shadow: 0 1px 0 #ffffff;
+  /* padding-bottom: 40px; */
+  color: #5a5a5a;
 }
 
 footer {
-  background-color: #f8f8f8;
-  font-size: 14px;
-  padding: 50px 50px 70px 50px;
-  margin: 100px;
-  line-height: 1.6;
-  display: block;
-}
-
-.page-container #page {
-    /*background: 16A085;
-    background: -webkit-linear-gradient(to left, #16A085, #F4D03F);
-    background: linear-gradient(to left, #16A085, #F4D03F);*/
-    background: transparent;
-    border-radius: 2px;
+  padding-bottom: 40px;
 }
 
 
-.container {
-    margin-right: auto;
-    margin-left: auto;
+/* CUSTOMIZE THE NAVBAR
+-------------------------------------------------- */
+
+.navbar {
+  background-color: transparent;
+  background: transparent;
+  border-color: transparent;
+  top: 0;
+  position: absolute;
 }
 
-.introsection {
-    display: flex;
-    -webkit-box-pack: center;
-    justify-content: center;
-    background: transparent;
-    /*background: #16A085;
-    background: -webkit-linear-gradient(to left, #16A085, #F4D03F);
-    background: linear-gradient(to left, #16A085, #F4D03F); */
-    background-size: cover
-    background-position: left top;
+.navbar-brand img {
+  width: 75px;
+  height: 75px;
 }
 
-.introcontent {
-    padding-top: 100px; /*does this adjust white space? - yes */
-    padding-bottom: 130px;
-    -webkit-box-pack: justify;
-    -webkit-justify-content: space-between;
-    justify-content: space-between;
-    display: block;
-    width: auto;
-    max-width: 1220px !important;
+/* Special class on .container surrounding .navbar, used for positioning it into place. */
+.navbar-wrapper {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 20;
 }
 
-.introslogan {
-    display: flex;
-    -webkit-box-pack: center;
-    justify-content: center;
-    -webkit-box-orient: vertical;
-    -webkit-box-direction: normal;
-    flex-direction: column;
+/* Flip around the padding for proper display in narrow viewports */
+.navbar-wrapper > .container-fluid {
+  padding-right: 0;
+  padding-left: 0;
+}
+.navbar-wrapper .navbar {
+  padding-right: 15px;
+  padding-left: 15px;
+}
+.navbar-wrapper .navbar .container {
+  width: auto;
 }
 
-.introslogan h1 {
-    text-transform: uppercase;
-    color: rgba(0, 0, 0, 0.8);
-    /*font-weight: bold;*/
-    letter-spacing: 0.1em;
-    font-size: 49px;
-    max-width: 960px;
-    margin: auto;
-    text-align: center;
-    line-height: 1.6;
+/* HEADER
+-------------------------------------------------- */
+
+/* Header base class */
+.header {
+  height: 500px;
+  margin-bottom: 60px;
 }
 
-.introslogan h2 {
-    font-size: 36px;
-    margin-top: 35px;
-    text-align: center;
-    line-height: 1.6;
-    color: rgba(0, 0, 0, 0.8); 
-}
-.introsignedout .introcontent p {
-    margin-top: 5px;
+.header-inner {
+  width: 100%;
 }
 
-.introslogan p {
-    color: rgba(0, 0, 0, 0.8);
-    font-size: 24px;
-    max-width: 800px;
-    margin-bottom: 50px;
+/* Declare heights because of positioning of img element */
+.header .header-content {
+  height: 500px;
+  background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('/assets/img/sf_homes_1.jpeg');
+  background-size: cover;
+  background-position: 0;
+  background-repeat: no-repeat;
+  /* background-color: #398c88; */
+}
+.header-inner > .header-content > .container {
+  padding-top: 125px;
+  text-align: center;
+  color: white;
+}
+
+.header-inner > .header-content > .container > h1 {
+  text-transform: uppercase;
+}
+
+
+/* MARKETING CONTENT
+-------------------------------------------------- */
+
+/* Center align the text within the three columns below the carousel */
+.marketing .col-lg-4 {
+  margin-bottom: 20px;
+  text-align: center;
+}
+.marketing h2 {
+  font-weight: normal;
+}
+.marketing .col-lg-4 p {
+  margin-right: 10px;
+  margin-left: 10px;
+}
+
+
+/* Featurettes
+------------------------- */
+
+.featurette-divider {
+  margin: 80px 0; /* Space out the Bootstrap <hr> more */
+}
+
+/* Thin out the marketing headings */
+.featurette-heading {
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+/* Stay Informed
+------------------------- */
+
+#informed-divider {
+  margin-bottom: 0px;
+}
+
+#informed-section {
+  text-align: center;
+}
+
+#informed-heading {
+  font-weight: normal;
+  line-height: 1;
+  letter-spacing: -1px;
+  font-size: 50px;
+}
+
+/* RESPONSIVE CSS
+-------------------------------------------------- */
+
+@media (min-width: 768px) {
+
+  .navbar-wrapper .container {
+    padding-right: 15px;
+    padding-left: 15px;
+  }
+  .navbar-wrapper .navbar {
+    padding-right: 0;
+    padding-left: 0;
   }
 
-.introcontent p {
-    margin: auto;
-    text-align: center;
-    line-height: 1.6;
-}
-
-p {
-    display: block;
-    -webkit-margin-before: 1em;
-    -webkit-margin-after: 1em;
-    -webkit-margin-start: 0px;
-    -webkit-margin-end: 0px;
-}
-
-.introsignedout .introcontent .form-container {
-    display: flex;
-    -webkit-box-pack: center;
-    justify-content: center;
-}
-
-.introsignedout .introcontent form {
-    display: flex;
-    -webkit-box-pack: center;
-    justify-content: center;
-    max-width: 520px;
-    padding: 20px;
-    margin-top: 50px;
-    margin-bottom: 0px;
-    background-color: rgba(0, 0, 0, 0.25);
-    border-radius: 8px;
-}
-
-form {
-    margin: 0 0 20px 0;
-}
-
-.introsignedout .introcontent input[type="text"] {
-    box-sizing: border-box;
-    height: 55px !important;
-}
-
-.introsignedout .introcontent .email-field {
-    margin-right: 10px;
-    width: 280px;
-}
-
-.introsignedout .introcontent input {
-    margin-bottom: 0;
-    padding: 18px;
-    padding-bottom: 16px;
-    font-size: 17px;
+  /* The navbar becomes detached from the top, so we round the corners */
+  .navbar-wrapper .navbar {
     border-radius: 4px;
-    font-family: 'proxima-nova', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  }
+
+  /* Bump up size of carousel content */
+  .carousel-caption p {
+    margin-bottom: 20px;
+    font-size: 21px;
+    line-height: 1.4;
+  }
+
+  .featurette-heading {
+    font-size: 50px;
+  }
 }
 
-input[type="submit"] {
-    width: auto;
-    cursor: pointer;
-    -webkit-appearance: button;
-}
+@media (min-width: 992px) {
+  .featurette-heading {
+    margin-top: 120px;
+  }
 
-.submit-btn {
-    background-image: linear-gradient(#3384c3, #2375b4);
-    background-color: #2B71B1;
-    color: #fff;
-    border-color: #2A68A5;
+  #informed-heading {
+    margin-top: 80px;
+  }
 }
-
-
-/*nav {
-  background: rgba(40, 133, 160, .5);
-  margin: 20px 0 20px 0;
-  padding: 10px 0 10px 0;
-}
-#signup {
-  display: inline-block;
-  margin: 10px;
-  border: 1px solid black;
-  border-radius: 3px;
-  } */
