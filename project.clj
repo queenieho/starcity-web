@@ -8,7 +8,7 @@
 
   :dependencies [[org.clojure/clojure "1.9.0-alpha3"]
                  [org.clojure/core.async "0.2.374"]
-                 [org.clojure/clojurescript "1.9.36"]
+                 [org.clojure/clojurescript "1.7.170"]
                  [org.clojure/tools.nrepl "0.2.12"]
                  ;; cljs
                  [reagent "0.5.1"]
