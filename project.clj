@@ -24,7 +24,8 @@
                  [ring/ring "1.4.0"]
                  [hiccup "1.0.5"]
                  [mount "0.1.10"]
-                 [com.datomic/datomic-free "0.9.5350" :exclusions [joda-time]]
+                 [com.datomic/datomic-pro "0.9.5372"]
+                 [org.postgresql/postgresql "9.3-1102-jdbc41"]
                  [me.raynes/fs "1.4.6"]
                  [cpath-clj "0.1.2"]
                  [com.taoensso/timbre "4.3.1"]
@@ -32,32 +33,31 @@
                  [bouncer "1.0.0"]
                  ;; util
                  [prismatic/plumbing "0.5.3"]
-                 [prismatic/schema "1.1.1"]
-                 ]
+                 [prismatic/schema "1.1.1"]]
 
   :plugins [[lein-cljsbuild "1.1.3"]]
 
   :profiles
-  {:dev        {:source-paths ["src/dev" "src/clj" "src/cljs"]
-                :plugins      [[lein-figwheel "0.5.0-2"]]
-                :dependencies [[figwheel-sidecar "0.5.0-2"]
-                               [binaryage/devtools "0.6.1"]]}
+  {:dev     {:source-paths ["src/dev" "src/clj" "src/cljs"]
+             :plugins      [[lein-figwheel "0.5.0-2"]]
+             :dependencies [[figwheel-sidecar "0.5.0-2"]
+                            [binaryage/devtools "0.6.1"]]}
 
-   :uberjar    {:aot [starcity.core]
-                :prep-tasks   ["compile" ["cljsbuild" "once"]]
-                :source-paths ["src/clj" "src/cljs"]
-                :cljsbuild
-                {:builds {:main
-                          {:source-paths ["src/cljs"]
-                           :jar          true
-                           :compiler     {:optimizations    :advanced
-                                          :elide-asserts    true
-                                          :pretty-print     false
-                                          :externs          []
-                                          :output-dir       "resources/public/js/app/out"
-                                          :output-to        "resources/public/js/app/main.js"
-                                          :closure-warnings {:externs-validation :off
-                                                             :non-standard-jsdoc :off}}}}}}
+   :uberjar {:aot          [starcity.core]
+             :prep-tasks   ["compile" ["cljsbuild" "once"]]
+             :source-paths ["src/clj" "src/cljs"]
+             :cljsbuild
+             {:builds {:main
+                       {:source-paths ["src/cljs"]
+                        :jar          true
+                        :compiler     {:optimizations    :advanced
+                                       :elide-asserts    true
+                                       :pretty-print     false
+                                       :externs          []
+                                       :output-dir       "resources/public/js/app/out"
+                                       :output-to        "resources/public/js/app/main.js"
+                                       :closure-warnings {:externs-validation :off
+                                                          :non-standard-jsdoc :off}}}}}}
 
    }
 
