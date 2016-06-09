@@ -13,9 +13,9 @@
   (if (authenticated? req)
     (response/redirect login/+redirect-after-login+) ; TODO: Better system
     (case request-method
-      :get (ok (signup/render req))
+      :get (ok (signup/render-signup req))
       :post (signup/signup req)
-      (ok (signup/render req)))))
+      (ok (signup/render-signup req)))))
 
 (defn handle-signup-complete [req]
   (ok (signup/render-complete req)))

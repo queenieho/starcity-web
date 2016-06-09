@@ -41,17 +41,3 @@
   (when-let [user (one (d/db conn) :account/email email)]
     (when (check-password password (:account/password user))
       user)))
-
-;; =============================================================================
-;; Component
-
-;; (defrecord Account [datomic]
-;;   )
-
-(comment
-
-  (def db* (:datomic user/system))
-
-  (create! db* "Josh" "Lehman" "josh@starcity.com" "password")
-
-  )

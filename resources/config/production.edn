@@ -1,3 +1,4 @@
-{:datomic {:seed-dir nil}
+{:datomic {:seed-dir  nil
+           :partition :starcity}
  :logger  {:level   :info
            :logfile "/var/log/starcity/server.log"}}

@@ -12,50 +12,58 @@
 ;; =============================================================================
 ;; Components
 
-(defn- content
+(defn- form-group
+  [id label attrs]
+  [:div.form-group
+   [:label.control-label.col-sm-2 {:for id} label]
+   [:div.col-sm-10
+    [:input.form-control (merge {:id id} attrs)]]])
+
+(defn- signup-content
   [req errors email first-name last-name]
   [:div.container
-   [:form.form-signin {:action "/signup" :method "post"}
-    [:h2.form-signin-heading "Sign Up"]
+   [:form.form-horizontal {:action "/signup" :method "post"}
+    [:h2 "Sign Up"]
     (for [e errors]
       [:div.alert.alert-danger {:role "alert"} e])
 
-    [:label.sr-only {:for "inputEmail"} "Email address"]
-    [:input.form-control
-     {:name        "email"
-      :type        "email"
-      :placeholder "Email address"
-      :required    true
-      :autofocus   (when (empty? email) true)
-      :value       email}]
+    (form-group "input-email" "Email"
+                {:name        "email"
+                 :type        "email"
+                 :placeholder "Email address"
+                 :required    true
+                 :autofocus   (when (empty? email) true)
+                 :value       email})
+
+    (form-group "input-first-name" "First Name"
+                {:name        "first-name"
+                 :type        "text"
+                 :placeholder "First Name"
+                 :required    true
+                 :value       first-name})
+
+    (form-group "input-last-name" "Last Name"
+                {:name        "last-name"
+                 :type        "text"
+                 :placeholder "Last Name"
+                 :required    true
+                 :value       last-name})
+
+    (form-group "input-password-1" "Password"
+                {:name        "password-1"
+                 :type        "password"
+                 :placeholder "Password"
+                 :required    true})
+
+    (form-group "input-password-2" "Re-enter Password"
+                {:name        "password-2"
+                 :type        "password"
+                 :placeholder "Re-enter password"
+                 :required    true})
 
     [:div.form-group
-     [:label.sr-only {:for "inputFirstName"} "First Name"]
-     [:input.form-control
-      {:name        "first-name"
-       :type        "text"
-       :placeholder "First Name"
-       :required    true
-       :value       first-name}]]
-
-    [:div.form-group
-     [:label.sr-only {:for "inputLastName"} "Last Name"]
-     [:input.form-control
-      {:name        "last-name"
-       :type        "text"
-       :placeholder "Last Name"
-       :required    true
-       :value       last-name}]]
-
-    [:div.form-group
-     [:label.sr-only {:for "inputPassword"} "Password"]
-     [:input.form-control
-      {:name        "password"
-       :type        "password"
-       :placeholder "Password"
-       :required    true}]]
-
-    [:button.btn.btn-lg.btn-primary.btn-block {:type "submit"} "Sign in"]]])
+     [:div.col-sm-offset-2.col-sm-10
+      [:button.btn.btn-default {:type "submit"} "Sign Up"]]]]])
 
 ;; =============================================================================
 ;; Signup Validation
@@ -79,38 +87,52 @@
         (update :first-name tc)
         (update :last-name tc))))
 
+(defn- matching-passwords?
+  [{:keys [password-1 password-2] :as params}]
+  (when (= password-1 password-2)
+    (assoc params :password password-1)))
+
 ;; =============================================================================
 ;; API
+
+;; =============================================================================
+;; Render
 
 (defn render-complete [req]
   (base
    [:h3 "Check your inbox, yo."]))
 
-(defn render [req & {:keys [errors email first-name last-name]
-                     :or   {errors     []
-                            email      ""
-                            first-name ""
-                            last-name  ""}}]
-  (base (content req errors email first-name last-name) :css ["signin.css"]))
+(defn render-signup [req & {:keys [errors email first-name last-name]
+                            :or   {errors     []
+                                   email      ""
+                                   first-name ""
+                                   last-name  ""}}]
+  (base (signup-content req errors email first-name last-name)))
+
+;; =============================================================================
+;; Signup
 
 (defn signup
-  ""
   [{:keys [params session] :as req}]
-  (let [vresult (-> params clean-params validate)]
-    (if-let [{:keys [email password first-name last-name]} (valid? vresult)]
-      (if-not (account/exists? db email)
-        ;; success
-        (let [user    (account/create! db email password first-name last-name)
-              session (assoc session :identity user)]
-          (do
-            ;; TODO: SEND EMAIL
-            (response/redirect "/signup/complete")))
-        ;; account already exists for email
-        (malformed (render req :errors [(format "An account is already registered for %s." email)]
-                           :first-name first-name
-                           :last-name last-name)))
-      ;; validation failure
-      (malformed (render req :errors (errors-from vresult)
-                         :email (:email params)
-                         :first-name (:first-name params)
-                         :last-name (:last-name params))))))
+  (letfn [(-respond-malformed [& errors]
+            (let [{:keys [first-name last-name email]} params]
+              (malformed (render-signup req :errors errors
+                                 :email email
+                                 :first-name first-name
+                                 :last-name last-name))))]
+    (if-let [params (matching-passwords? params)]
+      (let [vresult (-> params clean-params validate)]
+        (if-let [{:keys [email password first-name last-name]} (valid? vresult)]
+         (if-not (account/exists? db email)
+           ;; SUCCESS
+           (let [user    (account/create! db email password first-name last-name)
+                 session (assoc session :identity user)]
+             (do
+               ;; TODO: SEND EMAIL
+               (response/redirect "/signup/complete")))
+           ;; account already exists for email
+           (-respond-malformed (format "An account is already registered for %s." email)))
+         ;; validation failure
+         (apply -respond-malformed (errors-from vresult))))
+     ;; passwords don't match
+     (-respond-malformed (format "Those passwords do not match. Please try again.")))))
