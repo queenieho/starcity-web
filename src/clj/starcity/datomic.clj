@@ -57,7 +57,8 @@
   (d/create-database uri)
   (let [conn (d/connect uri)]
     (install-schema conn schema-dir)
-    (seed-db conn seed-dir)
+    (when seed-dir
+      (seed-db conn seed-dir))
     conn))
 
 (defn- disconnect [{:keys [uri]} conn]
