@@ -4,7 +4,6 @@
             [starcity.pages.auth.common :refer :all]
             [starcity.models.account :as account]
             [starcity.services.mailgun :refer [send-email]]
-            [starcity.datomic :refer [conn]]
             [starcity.config :refer [config]]
             [bouncer.core :as b]
             [bouncer.validators :as v]
@@ -128,17 +127,13 @@
 ;; =============================================================================
 ;; Signup
 
-(defn- pull-user
-  [user-id]
-  (let [pattern [:account/email :account/first-name :account/last-name :account/activation-hash]]
-    (d/pull (d/db conn) pattern user-id)))
-
 (defn- send-activation-email
   [user-id]
-  (let [{:keys [account/email
+  (let [pattern [:account/email :account/first-name :account/last-name :account/activation-hash]
+        {:keys [account/email
                 account/first-name
                 account/last-name
-                account/activation-hash]} (pull-user user-id)]
+                account/activation-hash]} (account/query pattern user-id)]
     (send-email email "Starcity Account Activation"
                 (format "Hello %s %s,\n%s/signup/activate?email=%s&hash=%s"
                         first-name

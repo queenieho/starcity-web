@@ -30,6 +30,10 @@
 ;; =============================================================================
 ;; API
 
+(defn query
+  [pattern entity-id]
+  (d/pull (d/db conn) pattern entity-id))
+
 (defn create!
   "Create a new user record in the database, and return the user's id upon
   successful creation."
