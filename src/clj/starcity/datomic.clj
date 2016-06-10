@@ -68,7 +68,9 @@
 ;; =============================================================================
 ;; API
 
-(defstate ^{:on-reload :noop} db
-  :start {:conn (new-connection (:datomic config))
-          :part (get-in config [:datomic :partition])}
-  :stop  (disconnect (:datomic config) (:conn db)))
+(defstate conn
+  :start (new-connection (:datomic config))
+  :stop  (disconnect (:datomic config) conn))
+
+(defstate partition
+  :start (get-in config [:datomic :partition]))
