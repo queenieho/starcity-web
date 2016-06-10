@@ -3,7 +3,6 @@
             [starcity.pages.util :refer [malformed]]
             [starcity.pages.auth.common :refer :all]
             [starcity.models.account :as account]
-            [starcity.datomic :refer [db]]
             [bouncer.core :as b]
             [bouncer.validators :as v]
             [clojure.string :refer [trim lower-case]]
@@ -70,7 +69,7 @@
   [{:keys [params session] :as req}]
   (let [vresult (-> params clean-credentials validate-credentials)]
     (if-let [{:keys [email password]} (valid? vresult)]
-      (if-let [user (account/authenticate db email password)]
+      (if-let [user (account/authenticate email password)]
         (if (:account/activated user)
           ;; success
           (let [next-url (get-in req [:params :next])

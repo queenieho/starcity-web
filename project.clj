@@ -24,13 +24,16 @@
                  [ring/ring "1.4.0"]
                  [hiccup "1.0.5"]
                  [mount "0.1.10"]
-                 [com.datomic/datomic-pro "0.9.5372"]
-                 [org.postgresql/postgresql "9.3-1102-jdbc41"]
                  [me.raynes/fs "1.4.6"]
                  [cpath-clj "0.1.2"]
                  [com.taoensso/timbre "4.3.1"]
                  [buddy "0.13.0"]
                  [bouncer "1.0.0"]
+                 [nilenso/mailgun "0.2.3"]
+                 [org.apache.httpcomponents/httpclient "4.5.2"]
+                 ;; db
+                 [com.datomic/datomic-pro "0.9.5372"]
+                 [org.postgresql/postgresql "9.3-1102-jdbc41"]
                  ;; util
                  [prismatic/plumbing "0.5.3"]
                  [prismatic/schema "1.1.1"]]

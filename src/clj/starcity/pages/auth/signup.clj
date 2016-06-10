@@ -1,13 +1,23 @@
 (ns starcity.pages.auth.signup
   (:require [starcity.pages.base :refer [base]]
-            [starcity.pages.util :refer [malformed]]
+            [starcity.pages.util :refer [malformed ok]]
             [starcity.pages.auth.common :refer :all]
             [starcity.models.account :as account]
-            [starcity.datomic :refer [db]]
+            [starcity.services.mailgun :refer [send-email]]
+            [starcity.datomic :refer [conn]]
+            [starcity.config :refer [config]]
             [bouncer.core :as b]
             [bouncer.validators :as v]
             [clojure.string :refer [trim capitalize lower-case]]
-            [ring.util.response :as response]))
+            [ring.util.response :as response]
+            [ring.util.codec :refer [url-encode]]
+            [datomic.api :as d]))
+
+;; =============================================================================
+;; Constants
+
+(def ^:private +redirect-after-activation+ "/me")
+(def ^:private +redirect-after-signup+ "/signup/complete")
 
 ;; =============================================================================
 ;; Components
@@ -100,7 +110,7 @@
 
 (defn render-complete [req]
   (base
-   [:h3 "Check your inbox, yo."]))
+   [:h2 "Check your inbox, yo."]))
 
 (defn render-signup [req & {:keys [errors email first-name last-name]
                             :or   {errors     []
@@ -109,30 +119,66 @@
                                    last-name  ""}}]
   (base (signup-content req errors email first-name last-name)))
 
+;; TODO: 'Resend' mechanism
+(defn render-invalid-activation
+  [req]
+  (base
+   [:h2 "Your activation link is invalid or has expired."]))
+
 ;; =============================================================================
 ;; Signup
 
+(defn- pull-user
+  [user-id]
+  (let [pattern [:account/email :account/first-name :account/last-name :account/activation-hash]]
+    (d/pull (d/db conn) pattern user-id)))
+
+(defn- send-activation-email
+  [user-id]
+  (let [{:keys [account/email
+                account/first-name
+                account/last-name
+                account/activation-hash]} (pull-user user-id)]
+    (send-email email "Starcity Account Activation"
+                (format "Hello %s %s,\n%s/signup/activate?email=%s&hash=%s"
+                        first-name
+                        last-name
+                        (:hostname config)
+                        (url-encode email)
+                        activation-hash))))
+
 (defn signup
-  [{:keys [params session] :as req}]
+  [{:keys [params] :as req}]
   (letfn [(-respond-malformed [& errors]
             (let [{:keys [first-name last-name email]} params]
               (malformed (render-signup req :errors errors
-                                 :email email
-                                 :first-name first-name
-                                 :last-name last-name))))]
+                                        :email email
+                                        :first-name first-name
+                                        :last-name last-name))))]
     (if-let [params (matching-passwords? params)]
       (let [vresult (-> params clean-params validate)]
         (if-let [{:keys [email password first-name last-name]} (valid? vresult)]
-         (if-not (account/exists? db email)
-           ;; SUCCESS
-           (let [user    (account/create! db email password first-name last-name)
-                 session (assoc session :identity user)]
-             (do
-               ;; TODO: SEND EMAIL
-               (response/redirect "/signup/complete")))
-           ;; account already exists for email
-           (-respond-malformed (format "An account is already registered for %s." email)))
-         ;; validation failure
-         (apply -respond-malformed (errors-from vresult))))
-     ;; passwords don't match
-     (-respond-malformed (format "Those passwords do not match. Please try again.")))))
+          (if-not (account/exists? email)
+            ;; SUCCESS
+            (let [uid (account/create! email password first-name last-name)]
+              (do
+                (send-activation-email uid)
+                (response/redirect +redirect-after-signup+)))
+            ;; account already exists for email
+            (-respond-malformed (format "An account is already registered for %s." email)))
+          ;; validation failure
+          (apply -respond-malformed (errors-from vresult))))
+      ;; passwords don't match
+      (-respond-malformed (format "Those passwords do not match. Please try again.")))))
+
+(defn activate
+  [{:keys [params session] :as req}]
+  (let [{:keys [email hash]} params
+        user                 (account/by-email email)]
+    (if (= hash (:account/activation-hash user))
+      (let [_       (account/activate! user)
+            session (assoc session :identity (account/by-email email))]
+        (-> (response/redirect +redirect-after-activation+)
+            (assoc :session session)))
+      ;; hashes don't match
+      (ok (render-invalid-activation req)))))

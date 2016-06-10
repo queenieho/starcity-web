@@ -32,15 +32,16 @@
 ;; Routes
 
 (def routes
-  ["/" {""                :index
-        "register"        :register
-        "login"           :login
-        "signup"          {""          :signup
-                           "/complete" :signup/complete}
-        "logout"          :logout
-        "me"              {true :dashboard}
+  ["/" {""         :index
+        "register" :register
+        "login"    :login
+        "signup"   {""          :signup
+                    "/activate" :signup/activate
+                    "/complete" :signup/complete}
+        "logout"   :logout
+        "me"       {true :dashboard}
 
-        true              :index ; catch-all
+        true       :index ; catch-all
         }])
 
 ;; =============================================================================
@@ -54,10 +55,10 @@
       :login           (auth/handle-login req)
       :logout          (auth/handle-logout req)
       :signup          (auth/handle-signup req)
+      :signup/activate (auth/handle-activation req)
       :signup/complete (auth/handle-signup-complete req)
       :dashboard       (dashboard/handle req)
       req)))
-
 
 (def app-handler
   (-> handler

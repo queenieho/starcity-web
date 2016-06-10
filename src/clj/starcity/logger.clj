@@ -6,6 +6,7 @@
 
 (defn- setup-logger
   [{:keys [level logfile] :as conf}]
+  (timbre/infof "Setting up logger @ level %s, logging to %s" level logfile)
   (merge-config!
    {:level     level
     :appenders {:spit (appenders/spit-appender {:fname logfile})}}))

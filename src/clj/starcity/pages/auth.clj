@@ -28,6 +28,13 @@
       :post (login/authenticate req)
       (ok (login/render req)))))
 
+(defn handle-activation [{:keys [params] :as req}]
+  (let [{:keys [email hash]} params]
+    (cond
+      (authenticated? req) (response/redirect login/+redirect-after-login+)
+      (and email hash)     (signup/activate req)
+      :otherwise           (signup/render-invalid-activation req))))
+
 (defn handle-logout [req]
   (-> (response/redirect "/login")
       (assoc :session {})))

@@ -2,7 +2,7 @@
   (:require [ring.util.response :as response]
             [buddy.auth :refer [authenticated? throw-unauthorized]]
             [buddy.auth.backends.session :refer [session-backend]]
-            [taoensso.timbre :refer [tracef error]]))
+            [taoensso.timbre :refer [tracef error debugf]]))
 
 (defn wrap-exception-handling
   [handler]
@@ -20,7 +20,7 @@
   [handler]
   (fn [{:keys [uri params request-method] :as req}]
     (when-not (= uri "/favicon.ico")
-      (tracef "REQUEST :: uri -- %s :: params -- %s :: method -- %s"
+      (debugf "REQUEST :: uri -- %s :: params -- %s :: method -- %s"
               uri params request-method))
     (handler req)))
 
