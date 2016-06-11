@@ -6,7 +6,8 @@
             [datomic.api :as d]
             [starcity.datomic.util :refer [one]]
             [starcity.models.util :refer :all]
-            [starcity.datomic :refer [conn] :as db]))
+            [starcity.datomic :refer [conn]]
+            [starcity.config :as config]))
 
 ;; =============================================================================
 ;; Helpers
@@ -45,7 +46,7 @@
                       :password        (-> password trim hash-password)
                       :activation-hash (generate-activation-hash email)
                       :activated       false})
-        tid  (d/tempid db/partition)
+        tid  (d/tempid (starcity.config/datomic-partition))
         tx   @(d/transact conn [(assoc acct :db/id tid)])]
     (d/resolve-tempid (d/db conn) (:tempids tx) tid)))
 

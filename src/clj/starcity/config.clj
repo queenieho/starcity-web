@@ -48,3 +48,6 @@
 ;; API
 
 (defstate config :start (load-config environment))
+
+(defn datomic-partition []
+  (get-in config [:datomic :partition]))

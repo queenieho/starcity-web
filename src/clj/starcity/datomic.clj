@@ -71,6 +71,3 @@
 (defstate conn
   :start (new-connection (:datomic config))
   :stop  (disconnect (:datomic config) conn))
-
-(defstate partition
-  :start (get-in config [:datomic :partition]))
