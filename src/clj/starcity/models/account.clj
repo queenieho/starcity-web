@@ -46,7 +46,7 @@
                       :password        (-> password trim hash-password)
                       :activation-hash (generate-activation-hash email)
                       :activated       false})
-        tid  (d/tempid (starcity.config/datomic-partition))
+        tid  (d/tempid (config/datomic-partition))
         tx   @(d/transact conn [(assoc acct :db/id tid)])]
     (d/resolve-tempid (d/db conn) (:tempids tx) tid)))
 

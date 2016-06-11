@@ -2,7 +2,7 @@
   (:require [ring.util.response :as response]
             [buddy.auth :refer [authenticated? throw-unauthorized]]
             [buddy.auth.backends.session :refer [session-backend]]
-            [taoensso.timbre :refer [tracef error debugf]]))
+            [taoensso.timbre :refer [tracef error debugf debug]]))
 
 (defn wrap-exception-handling
   [handler]

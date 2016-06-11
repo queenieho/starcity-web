@@ -1,7 +1,8 @@
 (ns starcity.pages.auth.login
   (:require [starcity.pages.base :refer [base]]
-            [starcity.pages.util :refer [malformed]]
+            [starcity.pages.util :refer [malformed ok]]
             [starcity.pages.auth.common :refer :all]
+            [starcity.router :refer [route]]
             [starcity.models.account :as account]
             [bouncer.core :as b]
             [bouncer.validators :as v]
@@ -59,14 +60,16 @@
 ;; =============================================================================
 ;; API
 
-(defn render [req & {:keys [errors email] :or {errors [] email ""}}]
+(defn- render [req & {:keys [errors email] :or {errors [] email ""}}]
   ;; NOTE: Preserves the next url through the POST req by using a hidden input
   (let [next-url (get-in req [:params :next] +redirect-after-login+)]
     (base (content req errors email next-url) :css ["signin.css"])))
 
-(defn authenticate
-  "Authenticate the user by checking email and password."
-  [{:keys [params session] :as req}]
+(defmethod route [:login :get] [_ req]
+  (ok (render req)))
+
+(defmethod route [:login :post]
+  [_ {:keys [params session] :as req}]
   (let [vresult (-> params clean-credentials validate-credentials)]
     (if-let [{:keys [email password]} (valid? vresult)]
       (if-let [user (account/authenticate email password)]

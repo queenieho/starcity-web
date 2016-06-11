@@ -12,6 +12,7 @@
             [starcity.middleware :refer [wrap-logging
                                          auth-backend
                                          wrap-exception-handling]]
+            [starcity.router :as router]
             ;; pages
             [starcity.pages.landing :as landing]
             [starcity.pages.register :as register]
@@ -49,16 +50,7 @@
 
 (defn handler [{:keys [uri request-method] :as req}]
   (let [match (bidi/match-route routes uri :request-method request-method)]
-    (case (:handler match)
-      :index           (landing/handle req)
-      :register        (register/handle req)
-      :login           (auth/handle-login req)
-      :logout          (auth/handle-logout req)
-      :signup          (auth/handle-signup req)
-      :signup/activate (auth/handle-activation req)
-      :signup/complete (auth/handle-signup-complete req)
-      :dashboard       (dashboard/handle req)
-      req)))
+    (router/route match req)))
 
 (def app-handler
   (-> handler

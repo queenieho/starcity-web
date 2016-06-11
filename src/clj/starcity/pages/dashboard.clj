@@ -1,6 +1,7 @@
 (ns starcity.pages.dashboard
   (:require [starcity.pages.base :refer [base]]
             [starcity.pages.util :refer [ok]]
+            [starcity.router :refer [route]]
             [starcity.environment :refer [environment]]
             [ring.util.response :as response]
             [buddy.auth :refer [authenticated? throw-unauthorized]]
@@ -22,7 +23,7 @@
 ;; =============================================================================
 ;; API
 
-(defn handle [req]
+(defmethod route [:dashboard :get] [_ req]
   (if-not (authenticated? req)
     (throw-unauthorized)
     (ok (render-dashboard req))))
