@@ -6,7 +6,7 @@
 
   :jvm-opts ^:replace ["-XX:MaxPermSize=128m" "-Xms512m" "-Xmx512m" "-server"]
 
-  :dependencies [[org.clojure/clojure "1.9.0-alpha3"]
+  :dependencies [[org.clojure/clojure "1.9.0-alpha4"]
                  [org.clojure/core.async "0.2.374"]
                  [org.clojure/clojurescript "1.7.170"]
                  [org.clojure/tools.nrepl "0.2.12"]
