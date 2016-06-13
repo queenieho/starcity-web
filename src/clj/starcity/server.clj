@@ -1,7 +1,6 @@
 (ns starcity.server
   (:require [ring.adapter.jetty :refer [run-jetty]] ; server
             [org.httpkit.server :refer [run-server]]
-            [bidi.bidi :as bidi]                    ; routing
             ;; middleware
             [ring.middleware.resource :refer [wrap-resource]]
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
