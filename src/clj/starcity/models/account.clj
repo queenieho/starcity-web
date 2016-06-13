@@ -6,7 +6,8 @@
             [datomic.api :as d]
             [starcity.datomic.util :refer [one]]
             [starcity.models.util :refer :all]
-            [starcity.datomic :refer [conn] :as db]))
+            [starcity.datomic :refer [conn]]
+            [starcity.config :as config]))
 
 ;; =============================================================================
 ;; Helpers
@@ -17,6 +18,12 @@
       (str (System/currentTimeMillis))
       (md5)
       (bytes->hex)))
+
+;; =============================================================================
+;; Roles
+
+(derive :account.role/admin :account.role/applicant)
+(derive :account.role/admin :account.role/tenant)
 
 ;; =============================================================================
 ;; Password Hashing
@@ -44,8 +51,9 @@
                       :email           (-> email trim lower-case)
                       :password        (-> password trim hash-password)
                       :activation-hash (generate-activation-hash email)
-                      :activated       false})
-        tid  (d/tempid db/partition)
+                      :activated       false
+                      :role            :account.role/applicant})
+        tid  (d/tempid (config/datomic-partition))
         tx   @(d/transact conn [(assoc acct :db/id tid)])]
     (d/resolve-tempid (d/db conn) (:tempids tx) tid)))
 
@@ -71,3 +79,7 @@
   (when-let [user (one (d/db conn) :account/email email)]
     (when (check-password password (:account/password user))
       user)))
+
+(defn applicant?
+  [account]
+  (= (:account/role account) :account.role/applicant))

@@ -1,0 +1,4 @@
+[{:db/id                    #db/id[:db.part/user]
+  :property/name            "Gilbert"
+  :property/internal-name   "Alpha"
+  :property/units-available 6}]

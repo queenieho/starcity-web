@@ -1,6 +1,7 @@
 (ns starcity.pages.landing
   (:require [starcity.pages.base :refer [base]]
             [starcity.pages.util :refer [ok]]
+            [starcity.router :refer [route]]
             [hiccup.core :refer [html]]))
 
 ;; =============================================================================
@@ -91,5 +92,8 @@
 ;; =============================================================================
 ;; API
 
-(defn handle [req]
+(defn render [req]
   (ok (landing-view)))
+
+;; (defmethod route [:index :get] [_ _]
+;;   (ok (landing-view)))

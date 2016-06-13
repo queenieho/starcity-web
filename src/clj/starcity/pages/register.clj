@@ -1,6 +1,7 @@
 (ns starcity.pages.register
   (:require [starcity.pages.base :refer [base]]
             [starcity.pages.util :refer [ok]]
+            [starcity.router :refer [route]]
             [starcity.services.mailchimp :as mailchimp]
             [ring.util.response :as response]
             [taoensso.timbre :refer [debug infof]]))
@@ -39,9 +40,14 @@
 ;; =============================================================================
 ;; API
 
-(defn handle [{:keys [params] :as req}]
-  (if-let [email (:email params)]
-    (do
-      (mailchimp/add-interested-subscriber! email (partial log-subscriber-request email))
-      (ok (view req)))
-    (ok (view req))))
+(defn register-user [{:keys [params] :as req}]
+  (when-let [email (:email params)]
+    (mailchimp/add-interested-subscriber! email (partial log-subscriber-request email)))
+  (ok (view req)))
+
+;; (defmethod route [:register :get] [_ {:keys [params] :as req}]
+;;   (if-let [email (:email params)]
+;;     (do
+;;       (mailchimp/add-interested-subscriber! email (partial log-subscriber-request email))
+;;       (ok (view req)))
+;;     (ok (view req))))

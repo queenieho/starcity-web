@@ -2,6 +2,7 @@
   (:require [starcity.pages.base :refer [base]]
             [starcity.pages.util :refer [malformed ok]]
             [starcity.pages.auth.common :refer :all]
+            [starcity.router :refer [route]]
             [starcity.models.account :as account]
             [starcity.services.mailgun :refer [send-email]]
             [starcity.config :refer [config]]
@@ -14,12 +15,14 @@
 
 ;; =============================================================================
 ;; Constants
+;; =============================================================================
 
-(def ^:private +redirect-after-activation+ "/me")
+(def ^:private +redirect-after-activation+ "/availability")
 (def ^:private +redirect-after-signup+ "/signup/complete")
 
 ;; =============================================================================
 ;; Components
+;; =============================================================================
 
 (defn- form-group
   [id label attrs]
@@ -103,29 +106,26 @@
 
 ;; =============================================================================
 ;; API
+;; =============================================================================
 
 ;; =============================================================================
-;; Render
+;; Complete
 
 (defn render-complete [req]
-  (base
-   [:h2 "Check your inbox, yo."]))
-
-(defn render-signup [req & {:keys [errors email first-name last-name]
-                            :or   {errors     []
-                                   email      ""
-                                   first-name ""
-                                   last-name  ""}}]
-  (base (signup-content req errors email first-name last-name)))
-
-;; TODO: 'Resend' mechanism
-(defn render-invalid-activation
-  [req]
-  (base
-   [:h2 "Your activation link is invalid or has expired."]))
+  (ok (base [:h2 "Check your inbox, yo."])))
 
 ;; =============================================================================
 ;; Signup
+
+(defn- render-signup [req & {:keys [errors email first-name last-name]
+                             :or   {errors     []
+                                    email      ""
+                                    first-name ""
+                                    last-name  ""}}]
+  (base (signup-content req errors email first-name last-name)))
+
+(defn render [req]
+  (ok (render-signup req)))
 
 (defn- send-activation-email
   [user-id]
@@ -142,8 +142,7 @@
                         (url-encode email)
                         activation-hash))))
 
-(defn signup
-  [{:keys [params] :as req}]
+(defn signup! [{:keys [params] :as req}]
   (letfn [(-respond-malformed [& errors]
             (let [{:keys [first-name last-name email]} params]
               (malformed (render-signup req :errors errors
@@ -166,14 +165,24 @@
       ;; passwords don't match
       (-respond-malformed (format "Those passwords do not match. Please try again.")))))
 
-(defn activate
-  [{:keys [params session] :as req}]
-  (let [{:keys [email hash]} params
-        user                 (account/by-email email)]
-    (if (= hash (:account/activation-hash user))
-      (let [_       (account/activate! user)
-            session (assoc session :identity (account/by-email email))]
-        (-> (response/redirect +redirect-after-activation+)
-            (assoc :session session)))
-      ;; hashes don't match
-      (ok (render-invalid-activation req)))))
+;; TODO: 'Resend' mechanism
+(defn- render-invalid-activation
+  [req]
+  (base
+   [:h2 "Your activation link is invalid or has expired."]))
+
+;; =============================================================================
+;; Activation
+
+(defn activate! [{:keys [params session] :as req}]
+  (let [{:keys [email hash]} params]
+    (if (or (nil? email) (nil? hash))
+      (render-invalid-activation req)
+      (let [user (account/by-email email)]
+        (if (= hash (:account/activation-hash user))
+          (let [_       (account/activate! user)
+                session (assoc session :identity (account/by-email email))]
+            (-> (response/redirect +redirect-after-activation+)
+                (assoc :session session)))
+          ;; hashes don't match
+          (ok (render-invalid-activation req)))))))
