@@ -92,5 +92,8 @@
 ;; =============================================================================
 ;; API
 
-(defmethod route [:index :get] [_ _]
+(defn render [req]
   (ok (landing-view)))
+
+;; (defmethod route [:index :get] [_ _]
+;;   (ok (landing-view)))

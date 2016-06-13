@@ -15,12 +15,14 @@
 
 ;; =============================================================================
 ;; Constants
+;; =============================================================================
 
-(def ^:private +redirect-after-activation+ "/me")
+(def ^:private +redirect-after-activation+ "/availability")
 (def ^:private +redirect-after-signup+ "/signup/complete")
 
 ;; =============================================================================
 ;; Components
+;; =============================================================================
 
 (defn- form-group
   [id label attrs]
@@ -104,13 +106,16 @@
 
 ;; =============================================================================
 ;; API
+;; =============================================================================
 
 ;; =============================================================================
-;; Render
+;; Complete
 
-(defmethod route [:signup/complete :get] [_ req]
-  (ok (base
-       [:h2 "Check your inbox, yo."])))
+(defn render-complete [req]
+  (ok (base [:h2 "Check your inbox, yo."])))
+
+;; =============================================================================
+;; Signup
 
 (defn- render-signup [req & {:keys [errors email first-name last-name]
                              :or   {errors     []
@@ -119,11 +124,8 @@
                                     last-name  ""}}]
   (base (signup-content req errors email first-name last-name)))
 
-(defmethod route [:signup :get] [_ req]
+(defn render [req]
   (ok (render-signup req)))
-
-;; =============================================================================
-;; Signup
 
 (defn- send-activation-email
   [user-id]
@@ -140,7 +142,7 @@
                         (url-encode email)
                         activation-hash))))
 
-(defmethod route [:signup :post] [_ {:keys [params] :as req}]
+(defn signup! [{:keys [params] :as req}]
   (letfn [(-respond-malformed [& errors]
             (let [{:keys [first-name last-name email]} params]
               (malformed (render-signup req :errors errors
@@ -169,8 +171,10 @@
   (base
    [:h2 "Your activation link is invalid or has expired."]))
 
-(defmethod route [:signup/activate :get]
-  [_ {:keys [params session] :as req}]
+;; =============================================================================
+;; Activation
+
+(defn activate! [{:keys [params session] :as req}]
   (let [{:keys [email hash]} params]
     (if (or (nil? email) (nil? hash))
       (render-invalid-activation req)

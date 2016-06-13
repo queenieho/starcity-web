@@ -28,9 +28,14 @@
 ;; =============================================================================
 ;; API
 
-(defmethod route [:register :get] [_ {:keys [params] :as req}]
-  (if-let [email (:email params)]
-    (do
-      (mailchimp/add-interested-subscriber! email (partial log-subscriber-request email))
-      (ok (view req)))
-    (ok (view req))))
+(defn register-user [{:keys [params] :as req}]
+  (when-let [email (:email params)]
+    (mailchimp/add-interested-subscriber! email (partial log-subscriber-request email)))
+  (ok (view req)))
+
+;; (defmethod route [:register :get] [_ {:keys [params] :as req}]
+;;   (if-let [email (:email params)]
+;;     (do
+;;       (mailchimp/add-interested-subscriber! email (partial log-subscriber-request email))
+;;       (ok (view req)))
+;;     (ok (view req))))

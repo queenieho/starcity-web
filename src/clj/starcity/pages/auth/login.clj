@@ -2,7 +2,6 @@
   (:require [starcity.pages.base :refer [base]]
             [starcity.pages.util :refer [malformed ok]]
             [starcity.pages.auth.common :refer :all]
-            [starcity.router :refer [route]]
             [starcity.models.account :as account]
             [bouncer.core :as b]
             [bouncer.validators :as v]
@@ -60,31 +59,41 @@
 ;; =============================================================================
 ;; API
 
-(defn- render [req & {:keys [errors email] :or {errors [] email ""}}]
+(defn- render* [{:keys [identity] :as req}
+                & {:keys [errors email] :or {errors [] email ""}}]
   ;; NOTE: Preserves the next url through the POST req by using a hidden input
-  (let [next-url (get-in req [:params :next] +redirect-after-login+)]
+  (let [next-url (get-in req [:params :next])]
     (base (content req errors email next-url) :css ["signin.css"])))
 
-(defmethod route [:login :get] [_ req]
-  (ok (render req)))
+(defn render
+  "Render the landing page."
+  [req]
+  (ok (render* req)))
 
-(defmethod route [:login :post]
-  [_ {:keys [params session] :as req}]
+(defn- url-after-login [acct {:keys [params] :as req}]
+  (cond
+    (account/applicant? acct)  "/application"
+    (not-empty (:next params)) (:next params)
+    :otherwise                 +redirect-after-login+))
+
+(defn login!
+  "Log a user in."
+  [{:keys [params session] :as req}]
   (let [vresult (-> params clean-credentials validate-credentials)]
     (if-let [{:keys [email password]} (valid? vresult)]
-      (if-let [user (account/authenticate email password)]
-        (if (:account/activated user)
+      (if-let [acct (account/authenticate email password)]
+        (if (:account/activated acct)
           ;; success
-          (let [next-url (get-in req [:params :next])
-                session  (assoc session :identity user)]
+          (let [next-url (url-after-login acct req)
+                session  (assoc session :identity acct)]
             (-> (response/redirect next-url)
                 (assoc :session session)))
           ;; account not activated
-          (malformed (render req :errors ["Please click the activation link in your inbox before attempting to log in."]
+          (malformed (render* req :errors ["Please click the activation link in your inbox before attempting to log in."]
                              :email email)))
         ;; authentication failure
-        (malformed (render req
+        (malformed (render* req
                            :errors ["The credentials you entered are invalid; please try again."]
                            :email email))) ; TODO: Need more here?
       ;; validation failure
-      (malformed (render req :errors (errors-from vresult) :email (:email params))))))
+      (malformed (render* req :errors (errors-from vresult) :email (:email params))))))

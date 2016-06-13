@@ -2,9 +2,9 @@
 
 (defmulti route
   "Route a web request."
-  (fn [match req]
+  (fn [match _]
     (when-let [handler (:handler match)]
-      [handler (:request-method req)])))
+      [handler (:request-method handler)])))
 
 ;; TODO: log unmatched request?
 (defmethod route nil [_ req]

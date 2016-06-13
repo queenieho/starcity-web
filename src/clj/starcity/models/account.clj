@@ -20,6 +20,12 @@
       (bytes->hex)))
 
 ;; =============================================================================
+;; Roles
+
+(derive :account.role/admin :account.role/applicant)
+(derive :account.role/admin :account.role/tenant)
+
+;; =============================================================================
 ;; Password Hashing
 
 (defn- hash-password [password]
@@ -45,7 +51,8 @@
                       :email           (-> email trim lower-case)
                       :password        (-> password trim hash-password)
                       :activation-hash (generate-activation-hash email)
-                      :activated       false})
+                      :activated       false
+                      :role            :account.role/applicant})
         tid  (d/tempid (config/datomic-partition))
         tx   @(d/transact conn [(assoc acct :db/id tid)])]
     (d/resolve-tempid (d/db conn) (:tempids tx) tid)))
@@ -72,3 +79,7 @@
   (when-let [user (one (d/db conn) :account/email email)]
     (when (check-password password (:account/password user))
       user)))
+
+(defn applicant?
+  [account]
+  (= (:account/role account) :account.role/applicant))

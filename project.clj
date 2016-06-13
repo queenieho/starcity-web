@@ -19,7 +19,7 @@
                  [venantius/accountant "0.1.7"]
                  ;; clj
                  [http-kit "2.1.19"]
-                 [bidi "2.0.9"]
+                 [compojure "1.5.0"]
                  [cheshire "5.6.1"]
                  [ring/ring "1.4.0"]
                  [hiccup "1.0.5"]
@@ -27,7 +27,7 @@
                  [me.raynes/fs "1.4.6"]
                  [cpath-clj "0.1.2"]
                  [com.taoensso/timbre "4.3.1"]
-                 [buddy "0.13.0"]
+                 [buddy "1.0.0"]
                  [bouncer "1.0.0"]
                  [nilenso/mailgun "0.2.3"]
                  [org.apache.httpcomponents/httpclient "4.5.2"]
