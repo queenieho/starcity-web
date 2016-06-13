@@ -1,0 +1,50 @@
+/* GLOBAL STYLES */
+
+body {
+    color: rgba(255, 255, 255, 0.8);
+    font-family: 'Lato', sans-serif;
+    background: #398c88;
+}
+
+/* NAVBAR */
+
+.navbar {
+    background-color: transparent;
+    background: transparent;
+    border-color: transparent;
+    top: 0;
+    position: absolute;
+}
+
+.navbar-brand img {
+    width: 60px;
+    height: 60px;
+    margin: 15px;
+}
+
+.navbar-wrapper {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 20;
+}
+
+.navbar-wrapper > .container-fluid {
+    padding-right: 0;
+    padding-left: 0;
+    margin: 40px;
+}
+
+.navbar-wrapper .navbar {
+    padding-right: 15px;
+    padding-left: 15px;
+}
+
+/* TEXT */
+
+h3 {
+    text-align: center;
+    font-weight: 300;
+    margin: 100px 40px;
+}
