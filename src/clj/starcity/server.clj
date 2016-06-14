@@ -11,7 +11,7 @@
             [starcity.auth :refer [auth-backend]]
             [starcity.middleware :refer [wrap-logging
                                          wrap-exception-handling]]
-            [starcity.routes :refer [routes]]
+            [starcity.routes :refer [app-routes]]
             ;; util
             [mount.core :as mount :refer [defstate]]
             [starcity.config :refer [config]]
@@ -23,7 +23,7 @@
 ;; Handler & Middleware
 
 (def app-handler
-  (-> routes
+  (-> app-routes
       (wrap-logging)
       (wrap-authorization auth-backend)
       (wrap-authentication auth-backend)
