@@ -50,7 +50,7 @@
        [:p.lead "Hard-working San Franciscans form the diverse fabric of this city. Yet we're often left out of the housing conversation. Let's change that. Let's build housing that allows us to thrive in our beloved city. Let's build communities that embrace individuals from all walks of life."]]
       [:div.col-md-5
        [:img.featurette-image.img-responsive.img-rounded
-        {:src "/assets/img/renderings/sf_rendering04.png"}]]]
+        {:src "/assets/img/renderings/alphasiterendering.png"}]]]
 
      [:hr.featurette-divider]
      [:div.row.featurette
