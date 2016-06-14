@@ -1,8 +1,8 @@
 (ns user
   (:require [clojure.tools.namespace.repl :refer [refresh]]
             [mount.core :as mount :refer [defstate]]
-            [figwheel-sidecar.repl-api :as ra]
-            [figwheel-sidecar.system :refer [fetch-config]]
+            ;; [figwheel-sidecar.repl-api :as ra]
+            ;; [figwheel-sidecar.system :refer [fetch-config]]
             [starcity.logger]
             [starcity.server]
             [starcity.datomic]
@@ -19,14 +19,14 @@
 ;; =============================================================================
 ;; Figwheel
 
-(defn- start-figwheel [config]
-  (when-not (ra/figwheel-running?)
-    (debug "Starting Figwheel server")
-    (ra/start-figwheel! config)))
+;; (defn- start-figwheel [config]
+;;   (when-not (ra/figwheel-running?)
+;;     (debug "Starting Figwheel server")
+;;     (ra/start-figwheel! config)))
 
-(defstate ^{:on-reload :noop}
-  figwheel
-  :start (start-figwheel (fetch-config)))
+;; (defstate ^{:on-reload :noop}
+;;   figwheel
+;;   :start (start-figwheel (fetch-config)))
 
 ;; =============================================================================
 ;; Reloaded Workflow
@@ -43,5 +43,5 @@
   (stop)
   (refresh :after 'user/go))
 
-(defn cljs-repl []
-  (ra/cljs-repl))
+;; (defn cljs-repl []
+;;   (ra/cljs-repl))

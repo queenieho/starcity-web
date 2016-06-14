@@ -1,5 +1,5 @@
 (ns starcity.routes
-  (:require [compojure.core :refer [defroutes context GET POST ANY]]
+  (:require [compojure.core :refer [defroutes routes context GET POST ANY]]
             [compojure.route :as route]
             [starcity.pages.landing :as landing]
             [starcity.pages.register :as register]
@@ -23,38 +23,41 @@
 (defn- redirect-on-invalid-authorization
   [to]
   (fn [req msg]
-   (if (authenticated? req)
-     (response/redirect to)
-     (response/redirect "/"))))
+    (if (authenticated? req)
+      (response/redirect to)
+      (response/redirect "/"))))
 
 ;; =============================================================================
 ;; API
 ;; =============================================================================
 
-(defroutes routes
+(defroutes app-routes
   ;; public
-  (GET "/register" [] register/register-user)
-  (GET "/availability" [] availability/render)
+  (GET  "/register"     [] register/register-user)
+  (GET  "/availability" [] availability/render)
 
-  (GET "/login" [] login/render)
-  (POST "/login" [] login/login!)
+  (GET  "/login"        [] login/render)
+  (POST "/login"        [] login/login!)
 
-  (ANY "/logout" [] auth/logout!)
+  (ANY  "/logout"       [] auth/logout!)
 
   (context "/signup" []
-    (GET "/" [] signup/render)
-    (POST "/" [] signup/signup!)
-    (GET "/complete" [] signup/render-complete)
-    (GET "/activate" [] signup/activate!))
+    (GET   "/"         [] signup/render)
+    (POST  "/"         [] signup/signup!)
+    (GET   "/complete" [] signup/render-complete)
+    (GET   "/activate" [] signup/activate!))
 
   ;; auth
-  (GET "/application" [] (-> application/render
-                             (restrict {:handler  {:and [authenticated-user
-                                                         (user-isa :account.role/applicant)]}
-                                        :on-error (redirect-on-invalid-authorization "/me")})))
+  (context "/application" []
+    (restrict
+     (routes
+      (GET "/" [] application/render))
+     {:handler  {:and [authenticated-user
+                       (user-isa :account.role/applicant)]}
+      :on-error (redirect-on-invalid-authorization "/me")}))
   (GET "/me" [] (-> dashboard/render
                     (restrict {:handler  {:and [authenticated-user (user-isa :account.role/tenant)]}
                                :on-error (redirect-on-invalid-authorization "/application")})))
 
   ;; catch-all
-  (ANY "*" [] landing/render))
+  (ANY "*" [] "<p>Not found</p>"))

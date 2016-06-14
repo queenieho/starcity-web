@@ -38,36 +38,40 @@
                  [prismatic/plumbing "0.5.3"]
                  [prismatic/schema "1.1.1"]]
 
-  :plugins [[lein-cljsbuild "1.1.3"]]
+  ;; :plugins [[lein-cljsbuild "1.1.3"]]
 
   :profiles
-  {:dev     {:source-paths ["src/dev" "src/clj" "src/cljs"]
-             :plugins      [[lein-figwheel "0.5.0-2"]]
-             :dependencies [[figwheel-sidecar "0.5.0-2"]
-                            [binaryage/devtools "0.6.1"]]}
+  {:dev     {:source-paths ["src/dev" "src/clj" ;"src/cljs"
+                            ]
+             ;; :plugins      [[lein-figwheel "0.5.0-2"]]
+             :dependencies [;[figwheel-sidecar "0.5.0-2"]
+                            ;[binaryage/devtools "0.6.1"]
+                            ]}
 
    :uberjar {:aot          [starcity.core]
-             :prep-tasks   ["compile" ["cljsbuild" "once"]]
-             :source-paths ["src/clj" "src/cljs"]
-             :cljsbuild
-             {:builds {:main
-                       {:source-paths ["src/cljs"]
-                        :jar          true
-                        :compiler     {:optimizations    :advanced
-                                       :elide-asserts    true
-                                       :pretty-print     false
-                                       :externs          []
-                                       :output-dir       "resources/public/js/app/out"
-                                       :output-to        "resources/public/js/app/main.js"
-                                       :closure-warnings {:externs-validation :off
-                                                          :non-standard-jsdoc :off}}}}}}
+             ;; :prep-tasks   ["compile" ["cljsbuild" "once"]]
+             ;; :source-paths ["src/clj" "src/cljs"]
+             :source-paths ["src/clj"]
+             ;; :cljsbuild
+             ;; {:builds {:main
+             ;;           {:source-paths ["src/cljs"]
+             ;;            :jar          true
+             ;;            :compiler     {:optimizations    :advanced
+             ;;                           :elide-asserts    true
+             ;;                           :pretty-print     false
+             ;;                           :externs          []
+             ;;                           :output-dir       "resources/public/js/app/out"
+             ;;                           :output-to        "resources/public/js/app/main.js"
+             ;;                           :closure-warnings {:externs-validation :off
+             ;;                                              :non-standard-jsdoc :off}}}}}
+             }
 
    }
 
   :repl-options {:init-ns          user
                  :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
 
-  :clean-targets ^{:protect false} ["resources/public/js/app"
-                                    :target-path]
+  ;; :clean-targets ^{:protect false} ["resources/public/js/app"
+  ;;                                   :target-path]
 
   :main starcity.core)
