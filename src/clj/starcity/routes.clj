@@ -60,4 +60,4 @@
                                :on-error (redirect-on-invalid-authorization "/application")})))
 
   ;; catch-all
-  (ANY "*" [] landing/render))
+  (ANY "*" [] "<p>Not found</p>"))
