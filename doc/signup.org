@@ -1,0 +1,38 @@
+* Signup Flow
+
+** 1. Create an account
+
++ Name
++ Email
++ Password
+
+Activation link takes you to the "/availability" page.
+
+** 2. Logistics
+
+These include:
+
++ Pets
++ Num People
++ Desired move-in date
+  + If desired move-in is incompatible with availability, message that this is
+    the case.
+
+** 3. Business Shit
+
++ SSN
++ Legal Name (opportunity to add/update name)
++ DOB
++ Current Address
++ Income Range
+
+This information is needed to run background & credit checks. Will need to
+indicate this and accept payment.
+
+After payment, indicate that the community fitness can be started.
+
+** 4. Community Fitness
+
+
+
+** 5. Approval/Finalization
