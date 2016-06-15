@@ -6,6 +6,8 @@
             [starcity.nrepl]
             [starcity.config]
             [starcity.environment]
+            [starcity.services.mailchimp]
+            [starcity.services.mailgun]
             [mount.core :as mount]))
 
 (defn -main [& args]

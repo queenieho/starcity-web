@@ -1,28 +1,17 @@
 (ns starcity.pages.dashboard
   (:require [starcity.pages.base :refer [base]]
             [starcity.pages.util :refer [ok]]
-            [starcity.environment :refer [environment]]
-            [ring.util.response :as response]
-            [buddy.auth :refer [authenticated? throw-unauthorized]]
-            [taoensso.timbre :as timbre]))
+            [ring.util.response :as response]))
 
-(timbre/refer-timbre)
 
 ;; =============================================================================
 ;; Components
 
-(defn- render-dashboard [req]
-  (let [username (get-in req [:session :identity :account/email])]
-    (base
-     [:div#app]
-     :js ["app/main.js"]
-     :css ["forms.css"]
-     :cljs-devtools? (= :development environment))))
-
 ;; =============================================================================
 ;; API
 
-(defn handle [req]
-  (if-not (authenticated? req)
-    (throw-unauthorized)
-    (ok (render-dashboard req))))
+(defn render [req]
+  (ok (base
+       [:div.container
+        [:div.page-header
+         [:h1 "This is the dashboard"]]])))

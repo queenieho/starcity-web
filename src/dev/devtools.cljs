@@ -1,4 +1,4 @@
-(ns user.devtools
-  (:require [devtools.core :as devtools]))
+;; (ns user.devtools
+;;   (:require [devtools.core :as devtools]))
 
-(devtools/install! [:custom-formatters :sanity-hints])
+;; (devtools/install! [:custom-formatters :sanity-hints])

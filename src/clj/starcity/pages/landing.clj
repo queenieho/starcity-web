@@ -1,6 +1,7 @@
 (ns starcity.pages.landing
   (:require [starcity.pages.base :refer [base]]
             [starcity.pages.util :refer [ok]]
+            [starcity.router :refer [route]]
             [hiccup.core :refer [html]]))
 
 ;; =============================================================================
@@ -35,21 +36,21 @@
      [:div.header-inner
       [:div.header-content
        [:div.container
-        [:h1 "reimagine the urban home"]
-        [:p.lead "Help us shape community-focused housing for San Francisco's workforce."]
-        [:button.btn.btn-lg.btn-primary "Learn More"]]]]]
+        [:h1 "reimagine home in San Francisco"]
+        [:p.lead "Help shape community-focused housing for our city's workforce."]
+        [:button.btn.btn-lg.btn-primary "Get Involved"]]]]]
 
     [:div.container.marketing
 
      [:div.row.featurette
       [:div.col-md-7
        [:h2.featurette-heading
-        "First Heading "
-        [:span.text-muted "It'll blow your mind."]]
-       [:p.lead "Donec sed odio dui. Etiam porta sem malesuada magna mollis euismod. Nullam id dolor id nibh ultricies vehicula ut id elit. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Praesent commodo cursus magna."]]
+        "Diverse, Resource-Efficient Communities. "
+        [:span.text-muted ""]]
+       [:p.lead "Hard-working San Franciscans form the diverse fabric of this city. Yet we're often left out of the housing conversation. Let's change that. Let's build housing that allows us to thrive in our beloved city. Let's build communities that embrace individuals from all walks of life."]]
       [:div.col-md-5
        [:img.featurette-image.img-responsive.img-rounded
-        {:src "/assets/img/renderings/sf_rendering04.png"}]]]
+        {:src "/assets/img/renderings/alphasiterendering.png"}]]]
 
      [:hr.featurette-divider]
      [:div.row.featurette
@@ -58,16 +59,16 @@
         {:src "/assets/img/renderings/sf_rendering04.png"}]]
       [:div.col-md-7
        [:h2.featurette-heading
-        "Second Heading "
-        [:span.text-muted "It'll blow your mind."]]
-       [:p.lead "Donec sed odio dui. Etiam porta sem malesuada magna mollis euismod. Nullam id dolor id nibh ultricies vehicula ut id elit. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Praesent commodo cursus magna."]]]
+        "Beautiful Private Spaces. <br> "
+        [:span.text-muted "For Everyone."]]
+       [:p.lead "Balancing community space and resources with adequate private space will honor the needs of our workforce. Let's design private rooms in a way that'll allow us to live sustainably in San Francisco."]]]
 
      [:hr#informed-divider.featurette-divider]
 
      [:div#informed-section.row
       [:div.col-md-6.col-md-offset-3
-       [:h2#informed-heading "Stay Informed"]
-       [:p.lead "Enter your email below to receive updates."]
+       [:h2#informed-heading "Get Involved"]
+       [:p.lead "Enter your email and we'll be in touch."]
 
        [:form {:action "/register" :method "GET"}
         [:div.input-group.input-group-lg
@@ -91,5 +92,8 @@
 ;; =============================================================================
 ;; API
 
-(defn handle [req]
+(defn render [req]
   (ok (landing-view)))
+
+;; (defmethod route [:index :get] [_ _]
+;;   (ok (landing-view)))

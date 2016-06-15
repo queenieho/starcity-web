@@ -1,9 +1,29 @@
 (ns starcity.models.account
   (:require [buddy.hashers :as hashers]
+            [buddy.core.hash :refer [md5]]
+            [buddy.core.codecs :refer [bytes->hex]]
             [clojure.string :refer [trim lower-case]]
             [datomic.api :as d]
             [starcity.datomic.util :refer [one]]
-            [starcity.models.util :refer :all]))
+            [starcity.models.util :refer :all]
+            [starcity.datomic :refer [conn]]
+            [starcity.config :as config]))
+
+;; =============================================================================
+;; Helpers
+
+(defn- generate-activation-hash
+  [email]
+  (-> email
+      (str (System/currentTimeMillis))
+      (md5)
+      (bytes->hex)))
+
+;; =============================================================================
+;; Roles
+
+(derive :account.role/admin :account.role/applicant)
+(derive :account.role/admin :account.role/tenant)
 
 ;; =============================================================================
 ;; Password Hashing
@@ -17,41 +37,49 @@
 ;; =============================================================================
 ;; API
 
+(defn query
+  [pattern entity-id]
+  (d/pull (d/db conn) pattern entity-id))
+
 (defn create!
   "Create a new user record in the database, and return the user's id upon
   successful creation."
-  [{:keys [conn part] :as db} email password first-name last-name]
-  (let [account (mapify :account {:first-name (trim first-name)
-                                  :last-name  (trim last-name)
-                                  :email      (-> email trim lower-case)
-                                  :password   (-> password trim hash-password)
-                                  :activated  false})
-        tid     (d/tempid part)
-        tx      @(d/transact conn [(assoc account :db/id tid)])]
+  [email password first-name last-name]
+  (let [acct (mapify :account
+                     {:first-name      (trim first-name)
+                      :last-name       (trim last-name)
+                      :email           (-> email trim lower-case)
+                      :password        (-> password trim hash-password)
+                      :activation-hash (generate-activation-hash email)
+                      :activated       false
+                      :role            :account.role/applicant})
+        tid  (d/tempid (config/datomic-partition))
+        tx   @(d/transact conn [(assoc acct :db/id tid)])]
     (d/resolve-tempid (d/db conn) (:tempids tx) tid)))
 
 (defn exists?
-  [{:keys [conn]} email]
+  "Returns an account iff one exists under this username, and nil otherwise."
+  [email]
   (one (d/db conn) :account/email email))
+
+(def by-email
+  "More semantic way to search for an user by email than using the `exists?'
+  function."
+  exists?)
+
+(defn activate!
+  [account]
+  (let [ent {:db/id (:db/id account) :account/activated true}]
+    @(d/transact conn [ent])))
 
 (defn authenticate
   "Return the user record found under `username' iff a user record exists for
   that username and the password matches."
-  [{:keys [conn] :as db} email password]
+  [email password]
   (when-let [user (one (d/db conn) :account/email email)]
     (when (check-password password (:account/password user))
       user)))
 
-;; =============================================================================
-;; Component
-
-;; (defrecord Account [datomic]
-;;   )
-
-(comment
-
-  (def db* (:datomic user/system))
-
-  (create! db* "Josh" "Lehman" "josh@starcity.com" "password")
-
-  )
+(defn applicant?
+  [account]
+  (= (:account/role account) :account.role/applicant))

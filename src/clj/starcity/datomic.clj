@@ -57,7 +57,8 @@
   (d/create-database uri)
   (let [conn (d/connect uri)]
     (install-schema conn schema-dir)
-    (seed-db conn seed-dir)
+    (when seed-dir
+      (seed-db conn seed-dir))
     conn))
 
 (defn- disconnect [{:keys [uri]} conn]
@@ -67,7 +68,6 @@
 ;; =============================================================================
 ;; API
 
-(defstate ^{:on-reload :noop} db
-  :start {:conn (new-connection (:datomic config))
-          :part (get-in config [:datomic :partition])}
-  :stop  (disconnect (:datomic config) (:conn db)))
+(defstate conn
+  :start (new-connection (:datomic config))
+  :stop  (disconnect (:datomic config) conn))
