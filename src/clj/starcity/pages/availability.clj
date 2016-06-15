@@ -19,5 +19,6 @@
         [:div.container
          [:div.page-header
           [:h1 "52 Gilbert Street"]]
-         [:p.lead (format "Units available: %s" (:property/units-available gilbert))]
+         ;; TODO: Don't hard-code this
+         [:p.lead (format "Units available: %s" 6)]
          [:a {:href "/application"} "Apply Now"]]))))
