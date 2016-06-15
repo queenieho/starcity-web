@@ -2,70 +2,127 @@
 ;; Application
 
 [
- ;; {:db/id #db/id[:db.part/db]
- ;;  :db/ident :rental-application/applicant
- ;;  :db/valueType :db.type/ref
- ;;  :db/cardinality :db.cardinality/one
- ;;  :db/doc "Reference to the applicant's account."
+ ;; NOTE"" The following attributes will be useful when we implement a system to
+ ;; allow multiple people to live in a single room.
+
+ ;; {:db/id                 #db/id[:db.part/db]
+ ;;  :db/ident              :rental-application/invitations
+ ;;  :db/valueType          :db.type/string
+ ;;  :db/cardinality        :db.cardinality/many
+ ;;  :db/doc                "A list of emails that invitations to join this application have been sent to."
  ;;  :db.install/_attribute :db.part/db}
 
- {:db/id #db/id[:db.part/db]
-  :db/ident :rental-application/first-name
-  :db/valueType :db.type/string
-  :db/cardinality :db.cardinality/one
-  :db/fulltext true
-  :db/doc "The applicant's first name."
+ ;; {:db/id                 #db/id[:db.part/db]
+ ;;  :db/ident              :rental-application/master
+ ;;  :db/valueType          :db.type/ref
+ ;;  :db/cardinality        :db.cardinality/one
+ ;;  :db/doc                "Reference to the master application if this application is part of another application."
+ ;;  :db.install/_attribute :db.part/db}
+
+ {:db/id                 #db/id[:db.part/db]
+  :db/ident              :rental-application/current-address
+  :db/valueType          :db.type/ref
+  :db/cardinality        :db.cardinality/one
+  :db/isComponent        true
+  :db/doc                "Applicant's current address."
   :db.install/_attribute :db.part/db}
 
- {:db/id #db/id[:db.part/db]
-  :db/ident :rental-application/middle-name
-  :db/valueType :db.type/string
-  :db/cardinality :db.cardinality/one
-  :db/fulltext true
-  :db/doc "The applicant's middle name."
+ {:db/id                 #db/id[:db.part/db]
+  :db/ident              :rental-application/income
+  :db/valueType          :db.type/string
+  :db/cardinality        :db.cardinality/one
+  :db/doc                "String representation of applicant's income."
   :db.install/_attribute :db.part/db}
 
- {:db/id #db/id[:db.part/db]
-  :db/ident :rental-application/last-name
-  :db/valueType :db.type/string
-  :db/cardinality :db.cardinality/one
-  :db/fulltext true
-  :db/doc "The applicant's last name."
+ {:db/id                 #db/id[:db.part/db]
+  :db/ident              :rental-application/desired-lease
+  :db/valueType          :db.type/ref
+  :db/cardinality        :db.cardinality/one
+  :db/isComponent        true
+  :db/doc                "Desired type of lease (reference to available-lease of property)."
   :db.install/_attribute :db.part/db}
 
- {:db/id #db/id[:db.part/db]
-  :db/ident :rental-application/phones
-  :db/valueType :db.type/ref
-  :db/cardinality :db.cardinality/many
-  :db/isComponent true
-  :db/doc "Phone number(s) for the applicant."
+ {:db/id                 #db/id[:db.part/db]
+  :db/ident              :rental-application/pets
+  :db/valueType          :db.type/string
+  :db/cardinality        :db.cardinality/many
+  :db/doc                "Strings that represent information about applicant's pets. These will
+  be formatted as follows: TYPE,BREED,WEIGHT"
   :db.install/_attribute :db.part/db}
 
- {:db/id #db/id[:db.part/db]
-  :db/ident :rental-application/ssn
-  :db/valueType :db.type/string
-  :db/cardinality :db.cardinality/one
-  :db/doc "The user's encrypted social security number."
+ {:db/id                 #db/id[:db.part/db]
+  :db/ident              :rental-application/community-fitness
+  :db/valueType          :db.type/ref
+  :db/cardinality        :db.cardinality/one
+  :db/isComponent        true
+  :db/doc                "Reference to the community fitness questionnaire."
   :db.install/_attribute :db.part/db}
 
- {:db/id #db/id[:db.part/db]
-  :db/ident :rental-application/drivers-license
-  :db/valueType :db.type/ref
-  :db/cardinality :db.cardinality/one
-  :db/isComponent true
-  :db/doc "The user's driver's license information."
+ {:db/id                 #db/id[:db.part/db]
+  :db/ident              :rental-application/completed-at
+  :db/valueType          :db.type/instant
+  :db/cardinality        :db.cardinality/one
+  :db/doc                "The time at which the application was completed."
   :db.install/_attribute :db.part/db}
 
- {:db/id #db/id[:db.part/db]
-  :db/ident :rental-application/started-on
-  :db/valueType :db.type/instant
-  :db/cardinality :db.cardinality/one
-  :db/doc "The time at which the application was started."
+ {:db/id                 #db/id[:db.part/db]
+  :db/ident              :rental-application/unit-preferences
+  :db/valueType          :db.type/ref
+  :db/cardinality        :db.cardinality/many
+  :db/isComponent        true
+  :db/doc                "The preferences for units."
   :db.install/_attribute :db.part/db}
 
- {:db/id #db/id[:db.part/db]
-  :db/ident :rental-application/completed-on
-  :db/valueType :db.type/instant
-  :db/cardinality :db.cardinality/one
-  :db/doc "The time at which the application was completed."
-  :db.install/_attribute :db.part/db}]
+ ;; =============================================================================
+ ;; unit-preference
+
+ {:db/id                 #db/id[:db.part/db]
+  :db/ident              :unit-preference/unit
+  :db/valueType          :db.type/ref
+  :db/cardinality        :db.cardinality/one
+  :db/doc                "Reference to the unit."
+  :db.install/_attribute :db.part/db}
+
+ {:db/id                 #db/id[:db.part/db]
+  :db/ident              :unit-preference/preference
+  :db/valueType          :db.type/long
+  :db/cardinality        :db.cardinality/one
+  :db/doc                "Preference for this unit -- lower number is a higher preference."
+  :db.install/_attribute :db.part/db}
+
+ ;; =============================================================================
+ ;; community-fitness
+
+ {:db/id                 #db/id[:db.part/db]
+  :db/ident              :community-fitness/prior-community-housing
+  :db/valueType          :db.type/string
+  :db/cardinality        :db.cardinality/one
+  :db/fulltext           true
+  :db/doc                "Response to: 'Have you ever lived in community housing?'"
+  :db.install/_attribute :db.part/db}
+
+ {:db/id                 #db/id[:db.part/db]
+  :db/ident              :community-fitness/skills
+  :db/valueType          :db.type/string
+  :db/cardinality        :db.cardinality/one
+  :db/fulltext           true
+  :db/doc                "Response to: 'What skills or traits do you hope to share with the community?'"
+  :db.install/_attribute :db.part/db}
+
+ {:db/id                 #db/id[:db.part/db]
+  :db/ident              :community-fitness/why-coliving
+  :db/valueType          :db.type/string
+  :db/cardinality        :db.cardinality/one
+  :db/fulltext           true
+  :db/doc                "Response to: 'Why are you interested in coliving?'"
+  :db.install/_attribute :db.part/db}
+
+ {:db/id                 #db/id[:db.part/db]
+  :db/ident              :community-fitness/preferences
+  :db/valueType          :db.type/ref
+  :db/cardinality        :db.cardinality/many
+  :db/isComponent        true
+  :db/doc                "Preferences for add-ons to this property."
+  :db.install/_attribute :db.part/db}
+
+  ]

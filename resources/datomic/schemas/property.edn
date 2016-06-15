@@ -17,7 +17,23 @@
   :db.install/_attribute :db.part/db}
 
  {:db/id                 #db/id[:db.part/db]
-  :db/ident              :property/units-available
-  :db/valueType          :db.type/long
-  :db/cardinality        :db.cardinality/one
+  :db/ident              :property/units
+  :db/valueType          :db.type/ref
+  :db/cardinality        :db.cardinality/many
+  :db/doc                "The units that are available in this property."
+  :db.install/_attribute :db.part/db}
+
+ {:db/id                 #db/id[:db.part/db]
+  :db/ident              :property/available-leases
+  :db/valueType          :db.type/ref
+  :db/cardinality        :db.cardinality/many
+  :db/isComponent        true
+  :db/doc                "The leases that are available for this property."
+  :db.install/_attribute :db.part/db}
+
+ {:db/id                 #db/id[:db.part/db]
+  :db/ident              :property/available-community-fitness-preferences
+  :db/valueType          :db.type/ref
+  :db/cardinality        :db.cardinality/many
+  :db/doc                "The community fitness preferences that are available for this property."
   :db.install/_attribute :db.part/db}]

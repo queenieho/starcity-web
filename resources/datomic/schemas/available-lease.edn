@@ -1,0 +1,17 @@
+;; =============================================================================
+;; Available Lease
+;; =============================================================================
+
+[{:db/id                 #db/id[:db.part/db]
+  :db/ident              :available-lease/term
+  :db/valueType          :db.type/long
+  :db/cardinality        :db.cardinality/one
+  :db/doc                "The term of the lease in months."
+  :db.install/_attribute :db.part/db}
+
+ {:db/id                 #db/id[:db.part/db]
+  :db/ident              :available-lease/price
+  :db/valueType          :db.type/float
+  :db/cardinality        :db.cardinality/one
+  :db/doc                "The price of the lease per month."
+  :db.install/_attribute :db.part/db}]

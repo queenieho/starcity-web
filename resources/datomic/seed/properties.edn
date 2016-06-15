@@ -1,4 +1,37 @@
-[{:db/id                    #db/id[:db.part/user]
-  :property/name            "Gilbert"
-  :property/internal-name   "Alpha"
-  :property/units-available 6}]
+[{:db/id                              #db/id [:db.part/user -100]
+  :community-fitness-preference/title "Monthly Block Parties"}
+
+ {:db/id                                    #db/id [:db.part/user -101]
+  :community-fitness-preference/title       "Volunteer Opportunities"
+  :community-fitness-preference/description "Volunteer opportunities in your local neighborhood."}
+
+ {:db/id                              #db/id [:db.part/user -102]
+  :community-fitness-preference/title "Garden Space"}
+
+ {:db/id                              #db/id [:db.part/user -103]
+  :community-fitness-preference/title "Bike Rentals"
+  :community-fitness-preference/notes ["Price is just a daily deposit."]
+  :community-fitness-preference/price 10.0}
+
+ {:db/id                 #db/id [:db.part/user -300]
+  :available-lease/term  1
+  :available-lease/price 2000.0}
+ {:db/id                 #db/id [:db.part/user -301]
+  :available-lease/term  12
+  :available-lease/price 1950.0}
+ {:db/id                 #db/id [:db.part/user -302]
+  :available-lease/term  24
+  :available-lease/price 1900.0}
+
+ {:db/id                  #db/id [:db.part/user -200]
+  :property/name          "Gilbert"
+  :property/internal-name "Alpha"
+  :property/available-community-fitness-preferences
+  [#db/id [:db.part/user -100]
+   #db/id [:db.part/user -101]
+   #db/id [:db.part/user -102]
+   #db/id [:db.part/user -103]]
+  :property/available-leases
+  [#db/id [:db.part/user -300]
+   #db/id [:db.part/user -301]
+   #db/id [:db.part/user -302]]}]
