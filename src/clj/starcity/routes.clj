@@ -33,6 +33,7 @@
 
 (defroutes app-routes
   ;; public
+  (GET "/" [] landing/render)
   (GET  "/register"     [] register/register-user)
   (GET  "/availability" [] availability/render)
 
@@ -60,4 +61,4 @@
                                :on-error (redirect-on-invalid-authorization "/application")})))
 
   ;; catch-all
-  (ANY "*" [] "<p>Not found</p>"))
+  (route/not-found "<p>Not Found</p>"))
