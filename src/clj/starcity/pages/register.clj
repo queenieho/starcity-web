@@ -1,7 +1,6 @@
 (ns starcity.pages.register
   (:require [starcity.pages.base :refer [base]]
             [starcity.pages.util :refer [ok]]
-            [starcity.router :refer [route]]
             [starcity.services.mailchimp :as mailchimp]
             [ring.util.response :as response]
             [taoensso.timbre :refer [debug infof]]))

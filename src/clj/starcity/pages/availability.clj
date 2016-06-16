@@ -1,7 +1,6 @@
 (ns starcity.pages.availability
   (:require [starcity.pages.base :refer [base]]
             [starcity.pages.util :refer [malformed ok]]
-            [starcity.router :refer [route]]
             [ring.util.response :as response]
             [starcity.datomic :refer [conn]]
             [starcity.datomic.util :refer [find-all-by]]

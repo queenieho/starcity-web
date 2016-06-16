@@ -2,7 +2,6 @@
   (:require [starcity.pages.base :refer [base]]
             [starcity.pages.util :refer [malformed ok]]
             [starcity.pages.auth.common :refer :all]
-            [starcity.router :refer [route]]
             [starcity.models.account :as account]
             [starcity.services.mailgun :refer [send-email]]
             [starcity.config :refer [config]]
