@@ -25,8 +25,8 @@ footer {
 }
 
 .navbar-brand img {
-  width: 60px;
-  height: 60px;
+  width: 45px;
+  height: 45px;
   margin: 15px;
 }
 
@@ -57,7 +57,7 @@ footer {
 
 /* Header base class */
 .header {
-  height: 500px;
+  height: 600px;
   margin-bottom: 60px;
 }
 
@@ -67,7 +67,7 @@ footer {
 
 /* Declare heights because of positioning of img element */
 .header .header-content {
-  height: 500px;
+  height: 600px;
   background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/assets/img/sf_homes_1.jpeg');
   background-size: cover;
   background-position: 0;
@@ -84,11 +84,14 @@ footer {
     text-transform: uppercase;
     line-height: 1.6em;
     letter-spacing: 0.05em;
+    font-weight: 400;
+    font-size: 44px;
 }
 
 .header-inner > .header-content > .container > p {
     line-height: 1.6em;
-    font-size: 24px;
+    font-size: 28px;
+    font-weight: 400;
 }
 
 .header-inner > .header-content > .container > button {
@@ -105,7 +108,7 @@ footer {
   text-align: center;
 }
 .marketing h2 {
-  font-weight: normal;
+  font-weight: 300;
 }
 .marketing .col-lg-4 p {
   margin-right: 10px;
@@ -139,7 +142,7 @@ footer {
 }
 
 #informed-heading {
-  font-weight: normal;
+  font-weight: 300;
   line-height: 1;
   letter-spacing: -1px;
   font-size: 50px;

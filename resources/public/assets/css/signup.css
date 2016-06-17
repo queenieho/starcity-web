@@ -1,0 +1,46 @@
+body {
+    font-family: 'Lato', sans-serif;
+}
+
+/* NAVBAR */
+
+.navbar {
+    background-color: transparent;
+    background: transparent;
+    border-color: transparent;
+    top: 0;
+}
+
+.navbar-brand img {
+    width: 45px;
+    height: 45px;
+    margin: 15px;
+}
+
+/* Special class on .container surrounding .navbar, used for positioning it into place. */
+.navbar-wrapper {
+  /* position: absolute; */
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 20;
+}
+
+/* Flip around the padding for proper display in narrow viewports */
+.navbar-wrapper > .container-fluid {
+  padding-right: 0;
+  padding-left: 0;
+}
+.navbar-wrapper .navbar {
+  padding-right: 15px;
+  padding-left: 15px;
+}
+.navbar-wrapper .navbar .container {
+  width: auto;
+}
+
+/* Sign Up */
+
+h2 {
+    margin-bottom: 30px;
+}

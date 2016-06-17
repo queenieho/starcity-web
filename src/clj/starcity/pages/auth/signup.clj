@@ -23,6 +23,14 @@
 ;; Components
 ;; =============================================================================
 
+(def navbar
+  [:nav.navbar
+   [:div.container
+    [:div.navbar-header
+     [:a.navbar-brand {:href "/"}
+      [:img {:alt "Starcity" :src "/assets/img/starcity-brand-icon-cyan.png"}]]]]])
+
+
 (defn- form-group
   [id label attrs]
   [:div.form-group
@@ -32,49 +40,55 @@
 
 (defn- signup-content
   [req errors email first-name last-name]
-  [:div.container
-   [:form.form-horizontal {:action "/signup" :method "post"}
-    [:h2 "Sign Up"]
-    (for [e errors]
-      [:div.alert.alert-danger {:role "alert"} e])
 
-    (form-group "input-email" "Email"
-                {:name        "email"
-                 :type        "email"
-                 :placeholder "Email address"
-                 :required    true
-                 :autofocus   (when (empty? email) true)
-                 :value       email})
+  [:div.navbar-wrapper
+   [:div.container-fluid
+    navbar
 
-    (form-group "input-first-name" "First Name"
-                {:name        "first-name"
-                 :type        "text"
-                 :placeholder "First Name"
-                 :required    true
-                 :value       first-name})
+    [:div.container
+   [:div.row
+    [:form.col-xs-8.col-xs-offset-2.form-horizontal {:action "/signup" :method "post"}
+     [:h2.text-center "Sign Up"]
+     (for [e errors]
+       [:div.alert.alert-danger {:role "alert"} e])
 
-    (form-group "input-last-name" "Last Name"
-                {:name        "last-name"
-                 :type        "text"
-                 :placeholder "Last Name"
-                 :required    true
-                 :value       last-name})
+     (form-group "input-first-name" "First Name"
+                 {:name        "first-name"
+                  :type        "text"
+                  :placeholder "First Name"
+                  :required    true
+                  :value       first-name})
 
-    (form-group "input-password-1" "Password"
-                {:name        "password-1"
-                 :type        "password"
-                 :placeholder "Password"
-                 :required    true})
+     (form-group "input-last-name" "Last Name"
+                 {:name        "last-name"
+                  :type        "text"
+                  :placeholder "Last Name"
+                  :required    true
+                  :value       last-name})
 
-    (form-group "input-password-2" "Re-enter Password"
-                {:name        "password-2"
-                 :type        "password"
-                 :placeholder "Re-enter password"
-                 :required    true})
+     (form-group "input-email" "Email"
+                 {:name        "email"
+                  :type        "email"
+                  :placeholder "Email address"
+                  :required    true
+                  :autofocus   (when (empty? email) true)
+                  :value       email})
 
-    [:div.form-group
-     [:div.col-sm-offset-2.col-sm-10
-      [:button.btn.btn-default {:type "submit"} "Sign Up"]]]]])
+     (form-group "input-password-1" "Password"
+                 {:name        "password-1"
+                  :type        "password"
+                  :placeholder "Password"
+                  :required    true})
+
+     (form-group "input-password-2" "Re-enter Password"
+                 {:name        "password-2"
+                  :type        "password"
+                  :placeholder "Re-enter password"
+                  :required    true})
+
+     [:div.form-group
+      [:div.col-sm-offset-2.col-sm-10
+       [:button.btn.btn-success {:type "submit"} "Create Account"]]]]]]]])
 
 ;; =============================================================================
 ;; Signup Validation
@@ -121,7 +135,7 @@
                                     email      ""
                                     first-name ""
                                     last-name  ""}}]
-  (base (signup-content req errors email first-name last-name)))
+  (base (signup-content req errors email first-name last-name) :css ["signup.css"]))
 
 (defn render [req]
   (ok (render-signup req)))
