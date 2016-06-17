@@ -23,7 +23,9 @@
 
 (def ^{:private true} HEAD-FONTS
   ["https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic"
-   "https://fonts.googleapis.com/css?family=Roboto+Condensed:400,300"])
+   "https://fonts.googleapis.com/css?family=Roboto+Condensed:400,300"
+   "https://fonts.googleapis.com/css?family=Lato:300,400,700"
+   "https://fonts.googleapis.com/css?family=Raleway"])
 
 (def ^{:private true} BODY-JS
   (map js-path
