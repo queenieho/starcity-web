@@ -12,11 +12,12 @@ Activation link takes you to the "/availability" page.
 
 These include:
 
++ Selection of Room (coupled w/ availability)
++ Desired Lease
 + Pets
 + Num People
-+ Desired move-in date
-  + If desired move-in is incompatible with availability, message that this is
-    the case.
+  + Something like a checkbox for user to acknowledge that only one resident
+    over 18 is allowed to live in room.
 
 ** 3. Business Shit
 

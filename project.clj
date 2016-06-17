@@ -31,6 +31,7 @@
                  [bouncer "1.0.0"]
                  [nilenso/mailgun "0.2.3"]
                  [org.apache.httpcomponents/httpclient "4.5.2"]
+                 [clj-time "0.12.0"]
                  ;; db
                  [com.datomic/datomic-pro "0.9.5372"]
                  [org.postgresql/postgresql "9.3-1102-jdbc41"]
