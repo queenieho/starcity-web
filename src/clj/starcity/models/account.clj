@@ -45,14 +45,14 @@
   "Create a new user record in the database, and return the user's id upon
   successful creation."
   [email password first-name last-name]
-  (let [acct (mapify :account
-                     {:first-name      (trim first-name)
-                      :last-name       (trim last-name)
-                      :email           (-> email trim lower-case)
-                      :password        (-> password trim hash-password)
-                      :activation-hash (generate-activation-hash email)
-                      :activated       false
-                      :role            :account.role/applicant})
+  (let [acct (ks->nsks :account
+                       {:first-name      (trim first-name)
+                        :last-name       (trim last-name)
+                        :email           (-> email trim lower-case)
+                        :password        (-> password trim hash-password)
+                        :activation-hash (generate-activation-hash email)
+                        :activated       false
+                        :role            :account.role/applicant})
         tid  (d/tempid (config/datomic-partition))
         tx   @(d/transact conn [(assoc acct :db/id tid)])]
     (d/resolve-tempid (d/db conn) (:tempids tx) tid)))

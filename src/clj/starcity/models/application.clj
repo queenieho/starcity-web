@@ -1,69 +1,62 @@
 (ns starcity.models.application
-  (:require [datomic.api :as d]
-            [starcity.datomic.util :refer :all]
+  (:require [starcity.datomic.util :refer :all]
             [starcity.models.util :refer :all]
+            [starcity.datomic :refer [conn]]
+            [starcity.config :refer [datomic-partition]]
+            [datomic.api :as d]
             [plumbing.core :refer [assoc-when defnk]]
-            [schema.core :as s]
+            [clojure.spec :as s]
             [clojure.string :refer [trim capitalize]]))
 
 ;; =============================================================================
-;; Helpers
-
-(defn- scrub-name [s]
-  (when-not (empty? s)
-    (-> s capitalize trim)))
-
+;; Helper Specs
 ;; =============================================================================
-;; Construct a New Rental Application
 
-(defnk ^:private make-license
-  [number state]
-  (mapify :drivers-license {:number number :state state}))
+;; =====================================
+;; Pets
 
-(defnk ^:private make-phone
-  [number type priority]
-  (mapify :phone {:number number :type type :priority priority}))
+(s/def ::type #{:dog :cat})
+(s/def ::breed string?)
+(s/def ::weight pos-int?)
 
-(defn- make-application
-  [{:keys [first-name middle-name last-name ssn license phones]}]
-  (let [license (when license (make-license license))
-        phones  (when phones (map make-phone phones))
-        m       (assoc-when {:first-name (scrub-name first-name)
-                             :last-name  (scrub-name last-name)
-                             :ssn        (trim ssn)}
-                            :middle-name (scrub-name middle-name)
-                            :license license
-                            :phones phones)]
-    (mapify :rental-application m)))
+(defmulti pet-type :type)
+(defmethod pet-type :dog [_] (s/keys :req-un [::type ::breed ::weight]))
+(defmethod pet-type :cat [_] (s/keys :req-un [::type]))
+
+(s/def ::pet (s/multi-spec pet-type :type))
+(s/def ::pets (s/+ ::pet))
 
 ;; =============================================================================
 ;; API
+;; =============================================================================
 
-;; 1. We need a way to create a new rental application. What should be required?
-
-(def ^:private CreateParams
-  {:first-name                   s/Str
-   :last-name                    s/Str
-   :ssn                          s/Str
-   (s/optional-key :middle-name) s/Str
-   (s/optional-key :license)     {:number s/Str
-                                  :state  s/Keyword}
-   (s/optional-key :phones)      [{:number   s/Str
-                                   :priority (s/enum :primary :secondary)
-                                   :type     (s/enum :cell :home :work)}]})
-
-(s/defn create!
-  "Create a new rental application for the specified account."
-  [{:keys [conn part] :as db} account :- Entity params :- CreateParams]
-  (let [application (assoc (make-application params)
-                           :account/_application (:db/id account))
-        tid         (d/tempid part)
-        tx          @(d/transact conn [(assoc application :db/id tid)])]
+(defn create!
+  "Create a new rental application for `account-id'."
+  [account-id desired-lease desired-availability & {:keys [pets]}]
+  (let [tid (d/tempid (datomic-partition))
+        ent (-> {:db/id                tid
+                 :desired-lease        desired-lease
+                 :desired-availability desired-availability}
+                (assoc-when :pets (map (partial ks->nsks :pet) pets))
+                (assoc :account/_application account-id))
+        tx  @(d/transact conn [(ks->nsks :rental-application ent)])]
     (d/resolve-tempid (d/db conn) (:tempids tx) tid)))
+
+(s/def ::new-application (s/cat :account-id int?
+                                :desired-lease int?
+                                :desired-availability (s/spec (s/+ :starcity.spec/date))
+                                :opts (s/keys* :opt-un [::pets])))
+(s/fdef create!
+        :args ::new-application
+        :ret  int?)
 
 (comment
 
-  (def db* (:datomic user/system))
+  (let [acct (one (d/db conn) :account/email "test@test.com") ]
+    (create! (:db/id acct) 75919105938 [#inst "2016-09-01T00:00:00.000-00:00"]
+             :pets [{:type :cat}]))
 
+  (let [acct (one (d/db conn) :account/email "test@test.com")]
+    (d/touch (:account/application acct)))
 
   )

@@ -1,7 +1,7 @@
 (ns starcity.models.property
   (:require [starcity.datomic :refer [conn]]
             [starcity.config :as config]
-            [starcity.models.util :refer [mapify]]
+            [starcity.models.util :refer :all]
             [datomic.api :as d]
             [starcity.config :as config]))
 
@@ -26,10 +26,10 @@
        (map first)))
 
 (defn create! [name internal-name units-available]
-  (let [entity (mapify :property
-                       {:name            name
-                        :internal-name   internal-name
-                        :units-available units-available})
+  (let [entity (ks->nsks :property
+                         {:name            name
+                          :internal-name   internal-name
+                          :units-available units-available})
         tid    (d/tempid (config/datomic-partition))
         tx     @(d/transact conn [(assoc entity :db/id tid)])]
     (d/resolve-tempid (d/db conn) (:tempids tx) tid)))

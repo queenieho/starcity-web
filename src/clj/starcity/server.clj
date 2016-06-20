@@ -5,6 +5,7 @@
             [ring.middleware.resource :refer [wrap-resource]]
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.params :refer [wrap-params]]
+            [ring.middleware.nested-params :refer [wrap-nested-params]]
             [ring.middleware.session :refer [wrap-session]]
             [buddy.auth.middleware :refer [wrap-authentication
                                            wrap-authorization]]
@@ -28,6 +29,7 @@
       (wrap-authorization auth-backend)
       (wrap-authentication auth-backend)
       (wrap-keyword-params)
+      (wrap-nested-params)
       (wrap-params)
       (wrap-session)
       (wrap-resource "public")

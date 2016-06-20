@@ -9,12 +9,9 @@
             [starcity.config]
             [starcity.services.mailgun]
             [starcity.services.mailchimp]
-            [taoensso.timbre :as timbre]
-            [schema.core :as s]))
+            [taoensso.timbre :as timbre]))
 
 (timbre/refer-timbre)
-
-(s/set-fn-validation! true) ; turn on validation globally during development
 
 ;; =============================================================================
 ;; Figwheel

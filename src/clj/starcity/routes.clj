@@ -59,6 +59,7 @@
      {:handler  {:and [authenticated-user
                        (user-isa :account.role/applicant)]}
       :on-error (redirect-on-invalid-authorization "/me")}))
+
   (GET "/me" [] (-> dashboard/render
                     (restrict {:handler  {:and [authenticated-user (user-isa :account.role/tenant)]}
                                :on-error (redirect-on-invalid-authorization "/application")})))
