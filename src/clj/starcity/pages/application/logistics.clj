@@ -12,7 +12,7 @@
             [bouncer.validators :as v]
             [ring.util.response :as response]
             [clojure.string :refer [lower-case trim]]
-            [starcity.util :refer [str->int transform-when-key-exists]]
+            [starcity.util :refer :all]
             [clojure.spec :as s]))
 
 ;; TODO:
@@ -62,16 +62,28 @@
       [:pet :breed]               [[v/required :message "You must select a breed for your dog." :pre has-dog?]]
       [:pet :weight]              [[v/required :message "You must select a weight for your dog." :pre has-dog?]]})))
 
+
+
 (defn- clean-params
-  "If the params are truthy, transform their values to match model spec."
+  "Transform values in params to correct types and remove unnecessary
+  information."
   [params]
-  (when params
-    (transform-when-key-exists params
-      {:selected-lease str->int
-       :property-id    str->int
-       :pet            {:weight str->int
-                        :type   (comp keyword trim lower-case)
-                        :breed  (comp trim lower-case)}})))
+  (letfn [(-has-pet? [params]
+            (= (:has-pet params) "yes"))
+          (-clean-values [params]
+            (transform-when-key-exists params
+              {:selected-lease str->int
+               :property-id    str->int
+               :pet            {:type   (comp keyword trim lower-case)
+                                :id     str->int
+                                :weight str->int
+                                :breed  (comp trim lower-case)}}))
+          (-clean-pet [params]
+            (if (-has-pet? params)
+              (-> (dissoc-when params [:pet :weight] nil?)
+                  (dissoc-when [:pet :breed] empty?))
+              (dissoc params :pet)))]
+    (-> (-clean-values params) (-clean-pet))))
 
 (defn- get-availability
   [property-id simple-dates]
@@ -102,28 +114,38 @@
 ;; TODO: Option to select a custom move-in & messaging
 
 (defn- availability-checkbox
-  [[date rooms]]
-  (let [room-text (if (> (count rooms) 1) "rooms" "room")
-        val       (parse-date date value-formatter)]
+  [chosen [date rooms]]
+  (let [room-text  (if (> (count rooms) 1) "rooms" "room")
+        val        (parse-date date value-formatter)
+        is-chosen? #(-> (chosen %) nil? not)]
     [:div.checkbox
      [:label {:for (str "availability-" val)}
-      [:input {:id (str "availability-" val) :type "checkbox" :name "availability[]" :value val :required true :data-msg "You must choose at least one available move-in date."}
+      [:input {:id (str "availability-" val) :type "checkbox" :name "availability[]" :value val :required true :data-msg "You must choose at least one available move-in date." :checked (is-chosen? date)}
        [:b (parse-date date)]
        [:span (format " (%s %s available)" (count rooms) room-text)]]]]))
 
+(defn- chosen-availability [application]
+  (-> (d/pull
+       (d/db conn)
+       [:rental-application/desired-availability]
+       (:db/id application))
+      :rental-application/desired-availability
+      set))
+
 (defn- choose-availability
-  [property]
+  [property application]
   (let [pattern [:db/id :unit/name :unit/description :unit/price :unit/available-on :unit/floor]
         units   (->> (p/units property)
                      (d/pull-many (d/db conn) pattern)
                      (group-by :unit/available-on)
-                     (sort-by key))]
+                     (sort-by key))
+        chosen  (chosen-availability application)]
     [:div.panel.panel-primary
      [:div.panel-heading
       [:h3.panel-title "Choose Availability"]]
      [:div.panel-body
       [:div.form-group
-       (map availability-checkbox units)]]]))
+       (map (partial availability-checkbox chosen) units)]]]))
 
 ;; =============================================================================
 ;; Lease
@@ -137,11 +159,12 @@
       :otherwise  (format "%d month - $%.0f" term price))))
 
 (defn- lease-option
-  [{:keys [db/id available-lease/term available-lease/price]}]
-  [:option {:value id} (lease-text term price)])
+  [application {:keys [db/id available-lease/term available-lease/price]}]
+  (let [is-selected (= id (:db/id (:rental-application/desired-lease application)))]
+    [:option {:value id :selected is-selected} (lease-text term price)]))
 
 (defn- choose-lease
-  [property]
+  [property application]
   (let [pattern [:db/id :available-lease/price :available-lease/term]
         leases  (->> (p/available-leases property)
                      (d/pull-many (d/db conn) pattern))]
@@ -152,73 +175,90 @@
       [:div.form-group
        [:label {:for "lease-select"} "Choose Lease"]
        [:select.form-control {:id "lease-select" :name "selected-lease" :required true :data-msg "Please select a lease term."}
-        [:option {:value "" :disabled true :selected true} "-- Select Lease --"]
-        (map lease-option leases)]]]]))
+        [:option {:value "" :disabled true :selected (nil? application)} "-- Select Lease --"]
+        (map (partial lease-option application) leases)]]]]))
 
 ;; =============================================================================
 ;; Pets
 
-(defn- choose-pets
-  [property]
-  (letfn [(-pet-row []
-            [:div.row
-             [:div.form-group.col-sm-4
-              [:label.sr-only {:for "pet-select"} "Type of Pet"]
-              [:select.form-control {:id "pet-select" :name "pet[type]" :placeholder "?"}
-               [:option {:value "" :disabled true :selected true} "-- Select Type --"]
-               [:option {:value "dog"} "Dog"]
-               [:option {:value "cat"} "Cat"]]]
-             [:div.dog-field.form-group.col-sm-4 {:style "display: none;"}
-              [:label.sr-only {:for "breed"} "Breed"]
-              [:input.form-control {:id "breed" :type "text" :name "pet[breed]" :placeholder "Breed"}]]
-             [:div.dog-field.form-group.col-sm-4 {:style "display: none;"}
-              [:label.sr-only {:for "weight"} "Weight (in pounds)"]
-              [:input.form-control {:id "weight" :type "number" :name "pet[weight]" :placeholder "Weight (in pounds)"}]]])]
-    [:div.panel.panel-primary
-     [:div.panel-heading
-      [:h3.panel-title "Pets"]]
-     [:div#pets-panel.panel-body
-      [:div.row
-       [:div.col-lg-12
-        [:p "Do you have a pet?"]
-        [:div.form-group.radio
-         [:label.radio-inline {:for "pets-radio-yes"}
-          [:input {:type "radio" :name "has-pet" :id "pets-radio-yes" :value "yes" :required true}]
-          "Yes"]
-         [:label.radio-inline {:for "pets-radio-no"}
-          [:input {:type "radio" :name "has-pet" :id "pets-radio-no" :value "no"}]
-          "No"]]]]
-      [:div#pet-forms {:style "display: none;"} ; for jQuery fadeIn/fadeOut
-       (-pet-row)]]]))
+;; TODO: Break this into smaller pieces
+(defn- choose-pet
+  [property application]
+  (let [pet        (:rental-application/pet application)
+        has-pet    (and (not (nil? application)) pet)
+        has-no-pet (and (not (nil? application)) (nil? pet))]
+    (letfn [(-pet-row []
+              (let [has-dog (and has-pet (= (:pet/type pet) :dog))]
+                [:div.row
+                 (when pet
+                   [:input {:type "hidden" :name "pet[id]" :value (:db/id pet)}])
+                 [:div.form-group.col-sm-4
+                  [:label.sr-only {:for "pet-select"} "Type of Pet"]
+                  [:select.form-control {:id "pet-select" :name "pet[type]" :placeholder "?"}
+                   [:option {:value "" :disabled true :selected (not has-pet)} "-- Select Type --"]
+                   [:option {:value "dog" :selected (= (:pet/type pet) :dog)} "Dog"]
+                   [:option {:value "cat" :selected (= (:pet/type pet) :cat)} "Cat"]]]
+                 [:div.dog-field.form-group.col-sm-4 {:style (when-not has-dog "display: none;")}
+                  [:label.sr-only {:for "breed"} "Breed"]
+                  [:input.form-control {:id "breed" :type "text" :name "pet[breed]" :placeholder "Breed" :value (:pet/breed pet)}]]
+                 [:div.dog-field.form-group.col-sm-4 {:style (when-not has-dog "display: none;")}
+                  [:label.sr-only {:for "weight"} "Weight (in pounds)"]
+                  [:input.form-control {:id "weight" :type "number" :name "pet[weight]" :placeholder "Weight (in pounds)" :value (:pet/weight pet)}]]]))]
+      [:div.panel.panel-primary
+       [:div.panel-heading
+        [:h3.panel-title "Pets"]]
+       [:div#pets-panel.panel-body
+        [:div.row
+         [:div.col-lg-12
+          [:p "Do you have a pet?"]
+          [:div.form-group.radio
+           [:label.radio-inline {:for "pets-radio-yes"}
+            [:input {:type    "radio" :name "has-pet" :id "pets-radio-yes" :value "yes" :required true
+                     :checked has-pet}]
+            "Yes"]
+           [:label.radio-inline {:for "pets-radio-no"}
+            [:input {:type "radio" :name "has-pet" :id "pets-radio-no" :value "no" :checked has-no-pet}]
+            "No"]]]]
+        [:div#pet-forms {:style (when (or has-no-pet (nil? application)) "display: none;")} ; for jQuery fadeIn/fadeOut
+         (-pet-row)]]])))
 
 ;; =============================================================================
 ;; Completion
 
-(defn- completion [property]
+(defn- completion [property application]
   [:div.panel.panel-primary
    [:div.panel-heading
     [:h3.panel-title "Completion"]]
    [:div.panel-body
     [:div.form-group.checkbox
      [:label {:for "num-residents-acknowledged"}
-      [:input {:id "num-residents-acknowledged" :type "checkbox" :name "num-residents-acknowledged" :required true}
+      [:input {:id "num-residents-acknowledged" :type "checkbox" :name "num-residents-acknowledged" :required true
+               :checked (not (nil? application))}
        "I acknowledge that only one resident over 18 can live in this room."]]]
     [:input.btn.btn-default {:type "submit" :value "Complete"}]]])
 
 ;; =============================================================================
 ;; & rest
 
-(defn- page [req]
-  (let [property (one (d/db conn) :property/internal-name "alpha")]
+(defn- application-for-account
+  [account-id]
+  (qe1 '[:find ?e :in $ ?u :where [?u :account/application ?e]]
+       (d/db conn) account-id))
+
+(defn- page [{:keys [identity] :as req}]
+  (let [property    (one (d/db conn) :property/internal-name "alpha")
+        application (application-for-account (:db/id identity))]
     [:div.container
      [:div.page-header
       [:h1 "Logistics"]]
+     ;; NOTE: For updates, do we want to instead want a PUT request?
      [:form {:method "POST"}
       [:input {:type "hidden" :name "property-id" :value (:db/id property)}]
-      (choose-availability property)
-      (choose-lease property)
-      (choose-pets property)
-      (completion property)]]))
+      ;; TODO: Should each section get access to the entire application?
+      (choose-availability property application)
+      (choose-lease property application)
+      (choose-pet property application)
+      (completion property application)]]))
 
 ;; =============================================================================
 ;; API
@@ -232,27 +272,18 @@
 (defn save! [{:keys [params form-params] :as req}]
   (let [vresult    (-> params clean-params validate-params)
         account-id (get-in req [:identity :db/id])]
-    (if-let [{:keys [selected-lease has-pet pet availability property-id]} (valid? vresult)]
-      (do
-        (application/create! account-id selected-lease (get-availability property-id availability)
-                             :pets (when (= has-pet "yes") [pet]))
+    (if-let [{:keys [selected-lease pet availability property-id]} (valid? vresult)]
+      (let [desired-availability (get-availability property-id availability)]
+        ;; If there is an existing rental application for this user, we're
+        ;; dealing with an update.
+        (if-let [existing (application/by-account account-id)]
+          (application/update! (:db/id existing)
+                               {:desired-lease        selected-lease
+                                :desired-availability desired-availability
+                                :pet                  pet})
+          ;; otherwise, we're creating a new rental application for this user.
+          (application/create! account-id selected-lease desired-availability :pet pet))
+        ;; afterwards, redirect back to the "/application" endpoint
         (response/redirect "/application"))
+      ;; results aren't valid! indicate errors
       (malformed (render req :errors (errors-from vresult))))))
-
-(comment
-
-  (validate-params
-   {:availability               [""]
-    :selected-lease             "123"
-    :has-pet                    "yes"
-    :pet                        {:type "dog" :breed "a" :weight "1"}
-    :num-residents-acknowledged "yes"})
-
-  (clean-params
-   {:availability               [""]
-    :selected-lease             "123"
-    :has-pet                    "yes"
-    :pet                        {:type "dog" :breed "a" :weight "1"}
-    :num-residents-acknowledged "yes"})
-
-  )

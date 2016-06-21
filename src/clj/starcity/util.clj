@@ -1,4 +1,5 @@
-(ns starcity.util)
+(ns starcity.util
+  (:require [plumbing.core :refer [dissoc-in]]))
 
 (defn transform-when-key-exists
   "(transform-when-key-exists
@@ -38,3 +39,12 @@
         (assoc m k (str->int val))
         m))
     m keys)))
+
+(defn dissoc-when
+  ([m korks]
+   (dissoc-when m korks identity))
+  ([m korks pred]
+   (let [korks (if (sequential? korks) korks [korks])]
+     (if (pred (get-in m korks))
+      (dissoc-in m korks)
+      m))))

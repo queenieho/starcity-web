@@ -52,11 +52,11 @@
   :db.install/_attribute :db.part/db}
 
  {:db/id                 #db/id[:db.part/db]
-  :db/ident              :rental-application/pets
+  :db/ident              :rental-application/pet
   :db/valueType          :db.type/ref
-  :db/cardinality        :db.cardinality/many
+  :db/cardinality        :db.cardinality/one
   :db/isComponent        true
-  :db/doc                "Applicant's pets."
+  :db/doc                "Applicant's pet."
   :db.install/_attribute :db.part/db}
 
  {:db/id                 #db/id[:db.part/db]
