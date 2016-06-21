@@ -60,11 +60,16 @@
 
 (defn find-all-by
   "Returns all entities possessing attr."
-  [db attr]
-  (qes '[:find ?e
-         :in $ ?attr
-         :where [?e ?attr]]
-       db attr))
+  ([db attr]
+   (qes '[:find ?e
+          :in $ ?attr
+          :where [?e ?attr]]
+        db attr))
+  ([db attr val]
+   (qes '[:find ?e
+          :in $ ?attr ?val
+          :where [?e ?attr ?val]]
+        db attr val)))
 
 (defn one
   "Looks up a record by id or attribute val."

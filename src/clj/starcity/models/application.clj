@@ -1,69 +1,133 @@
 (ns starcity.models.application
-  (:require [datomic.api :as d]
-            [starcity.datomic.util :refer :all]
+  (:require [starcity.datomic.util :refer :all]
+            [starcity.datomic.transaction :refer [replace-unique map-form->list-form]]
             [starcity.models.util :refer :all]
+            [starcity.datomic :refer [conn]]
+            [starcity.config :refer [datomic-partition]]
+            [datomic.api :as d]
             [plumbing.core :refer [assoc-when defnk]]
-            [schema.core :as s]
+            [clojure.spec :as s]
             [clojure.string :refer [trim capitalize]]))
 
 ;; =============================================================================
-;; Helpers
+;; Helper Specs
+;; =============================================================================
 
-(defn- scrub-name [s]
-  (when-not (empty? s)
-    (-> s capitalize trim)))
+;; =====================================
+;; Pets
+
+(s/def ::type #{:dog :cat})
+(s/def ::breed string?)
+(s/def ::weight pos-int?)
+(s/def ::id pos-int?)
+
+(defmulti pet-type :type)
+(defmethod pet-type :dog [_] (s/keys :req-un [::type ::breed ::weight] :opt-un [::id]))
+(defmethod pet-type :cat [_] (s/keys :req-un [::type] :opt-un [::id]))
+
+(s/def ::pet (s/multi-spec pet-type :type))
+
+;; =====================================
+;; Application
+
+(s/def ::desired-lease pos-int?)
+(s/def ::desired-availability (s/+ :starcity.spec/date))
 
 ;; =============================================================================
-;; Construct a New Rental Application
+;; Helpers
+;; =============================================================================
 
-(defnk ^:private make-license
-  [number state]
-  (mapify :drivers-license {:number number :state state}))
+;; =====================================
+;; update!
 
-(defnk ^:private make-phone
-  [number type priority]
-  (mapify :phone {:number number :type type :priority priority}))
+(defn- update-desired-availability-tx
+  [application-id {availability :desired-availability}]
+  (replace-unique application-id :rental-application/desired-availability availability))
 
-(defn- make-application
-  [{:keys [first-name middle-name last-name ssn license phones]}]
-  (let [license (when license (make-license license))
-        phones  (when phones (map make-phone phones))
-        m       (assoc-when {:first-name (scrub-name first-name)
-                             :last-name  (scrub-name last-name)
-                             :ssn        (trim ssn)}
-                            :middle-name (scrub-name middle-name)
-                            :license license
-                            :phones phones)]
-    (mapify :rental-application m)))
+(defn- update-desired-lease-tx
+  [application-id {lease :desired-lease}]
+  (when lease
+    [[:db/add application-id :rental-application/desired-lease lease]]))
+
+(defn- update-pet-tx
+  [application-id {pet :pet}]
+  (let [curr-pet (:rental-application/pet (one (d/db conn) application-id))]
+    (cond
+      ;; No more pet!
+      (and (nil? pet) curr-pet) [[:db.fn/retractEntity (:db/id curr-pet)]]
+      ;; If the pet has an id, it already exists
+      (:id pet)                 [(merge {:db/id (:id pet)}
+                                        (->> (dissoc pet :id)
+                                             (ks->nsks :pet)))]
+      ;; if there's no id for the pet, but there is a pet, it's a new one
+      pet                       [{:db/id                  application-id
+                                  :rental-application/pet (ks->nsks :pet pet)}])))
 
 ;; =============================================================================
 ;; API
+;; =============================================================================
 
-;; 1. We need a way to create a new rental application. What should be required?
+;; =============================================================================
+;; Queries
 
-(def ^:private CreateParams
-  {:first-name                   s/Str
-   :last-name                    s/Str
-   :ssn                          s/Str
-   (s/optional-key :middle-name) s/Str
-   (s/optional-key :license)     {:number s/Str
-                                  :state  s/Keyword}
-   (s/optional-key :phones)      [{:number   s/Str
-                                   :priority (s/enum :primary :secondary)
-                                   :type     (s/enum :cell :home :work)}]})
+(defn by-account
+  "Retrieve an application by account id."
+  [account-id]
+  (qe1
+   '[:find ?e
+     :in $ ?acct
+     :where
+     [?acct :account/application ?e]]
+   (d/db conn) account-id))
 
-(s/defn create!
-  "Create a new rental application for the specified account."
-  [{:keys [conn part] :as db} account :- Entity params :- CreateParams]
-  (let [application (assoc (make-application params)
-                           :account/_application (:db/id account))
-        tid         (d/tempid part)
-        tx          @(d/transact conn [(assoc application :db/id tid)])]
+;; =============================================================================
+;; Transactions
+
+;; =====================================
+;; create!
+
+(defn create!
+  "Create a new rental application for `account-id'."
+  [account-id desired-lease desired-availability & {:keys [pet]}]
+  (let [tid (d/tempid (datomic-partition))
+        pet (when pet (ks->nsks :pet pet))
+        ent (-> {:db/id                tid
+                 :desired-lease        desired-lease
+                 :desired-availability desired-availability}
+                (assoc-when :pet pet)
+                (assoc :account/_application account-id))
+        tx  @(d/transact conn [(ks->nsks :rental-application ent)])]
     (d/resolve-tempid (d/db conn) (:tempids tx) tid)))
 
-(comment
+(s/def ::new-application
+  (s/cat :account-id int?
+         :desired-lease ::desired-lease
+         :desired-availability (s/spec ::desired-availability)
+         :opts (s/keys* :opt-un [::pet])))
 
-  (def db* (:datomic user/system))
+(s/fdef create!
+        :args ::new-application
+        :ret  int?)
 
+;; =====================================
+;; update!
 
-  )
+(defn update!
+  [application-id params]
+  (let [gen-tx (juxt update-desired-lease-tx
+                     update-desired-availability-tx
+                     update-pet-tx)
+        tx     (->> (gen-tx application-id params)
+                    (apply concat))]
+    @(d/transact conn (vec tx))
+    application-id))
+
+(s/def ::update-application
+  (s/cat :application-id int?
+         :attributes (s/keys :opt-un [::desired-lease
+                                      ::desired-availability
+                                      ::pet])))
+
+(s/fdef update!
+        :args ::update-application
+        :ret  int?)

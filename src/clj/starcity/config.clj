@@ -49,5 +49,6 @@
 
 (defstate config :start (load-config environment))
 
+;; TODO: Don't care for this too much. How to make more idiomatic?
 (defn datomic-partition []
   (get-in config [:datomic :partition]))

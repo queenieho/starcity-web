@@ -1,7 +1,6 @@
 (ns starcity.pages.auth.signup
   (:require [starcity.pages.base :refer [base]]
-            [starcity.pages.util :refer [malformed ok]]
-            [starcity.pages.auth.common :refer :all]
+            [starcity.pages.util :refer :all]
             [starcity.models.account :as account]
             [starcity.services.mailgun :refer [send-email]]
             [starcity.config :refer [config]]

@@ -5,7 +5,7 @@
 ;; Components
 
 (def ^:private sections
-  [{:title       "Logsitics"
+  [{:title       "Logistics"
     :uri         "logistics"
     :description "Your desired move-in date, etc."}
    {:title "Background &amp; Credit Checks"

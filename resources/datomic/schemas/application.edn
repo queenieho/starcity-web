@@ -42,12 +42,21 @@
   :db/doc                "Desired type of lease (reference to available-lease of property)."
   :db.install/_attribute :db.part/db}
 
+ ;; NOTE: Will cross-check these dates with currently available units later in
+ ;; the application process.
  {:db/id                 #db/id[:db.part/db]
-  :db/ident              :rental-application/pets
-  :db/valueType          :db.type/string
+  :db/ident              :rental-application/desired-availability
+  :db/valueType          :db.type/instant
   :db/cardinality        :db.cardinality/many
-  :db/doc                "Strings that represent information about applicant's pets. These will
-  be formatted as follows: TYPE,BREED,WEIGHT"
+  :db/doc                "Desired availability dates."
+  :db.install/_attribute :db.part/db}
+
+ {:db/id                 #db/id[:db.part/db]
+  :db/ident              :rental-application/pet
+  :db/valueType          :db.type/ref
+  :db/cardinality        :db.cardinality/one
+  :db/isComponent        true
+  :db/doc                "Applicant's pet."
   :db.install/_attribute :db.part/db}
 
  {:db/id                 #db/id[:db.part/db]
@@ -74,7 +83,33 @@
   :db.install/_attribute :db.part/db}
 
  ;; =============================================================================
+ ;; Pets
+
+ {:db/id                 #db/id[:db.part/db]
+  :db/ident              :pet/type
+  :db/valueType          :db.type/keyword
+  :db/cardinality        :db.cardinality/one
+  :db/doc                "The type of pet."
+  :db.install/_attribute :db.part/db}
+
+ {:db/id                 #db/id[:db.part/db]
+  :db/ident              :pet/breed
+  :db/valueType          :db.type/string
+  :db/cardinality        :db.cardinality/one
+  :db/doc                "The pet's breed."
+  :db.install/_attribute :db.part/db}
+
+ {:db/id                 #db/id[:db.part/db]
+  :db/ident              :pet/weight
+  :db/valueType          :db.type/long
+  :db/cardinality        :db.cardinality/one
+  :db/doc                "The weight of the pet."
+  :db.install/_attribute :db.part/db}
+
+ ;; =============================================================================
  ;; unit-preference
+
+ ;; NOTE: I don't
 
  {:db/id                 #db/id[:db.part/db]
   :db/ident              :unit-preference/unit
@@ -125,4 +160,4 @@
   :db/doc                "Preferences for add-ons to this property."
   :db.install/_attribute :db.part/db}
 
-  ]
+ ]

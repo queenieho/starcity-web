@@ -7,6 +7,7 @@
             [starcity.pages.auth.login :as login]
             [starcity.pages.auth.signup :as signup]
             [starcity.pages.application :as application]
+            [starcity.pages.application.logistics :as logistics]
             [starcity.pages.dashboard :as dashboard]
             [starcity.pages.availability :as availability]
             [starcity.auth :refer [authenticated-user unauthorized-handler user-isa]]
@@ -52,10 +53,13 @@
   (context "/application" []
     (restrict
      (routes
-      (GET "/" [] application/render))
+      (GET "/" [] application/render)
+      (GET "/logistics" [] logistics/render)
+      (POST "/logistics" [] logistics/save!))
      {:handler  {:and [authenticated-user
                        (user-isa :account.role/applicant)]}
       :on-error (redirect-on-invalid-authorization "/me")}))
+
   (GET "/me" [] (-> dashboard/render
                     (restrict {:handler  {:and [authenticated-user (user-isa :account.role/tenant)]}
                                :on-error (redirect-on-invalid-authorization "/application")})))

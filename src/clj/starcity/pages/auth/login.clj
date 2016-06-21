@@ -1,7 +1,6 @@
 (ns starcity.pages.auth.login
   (:require [starcity.pages.base :refer [base]]
-            [starcity.pages.util :refer [malformed ok]]
-            [starcity.pages.auth.common :refer :all]
+            [starcity.pages.util :refer :all]
             [starcity.models.account :as account]
             [bouncer.core :as b]
             [bouncer.validators :as v]
@@ -72,8 +71,8 @@
 
 (defn- url-after-login [acct {:keys [params] :as req}]
   (cond
-    (account/applicant? acct)  "/application"
     (not-empty (:next params)) (:next params)
+    (account/applicant? acct)  "/application"
     :otherwise                 +redirect-after-login+))
 
 (defn login!
