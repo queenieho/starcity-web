@@ -1,6 +1,6 @@
-(ns starcity.pages.auth.signup
-  (:require [starcity.pages.base :refer [base]]
-            [starcity.pages.util :refer :all]
+(ns starcity.controllers.auth.signup
+  (:require [starcity.views.auth.signup :as view]
+            [starcity.controllers.utils :refer :all]
             [starcity.models.account :as account]
             [starcity.services.mailgun :refer [send-email]]
             [starcity.config :refer [config]]
@@ -19,78 +19,11 @@
 (def ^:private +redirect-after-signup+ "/signup/complete")
 
 ;; =============================================================================
-;; Components
+;; Helpers
 ;; =============================================================================
 
-(def navbar
-  [:nav.navbar
-   [:div.container
-    [:div.navbar-header
-     [:a.navbar-brand {:href "/"}
-      [:img {:alt "Starcity" :src "/assets/img/starcity-brand-icon-cyan.png"}]]]]])
-
-
-(defn- form-group
-  [id label attrs]
-  [:div.form-group
-   [:label.control-label.col-sm-2 {:for id} label]
-   [:div.col-sm-10
-    [:input.form-control (merge {:id id} attrs)]]])
-
-(defn- signup-content
-  [req errors email first-name last-name]
-
-  [:div.navbar-wrapper
-   [:div.container-fluid
-    navbar
-
-    [:div.container
-   [:div.row
-    [:form.col-xs-8.col-xs-offset-2.form-horizontal {:action "/signup" :method "post"}
-     [:h2.text-center "Sign Up"]
-     (for [e errors]
-       [:div.alert.alert-danger {:role "alert"} e])
-
-     (form-group "input-first-name" "First Name"
-                 {:name        "first-name"
-                  :type        "text"
-                  :placeholder "First Name"
-                  :required    true
-                  :value       first-name})
-
-     (form-group "input-last-name" "Last Name"
-                 {:name        "last-name"
-                  :type        "text"
-                  :placeholder "Last Name"
-                  :required    true
-                  :value       last-name})
-
-     (form-group "input-email" "Email"
-                 {:name        "email"
-                  :type        "email"
-                  :placeholder "Email address"
-                  :required    true
-                  :autofocus   (when (empty? email) true)
-                  :value       email})
-
-     (form-group "input-password-1" "Password"
-                 {:name        "password-1"
-                  :type        "password"
-                  :placeholder "Password"
-                  :required    true})
-
-     (form-group "input-password-2" "Re-enter Password"
-                 {:name        "password-2"
-                  :type        "password"
-                  :placeholder "Re-enter password"
-                  :required    true})
-
-     [:div.form-group
-      [:div.col-sm-offset-2.col-sm-10
-       [:button.btn.btn-success {:type "submit"} "Create Account"]]]]]]]])
-
 ;; =============================================================================
-;; Signup Validation
+;; Signup
 
 (defn- validate
   [params]
@@ -116,28 +49,21 @@
   (when (= password-1 password-2)
     (assoc params :password password-1)))
 
-;; =============================================================================
-;; API
-;; =============================================================================
+;; TODO: Why do I need the helper?
+(defn- show-signup* [req & {:keys [errors email first-name last-name]
+                            :or   {errors     []
+                                   email      ""
+                                   first-name ""
+                                   last-name  ""}}]
+  (view/signup errors email first-name last-name))
 
 ;; =============================================================================
-;; Complete
+;; Activation
 
-(defn render-complete [req]
-  (ok (base [:h2 "Check your inbox, yo."])))
-
-;; =============================================================================
-;; Signup
-
-(defn- render-signup [req & {:keys [errors email first-name last-name]
-                             :or   {errors     []
-                                    email      ""
-                                    first-name ""
-                                    last-name  ""}}]
-  (base (signup-content req errors email first-name last-name) :css ["signup.css"]))
-
-(defn render [req]
-  (ok (render-signup req)))
+;; TODO: 'Resend' mechanism
+(defn- show-invalid-activation
+  [req]
+  (ok (view/invalid-activation)))
 
 (defn- send-activation-email
   [user-id]
@@ -154,13 +80,29 @@
                         (url-encode email)
                         activation-hash))))
 
+;; =============================================================================
+;; API
+;; =============================================================================
+
+;; =============================================================================
+;; Complete
+
+(defn show-complete [req]
+  (ok (view/signup-complete)))
+
+;; =============================================================================
+;; Signup
+
+(defn show-signup [req]
+  (ok (show-signup* req)))
+
 (defn signup! [{:keys [params] :as req}]
   (letfn [(-respond-malformed [& errors]
             (let [{:keys [first-name last-name email]} params]
-              (malformed (render-signup req :errors errors
-                                        :email email
-                                        :first-name first-name
-                                        :last-name last-name))))]
+              (malformed (show-signup* req :errors errors
+                                       :email email
+                                       :first-name first-name
+                                       :last-name last-name))))]
     (if-let [params (matching-passwords? params)]
       (let [vresult (-> params clean-params validate)]
         (if-let [{:keys [email password first-name last-name]} (valid? vresult)]
@@ -177,19 +119,13 @@
       ;; passwords don't match
       (-respond-malformed (format "Those passwords do not match. Please try again.")))))
 
-;; TODO: 'Resend' mechanism
-(defn- render-invalid-activation
-  [req]
-  (base
-   [:h2 "Your activation link is invalid or has expired."]))
-
 ;; =============================================================================
 ;; Activation
 
 (defn activate! [{:keys [params session] :as req}]
   (let [{:keys [email hash]} params]
     (if (or (nil? email) (nil? hash))
-      (render-invalid-activation req)
+      (show-invalid-activation req)
       (let [user (account/by-email email)]
         (if (= hash (:account/activation-hash user))
           (let [_       (account/activate! user)
@@ -197,4 +133,4 @@
             (-> (response/redirect +redirect-after-activation+)
                 (assoc :session session)))
           ;; hashes don't match
-          (ok (render-invalid-activation req)))))))
+          (show-invalid-activation req))))))

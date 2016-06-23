@@ -1,6 +1,6 @@
-(ns starcity.pages.util
+(ns starcity.controllers.utils
   (:require [ring.util.response :refer [response]]
-            [bouncer.validators :as v]))
+            [bouncer.validators :as v]) )
 
 ;; =============================================================================
 ;; Ring Responses

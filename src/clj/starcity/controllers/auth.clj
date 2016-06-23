@@ -1,4 +1,4 @@
-(ns starcity.pages.auth
+(ns starcity.controllers.auth
   (:require [ring.util.response :as response]))
 
 ;; =============================================================================

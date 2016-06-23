@@ -1,10 +1,11 @@
-(ns starcity.pages.application
-  (:require [starcity.pages.base :refer [base]]))
+(ns starcity.views.application
+  (:require [starcity.views.base :refer [base]]))
 
 ;; =============================================================================
-;; Components
+;; Helpers
+;; =============================================================================
 
-(def ^:private sections
+(def ^:private +sections+
   [{:title       "Logistics"
     :uri         "logistics"
     :description "Your desired move-in date, etc."}
@@ -21,23 +22,14 @@
    [:h3 [:a {:href (format "/application/%s" uri)} title]]
    [:p description]])
 
-(defn- page [req]
-  [:div.container
-   [:div.page-header
-    [:h1 "Starcity Rental Application"]]
-
-   (map section sections)
-
-   ])
-
 ;; =============================================================================
 ;; API
+;; =============================================================================
 
-(defn render [req]
-  (let [username (get-in req [:session :identity :account/email])]
-    (base
-     (page req)
-                                        ;:js ["app/main.js"]
-     ;; :css ["forms.css"]
-                                        ;:cljs-devtools? (= :development environment)
-     )))
+(defn application
+  []
+  (base
+   [:div.container
+    [:div.page-header
+     [:h1 "Starcity Rental Application"]]
+    (map section +sections+)]))

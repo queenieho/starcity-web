@@ -1,5 +1,7 @@
 (ns starcity.util
-  (:require [plumbing.core :refer [dissoc-in]]))
+  (:require [plumbing.core :refer [dissoc-in]]
+            [clj-time.coerce :as c]
+            [clj-time.format :as f]))
 
 (defn transform-when-key-exists
   "(transform-when-key-exists
@@ -48,3 +50,8 @@
      (if (pred (get-in m korks))
       (dissoc-in m korks)
       m))))
+
+;; TODO: spec it!
+(defn parse-date
+  [date-time formatter]
+  (f/unparse formatter (c/from-date date-time)))
