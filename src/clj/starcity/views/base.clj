@@ -61,6 +61,14 @@
 ;; =============================================================================
 ;; API
 
+;; TODO:
+;; (defn bower-path
+;;   "Given a JS filename, construct a path to that file in bower."
+;;   ([filename]
+;;    (bower-path  filename))
+;;   ([]
+;;    (format "bower/")))
+
 (defn base [content & {:keys [body-class css js cljs-devtools?]
                        :or   {body-class "" css [] js []}}]
   (html5

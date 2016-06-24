@@ -8,6 +8,7 @@
             [starcity.controllers.auth.signup :as signup]
             [starcity.controllers.application :as application]
             [starcity.controllers.application.logistics :as logistics]
+            [starcity.controllers.application.checks :as checks]
             [starcity.controllers.dashboard :as dashboard]
             [starcity.controllers.availability :as availability]
             [starcity.auth :refer [authenticated-user unauthorized-handler user-isa]]
@@ -54,8 +55,12 @@
     (restrict
      (routes
       (GET "/" [] application/show-application)
+
       (GET "/logistics" [] logistics/show-logistics)
-      (POST "/logistics" [] logistics/save!))
+      (POST "/logistics" [] logistics/save!)
+
+      (GET "/checks" [] checks/show-checks)
+      (POST "/checks" [] checks/save!))
      {:handler  {:and [authenticated-user
                        (user-isa :account.role/applicant)]}
       :on-error (redirect-on-invalid-authorization "/me")}))

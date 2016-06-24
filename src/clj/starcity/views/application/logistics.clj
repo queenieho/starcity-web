@@ -169,4 +169,5 @@
      (choose-pet property application)
      (completion property application)]]
    :js ["bower/jquery-validation/dist/jquery.validate.js"
+        "validation-defaults.js"
         "logistics.js"]))
