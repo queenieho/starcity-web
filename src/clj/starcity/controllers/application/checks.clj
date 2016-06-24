@@ -25,7 +25,7 @@
    ;;               :state       "CA"
    ;;               :postal-code "94611"}
    ;;              "123-45-1610" "1989-03-15" "80k-90k")
-   (view/checks {} {} nil nil nil)
+   (view/checks {:first "Josh" :last "Lehman"} {} nil nil nil)
    ))
 
 (defn save!

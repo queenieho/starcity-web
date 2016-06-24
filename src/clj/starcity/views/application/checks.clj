@@ -145,18 +145,16 @@
 (s/def ::name
   (s/keys :req-un [::first ::last] :opt-un [::middle]))
 
-(s/def ::ssn string?)
-(s/def ::dob :starcity.spec/date)
-
 (s/def ::lines (s/+ string?))
 (s/def ::city string?)
-(s/def ::state :starcity.states/abbreviation) ;; TODO: KW Choice of state, member of set
+(s/def ::state :starcity.states/abbreviation)
 (s/def ::postal-code int?) ;; TODO: regex matching zip codes
-(s/def ::address
-  (s/keys :req-un [::lines ::city ::state ::postal-code]))
+(s/def ::address (s/keys :opt-un [::lines ::city ::state ::postal-code]))
+(s/def ::income-level (set income-levels))
 
+;; TODO: Rename
 (defn checks
-  ""
+  "Render the checks page."
   [name address ssn dob income-level]
   (base
    [:div.container
@@ -171,3 +169,11 @@
         "bower/field-kit/public/field-kit.js"
         "validation-defaults.js"
         "checks.js"]))
+
+(s/fdef checks
+        :args (s/cat :name ::name
+                     :address ::address
+                     :ssn (or nil? string?)
+                     :dob (or nil? :starcity.spec/date)
+                     :income-level (or nil? ::income-level))
+        :ret string?)
