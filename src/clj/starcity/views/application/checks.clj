@@ -7,7 +7,8 @@
             [clojure.spec :as s]
             [clj-time.format :as f]
             [clj-time.core :as t]
-            [clj-time.coerce :as c]))
+            [clj-time.coerce :as c]
+            [starcity.models.application :as application]))
 
 ;; =============================================================================
 ;; Components
@@ -92,16 +93,6 @@
 
 (def ^:private ymd-formatter (f/formatter :year-month-day))
 
-(def ^:private income-levels
-  ["< 60k"
-   "60k-70k"
-   "70k-80k"
-   "80k-90k"
-   "90k-100k"
-   "100k-110k"
-   "110k-120k"
-   "> 120k"])
-
 (defn- personal-section
   [ssn dob income-level]
   [:div.panel.panel-primary
@@ -132,7 +123,7 @@
                             :required true}
       [:option {:value "" :disabled true :selected (nil? income-level)}
        "-- Select Income --"]
-      (for [income income-levels]
+      (for [income application/income-levels]
         [:option {:value income :selected (= income-level income)} income])]]]])
 
 ;; =============================================================================
@@ -148,14 +139,14 @@
 (s/def ::lines (s/+ string?))
 (s/def ::city string?)
 (s/def ::state :starcity.states/abbreviation)
-(s/def ::postal-code int?) ;; TODO: regex matching zip codes
+(s/def ::postal-code string?) ;; TODO: regex matching zip codes
 (s/def ::address (s/keys :opt-un [::lines ::city ::state ::postal-code]))
-(s/def ::income-level (set income-levels))
+(s/def ::income-level (set application/income-levels))
 
 ;; TODO: Rename
 (defn checks
   "Render the checks page."
-  [name address ssn dob income-level]
+  [name address ssn dob income-level & {:keys [errors]}] ; TODO: Render errors
   (base
    [:div.container
     [:div.page-header
@@ -173,7 +164,7 @@
 (s/fdef checks
         :args (s/cat :name ::name
                      :address ::address
-                     :ssn (or nil? string?)
-                     :dob (or nil? :starcity.spec/date)
-                     :income-level (or nil? ::income-level))
+                     :ssn string?
+                     :dob :starcity.spec/date
+                     :income-level ::income-level)
         :ret string?)

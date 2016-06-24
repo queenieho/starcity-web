@@ -109,8 +109,6 @@
  ;; =============================================================================
  ;; unit-preference
 
- ;; NOTE: I don't
-
  {:db/id                 #db/id[:db.part/db]
   :db/ident              :unit-preference/unit
   :db/valueType          :db.type/ref

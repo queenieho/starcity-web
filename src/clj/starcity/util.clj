@@ -55,3 +55,13 @@
 (defn parse-date
   [date-time formatter]
   (f/unparse formatter (c/from-date date-time)))
+
+(defn remove-nil
+  [m]
+  (reduce (fn [acc [k v]]
+            (cond
+              (map? v)   (assoc acc k (remove-nil v))
+              (nil? v)   acc
+              :otherwise (assoc acc k v)))
+          {}
+          m))

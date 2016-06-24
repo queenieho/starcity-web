@@ -29,9 +29,11 @@
   (reduce (fn [acc [_ es]] (concat acc es)) [] errors))
 
 (defn valid?
-  [[errors result]]
-  (if (nil? errors)
-    result
-    false))
+  ([vresult]
+   (valid? vresult identity))
+  ([[errors result] transform-after]
+   (if (nil? errors)
+     (transform-after result)
+     false)))
 
 (def not-valid? (comp not valid?))

@@ -4,6 +4,7 @@
             [starcity.models.account :as account]
             [starcity.services.mailgun :refer [send-email]]
             [starcity.config :refer [config]]
+            [starcity.datomic :refer [conn]]
             [bouncer.core :as b]
             [bouncer.validators :as v]
             [clojure.string :refer [trim capitalize lower-case]]
@@ -71,7 +72,7 @@
         {:keys [account/email
                 account/first-name
                 account/last-name
-                account/activation-hash]} (account/query pattern user-id)]
+                account/activation-hash]} (d/pull (d/db conn) pattern user-id)]
     (send-email email "Starcity Account Activation"
                 (format "Hello %s %s,\n%s/signup/activate?email=%s&hash=%s"
                         first-name

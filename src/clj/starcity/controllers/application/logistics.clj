@@ -94,7 +94,6 @@
               (dissoc params :pet)))]
     (-> (-clean-values params) (-clean-pet))))
 
-
 ;; =====================================
 ;; Misc.
 
@@ -119,7 +118,7 @@
       (let [desired-availability (get-availability property-id availability)]
         ;; If there is an existing rental application for this user, we're
         ;; dealing with an update.
-        (if-let [existing (application/by-account account-id)]
+        (if-let [existing (application/by-account-id account-id)]
           (application/update! (:db/id existing)
                                {:desired-lease        selected-lease
                                 :desired-availability desired-availability

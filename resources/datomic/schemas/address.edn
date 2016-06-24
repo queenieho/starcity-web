@@ -6,8 +6,8 @@
  {:db/id                 #db/id[:db.part/db]
   :db/ident              :address/lines
   :db/valueType          :db.type/string
-  :db/cardinality        :db.cardinality/many
-  :db/doc                "Address lines."
+  :db/cardinality        :db.cardinality/one
+  :db/doc                "Address lines, separated by newlines."
   :db.install/_attribute :db.part/db}
 
  {:db/id                 #db/id[:db.part/db]
