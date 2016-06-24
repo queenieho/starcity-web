@@ -2,6 +2,7 @@
   (:require [starcity.views.base :refer [base]]
             [starcity.states :as states]
             [starcity.util :refer :all]
+            [starcity.spec]
             [clojure.string :refer [capitalize]]
             [clojure.spec :as s]
             [clj-time.format :as f]
