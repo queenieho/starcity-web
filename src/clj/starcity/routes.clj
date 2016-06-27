@@ -3,6 +3,8 @@
             [compojure.route :as route]
             [starcity.controllers.landing :as landing]
             [starcity.controllers.register :as register]
+            [starcity.controllers.availability :as availability]
+            [starcity.controllers.faq :as faq]
             [starcity.controllers.auth :as auth]
             [starcity.controllers.auth.login :as login]
             [starcity.controllers.auth.signup :as signup]
@@ -10,7 +12,6 @@
             [starcity.controllers.application.logistics :as logistics]
             [starcity.controllers.application.checks :as checks]
             [starcity.controllers.dashboard :as dashboard]
-            [starcity.controllers.availability :as availability]
             [starcity.auth :refer [authenticated-user unauthorized-handler user-isa]]
             [buddy.auth :refer [authenticated?]]
             [buddy.auth.accessrules :refer [restrict]]
@@ -38,6 +39,7 @@
   (GET "/" [] landing/show-landing)
   (GET  "/register"     [] register/register-user!)
   (GET  "/availability" [] availability/show-availability)
+  (GET "/fack"          [] faq/show-faq)
 
   (GET  "/login"        [] login/show-login)
   (POST "/login"        [] login/login!)
