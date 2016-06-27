@@ -1,4 +1,6 @@
-(ns starcity.models.util)
+(ns starcity.models.util
+  (:require [starcity.datomic.util :refer [one]]
+            [datomic.api :as d]))
 
 ;; =============================================================================
 ;; API
@@ -13,3 +15,22 @@
                 (assoc acc (keyword ns (name k)) v)))
             {}
             m)))
+
+(defn- gen-tx
+  "TODO: documentation"
+  [params txfns]
+  (->> (keys params)
+       (reduce (fn [fns k]
+                 (if (contains? params k)
+                   (conj fns (get txfns k))
+                   fns))
+               [])
+       (apply juxt)))
+
+(defn make-update-fn
+  [conn txfns]
+  (fn [entity-id params]
+    (let [tx (->> ((gen-tx params txfns) (one (d/db conn) entity-id) params)
+                  (apply concat))]
+      @(d/transact conn (vec tx))
+      entity-id) ))

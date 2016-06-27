@@ -37,8 +37,7 @@
                  [com.datomic/datomic-pro "0.9.5372"]
                  [org.postgresql/postgresql "9.3-1102-jdbc41"]
                  ;; util
-                 [prismatic/plumbing "0.5.3"]
-                 [prismatic/schema "1.1.1"]]
+                 [prismatic/plumbing "0.5.3"]]
 
   ;; :plugins [[lein-cljsbuild "1.1.3"]]
 

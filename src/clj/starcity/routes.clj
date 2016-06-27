@@ -1,15 +1,16 @@
 (ns starcity.routes
   (:require [compojure.core :refer [defroutes routes context GET POST ANY]]
             [compojure.route :as route]
-            [starcity.pages.landing :as landing]
-            [starcity.pages.register :as register]
-            [starcity.pages.auth :as auth]
-            [starcity.pages.auth.login :as login]
-            [starcity.pages.auth.signup :as signup]
-            [starcity.pages.application :as application]
-            [starcity.pages.application.logistics :as logistics]
-            [starcity.pages.dashboard :as dashboard]
-            [starcity.pages.availability :as availability]
+            [starcity.controllers.landing :as landing]
+            [starcity.controllers.register :as register]
+            [starcity.controllers.auth :as auth]
+            [starcity.controllers.auth.login :as login]
+            [starcity.controllers.auth.signup :as signup]
+            [starcity.controllers.application :as application]
+            [starcity.controllers.application.logistics :as logistics]
+            [starcity.controllers.application.checks :as checks]
+            [starcity.controllers.dashboard :as dashboard]
+            [starcity.controllers.availability :as availability]
             [starcity.auth :refer [authenticated-user unauthorized-handler user-isa]]
             [buddy.auth :refer [authenticated?]]
             [buddy.auth.accessrules :refer [restrict]]
@@ -34,33 +35,37 @@
 
 (defroutes app-routes
   ;; public
-  (GET "/" [] landing/render)
-  (GET  "/register"     [] register/register-user)
-  (GET  "/availability" [] availability/render)
+  (GET "/" [] landing/show-landing)
+  (GET  "/register"     [] register/register-user!)
+  (GET  "/availability" [] availability/show-availability)
 
-  (GET  "/login"        [] login/render)
+  (GET  "/login"        [] login/show-login)
   (POST "/login"        [] login/login!)
 
   (ANY  "/logout"       [] auth/logout!)
 
   (context "/signup" []
-    (GET   "/"         [] signup/render)
+    (GET   "/"         [] signup/show-signup)
     (POST  "/"         [] signup/signup!)
-    (GET   "/complete" [] signup/render-complete)
+    (GET   "/complete" [] signup/show-complete)
     (GET   "/activate" [] signup/activate!))
 
   ;; auth
   (context "/application" []
     (restrict
      (routes
-      (GET "/" [] application/render)
-      (GET "/logistics" [] logistics/render)
-      (POST "/logistics" [] logistics/save!))
+      (GET "/" [] application/show-application)
+
+      (GET "/logistics" [] logistics/show-logistics)
+      (POST "/logistics" [] logistics/save!)
+
+      (GET "/checks" [] checks/show-checks)
+      (POST "/checks" [] checks/save!))
      {:handler  {:and [authenticated-user
                        (user-isa :account.role/applicant)]}
       :on-error (redirect-on-invalid-authorization "/me")}))
 
-  (GET "/me" [] (-> dashboard/render
+  (GET "/me" [] (-> dashboard/show-dashboard
                     (restrict {:handler  {:and [authenticated-user (user-isa :account.role/tenant)]}
                                :on-error (redirect-on-invalid-authorization "/application")})))
 

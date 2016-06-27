@@ -9,9 +9,12 @@
             [starcity.config]
             [starcity.services.mailgun]
             [starcity.services.mailchimp]
-            [taoensso.timbre :as timbre]))
+            [taoensso.timbre :as timbre]
+            [clojure.spec :as s]))
 
 (timbre/refer-timbre)
+
+(s/instrument-all)
 
 ;; =============================================================================
 ;; Figwheel

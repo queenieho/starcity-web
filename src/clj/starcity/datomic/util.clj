@@ -96,3 +96,9 @@
             (> v ct) [#{k} v]))
         [#{} 2])
        first))
+
+(defn map-form->list-form
+  [entity-id m]
+  (reduce (fn [acc [k v]]
+            (conj acc [:db/add entity-id k v]))
+          [] m))

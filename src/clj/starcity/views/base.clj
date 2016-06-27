@@ -1,4 +1,4 @@
-(ns starcity.pages.base
+(ns starcity.views.base
   (:require [hiccup.core :refer [html]]
             [hiccup.page :refer [html5 include-css include-js]]))
 
@@ -60,6 +60,14 @@
 
 ;; =============================================================================
 ;; API
+
+;; TODO:
+;; (defn bower-path
+;;   "Given a JS filename, construct a path to that file in bower."
+;;   ([filename]
+;;    (bower-path  filename))
+;;   ([]
+;;    (format "bower/")))
 
 (defn base [content & {:keys [body-class css js cljs-devtools?]
                        :or   {body-class "" css [] js []}}]

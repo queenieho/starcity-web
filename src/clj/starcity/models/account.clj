@@ -1,13 +1,13 @@
 (ns starcity.models.account
-  (:require [buddy.hashers :as hashers]
+  (:require [starcity.datomic.util :refer :all]
+            [starcity.models.util :refer :all]
+            [starcity.datomic :refer [conn]]
+            [starcity.config :as config]
+            [buddy.hashers :as hashers]
             [buddy.core.hash :refer [md5]]
             [buddy.core.codecs :refer [bytes->hex]]
             [clojure.string :refer [trim lower-case]]
-            [datomic.api :as d]
-            [starcity.datomic.util :refer [one]]
-            [starcity.models.util :refer :all]
-            [starcity.datomic :refer [conn]]
-            [starcity.config :as config]))
+            [datomic.api :as d]))
 
 ;; =============================================================================
 ;; Helpers
@@ -37,9 +37,21 @@
 ;; =============================================================================
 ;; API
 
-(defn query
-  [pattern entity-id]
-  (d/pull (d/db conn) pattern entity-id))
+;; =============================================================================
+;; Queries
+
+(defn exists?
+  "Returns an account iff one exists under this username, and nil otherwise."
+  [email]
+  (one (d/db conn) :account/email email))
+
+(def by-email
+  "More semantic way to search for an user by email than using the `exists?'
+  function."
+  exists?)
+
+;; =============================================================================
+;; Transactions
 
 (defn create!
   "Create a new user record in the database, and return the user's id upon
@@ -57,20 +69,23 @@
         tx   @(d/transact conn [(assoc acct :db/id tid)])]
     (d/resolve-tempid (d/db conn) (:tempids tx) tid)))
 
-(defn exists?
-  "Returns an account iff one exists under this username, and nil otherwise."
-  [email]
-  (one (d/db conn) :account/email email))
-
-(def by-email
-  "More semantic way to search for an user by email than using the `exists?'
-  function."
-  exists?)
-
 (defn activate!
   [account]
   (let [ent {:db/id (:db/id account) :account/activated true}]
     @(d/transact conn [ent])))
+
+(def update!
+  (make-update-fn conn {:ssn  (fn [{id :db/id} {ssn :ssn}]
+                                [[:db/add id :account/ssn ssn]])
+                        :dob  (fn [{id :db/id} {dob :dob}]
+                                [[:db/add id :account/dob dob]])
+                        :name (fn [{id :db/id} {{:keys [first middle last]} :name}]
+                                (map-form->list-form id {:account/first-name  first
+                                                         :account/last-name   last
+                                                         :account/middle-name middle}))}))
+
+;; =============================================================================
+;; Misc
 
 (defn authenticate
   "Return the user record found under `username' iff a user record exists for

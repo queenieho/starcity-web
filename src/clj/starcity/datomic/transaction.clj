@@ -4,12 +4,6 @@
             [starcity.datomic.util :refer :all]
             [clojure.set :as set]))
 
-(defn map-form->list-form
-  [entity-id m]
-  (reduce (fn [acc [k v]]
-            (conj acc [:db/add entity-id k v]))
-          [] m))
-
 (defn replace-unique
   "Given an entity-id, cardinality many attribute and new values, generate a
   transact to remove all values that are not present in `new-values' and add
