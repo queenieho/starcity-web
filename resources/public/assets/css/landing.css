@@ -1,102 +1,70 @@
-/* GLOBAL STYLES
--------------------------------------------------- */
-/* Padding below the footer and lighter body text */
-
-body {
-  /* padding-bottom: 40px; */
-    color: #5a5a5a;
-    font-family: 'Lato', sans-serif;
-}
-
-footer {
-  padding-bottom: 40px;
-}
-
-
-/* CUSTOMIZE THE NAVBAR
--------------------------------------------------- */
-
-.navbar {
-  background-color: transparent;
-  background: transparent;
-  border-color: transparent;
-  top: 0;
-  position: absolute;
-}
-
-.navbar-brand img {
-  width: 45px;
-  height: 45px;
-  margin: 15px;
-}
-
-/* Special class on .container surrounding .navbar, used for positioning it into place. */
-.navbar-wrapper {
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  z-index: 20;
-}
-
-/* Flip around the padding for proper display in narrow viewports */
-.navbar-wrapper > .container-fluid {
-  padding-right: 0;
-  padding-left: 0;
-}
-.navbar-wrapper .navbar {
-  padding-right: 15px;
-  padding-left: 15px;
-}
-.navbar-wrapper .navbar .container {
-  width: auto;
-}
-
 /* HEADER
 -------------------------------------------------- */
 
 /* Header base class */
 .header {
-  height: 600px;
   margin-bottom: 60px;
+  background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/assets/img/sf_homes_1.jpeg');
+  background-size: cover;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-repeat: no-repeat;
+  padding: 0 0 80px;
 }
 
 .header-inner {
   width: 100%;
 }
 
-/* Declare heights because of positioning of img element */
-.header .header-content {
-  height: 600px;
-  background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/assets/img/sf_homes_1.jpeg');
-  background-size: cover;
-  background-position: 0;
-  background-repeat: no-repeat;
-  /* background-color: #398c88; */
+@media screen and (min-width: 1024px) {
+  .header  {
+    padding: 200px 0 300px;
+  }
 }
+
 .header-inner > .header-content > .container {
-  padding-top: 125px;
   text-align: center;
   color: white;
 }
 
 .header-inner > .header-content > .container > h1 {
-    text-transform: uppercase;
-    line-height: 1.6em;
-    letter-spacing: 0.05em;
-    font-weight: 400;
-    font-size: 44px;
+  text-transform: uppercase;
+  line-height: 1.6em;
+  letter-spacing: 0.05em;
+  font-size: 40px;
 }
 
 .header-inner > .header-content > .container > p {
-    line-height: 1.6em;
-    font-size: 28px;
-    font-weight: 400;
+  line-height: 1.6em;
+  font-size: 28px;
 }
 
-.header-inner > .header-content > .container > button {
-    background-color: #398c88;
-    border-color: #398c88;
+#action-button {
+  background-color: #e3a80d;
+  color: #ffffff;
+  border-color: #e3a80d;
+  font-weight: 200;
+  height: 55px;
+  padding-top: 15px;
+}
+
+#action-button:focus,
+#action-button:hover {
+  outline: none !important;
+}
+
+#action-button:hover {
+  background-color: #cb960c;
+  color: #ffffff;
+  border-color: #cb960c;
+}
+
+/* Navbar Overrides
+-------------------------------------------------- */
+
+ul.nav {
+  margin-right: 30px !important;
 }
 
 /* MARKETING CONTENT
@@ -139,6 +107,7 @@ footer {
 
 #informed-section {
   text-align: center;
+  margin-bottom: 80px;
 }
 
 #informed-heading {
@@ -148,28 +117,21 @@ footer {
   font-size: 50px;
 }
 
+/* TODO: Cleanup */
 .btn-primary {
-    background-color: #398c88;
-    border-color: #398c88;
+  background-color: #398c88;
+  border-color: #398c88;
 }
 
 /* RESPONSIVE CSS
 -------------------------------------------------- */
 
 @media (min-width: 768px) {
+}
 
-  .navbar-wrapper .container {
-    padding-right: 15px;
-    padding-left: 15px;
-  }
-  .navbar-wrapper .navbar {
-    padding-right: 0;
-    padding-left: 0;
-  }
-
-  /* The navbar becomes detached from the top, so we round the corners */
-  .navbar-wrapper .navbar {
-    border-radius: 4px;
+@media (min-width: 768px) {
+  .header-inner > .header-content > .container > h1 {
+    font-size: 50px;
   }
 
   /* Bump up size of carousel content */
@@ -180,7 +142,7 @@ footer {
   }
 
   .featurette-heading {
-    font-size: 50px;
+    font-size: 44px;
   }
 }
 

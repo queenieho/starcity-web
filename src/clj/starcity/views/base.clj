@@ -19,7 +19,7 @@
   (format "/%s/%s" BASE-JS-DIR filename))
 
 (def ^{:private true} HEAD-CSS
-  (map css-path ["bootstrap.css"]))
+  (map css-path ["bootstrap.css" "common.css"]))
 
 (def ^{:private true} HEAD-FONTS
   ["https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic"
@@ -58,24 +58,66 @@
        (apply include-css (concat HEAD-CSS css HEAD-FONTS))
        [:title title]])))
 
+;; <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+;; <span class="sr-only">Toggle navigation</span>
+;; <span class="icon-bar"></span>
+;; <span class="icon-bar"></span>
+;; <span class="icon-bar"></span>
+;; </button>
+
+(defn- navbar [nav-items nav-buttons]
+  (letfn [(-nav-item [[text link attrs]]
+            [:li [:a (merge {:href link} attrs) text]])
+          (-nav-btn [[text link attrs]]
+            [:a.btn.navbar-btn (merge {:href link} attrs) text])]
+    [:nav.navbar.navbar-default
+     [:div.container
+      [:div.navbar-header
+       [:button.navbar-toggle.collapsed
+        {:type          "button"
+         :data-toggle   "collapse"
+         :data-target   "#navbar-collapse"
+         :aria-expanded "false"}
+        [:span.sr-only "Toggle navigation"]
+        (for [_ (range 3)]
+          [:span.icon-bar])]
+       [:a.navbar-brand {:href "/"}
+        [:img {:alt "Starcity Logo" :src "/assets/img/starcity-logo-wordmark.png"}]]]
+      [:div#navbar-collapse.navbar-collapse.collapse
+       (map -nav-btn nav-buttons)
+       [:ul.nav.navbar-nav.navbar-right
+        (map -nav-item nav-items)]]]]))
+
+(defn- wrap-content [content nav-items nav-buttons]
+  [:div.navbar-wrapper
+   [:div.container-fluid
+    (navbar nav-items nav-buttons)
+    content]])
+
 ;; =============================================================================
 ;; API
 
-;; TODO:
-;; (defn bower-path
-;;   "Given a JS filename, construct a path to that file in bower."
-;;   ([filename]
-;;    (bower-path  filename))
-;;   ([]
-;;    (format "bower/")))
-
-(defn base [content & {:keys [body-class css js cljs-devtools?]
-                       :or   {body-class "" css [] js []}}]
+(defn base [content & {:keys [body-class css js nav-items nav-buttons cljs-devtools? wrap? footer?]
+                       :or   {body-class ""
+                              css        []
+                              js         []
+                              nav-items  []
+                              nav-buttons []
+                              wrap?      true
+                              footer?    true}}]
   (html5
    {:lang "en"}
    (head "Starcity" (map css-path css))
    [:body {:class body-class}
-    content
+    (if wrap?
+      (wrap-content content nav-items nav-buttons)
+      content)
+    (when footer?
+      [:footer.footer
+       [:div.container
+        [:div.footer-content
+         [:p.pull-right [:a {:href "#"} "Back to top"]]
+         [:p "&copy; 2016 Starcity Properties, Inc."]]]])
     (apply include-js (->> (map js-path js) (concat BODY-JS)))
     (when cljs-devtools?
       [:script "goog.require('user.devtools')"])]))
