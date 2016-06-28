@@ -50,7 +50,6 @@
   (when (= password-1 password-2)
     (assoc params :password password-1)))
 
-;; TODO: Why do I need the helper?
 (defn- show-signup* [req & {:keys [errors email first-name last-name]
                             :or   {errors     []
                                    email      ""
