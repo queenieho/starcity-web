@@ -42,7 +42,7 @@
               & {:keys [errors email] :or {errors [] email ""}}]
   ;; NOTE: Preserves the next url through the POST req by using a hidden input
   (let [next-url (get-in req [:params :next])]
-    (base (view/login errors email next-url) :css ["signin.css"])))
+    (base (view/login errors email next-url) :css ["login.css"])))
 
 ;; =============================================================================
 ;; API
