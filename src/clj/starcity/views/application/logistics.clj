@@ -168,6 +168,8 @@
      (choose-lease property application)
      (choose-pet property application)
      (completion property application)]]
+   :nav-buttons []
+   :nav-items []
    :js ["bower/jquery-validation/dist/jquery.validate.js"
         "validation-defaults.js"
         "logistics.js"]))

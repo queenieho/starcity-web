@@ -37,4 +37,6 @@
    [:div.container
     [:div.page-header
      [:h1 "Starcity Rental Application"]]
-    (map (partial section allowed-sections) +sections+)]))
+    (map (partial section allowed-sections) +sections+)]
+   :nav-buttons []
+   :nav-items []))

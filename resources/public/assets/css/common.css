@@ -92,6 +92,10 @@ footer {
   border-color: #e3a80d;
 }
 
+ul.nav {
+  margin-right: 30px !important;
+}
+
 /* Sticky footer styles
 -------------------------------------------------- */
 

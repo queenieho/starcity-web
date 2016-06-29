@@ -155,6 +155,8 @@
      (address-section address)
      (personal-section ssn dob income-level)
      [:input.btn.btn-default {:type "submit" :value "Submit"}]]]
+   :nav-buttons []
+   :nav-items []
    :js ["bower/jquery-validation/dist/jquery.validate.js"
         "bower/field-kit/public/field-kit.js"
         "validation-defaults.js"

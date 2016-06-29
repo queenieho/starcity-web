@@ -58,13 +58,6 @@
        (apply include-css (concat HEAD-CSS css HEAD-FONTS))
        [:title title]])))
 
-;; <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-;; <span class="sr-only">Toggle navigation</span>
-;; <span class="icon-bar"></span>
-;; <span class="icon-bar"></span>
-;; <span class="icon-bar"></span>
-;; </button>
-
 (defn- navbar [nav-items nav-buttons]
   (letfn [(-nav-item [[text link attrs]]
             [:li [:a (merge {:href link} attrs) text]])
@@ -94,6 +87,14 @@
     (navbar nav-items nav-buttons)
     content]])
 
+;; TODO: Consolidate these to one thing
+(def ^:private default-nav-items
+  [["Availability" "/availability"]
+   ["FAQ" "/fack"]])
+
+(def ^:private default-nav-buttons
+  [["Apply Now" "/signup" {:class "btn-attention navbar-right"}]])
+
 ;; =============================================================================
 ;; API
 
@@ -101,8 +102,8 @@
                        :or   {body-class ""
                               css        []
                               js         []
-                              nav-items  []
-                              nav-buttons []
+                              nav-items  default-nav-items
+                              nav-buttons default-nav-buttons
                               wrap?      true
                               footer?    true}}]
   (html5

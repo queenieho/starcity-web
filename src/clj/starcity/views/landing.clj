@@ -60,7 +60,4 @@
            :placeholder "Enter your email address"}]
          [:span.input-group-btn
           [:button.btn.btn-primary "Join Us"]]]]]]]]
-   :css ["landing.css"]
-   :nav-items [["Availability" "/availability"]
-               ["FAQ" "/fack"]]
-   :nav-buttons [["Apply Now" "/signup" {:class "btn-attention navbar-right"}]]))
+   :css ["landing.css"]))
