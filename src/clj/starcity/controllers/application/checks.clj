@@ -17,6 +17,8 @@
              [account :as account]
              [application :as application]]
             [starcity.views.application.checks :as view]
+            [starcity.views.error :as error-view]
+            [starcity.auth :refer [user-passes]]
             [clj-time.coerce :as c]))
 
 ;; =============================================================================
@@ -58,8 +60,8 @@
 
 (defn- checks-data
   [account-id]
-  (format-pull-data
-   (d/pull (d/db conn) checks-pattern account-id)))
+  (println "Account: " account-id)
+  (format-pull-data (d/pull (d/db conn) checks-pattern account-id)))
 
 ;; =============================================================================
 ;; Parameter Validation & Transforms
@@ -98,6 +100,13 @@
     {:address {:lines (partial join "\n")}
      :dob     (comp c/to-sql-date (partial f/parse ymd-formatter))}))
 
+(defn- can-view-checks?
+  "Given a request, return true iff requesting user is allowed to view the
+  checks page."
+  [{:keys [identity] :as req}]
+  (let [application-id (:db/id (application/by-account-id (:db/id identity)))]
+    (and application-id (application/logistics-complete? application-id))))
+
 ;; =============================================================================
 ;; API
 ;; =============================================================================
@@ -105,9 +114,7 @@
 (defn show-checks
   "Display the checks form with current application info."
   [{:keys [identity] :as req}]
-  (let [{:keys [name address dob ssn income-level] :as data} (checks-data (:db/id identity))]
-    (clojure.pprint/pprint data)
-    (ok (view/checks name address ssn dob income-level))))
+  (-> identity :db/id checks-data view/checks ok))
 
 (defn save!
   "Save new data to the rental application."
@@ -118,5 +125,13 @@
         (account/update! (:db/id identity) {:ssn ssn :dob dob :name name})
         (application/update! application-id {:address address :income-level income-level})
         (response/redirect "/application"))
-      (let [{:keys [name address ssn dob income-level]} params]
-        (malformed (view/checks name address ssn dob income-level :errors (errors-from vresult)))))))
+      ;; didn't pass validation
+      (malformed (view/checks params :errors (errors-from vresult))))))
+
+(def restrictions
+  (let [err "Please complete the <a href='/application/logistics'>logistics</a> step first."]
+    {:handler  {:and [(user-passes can-view-checks?)]}
+     :on-error (fn [req _]
+                 (-> (error-view/error err)
+                     (response/response)
+                     (assoc :status 403)))}))

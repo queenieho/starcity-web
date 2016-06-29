@@ -133,20 +133,19 @@
 (s/def ::first string?)
 (s/def ::middle string?)
 (s/def ::last string?)
-(s/def ::name
-  (s/keys :req-un [::first ::last] :opt-un [::middle]))
-
+(s/def ::name (s/keys :req-un [::first ::last] :opt-un [::middle]))
+(s/def ::ssn string?)
+(s/def ::dob (partial re-matches #"^\d{4}-\d{2}-\d{2}$"))
 (s/def ::lines (s/+ string?))
 (s/def ::city string?)
 (s/def ::state :starcity.states/abbreviation)
-(s/def ::postal-code string?) ;; TODO: regex matching zip codes
+(s/def ::postal-code (partial re-matches #"^\d{5}(-\d{4})?$"))
 (s/def ::address (s/keys :opt-un [::lines ::city ::state ::postal-code]))
 (s/def ::income-level (set application/income-levels))
 
-;; TODO: Rename
 (defn checks
   "Render the checks page."
-  [name address ssn dob income-level & {:keys [errors]}] ; TODO: Render errors
+  [{:keys [name address ssn dob income-level]} & {:keys [errors]}] ; TODO: Render errors
   (base
    [:div.container
     [:div.page-header
@@ -162,9 +161,7 @@
         "checks.js"]))
 
 (s/fdef checks
-        :args (s/cat :name ::name
-                     :address ::address
-                     :ssn string?
-                     :dob :starcity.spec/date
-                     :income-level ::income-level)
-        :ret string?)
+        :args (s/cat :form-data (s/keys :req-un [::name ::address]
+                                        :opt-un [::ssn ::dob ::income-level])
+                     :opts      (s/keys* :opt-un [::errors]))
+        :ret  string?)

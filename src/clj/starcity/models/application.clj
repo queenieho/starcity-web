@@ -24,6 +24,7 @@
 (defmulti pet-type :type)
 (defmethod pet-type :dog [_] (s/keys :req-un [::type ::breed ::weight] :opt-un [::id]))
 (defmethod pet-type :cat [_] (s/keys :req-un [::type] :opt-un [::id]))
+(defmethod pet-type nil [_] nil?)
 
 (s/def ::pet (s/multi-spec pet-type :type))
 
@@ -91,6 +92,10 @@
    "110k-120k"
    "> 120k"])
 
+(def sections
+  "Sections of the application process"
+  #{:logistics :checks :community})
+
 ;; =============================================================================
 ;; Queries
 
@@ -107,26 +112,46 @@
 (s/fdef by-account-id
         :args (s/cat :account-id integer?))
 
+(defn logistics-complete?
+  "Returns true if the logistics section of the application can be considered
+  complete."
+  [application-id]
+  (let [ks   [:rental-application/desired-lease
+              :rental-application/desired-availability]
+        data (d/pull (d/db conn) ks application-id)]
+    (every? (comp not nil?) ((apply juxt ks) data))))
+
+(s/fdef logistics-complete?
+        :args (s/cat :application-id int?)
+        :ret  boolean?)
+
+(defn allowed-sections
+  "Given an account id, return a set of allowed sections in the application process."
+  [account-id]
+  (let [allowed #{:logistics}]
+    (if-let [application-id (:db/id (by-account-id account-id))]
+     (cond-> allowed
+       (logistics-complete? application-id) (conj :checks))
+     allowed)))
+
+(comment
+
+  (allowed-sections (:db/id (one (d/db conn) :account/email "test@test.com")))
+
+  )
+
 ;; =============================================================================
 ;; Transactions
 
 ;; =====================================
 ;; update!
 
-;; (defn update!
-;;   [application-id params]
-;;   (let [tx (->> ((gen-update-tx params) (one (d/db conn) application-id) params)
-;;                 (apply concat))]
-;;     (clojure.pprint/pprint tx)
-;;     @(d/transact conn (vec tx))
-;;     application-id))
-
 (def update!
-  (make-update-fn conn {:desired-lease        desired-lease-update-tx
-                        :desired-availability desired-availability-update-tx
-                        :pet                  pet-update-tx
-                        :address              address-update-tx
-                        :income-level         income-update-tx}))
+  (make-update-fn {:desired-lease        desired-lease-update-tx
+                   :desired-availability desired-availability-update-tx
+                   :pet                  pet-update-tx
+                   :address              address-update-tx
+                   :income-level         income-update-tx}))
 
 (s/fdef update!
         :args (s/cat :application-id int?

@@ -1,5 +1,6 @@
 (ns starcity.models.util
   (:require [starcity.datomic.util :refer [one]]
+            [starcity.datomic :refer [conn]]
             [datomic.api :as d]))
 
 ;; =============================================================================
@@ -28,7 +29,7 @@
        (apply juxt)))
 
 (defn make-update-fn
-  [conn txfns]
+  [txfns]
   (fn [entity-id params]
     (let [tx (->> ((gen-tx params txfns) (one (d/db conn) entity-id) params)
                   (apply concat))]

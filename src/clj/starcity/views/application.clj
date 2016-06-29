@@ -6,30 +6,35 @@
 ;; =============================================================================
 
 (def ^:private +sections+
-  [{:title       "Logistics"
+  [{:section     :logistics
+    :title       "Logistics"
     :uri         "logistics"
     :description "Your desired move-in date, etc."}
-   {:title "Background &amp; Credit Checks"
-    :uri   "checks"}
-   {:title "Community Fitness"
-    :uri   "community"}
-   {:title "Final Steps"
-    :uri   "finalization"}])
+   {:section :checks
+    :title   "Background &amp; Credit Checks"
+    :uri     "checks"}
+   {:section :community
+    :title   "Community Fitness"
+    :uri     "community"}])
 
-(defn- section [{:keys [title uri description]
-                 :or   {description "Aenean in sem ac leo mollis blandit."}}]
-  [:div
-   [:h3 [:a {:href (format "/application/%s" uri)} title]]
-   [:p description]])
+(defn- section
+  [allowed-sections {:keys [title uri description section]}] ; dev
+  (let [allowed? (allowed-sections section)]
+    [:div
+     [:h3
+      (if allowed?
+        [:a {:href (format "/application/%s" uri)} title]
+        title)]
+     [:p (or description "Aenean in sem ac leo mollis blandit.")]]))
 
 ;; =============================================================================
 ;; API
 ;; =============================================================================
 
 (defn application
-  []
+  [allowed-sections]
   (base
    [:div.container
     [:div.page-header
      [:h1 "Starcity Rental Application"]]
-    (map section +sections+)]))
+    (map (partial section allowed-sections) +sections+)]))

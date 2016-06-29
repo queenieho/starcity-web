@@ -1,21 +1,25 @@
 (ns starcity.routes
-  (:require [compojure.core :refer [defroutes routes context GET POST ANY]]
-            [compojure.route :as route]
-            [starcity.controllers.landing :as landing]
-            [starcity.controllers.register :as register]
-            [starcity.controllers.availability :as availability]
-            [starcity.controllers.faq :as faq]
-            [starcity.controllers.auth :as auth]
-            [starcity.controllers.auth.login :as login]
-            [starcity.controllers.auth.signup :as signup]
-            [starcity.controllers.application :as application]
-            [starcity.controllers.application.logistics :as logistics]
-            [starcity.controllers.application.checks :as checks]
-            [starcity.controllers.dashboard :as dashboard]
-            [starcity.auth :refer [authenticated-user unauthorized-handler user-isa]]
-            [buddy.auth :refer [authenticated?]]
+  (:require [buddy.auth :refer [authenticated?]]
             [buddy.auth.accessrules :refer [restrict]]
-            [ring.util.response :as response]))
+            [compojure
+             [core :refer [ANY context defroutes GET POST routes]]
+             [route :as route]]
+            [ring.util.response :as response]
+            [starcity.auth :refer [authenticated-user user-isa]]
+            [starcity.controllers
+             [application :as application]
+             [auth :as auth]
+             [availability :as availability]
+             [dashboard :as dashboard]
+             [faq :as faq]
+             [landing :as landing]
+             [register :as register]]
+            [starcity.controllers.application
+             [checks :as checks]
+             [logistics :as logistics]]
+            [starcity.controllers.auth
+             [login :as login]
+             [signup :as signup]]))
 
 ;; NOTE: If an user is currently listed as an applicant, he/she should only be
 ;; able to access the /application endpoint; similarly, users listed as tenants
@@ -61,10 +65,13 @@
       (GET "/logistics" [] logistics/show-logistics)
       (POST "/logistics" [] logistics/save!)
 
-      (GET "/checks" [] checks/show-checks)
-      (POST "/checks" [] checks/save!))
-     {:handler  {:and [authenticated-user
-                       (user-isa :account.role/applicant)]}
+      (restrict
+       (routes
+        (GET "/checks" [] checks/show-checks)
+        (POST "/checks" [] checks/save!))
+       checks/restrictions))
+
+     {:handler  {:and [authenticated-user (user-isa :account.role/applicant)]}
       :on-error (redirect-on-invalid-authorization "/me")}))
 
   (GET "/me" [] (-> dashboard/show-dashboard
