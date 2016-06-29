@@ -1,6 +1,7 @@
 (ns starcity.controllers.auth.login
   (:require [starcity.views.auth.login :as view]
             [starcity.models.account :as account]
+            [buddy.auth :refer [authenticated?]]
             [bouncer.core :as b]
             [bouncer.validators :as v]
             [clojure.string :refer [trim lower-case]]
@@ -50,7 +51,9 @@
 (defn show-login
   "Respond 200 OK with the login page."
   [req]
-  (ok (show-login* req)))
+  (if (authenticated? req)
+    (response/redirect "/application")
+    (ok (show-login* req))))
 
 (defn login!
   "Log a user in."

@@ -1,9 +1,17 @@
 (ns starcity.views.landing
-  (:require [starcity.views.base :refer [base]]))
+  (:require [starcity.views.base :refer [base]]
+            [starcity.views.common :as common]))
 
 ;; =============================================================================
 ;; Helpers
 ;; =============================================================================
+
+(def ^:private header
+  (common/header
+   "Reimagine Home in San Francisco"
+   "Help shape community-focused housing for our city's workforce."
+   "/assets/img/sf_homes_1.jpeg"
+   {:uri "/signup" :text "Join Our Community"}))
 
 ;; =============================================================================
 ;; API
@@ -13,20 +21,8 @@
   []
   (base
    [:div
-    [:div.header
-     [:div.header-inner
-      [:div.header-content
-       [:div.container
-        [:h1 "reimagine home in San Francisco"]
-        [:p.lead "Help shape community-focused housing for our city's workforce."]
-        [:div.row
-         [:div.col-sm-4.col-sm-offset-4.col-xs-8.col-xs-offset-2
-          [:a#action-button.btn.btn-lg.btn-block.btn-default
-           {:href "/application"}
-           "Join Our Community"]]]]]]]
-
+    header
     [:div.container.marketing
-
      [:div.row.featurette
       [:div.col-sm-7
        [:h2.featurette-heading
@@ -48,11 +44,11 @@
         [:span.text-muted "For Everyone."]]
        [:p.lead "Balancing community space and resources with adequate private space will honor the needs of our workforce. Let's design private rooms in a way that'll allow us to live sustainably in San Francisco."]]]
 
-     [:hr#informed-divider.featurette-divider]
+     [:hr#action-divider.featurette-divider]
 
-     [:div#informed-section.row
+     [:div#action-section.row
       [:div.col-md-6.col-md-offset-3
-       [:h2#informed-heading "Get Involved"]
+       [:h2#action-heading "Get Involved"]
        [:p.lead "Enter your email and we'll be in touch."]
 
        [:form {:action "/register" :method "GET"}
@@ -67,4 +63,4 @@
    :css ["landing.css"]
    :nav-items [["Availability" "/availability"]
                ["FAQ" "/fack"]]
-   :nav-buttons [["Apply Now" "/application" {:class "btn-attention navbar-right"}]]))
+   :nav-buttons [["Apply Now" "/signup" {:class "btn-attention navbar-right"}]]))

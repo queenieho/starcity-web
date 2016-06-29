@@ -5,6 +5,7 @@
             [starcity.services.mailgun :refer [send-email]]
             [starcity.config :refer [config]]
             [starcity.datomic :refer [conn]]
+            [buddy.auth :refer [authenticated?]]
             [bouncer.core :as b]
             [bouncer.validators :as v]
             [clojure.string :refer [trim capitalize lower-case]]
@@ -94,7 +95,9 @@
 ;; Signup
 
 (defn show-signup [req]
-  (ok (show-signup* req)))
+  (if (authenticated? req)
+    (response/redirect "/application")
+    (ok (show-signup* req))))
 
 (defn signup! [{:keys [params] :as req}]
   (letfn [(-respond-malformed [& errors]

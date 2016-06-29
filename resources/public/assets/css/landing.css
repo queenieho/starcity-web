@@ -4,12 +4,7 @@
 /* Header base class */
 .header {
   margin-bottom: 60px;
-  background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/assets/img/sf_homes_1.jpeg');
-  background-size: cover;
-  -webkit-background-size: cover;
-  -moz-background-size: cover;
-  -o-background-size: cover;
-  background-repeat: no-repeat;
+  /* background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/assets/img/sf_homes_1.jpeg'); */
   padding: 0 0 80px;
 }
 
@@ -17,7 +12,8 @@
   width: 100%;
 }
 
-@media screen and (min-width: 1024px) {
+/* TODO: Set another breakpoint with better padding for even larger min-width, make this one different @768px */
+@media screen and (min-width: 768px) {
   .header  {
     padding: 200px 0 300px;
   }
@@ -98,19 +94,19 @@ ul.nav {
   letter-spacing: -1px;
 }
 
-/* Stay Informed
+/* Action Section
 ------------------------- */
 
-#informed-divider {
+#action-divider {
   margin-bottom: 0px;
 }
 
-#informed-section {
+#action-section {
   text-align: center;
   margin-bottom: 80px;
 }
 
-#informed-heading {
+#action-heading {
   font-weight: 300;
   line-height: 1;
   letter-spacing: -1px;
@@ -151,7 +147,7 @@ ul.nav {
     margin-top: 120px;
   }
 
-  #informed-heading {
+  #action-heading {
     margin-top: 80px;
   }
 }
