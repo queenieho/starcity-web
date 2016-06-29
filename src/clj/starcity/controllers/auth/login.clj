@@ -1,6 +1,5 @@
 (ns starcity.controllers.auth.login
-  (:require [starcity.views.base :refer [base]]
-            [starcity.views.auth.login :as view]
+  (:require [starcity.views.auth.login :as view]
             [starcity.models.account :as account]
             [bouncer.core :as b]
             [bouncer.validators :as v]
@@ -38,20 +37,20 @@
     (account/applicant? acct)  "/application"
     :otherwise                 +redirect-after-login+))
 
-(defn- show* [{:keys [identity] :as req}
-              & {:keys [errors email] :or {errors [] email ""}}]
-  ;; NOTE: Preserves the next url through the POST req by using a hidden input
+(defn- show-login*
+  "NOTE: Preserves the next url through the POST req by using a hidden input."
+  [{:keys [identity] :as req} & {:keys [errors email] :or {errors [] email ""}}]
   (let [next-url (get-in req [:params :next])]
-    (base (view/login errors email next-url) :css ["login.css"])))
+    (view/login errors email next-url)))
 
 ;; =============================================================================
 ;; API
 ;; =============================================================================
 
 (defn show-login
-  "Show the login page."
+  "Respond 200 OK with the login page."
   [req]
-  (ok (show* req)))
+  (ok (show-login* req)))
 
 (defn login!
   "Log a user in."
@@ -66,14 +65,17 @@
             (-> (response/redirect next-url)
                 (assoc :session session)))
           ;; account not activated
-          (malformed (show* req
-                            :errors ["Please click the activation link in your inbox before attempting to log in."]
-                            :email email)))
+          (malformed
+           (show-login* req
+                        :errors ["Please click the activation link in your inbox before attempting to log in."]
+                        :email email)))
         ;; authentication failure
-        (malformed (show* req
-                          :errors ["The credentials you entered are invalid; please try again."]
-                          :email email)))
+        (malformed
+         (show-login* req
+                      :errors ["The credentials you entered are invalid; please try again."]
+                      :email email)))
       ;; validation failure
-      (malformed (show* req
-                        :errors (errors-from vresult)
-                        :email (:email params))))))
+      (malformed
+       (show-login* req
+                    :errors (errors-from vresult)
+                    :email (:email params))))))

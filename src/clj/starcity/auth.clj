@@ -1,5 +1,6 @@
 (ns starcity.auth
-  (:require [ring.util.response :as response]
+  (:require [starcity.views.error :as view]
+            [ring.util.response :as response]
             [buddy.auth :refer [authenticated? throw-unauthorized]]
             [buddy.auth.backends.session :refer [session-backend]]
             [buddy.auth.accessrules :refer [success error]]))
@@ -9,7 +10,8 @@
 (defn unauthorized-handler
   [request metadata]
   (cond
-    (authenticated? request) (-> (response/response "UNAUTHORIZED")
+    (authenticated? request) (-> (view/error "You are not authorized to view this page.")
+                                 (response/response)
                                  (response/content-type "text/html; charset=utf-8")
                                  (assoc :status 403))
     :else                    (let [current-url (:uri request)]
@@ -24,8 +26,7 @@
 (defn authenticated-user [req]
   (if (authenticated? req)
     true
-    (throw-unauthorized)                                    ; (error "User must be authenticated")
-    ))
+    (throw-unauthorized)))
 
 (defn- get-role [req]
   (get-in req [:identity :account/role]))
@@ -42,6 +43,16 @@
         (success)
         (error (format "User with role %s is not authorized for action %s"
                        (name user-role) (name action)))))))
+
+;; TODO: The error message thing is a little cheesy
+(defn user-passes
+  ([predicate]
+   (user-passes predicate "Didn't pass predicate!"))
+  ([predicate error-msg]
+   (fn [req]
+     (if (predicate req)
+       (success)
+       (error error-msg)))))
 
 (defn user-isa
   "Return a handler that determines whether the authenticated user is of a
