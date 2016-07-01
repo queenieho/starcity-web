@@ -1,42 +1,22 @@
 (ns starcity.views.application
-  (:require [starcity.views.base :refer [base]]))
+  (:require [starcity.views.application.common :as common]))
 
 ;; =============================================================================
 ;; Helpers
 ;; =============================================================================
-
-(def ^:private +sections+
-  [{:section     :logistics
-    :title       "Logistics"
-    :uri         "logistics"
-    :description "Your desired move-in date, etc."}
-   {:section :checks
-    :title   "Background &amp; Credit Checks"
-    :uri     "checks"}
-   {:section :community
-    :title   "Community Fitness"
-    :uri     "community"}])
-
-(defn- section
-  [allowed-sections {:keys [title uri description section]}] ; dev
-  (let [allowed? (allowed-sections section)]
-    [:div
-     [:h3
-      (if allowed?
-        [:a {:href (format "/application/%s" uri)} title]
-        title)]
-     [:p (or description "Aenean in sem ac leo mollis blandit.")]]))
 
 ;; =============================================================================
 ;; API
 ;; =============================================================================
 
 (defn application
-  [allowed-sections]
-  (base
-   [:div.container
-    [:div.page-header
-     [:h1 "Starcity Rental Application"]]
-    (map (partial section allowed-sections) +sections+)]
-   :nav-buttons []
-   :nav-items []))
+  [current-steps]
+  (let [active (common/active-step current-steps)]
+    (common/application
+     current-steps
+     [:div.row
+      [:div.col-xs-12
+       [:a.btn.btn-lg.btn-success
+        {:href (common/uri-for-step active)} (if (= active :logistics)
+                                               "Start Now"
+                                               "Resume")]]])))
