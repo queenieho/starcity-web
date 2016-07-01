@@ -18,8 +18,10 @@
 (defn show-application
   "Respond 200 OK with the application page."
   [{:keys [identity] :as req}]
-  (ok (view/application (application/allowed-sections (:db/id identity)))))
+  (let [sections (application/current-steps (:db/id identity))]
+    (ok (view/application sections))))
 
 ;; TODO:
+;; NOTE: Use multimethod!?
 ;; (def restrictions
 ;;   )

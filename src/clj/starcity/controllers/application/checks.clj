@@ -42,7 +42,7 @@
                                            :address/postal-code]}
      :rental-application/income]}])
 
-(defn- format-pull-data
+(defn- clean-data
   [{:keys [account/first-name account/middle-name account/last-name
            account/dob account/ssn account/application]}]
   (let [{:keys [address/lines address/state address/city address/postal-code]} (:rental-application/current-address application)]
@@ -60,8 +60,7 @@
 
 (defn- checks-data
   [account-id]
-  (println "Account: " account-id)
-  (format-pull-data (d/pull (d/db conn) checks-pattern account-id)))
+  (clean-data (d/pull (d/db conn) checks-pattern account-id)))
 
 ;; =============================================================================
 ;; Parameter Validation & Transforms
@@ -114,7 +113,9 @@
 (defn show-checks
   "Display the checks form with current application info."
   [{:keys [identity] :as req}]
-  (-> identity :db/id checks-data view/checks ok))
+  (let [data          (-> identity :db/id checks-data)
+        current-steps (application/current-steps (:db/id identity))]
+    (ok (view/checks current-steps data))))
 
 (defn save!
   "Save new data to the rental application."
@@ -126,8 +127,10 @@
         (application/update! application-id {:address address :income-level income-level})
         (response/redirect "/application"))
       ;; didn't pass validation
-      (malformed (view/checks params :errors (errors-from vresult))))))
+      (let [current-steps (application/current-steps (:db/id identity))]
+        (malformed (view/checks current-steps params :errors (errors-from vresult)))))))
 
+;; TODO: Replace with multimethod
 (def restrictions
   (let [err "Please complete the <a href='/application/logistics'>logistics</a> step first."]
     {:handler  {:and [(user-passes can-view-checks?)]}

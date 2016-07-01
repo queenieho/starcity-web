@@ -58,11 +58,30 @@
        (apply include-css (concat HEAD-CSS css HEAD-FONTS))
        [:title title]])))
 
-(defn- navbar [nav-items nav-buttons]
-  (letfn [(-nav-item [[text link attrs]]
-            [:li [:a (merge {:href link} attrs) text]])
-          (-nav-btn [[text link attrs]]
-            [:a.btn.navbar-btn (merge {:href link} attrs) text])]
+;; =====================================
+;; Nav Items
+
+(defmulti nav-item
+  "Different types of nav items yield different HTML depending on their :type."
+  :type)
+
+(defmethod nav-item :button [{:keys [text uri attrs]}]
+  [:a.btn.navbar-btn (merge {:href uri} attrs) text])
+
+(defmethod nav-item :link [{:keys [text uri attrs]}]
+  [:li [:a (merge {:href uri} attrs) text]])
+
+;; default
+(defmethod nav-item nil [{:keys [text uri attrs]}]
+  [:li [:a (merge {:href uri} attrs) text]])
+
+;; =====================================
+;; Navbar
+
+(defn- navbar [nav-items]
+  (let [is-button? #(= (:type %) :button)
+        buttons    (filter is-button? nav-items)
+        links      (remove is-button? nav-items)]
     [:nav.navbar.navbar-default
      [:div.container
       [:div.navbar-header
@@ -77,33 +96,29 @@
        [:a.navbar-brand {:href "/"}
         [:img {:alt "Starcity Logo" :src "/assets/img/starcity-logo-wordmark.png"}]]]
       [:div#navbar-collapse.navbar-collapse.collapse
-       (map -nav-btn nav-buttons)
+       (map nav-item buttons)
        [:ul.nav.navbar-nav.navbar-right
-        (map -nav-item nav-items)]]]]))
+        (map nav-item links)]]]]))
 
-(defn- wrap-content [content nav-items nav-buttons]
+(defn- wrap-content [content nav-items]
   [:div.navbar-wrapper
    [:div.container-fluid
-    (navbar nav-items nav-buttons)
+    (navbar nav-items)
     content]])
 
-;; TODO: Consolidate these to one thing
 (def ^:private default-nav-items
-  [["Availability" "/availability"]
-   ["FAQ" "/fack"]])
-
-(def ^:private default-nav-buttons
-  [["Apply Now" "/signup" {:class "btn-attention navbar-right"}]])
+  [{:text "Availability" :uri "/availability"}
+   {:text "FAQ" :uri "/fack"}
+   {:text "Apply Now" :uri "/signup" :type :button :attrs {:class "btn-attention navbar-right"}}])
 
 ;; =============================================================================
 ;; API
 
-(defn base [content & {:keys [body-class css js nav-items nav-buttons cljs-devtools? wrap? footer?]
+(defn base [content & {:keys [body-class css js nav-items cljs-devtools? wrap? footer?]
                        :or   {body-class ""
                               css        []
                               js         []
                               nav-items  default-nav-items
-                              nav-buttons default-nav-buttons
                               wrap?      true
                               footer?    true}}]
   (html5
@@ -111,7 +126,7 @@
    (head "Starcity" (map css-path css))
    [:body {:class body-class}
     (if wrap?
-      (wrap-content content nav-items nav-buttons)
+      (wrap-content content nav-items)
       content)
     (when footer?
       [:footer.footer
