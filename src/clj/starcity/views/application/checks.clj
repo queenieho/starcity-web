@@ -1,5 +1,6 @@
 (ns starcity.views.application.checks
-  (:require [starcity.views.base :refer [base]]
+  (:require [starcity.views.application.common :as common]
+            [starcity.models.application :as application]
             [starcity.states :as states]
             [starcity.util :refer :all]
             [starcity.spec]
@@ -7,8 +8,7 @@
             [clojure.spec :as s]
             [clj-time.format :as f]
             [clj-time.core :as t]
-            [clj-time.coerce :as c]
-            [starcity.models.application :as application]))
+            [clj-time.coerce :as c]))
 
 ;; =============================================================================
 ;; Components
@@ -32,61 +32,54 @@
                                       :placeholder lbl
                                       :value       val
                                       :required    required}]])))]
-    [:div.panel.panel-primary
-     [:div.panel-heading
-      [:h3.panel-title "Full Legal Name"]]
-     [:div.panel-body
-      [:div.row
-       (map #(apply -name-col %) [["first" first] ["middle" middle false] ["last" last]])]]]))
+    [:div.form-group.row
+     (map #(apply -name-col %) [["first" first] ["middle" middle false] ["last" last]])]))
 
 ;; =====================================
 ;; Address
 
 (defn- address-section
   [{:keys [lines city state postal-code]}]
-  [:div.panel.panel-primary
-   [:div.panel-heading
-    [:h3.panel-title "Current Address"]]
-   [:div.panel-body
-    [:div.form-group
-     [:label {:for "address-line-1"} "Street Address"]
-     [:input.form-control {:id          "address-line-1"
-                           :name        "address[lines][]"
-                           :placeholder "Address Line 1"
-                           :value       (get lines 0)
+  [:div
+   [:div.form-group
+    [:label {:for "address-line-1"} "Street Address"]
+    [:input.form-control {:id          "address-line-1"
+                          :name        "address[lines][]"
+                          :placeholder "Address Line 1"
+                          :value       (get lines 0)
+                          :required    true}]]
+   [:div.form-group
+    [:label.sr-only {:for "address-line-2"} "Address"]
+    [:input.form-control {:id          "address-line-2"
+                          :name        "address[lines][]"
+                          :placeholder "Address Line 2"
+                          :value       (get lines 1)}]]
+   [:div.row
+    [:div.form-group.col-sm-4
+     [:label {:for "city"} "City"]
+     [:input.form-control {:id          "city"
+                           :name        "address[city]"
+                           :placeholder "City"
+                           :value       city
                            :required    true}]]
-    [:div.form-group
-     [:label.sr-only {:for "address-line-2"} "Address"]
-     [:input.form-control {:id          "address-line-2"
-                           :name        "address[lines][]"
-                           :placeholder "Address Line 2"
-                           :value       (get lines 1)}]]
-    [:div.row
-     [:div.form-group.col-sm-4
-      [:label {:for "city"} "City"]
-      [:input.form-control {:id          "city"
-                            :name        "address[city]"
-                            :placeholder "City"
-                            :value       city
-                            :required    true}]]
-     [:div.form-group.col-sm-4
-      [:label {:for "state"} "State"]
-      [:select.form-control {:id       "state"
-                             :name     "address[state]"
-                             :value    ""
-                             :required true}
-       [:option {:value "" :disabled true :selected (nil? state)}
-        "-- Select State --"]
-       (for [[abbr s] (sort-by val states/+states+)]
-         [:option {:value abbr :selected (= abbr state)} s])]]
-     [:div.form-group.col-sm-4
-      [:label {:for "postal-code"} "Postal Code"]
-      [:input.form-control {:id          "postal-code"
-                            :type        "number"
-                            :name        "address[postal-code]"
-                            :placeholder "Postal Code"
-                            :value       postal-code
-                            :required    true}]]]]])
+    [:div.form-group.col-sm-4
+     [:label {:for "state"} "State"]
+     [:select.form-control {:id       "state"
+                            :name     "address[state]"
+                            :value    ""
+                            :required true}
+      [:option {:value "" :disabled true :selected (nil? state)}
+       "-- Select State --"]
+      (for [[abbr s] (sort-by val states/+states+)]
+        [:option {:value abbr :selected (= abbr state)} s])]]
+    [:div.form-group.col-sm-4
+     [:label {:for "postal-code"} "Postal Code"]
+     [:input.form-control {:id          "postal-code"
+                           :type        "number"
+                           :name        "address[postal-code]"
+                           :placeholder "Postal Code"
+                           :value       postal-code
+                           :required    true}]]]])
 
 ;; =============================================================================
 ;; Personal Information
@@ -95,36 +88,33 @@
 
 (defn- personal-section
   [ssn dob income-level]
-  [:div.panel.panel-primary
-   [:div.panel-heading
-    [:h3.panel-title "Personal Information"]]
-   [:div.panel-body
-    [:div.row
-     [:div.form-group.col-sm-6
-      [:label {:for "ssn"} "Social Security Number"]
-      [:input.form-control {:id          "ssn"
-                            :name        "ssn"
-                            :placeholder "123-45-6789"
-                            :value       ssn
-                            :required    true}]]
-     (let [max-dob (f/unparse ymd-formatter (t/minus (t/now) (t/years 18)))]
-       [:div.form-group.col-sm-6
-        [:label {:for "dob"} "Date of Birth"]
-        [:input.form-control {:id       "dob"
-                              :name     "dob"
-                              :type     "date"
-                              :max      max-dob
-                              :value    dob
-                              :required true}]])]
-    [:div.form-group
-     [:label {:for "income-level"} "Annual Income ($)"]
-     [:select.form-control {:id       "income-level"
-                            :name     "income-level"
-                            :required true}
-      [:option {:value "" :disabled true :selected (nil? income-level)}
-       "-- Select Income --"]
-      (for [income application/income-levels]
-        [:option {:value income :selected (= income-level income)} income])]]]])
+  [:div
+   [:div.row
+    [:div.form-group.col-sm-6
+     [:label {:for "ssn"} "Social Security Number"]
+     [:input.form-control {:id          "ssn"
+                           :name        "ssn"
+                           :placeholder "123-45-6789"
+                           :value       ssn
+                           :required    true}]]
+    (let [max-dob (f/unparse ymd-formatter (t/minus (t/now) (t/years 18)))]
+      [:div.form-group.col-sm-6
+       [:label {:for "dob"} "Date of Birth"]
+       [:input.form-control {:id       "dob"
+                             :name     "dob"
+                             :type     "date"
+                             :max      max-dob
+                             :value    dob
+                             :required true}]])]
+   [:div.form-group
+    [:label {:for "income-level"} "Annual Income ($)"]
+    [:select.form-control {:id       "income-level"
+                           :name     "income-level"
+                           :required true}
+     [:option {:value "" :disabled true :selected (nil? income-level)}
+      "-- Select Income --"]
+     (for [income application/income-levels]
+       [:option {:value income :selected (= income-level income)} income])]]])
 
 ;; =============================================================================
 ;; API
@@ -145,25 +135,30 @@
 
 (defn checks
   "Render the checks page."
-  [{:keys [name address ssn dob income-level]} & {:keys [errors]}] ; TODO: Render errors
-  (base
-   [:div.container
-    [:div.page-header
-     [:h1 "Background &amp; Credit Checks"]]
-    [:form {:method "POST"}
-     (name-section name)
-     (address-section address)
-     (personal-section ssn dob income-level)
-     [:input.btn.btn-default {:type "submit" :value "Submit"}]]]
-   :nav-buttons []
-   :nav-items []
-   :js ["bower/jquery-validation/dist/jquery.validate.js"
-        "bower/field-kit/public/field-kit.js"
-        "validation-defaults.js"
-        "checks.js"]))
+  [current-steps {:keys [name address ssn dob income-level]} & {:keys [errors]}] ; TODO: Render errors
+  (let [sections [["What is your full legal name?"
+                   (name-section name)]
+                  ["Where do you currently live?"
+                   (address-section address)]
+                  ["TODO: I guess we need this stuff..."
+                   (personal-section ssn dob income-level)]]]
+    (common/application
+     current-steps
+     [:div.question-container
+      [:form {:method "POST"}
+       [:ul.question-list
+        (for [[title content] sections]
+          (common/section title content))]
+       common/onward]]
+     :title "Personal Information"
+     :js ["bower/jquery-validation/dist/jquery.validate.js"
+          "bower/field-kit/public/field-kit.js"
+          "validation-defaults.js"
+          "checks.js"])))
 
 (s/fdef checks
-        :args (s/cat :form-data (s/keys :req-un [::name ::address]
+        :args (s/cat :current-steps :starcity.models.application/steps
+                     :form-data (s/keys :req-un [::name ::address]
                                         :opt-un [::ssn ::dob ::income-level])
                      :opts      (s/keys* :opt-un [::errors]))
         :ret  string?)

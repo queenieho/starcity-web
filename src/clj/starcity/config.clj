@@ -35,8 +35,8 @@
         {}))))
 
 (defn- load-config [environment]
-  (assert (#{:production :development} environment)
-          (format "Environment must be one of #{:production :development}, not %s!" environment))
+  (assert (#{:production :development :staging} environment)
+          (format "Environment must be one of #{:production :development :staging}, not %s!" environment))
   (let [defaults (read-config (config-file "config.edn"))]
     (-> (merge-with merge
                     defaults

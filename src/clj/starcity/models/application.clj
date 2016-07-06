@@ -125,20 +125,21 @@
         :args (s/cat :application-id int?)
         :ret  boolean?)
 
-(defn allowed-sections
-  "Given an account id, return a set of allowed sections in the application process."
+(s/def ::step #{:logistics :checks :community})
+(s/def ::steps (s/and set? (s/* ::step)))
+
+(defn current-steps
+  "Given an account id, return a set of allowed steps in the application process."
   [account-id]
-  (let [allowed #{:logistics}]
+  (let [current #{:logistics}]
     (if-let [application-id (:db/id (by-account-id account-id))]
-     (cond-> allowed
-       (logistics-complete? application-id) (conj :checks))
-     allowed)))
+      (cond-> current
+        (logistics-complete? application-id) (conj :checks))
+      current)))
 
-(comment
-
-  (allowed-sections (:db/id (one (d/db conn) :account/email "test@test.com")))
-
-  )
+(s/fdef current-steps
+        :args (s/cat :account-id int?)
+        :ret  ::steps)
 
 ;; =============================================================================
 ;; Transactions

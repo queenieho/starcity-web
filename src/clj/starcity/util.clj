@@ -43,6 +43,8 @@
     m keys)))
 
 (defn dissoc-when
+  "Dissoc from `korks' when the value is falsy, or when the optionally supplied
+  predicate produces a falsy value when invoked on the value."
   ([m korks]
    (dissoc-when m korks identity))
   ([m korks pred]
@@ -51,12 +53,8 @@
       (dissoc-in m korks)
       m))))
 
-;; TODO: spec it!
-(defn parse-date
-  [date-time formatter]
-  (f/unparse formatter (c/from-date date-time)))
-
 (defn remove-nil
+  "Recursively remove all kv pairs where the value is nil."
   [m]
   (reduce (fn [acc [k v]]
             (cond
