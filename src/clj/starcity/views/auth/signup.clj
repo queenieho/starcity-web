@@ -48,8 +48,16 @@
 
 (defn invalid-activation
   []
-  (base [:h2 "Your activation link is invalid or has expired."]))
+  (base
+   [:div.container
+    [:div.page-header
+     [:h1 "Oops!"]]
+    [:p.lead "Your activation link is invalid, or has expired."]]))
 
 (defn signup-complete
   []
-  (base [:h2 "Check your inbox, yo."]))
+  (base
+   [:div.container
+    [:div.page-header
+     [:h1 "Thanks for signing up!"]]
+    [:p.lead "Please check your inbox for an activation link."]]))
