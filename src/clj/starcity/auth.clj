@@ -9,7 +9,6 @@
 ;; req
 (defn unauthorized-handler
   [{:keys [headers] :as request} metadata]
-  (clojure.pprint/pprint request)
   (cond
     (authenticated? request) (-> (view/error "You are not authorized to view this page.")
                                  (response/response)

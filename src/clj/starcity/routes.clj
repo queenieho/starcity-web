@@ -21,7 +21,8 @@
              [community-fitness :as community-fitness]]
             [starcity.controllers.auth
              [login :as login]
-             [signup :as signup]]))
+             [signup :as signup]]
+            [clojure.pprint :as pprint]))
 
 ;; NOTE: If an user is currently listed as an applicant, he/she should only be
 ;; able to access the /application endpoint; similarly, users listed as tenants
@@ -40,7 +41,7 @@
   [handler]
   (fn [req]
     (let [res (handler req)]
-      (clojure.pprint/pprint res)
+      (pprint/pprint res)
       res)))
 
 ;; =============================================================================
