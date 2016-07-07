@@ -9,4 +9,5 @@
  :mailgun  {:domain "mg.starcityproperties.com"
             :sender "team@starcityproperties.com"}
 
- :plaid    {:env :production}}
+ :plaid    {:env     "api"
+            :webhook "https://starcityproperties.com/webhooks/plaid"}}

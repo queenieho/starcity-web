@@ -9,8 +9,7 @@
 
  :nrepl     {:port 7889}
 
- :plaid     {:env     :development
-             :webhook "https://starcityproperties.com/webhooks/plaid"}
+ :plaid     {:env "tartan"}
 
  :mailchimp {:data-center "us13"
              :lists       {:subscribers "357c7315fb"}}}

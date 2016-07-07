@@ -26,7 +26,7 @@
 ;; TODO: Option to select a custom move-in & messaging
 
 (defn- availability-checkbox
-  [chosen [date rooms]]
+  [chosen idx [date rooms]]
   (let [room-text  (if (> (count rooms) 1) "rooms" "room")
         val        (f/unparse value-formatter (c/from-date date))
         is-chosen? #(-> (chosen %) nil? not)]
@@ -35,7 +35,7 @@
               :type     "checkbox"
               :name     "availability[]"
               :value    val
-              :required true
+              :required (when (= idx 0) true)
               :data-msg "You must choose at least one available move-in date."
               :checked  (is-chosen? date)}
       [:span (f/unparse view-formatter (c/from-date date))]
@@ -47,7 +47,7 @@
   (let [units  (->> available-units (group-by :unit/available-on) (sort-by key))
         chosen (-> application :rental-application/desired-availability set)]
     [:div.form-group
-     (map (partial availability-checkbox chosen) units)]))
+     (map-indexed (partial availability-checkbox chosen) units)]))
 
 ;; =============================================================================
 ;; Lease
