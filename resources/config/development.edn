@@ -1,6 +1,9 @@
-{:datomic {:uri "datomic:mem://localhost:4334/starcity"}
+{:datomic  {:uri "datomic:mem://localhost:4334/starcity"}
 
  :hostname "http://localhost:8080"
 
- :mailgun {:domain  "sandboxeec004e4d33845edaef9b962843713a7.mailgun.org"
-           :sender  "Mailgun Sandbox <postmaster@sandboxeec004e4d33845edaef9b962843713a7.mailgun.org>"}}
+ :mailgun  {:domain "sandboxeec004e4d33845edaef9b962843713a7.mailgun.org"
+            :sender "Mailgun Sandbox <postmaster@sandboxeec004e4d33845edaef9b962843713a7.mailgun.org>"}
+
+ :plaid    {:env     "tartan"
+            :webhook "http://requestb.in/1by9aip1"}}

@@ -5,6 +5,8 @@
 
 (declare active-step)
 
+;; TODO: A lot of this should get moved into the model layer (?)
+
 ;; =============================================================================
 ;; Helpers
 ;; =============================================================================
@@ -96,17 +98,18 @@
   (get-in +steps-keyed+ [step :title]))
 
 (defn application
-  [current-steps content & {:keys [title js]}]
+  [current-steps content & {:keys [title js json]}]
   (let [active (active-step current-steps)]
     (base
      [:div.container
       [:div.page-header
-       [:h2 (str "Member Application" (if title (str " : " title) ""))]]
-
+       [:h2 [:a {:href "/application"} "Member Application"]
+        (if title (str " : " title) "")]]
       (progress-bar current-steps)
       content]
      :css ["application.css"]
      :js js
+     :json json
      :nav-items [])))
 
 (defn section

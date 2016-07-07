@@ -1,6 +1,7 @@
 (ns starcity.views.base
   (:require [hiccup.core :refer [html]]
-            [hiccup.page :refer [html5 include-css include-js]]))
+            [hiccup.page :refer [html5 include-css include-js]]
+            [cheshire.core :as json]))
 
 ;;; =============================================================================
 ;; Constants
@@ -16,7 +17,9 @@
   (format "/%s/%s" BASE-CSS-DIR filename))
 
 (defn- js-path [filename]
-  (format "/%s/%s" BASE-JS-DIR filename))
+  (if (re-matches #"^https?.+" filename)
+    filename
+    (format "/%s/%s" BASE-JS-DIR filename)))
 
 (def ^{:private true} HEAD-CSS
   (map css-path ["bootstrap.css" "common.css"]))
@@ -114,10 +117,11 @@
 ;; =============================================================================
 ;; API
 
-(defn base [content & {:keys [body-class css js nav-items cljs-devtools? wrap? footer?]
+(defn base [content & {:keys [body-class css js json nav-items cljs-devtools? wrap? footer?]
                        :or   {body-class ""
                               css        []
                               js         []
+                              json       []
                               nav-items  default-nav-items
                               wrap?      true
                               footer?    true}}]
@@ -134,6 +138,9 @@
         [:div.footer-content
          [:p.pull-right [:a {:href "#"} "Back to top"]]
          [:p "&copy; 2016 Starcity Properties, Inc."]]]])
+    (for [[name obj] json]
+      [:script
+       (format "var %s = %s" name (json/encode obj))])
     (apply include-js (->> (map js-path js) (concat BODY-JS)))
     (when cljs-devtools?
       [:script "goog.require('user.devtools')"])]))

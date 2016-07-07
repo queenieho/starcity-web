@@ -23,6 +23,7 @@
                  [http-kit "2.1.19"]
                  [compojure "1.5.0"]
                  [cheshire "5.6.1"]
+                 [ring/ring-json "0.4.0"]
                  [ring/ring "1.4.0"]
                  [hiccup "1.0.5"]
                  [mount "0.1.10"]

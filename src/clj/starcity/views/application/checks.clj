@@ -1,6 +1,7 @@
 (ns starcity.views.application.checks
   (:require [starcity.views.application.common :as common]
             [starcity.models.application :as application]
+            [starcity.config :refer [config]]
             [starcity.states :as states]
             [starcity.util :refer :all]
             [starcity.spec]
@@ -86,35 +87,31 @@
 
 (def ^:private ymd-formatter (f/formatter :year-month-day))
 
-(defn- personal-section
-  [ssn dob income-level]
+(defn- birthday-section
+  [dob]
   [:div
    [:div.row
-    [:div.form-group.col-sm-6
-     [:label {:for "ssn"} "Social Security Number"]
-     [:input.form-control {:id          "ssn"
-                           :name        "ssn"
-                           :placeholder "123-45-6789"
-                           :value       ssn
-                           :required    true}]]
     (let [max-dob (f/unparse ymd-formatter (t/minus (t/now) (t/years 18)))]
-      [:div.form-group.col-sm-6
-       [:label {:for "dob"} "Date of Birth"]
+      [:div.form-group.col-lg-12
        [:input.form-control {:id       "dob"
                              :name     "dob"
                              :type     "date"
                              :max      max-dob
                              :value    dob
-                             :required true}]])]
-   [:div.form-group
-    [:label {:for "income-level"} "Annual Income ($)"]
-    [:select.form-control {:id       "income-level"
-                           :name     "income-level"
-                           :required true}
-     [:option {:value "" :disabled true :selected (nil? income-level)}
-      "-- Select Income --"]
-     (for [income application/income-levels]
-       [:option {:value income :selected (= income-level income)} income])]]])
+                             :required true}]])]])
+
+;; =============================================================================
+;; Plaid
+
+(defn- plaid-section
+  [plaid-id]
+  [:div#plaid-section
+   [:input {:type "hidden" :value plaid-id :name "plaid-id"}]
+   (if (int? plaid-id)
+     [:button#link-button.btn.btn-lg.btn-success.disabled {:type "button"}
+      [:span.glyphicon.glyphicon-ok "&nbsp;"] "Thanks!"]
+     [:button#link-button.btn.btn-lg.btn-info {:type "button"}
+      "Link Bank Account"])])
 
 ;; =============================================================================
 ;; API
@@ -124,41 +121,49 @@
 (s/def ::middle string?)
 (s/def ::last string?)
 (s/def ::name (s/keys :req-un [::first ::last] :opt-un [::middle]))
-(s/def ::ssn string?)
 (s/def ::dob (partial re-matches #"^\d{4}-\d{2}-\d{2}$"))
 (s/def ::lines (s/+ string?))
 (s/def ::city string?)
 (s/def ::state :starcity.states/abbreviation)
 (s/def ::postal-code (partial re-matches #"^\d{5}(-\d{4})?$"))
 (s/def ::address (s/keys :opt-un [::lines ::city ::state ::postal-code]))
-(s/def ::income-level (set application/income-levels))
 
 (defn checks
   "Render the checks page."
-  [current-steps {:keys [name address ssn dob income-level]} & {:keys [errors]}] ; TODO: Render errors
+  [current-steps {:keys [name address dob plaid-id]} & {:keys [errors]}]
   (let [sections [["What is your full legal name?"
                    (name-section name)]
+                  ["When were you born?"
+                   (birthday-section dob)]
                   ["Where do you currently live?"
                    (address-section address)]
-                  ["TODO: I guess we need this stuff..."
-                   (personal-section ssn dob income-level)]]]
+                  ["Finally, let's verify your income."
+                   (plaid-section plaid-id)]]]
     (common/application
      current-steps
      [:div.question-container
+      [:div.row
+       [:div.col-xs-10.col-xs-offset-1
+        (for [e errors]
+          [:div.alert.alert-danger {:role "alert"} e])]]
       [:form {:method "POST"}
        [:ul.question-list
         (for [[title content] sections]
           (common/section title content))]
        common/onward]]
      :title "Personal Information"
-     :js ["bower/jquery-validation/dist/jquery.validate.js"
-          "bower/field-kit/public/field-kit.js"
+     :json [["plaid" {:key      (get-in config [:plaid :public-key])
+                      :env      (get-in config [:plaid :env])
+                      :complete (not (nil? plaid-id))}]]
+     :js ["https://cdn.plaid.com/link/stable/link-initialize.js"
+          "bower/jquery-validation/dist/jquery.validate.js"
+          ;; "bower/field-kit/public/field-kit.js"
           "validation-defaults.js"
           "checks.js"])))
 
 (s/fdef checks
         :args (s/cat :current-steps :starcity.models.application/steps
                      :form-data (s/keys :req-un [::name ::address]
-                                        :opt-un [::ssn ::dob ::income-level])
+                                        :opt-un [::dob ::plaid-id])
                      :opts      (s/keys* :opt-un [::errors]))
         :ret  string?)

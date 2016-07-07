@@ -1,10 +1,12 @@
-{:datomic {:seed-dir  nil
-           :partition :starcity}
+{:datomic  {:seed-dir  nil
+            :partition :starcity}
 
- :logger  {:level   :info
-           :logfile "/var/log/starcity/server.log"}
+ :logger   {:level   :info
+            :logfile "/var/log/starcity/server.log"}
 
  :hostname "https://starcityproperties.com"
 
- :mailgun {:domain "mg.starcityproperties.com"
-           :sender "team@starcityproperties.com"}}
+ :mailgun  {:domain "mg.starcityproperties.com"
+            :sender "team@starcityproperties.com"}
+
+ :plaid    {:env "production"}}

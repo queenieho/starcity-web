@@ -1,13 +1,15 @@
 (ns starcity.models.account
-  (:require [starcity.datomic.util :refer :all]
-            [starcity.models.util :refer :all]
-            [starcity.datomic :refer [conn]]
-            [starcity.config :as config]
+  (:require [buddy.core
+             [codecs :refer [bytes->hex]]
+             [hash :refer [md5]]]
             [buddy.hashers :as hashers]
-            [buddy.core.hash :refer [md5]]
-            [buddy.core.codecs :refer [bytes->hex]]
-            [clojure.string :refer [trim lower-case]]
-            [datomic.api :as d]))
+            [clojure.string :refer [lower-case trim]]
+            [datomic.api :as d]
+            [starcity
+             [config :as config]
+             [datomic :refer [conn]]]
+            [starcity.datomic.util :refer :all]
+            [starcity.models.util :refer :all]))
 
 ;; =============================================================================
 ;; Helpers

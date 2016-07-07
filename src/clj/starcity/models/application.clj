@@ -73,24 +73,9 @@
         :rental-application/current-address address-data}]
       [(merge {:db/id (:db/id curr)} address-data)])))
 
-(defn- income-update-tx
-  [application {income :income-level}]
-  [[:db/add (:db/id application) :rental-application/income income]])
-
 ;; =============================================================================
 ;; API
 ;; =============================================================================
-
-(def income-levels
-  "Allowed income levels."
-  ["< 60k"
-   "60k-70k"
-   "70k-80k"
-   "80k-90k"
-   "90k-100k"
-   "100k-110k"
-   "110k-120k"
-   "> 120k"])
 
 (def sections
   "Sections of the application process"
@@ -125,6 +110,25 @@
         :args (s/cat :application-id int?)
         :ret  boolean?)
 
+(defn personal-information-complete?
+  "Returns true if the logistics section of the application can be considered
+  complete."
+  [application-id]
+  (let [pattern [:rental-application/current-address
+                 {:account/_application [:account/dob :plaid/_account]}]
+        data    (d/pull (d/db conn) pattern application-id)
+        acct    (get-in data [:account/_application 0])
+        plaid   (get-in acct [:plaid/_account 0])]
+    (not (or (nil? (:rental-application/current-address data))
+             (nil? (:account/dob acct))
+             (nil? plaid)))))
+
+(s/fdef personal-information-complete?
+        :args (s/cat :application-id int?)
+        :ret  boolean?)
+
+
+;; TODO: Rename :checks
 (s/def ::step #{:logistics :checks :community})
 (s/def ::steps (s/and set? (s/* ::step)))
 
@@ -134,7 +138,8 @@
   (let [current #{:logistics}]
     (if-let [application-id (:db/id (by-account-id account-id))]
       (cond-> current
-        (logistics-complete? application-id) (conj :checks))
+        (logistics-complete? application-id) (conj :checks)
+        (personal-information-complete? application-id) (conj :community))
       current)))
 
 (s/fdef current-steps
@@ -151,8 +156,7 @@
   (make-update-fn {:desired-lease        desired-lease-update-tx
                    :desired-availability desired-availability-update-tx
                    :pet                  pet-update-tx
-                   :address              address-update-tx
-                   :income-level         income-update-tx}))
+                   :address              address-update-tx}))
 
 (s/fdef update!
         :args (s/cat :application-id int?

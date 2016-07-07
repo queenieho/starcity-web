@@ -8,7 +8,8 @@
 ;; TODO: Different uses depending on whether or not this is an API req or Page
 ;; req
 (defn unauthorized-handler
-  [request metadata]
+  [{:keys [headers] :as request} metadata]
+  (clojure.pprint/pprint request)
   (cond
     (authenticated? request) (-> (view/error "You are not authorized to view this page.")
                                  (response/response)
@@ -17,10 +18,17 @@
     :else                    (let [current-url (:uri request)]
                                (response/redirect (format "/login?next=%s" current-url)))))
 
+;; TODO:
+;; (defmulti unauthorized-handler
+;;   "Handler for requests that are not authorized")
+
+;; (defmulti unauthorized-handler
+;;   "Handler for requests that are not authorized."
+;;   (fn [{:keys [content-type]} _] (second (re-find #"(^[^;]+)"))))
+
 (def auth-backend
   (session-backend {:unauthorized-handler unauthorized-handler}))
 
-;; TODO: Add some permissions
 (def permissions {})
 
 (defn authenticated-user [req]

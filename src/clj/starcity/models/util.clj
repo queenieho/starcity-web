@@ -18,7 +18,6 @@
             m)))
 
 (defn- gen-tx
-  "TODO: documentation"
   [params txfns]
   (->> (keys params)
        (reduce (fn [fns k]
@@ -29,6 +28,7 @@
        (apply juxt)))
 
 (defn make-update-fn
+  "TODO: documentation"
   [txfns]
   (fn [entity-id params]
     (let [tx (->> ((gen-tx params txfns) (one (d/db conn) entity-id) params)

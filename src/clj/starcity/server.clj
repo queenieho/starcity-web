@@ -7,6 +7,8 @@
             [ring.middleware.params :refer [wrap-params]]
             [ring.middleware.nested-params :refer [wrap-nested-params]]
             [ring.middleware.session :refer [wrap-session]]
+            [ring.middleware.json :refer [wrap-json-params
+                                          wrap-json-response]]
             [buddy.auth.middleware :refer [wrap-authentication
                                            wrap-authorization]]
             [starcity.auth :refer [auth-backend]]
@@ -30,6 +32,8 @@
       (wrap-authentication auth-backend)
       (wrap-keyword-params)
       (wrap-nested-params)
+      (wrap-json-params)
+      (wrap-json-response)
       (wrap-params)
       (wrap-session)
       (wrap-resource "public")

@@ -28,13 +28,6 @@
   :db.install/_attribute :db.part/db}
 
  {:db/id                 #db/id[:db.part/db]
-  :db/ident              :rental-application/income
-  :db/valueType          :db.type/string
-  :db/cardinality        :db.cardinality/one
-  :db/doc                "String representation of applicant's income."
-  :db.install/_attribute :db.part/db}
-
- {:db/id                 #db/id[:db.part/db]
   :db/ident              :rental-application/desired-lease
   :db/valueType          :db.type/ref
   :db/cardinality        :db.cardinality/one
@@ -156,6 +149,4 @@
   :db/cardinality        :db.cardinality/many
   :db/isComponent        true
   :db/doc                "Preferences for add-ons to this property."
-  :db.install/_attribute :db.part/db}
-
- ]
+  :db.install/_attribute :db.part/db}]

@@ -6,6 +6,7 @@
              [route :as route]]
             [ring.util.response :as response]
             [starcity.auth :refer [authenticated-user user-isa]]
+            [starcity.api.plaid :as plaid]
             [starcity.controllers
              [application :as application]
              [auth :as auth]
@@ -16,7 +17,8 @@
              [register :as register]]
             [starcity.controllers.application
              [checks :as checks]
-             [logistics :as logistics]]
+             [logistics :as logistics]
+             [community-fitness :as community-fitness]]
             [starcity.controllers.auth
              [login :as login]
              [signup :as signup]]))
@@ -33,6 +35,13 @@
     (if (authenticated? req)
       (response/redirect to)
       (response/redirect "/"))))
+
+(defn- wrap-log-response
+  [handler]
+  (fn [req]
+    (let [res (handler req)]
+      (clojure.pprint/pprint res)
+      res)))
 
 ;; =============================================================================
 ;; API
@@ -69,7 +78,13 @@
        (routes
         (GET "/checks" [] checks/show-checks)
         (POST "/checks" [] checks/save!))
-       checks/restrictions))
+       checks/restrictions)
+
+      (restrict
+       (routes
+        (GET "/community" [] community-fitness/show-community-fitness)
+        (POST "/community" [] community-fitness/save!))
+       community-fitness/restrictions))
 
      {:handler  {:and [authenticated-user (user-isa :account.role/applicant)]}
       :on-error (redirect-on-invalid-authorization "/me")}))
@@ -77,6 +92,15 @@
   (GET "/me" [] (-> dashboard/show-dashboard
                     (restrict {:handler  {:and [authenticated-user (user-isa :account.role/tenant)]}
                                :on-error (redirect-on-invalid-authorization "/application")})))
+
+  (context "/api/v1" []
+    (restrict
+     (routes
+      (POST "/plaid/auth" [] plaid/authenticate!))
+     {:handler {:and [authenticated-user]}}))
+
+  (context "/webhooks" []
+    (POST "/plaid" [] plaid/hook))
 
   ;; catch-all
   (route/not-found "<p>Not Found</p>"))

@@ -38,10 +38,11 @@
   (assert (#{:production :development :staging} environment)
           (format "Environment must be one of #{:production :development :staging}, not %s!" environment))
   (let [defaults (read-config (config-file "config.edn"))]
+    ;; TODO: deep-merge-with
     (-> (merge-with merge
                     defaults
-                    (read-config (config-for-environment environment))
-                    (read-secrets +secrets-file+))
+                    (read-secrets +secrets-file+)
+                    (read-config (config-for-environment environment)))
         (assoc :environment environment))))
 
 ;; =============================================================================
