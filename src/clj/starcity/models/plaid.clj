@@ -31,15 +31,19 @@
              :income-streams           (map extract-income-stream income_streams)}))
 
 (defn- extract-account
-  [{:keys [balance institution_type subtype type]}]
-  (ks->nsks :bank-account
-            (assoc-when
-             {:available-balance (float (:available balance))
-              :current-balance   (float (:current balance))
-              :type              type
-              :institution-type  institution_type
-              :obtained-at       (java.util.Date.)}
-             :subtype subtype)))
+  [{:keys [balance institution_type subtype type meta]}]
+  (let [available-balance (when-let [x (:available balance)] (float x))
+        current-balance   (when-let [x (:current balance)] (float x))
+        credit-limit      (when-let [x (:limit meta)] (float x))]
+    (ks->nsks :bank-account
+              (assoc-when
+               {:type             type
+                :institution-type institution_type
+                :obtained-at      (java.util.Date.)}
+               :credit-limit credit-limit
+               :current-balance current-balance
+               :available-balance available-balance
+               :subtype subtype))))
 
 (defn- add-income-tx
   [entity-id access-token {:keys [accounts income]}]
