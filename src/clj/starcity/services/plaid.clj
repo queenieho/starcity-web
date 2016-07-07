@@ -11,11 +11,15 @@
 ;; Helpers
 ;; =============================================================================
 
+(def ^:private environments
+  {:development "tartan"
+   :production  "api"})
+
 (defn- plaid-request
   [{:keys [endpoint token-key params webhook?] :or {token-key :access_token params {}}}
    {:keys [secret client-id env webhook]}]
   (fn [token cb]
-    (let [env  (if (= env "production") "api" env)
+    (let [env  (get environments env "tartan")
           url  (format "https://%s.plaid.com/%s" env endpoint)
           body (merge {:secret    secret
                        :client_id client-id

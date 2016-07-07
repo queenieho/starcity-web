@@ -1,9 +1,9 @@
-{:datomic {:uri "datomic:mem://localhost:4334/starcity"}
+{:datomic  {:uri "datomic:mem://localhost:4334/starcity"}
 
- :logger {:level :trace
-          :logfile "/var/log/starcity/server.log"}
+ :logger   {:level   :trace
+            :logfile "/var/log/starcity-web/server.log"}
 
- :hostname "https://staging.starcityproperties.com"
+ :hostname "http://staging.starcityproperties.com"
 
- :mailgun {:domain  "sandboxeec004e4d33845edaef9b962843713a7.mailgun.org"
-           :sender  "Mailgun Sandbox <postmaster@sandboxeec004e4d33845edaef9b962843713a7.mailgun.org>"}}
+ :mailgun  {:domain "sandboxeec004e4d33845edaef9b962843713a7.mailgun.org"
+            :sender "Mailgun Sandbox <postmaster@sandboxeec004e4d33845edaef9b962843713a7.mailgun.org>"}}
