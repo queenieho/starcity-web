@@ -106,8 +106,7 @@
 (defn- plaid-section
   [plaid-id]
   [:div#plaid-section
-   [:input {:type "hidden" :value plaid-id :name "plaid-id"}]
-   (if (int? plaid-id)
+   (if plaid-id
      [:button#link-button.btn.btn-lg.btn-success.disabled {:type "button"}
       [:span.glyphicon.glyphicon-ok "&nbsp;"] "Thanks!"]
      [:button#link-button.btn.btn-lg.btn-info {:type "button"}

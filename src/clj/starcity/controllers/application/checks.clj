@@ -15,7 +15,8 @@
             [starcity.controllers.utils :refer :all]
             [starcity.models
              [account :as account]
-             [application :as application]]
+             [application :as application]
+             [plaid :as plaid]]
             [starcity.views.application.checks :as view]
             [starcity.views.error :as error-view]
             [starcity.util :refer [str->int]]
@@ -78,10 +79,7 @@
             (let [parsed (f/parse ymd-formatter date)]
               (t/before? parsed (t/minus (t/now) (t/years 18)))))
           (-non-empty? [lines]
-            (-> lines first empty? not))
-          (-valid-plaid? [plaid-id]
-            ;; ensure that this plaid-id maps to a valid entity
-            (->> plaid-id str->int (d/entity (d/db conn)) d/touch :plaid/account nil? not))]
+            (-> lines first empty? not))]
     (b/validate
      params
      {:dob      [(required "Your date of birth is required!")
@@ -89,8 +87,7 @@
                  [-old-enough? :message "You must be at least 18 years of age to apply."]]
       :name     {:first [(required "Your first name is required.")]
                  :last  [(required "Your last name is required.")]}
-      :plaid-id [(required "Please link your bank account so that we can verify your income.")
-                 [-valid-plaid? :message "Please link your bank account so that we can verify your income."]]
+      :plaid-id [(required "Please link your bank account so that we can verify your income.")]
       :address  {:lines       [(required "Your street address is required.")
                                [v/min-count 1 :message "You must provide at least one address line."]
                                [-non-empty? :message "Your street address must not be empty."]]
@@ -104,8 +101,7 @@
   [params]
   (transform-when-key-exists params
     {:address  {:lines (partial join "\n")}
-     :dob      (comp c/to-sql-date (partial f/parse ymd-formatter))
-     :plaid-id str->int}))
+     :dob      (comp c/to-sql-date (partial f/parse ymd-formatter))}))
 
 (defn- can-view-checks?
   "Given a request, return true iff requesting user is allowed to view the
@@ -113,6 +109,10 @@
   [{:keys [identity] :as req}]
   (when-let [application-id (:db/id (application/by-account-id (:db/id identity)))]
     (application/logistics-complete? application-id)))
+
+(defn- wrap-plaid-id
+  [params account-id]
+  (assoc params :plaid-id (:db/id (plaid/by-account-id account-id))))
 
 ;; =============================================================================
 ;; API
@@ -128,14 +128,15 @@
 (defn save!
   "Save new data to the rental application."
   [{:keys [identity params] :as req}]
-  (let [vresult (validate-params params)]
+  (let [account-id (:db/id identity)
+        vresult    (-> params (wrap-plaid-id account-id) validate-params)]
     (if-let [{:keys [name address dob] :as ps} (valid? vresult transform-params)]
-      (let [application-id (:db/id (application/by-account-id (:db/id identity)))]
-        (account/update! (:db/id identity) {:dob dob :name name})
+      (let [application-id (:db/id (application/by-account-id account-id))]
+        (account/update! account-id {:dob dob :name name})
         (application/update! application-id {:address address})
         (response/redirect "/application/community"))
       ;; didn't pass validation
-      (let [current-steps (application/current-steps (:db/id identity))]
+      (let [current-steps (application/current-steps account-id)]
         (malformed (view/checks current-steps params :errors (errors-from vresult)))))))
 
 ;; TODO: Replace with multimethod?
