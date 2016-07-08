@@ -141,10 +141,7 @@
     (common/application
      current-steps
      [:div.question-container
-      [:div.row
-       [:div.col-xs-10.col-xs-offset-1
-        (for [e errors]
-          [:div.alert.alert-danger {:role "alert"} e])]]
+      (common/error-alerts errors)
       [:form {:method "POST"}
        [:ul.question-list
         (for [[title content] sections]

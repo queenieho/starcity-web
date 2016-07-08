@@ -13,9 +13,9 @@
     [:textarea.form-control
      {:id          id
       :name        id
-      :value       answer
       :required    true
-      :placeholder "Tell us about it..."}]]))
+      :placeholder "Tell us about it..."}
+     answer]]))
 
 (defn- skills-section
   [answer]
@@ -25,9 +25,9 @@
      [:textarea.form-control
       {:id          id
        :name        id
-       :value       answer
        :required    true
-       :placeholder "Tell us about your skills..."}]]))
+       :placeholder "Tell us about your skills..."}
+      answer]]))
 
 (defn- why-coliving-section
   [answer]
@@ -37,27 +37,29 @@
      [:textarea.form-control
       {:id          id
        :name        id
-       :value       answer
        :required    true
-       :placeholder "Tell us about why you want to live here..."}]]))
+       :placeholder "Tell us about why you want to live here..."}
+      answer]]))
 
 ;; =============================================================================
 ;; API
 ;; =============================================================================
 
 (defn community-fitness
-  [current-steps]
+  [current-steps {:keys [why-coliving skills prior-community-housing]} & {:keys [errors]}]
   (let [sections [["Have you ever lived in community housing?"
-                   (prior-community-housing-section "")]
+                   (prior-community-housing-section prior-community-housing)]
                   ["What skills or traits do you hope to share with the community?"
-                   (skills-section "")]
+                   (skills-section skills)]
                   ["Why are you interested in coliving?"
-                   (why-coliving-section "")]
-                  ["Which community activities/services would you be interested in participating in?"
-                   [:div "TODO:"]]]]
+                   (why-coliving-section why-coliving)]
+                  ;; ["Which community activities/services would you be interested in participating in?"
+                  ;;  [:div "TODO:"]]
+                  ]]
     (common/application
      current-steps
      [:div.question-container
+      (common/error-alerts errors)
       [:form {:method "POST"}
        [:ul.question-list
         (for [[title content] sections]
@@ -66,5 +68,4 @@
      :title "Community Fitness"
      :js ["bower/jquery-validation/dist/jquery.validate.js"
           "validation-defaults.js"
-          ;; TODO: community.js
-          ])))
+          "community.js"])))
