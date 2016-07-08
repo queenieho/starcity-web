@@ -33,7 +33,6 @@ $(document).ready(function() {
         linkButtonEnabled = false;
       })
       .fail(function(data) {
-        // TODO: Indicate that there was a problem in UI
         addPlaidAlert("error", "Whoops! Something went wrong &mdash; please try linking your account again.");
         toggleLinkButton();     // re-enable link button to try again
       });

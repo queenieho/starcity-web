@@ -1,13 +1,13 @@
-{:datomic  {:seed-dir  nil
-            :partition :starcity}
+{:datomic     {:seed-dir  nil
+               :partition :starcity}
 
- :logger   {:level   :info
-            :logfile "/var/log/starcity-web/server.log"}
+ :logger      {:level   :info
+               :logfile "/var/log/starcity-web/server.log"}
 
- :hostname "https://starcityproperties.com"
+ :hostname    "https://starcityproperties.com"
 
- :mailgun  {:domain "mg.starcityproperties.com"
-            :sender "team@starcityproperties.com"}
+ :mailgun     {:domain "mg.starcityproperties.com"
+               :sender "team@starcityproperties.com"}
 
- :plaid    {:env     "api"
-            :webhook "https://starcityproperties.com/webhooks/plaid"}}
+ :plaid       {:env     "api"
+               :webhook "https://starcityproperties.com/webhooks/plaid"}}

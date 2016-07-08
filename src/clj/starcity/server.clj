@@ -15,6 +15,7 @@
             [starcity.middleware :refer [wrap-logging
                                          wrap-exception-handling]]
             [starcity.routes :refer [app-routes]]
+            [starcity.services.slack :as slack]
             ;; util
             [mount.core :as mount :refer [defstate]]
             [starcity.config :refer [config]]
@@ -45,11 +46,13 @@
 (defn- start-server
   [{:keys [port] :as conf}]
   (debugf "Starting server on port %d" port)
+  (slack/webhook-request ">> server starting >>")
   (run-server app-handler {:port port}))
 
 (defn- stop-server
   [server]
   (debug "Shutting down web server")
+  (slack/webhook-request "<< server stopping <<")
   (server))
 
 (defstate web-server

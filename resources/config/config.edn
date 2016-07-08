@@ -1,15 +1,15 @@
-{:webserver {:port 8080}
+{:webserver   {:port 8080}
 
- :datomic   {:schema-dir "datomic/schemas"
-             :seed-dir   "datomic/seed"
-             :partition  :db.part/user}
+ :datomic     {:schema-dir "datomic/schemas"
+               :seed-dir   "datomic/seed"
+               :partition  :db.part/user}
 
- :logger    {:level   :trace
-             :logfile "logs/server.log"}
+ :logger      {:level   :trace
+               :logfile "logs/server.log"}
 
- :nrepl     {:port 7889}
+ :nrepl       {:port 7889}
 
- :plaid     {:env "tartan"}
+ :plaid       {:env "tartan"}
 
- :mailchimp {:data-center "us13"
-             :lists       {:subscribers "357c7315fb"}}}
+ :mailchimp   {:data-center "us13"
+               :lists       {:subscribers "357c7315fb"}}}

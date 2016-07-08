@@ -20,6 +20,7 @@
                  ;; [secretary "1.2.3"]
                  ;; [venantius/accountant "0.1.7"]
                  ;; clj
+                 ;; [clj-slack "0.5.4"]
                  [http-kit "2.1.19"]
                  [compojure "1.5.0"]
                  [cheshire "5.6.1"]
