@@ -3,6 +3,7 @@
              [core :as b]
              [validators :as v]]
             [clj-time
+             [coerce :as c]
              [core :as t]
              [format :as f]]
             [clojure.string :refer [join split-lines]]
@@ -12,16 +13,13 @@
              [datomic :refer [conn]]
              [states :as states]
              [util :refer :all]]
+            [starcity.controllers.application.common :as common]
             [starcity.controllers.utils :refer :all]
             [starcity.models
              [account :as account]
              [application :as application]
              [plaid :as plaid]]
-            [starcity.views.application.checks :as view]
-            [starcity.views.error :as error-view]
-            [starcity.util :refer [str->int]]
-            [starcity.auth :refer [user-passes]]
-            [clj-time.coerce :as c]))
+            [starcity.views.application.checks :as view]))
 
 ;; =============================================================================
 ;; Helpers
@@ -139,11 +137,5 @@
       (let [current-steps (application/current-steps account-id)]
         (malformed (view/checks current-steps params :errors (errors-from vresult)))))))
 
-;; TODO: Replace with multimethod?
 (def restrictions
-  (let [err "Please complete the <a href='/application/logistics'>logistics</a> step first."]
-    {:handler  {:and [(user-passes can-view-checks?)]}
-     :on-error (fn [req _]
-                 (-> (error-view/error err)
-                     (response/response)
-                     (assoc :status 403)))}))
+  (common/restrictions "Logistics" "/application/logistics" can-view-checks?))

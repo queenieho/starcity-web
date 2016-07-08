@@ -18,7 +18,8 @@
             [starcity.controllers.application
              [checks :as checks]
              [logistics :as logistics]
-             [community-fitness :as community-fitness]]
+             [community-fitness :as community-fitness]
+             [submit :as submit]]
             [starcity.controllers.auth
              [login :as login]
              [signup :as signup]]
@@ -85,7 +86,13 @@
        (routes
         (GET "/community" [] community-fitness/show-community-fitness)
         (POST "/community" [] community-fitness/save!))
-       community-fitness/restrictions))
+       community-fitness/restrictions)
+
+      (restrict
+       (routes
+        (GET "/submit" [] submit/show-submit)
+        (POST "/submit" [] submit/submit!))
+       submit/restrictions))
 
      {:handler  {:and [authenticated-user (user-isa :account.role/applicant)]}
       :on-error (redirect-on-invalid-authorization "/me")}))

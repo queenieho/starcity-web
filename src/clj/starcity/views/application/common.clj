@@ -120,3 +120,9 @@
   [:div.row
    [:div.form-group.col-md-2.col-md-offset-5.col-sm-4.col-sm-offset-4
     [:input.btn.btn-lg.btn-block.btn-success {:type "submit" :value "Onward"}]]])
+
+(defn error-alerts [errors]
+  [:div.row
+   [:div.col-xs-10.col-xs-offset-1
+    (for [e errors]
+      [:div.alert.alert-danger {:role "alert"} e])]])

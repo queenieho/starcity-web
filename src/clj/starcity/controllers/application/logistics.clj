@@ -20,7 +20,7 @@
      (data/pull-application account-id)
      (data/pull-property property-id)
      (data/pull-available-units property-id)
-     errors)))
+     :errors errors)))
 
 ;; =============================================================================
 ;; API

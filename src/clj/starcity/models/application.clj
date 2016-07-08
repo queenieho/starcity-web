@@ -5,7 +5,7 @@
             [starcity.datomic :refer [conn]]
             [starcity.config :refer [datomic-partition]]
             [datomic.api :as d]
-            [plumbing.core :refer [assoc-when defnk]]
+            [plumbing.core :refer [assoc-when]]
             [clojure.spec :as s]
             [clojure.string :refer [trim capitalize]]))
 
@@ -111,8 +111,8 @@
         :ret  boolean?)
 
 (defn personal-information-complete?
-  "Returns true if the logistics section of the application can be considered
-  complete."
+  "Returns true if the personal information section of the application can be
+  considered complete."
   [application-id]
   (let [pattern [:rental-application/current-address
                  {:account/_application [:account/dob :plaid/_account]}]
@@ -127,9 +127,24 @@
         :args (s/cat :application-id int?)
         :ret  boolean?)
 
+(defn community-fitness-complete?
+  "Returns true if the community fitness section of the application can be
+  considered complete."
+  [application-id]
+  (let [pattern [{:rental-application/community-fitness
+                  [:community-fitness/prior-community-housing
+                   :community-fitness/why-coliving
+                   :community-fitness/skills]}]
+        data    (:rental-application/community-fitness
+                 (d/pull (d/db conn) pattern application-id))]
+    (boolean
+     (and (:community-fitness/prior-community-housing data)
+          (:community-fitness/why-coliving data)
+          (:community-fitness/skills data)))))
+
 
 ;; TODO: Rename :checks
-(s/def ::step #{:logistics :checks :community})
+(s/def ::step #{:logistics :checks :community :submit})
 (s/def ::steps (s/and set? (s/* ::step)))
 
 (defn current-steps
@@ -139,7 +154,8 @@
     (if-let [application-id (:db/id (by-account-id account-id))]
       (cond-> current
         (logistics-complete? application-id) (conj :checks)
-        (personal-information-complete? application-id) (conj :community))
+        (personal-information-complete? application-id) (conj :community)
+        (community-fitness-complete? application-id) (conj :submit))
       current)))
 
 (s/fdef current-steps
@@ -164,6 +180,28 @@
                                                   ::desired-availability
                                                   ::pet]))
         :ret  int?)
+
+;; =====================================
+;; update-community-fitness!
+
+(s/def ::prior-community-housing string?)
+(s/def ::skills string?)
+(s/def ::why-coliving string?)
+
+(defn update-community-fitness!
+  [application-id params]
+  (let [application (d/entity (d/db conn) application-id)
+        ent         (ks->nsks :community-fitness params)]
+    (if-let [cf-id (-> application :rental-application/community-fitness :db/id)]
+      @(d/transact conn [(assoc ent :db/id cf-id)])
+      @(d/transact conn [{:db/id application-id
+                          :rental-application/community-fitness ent}]))))
+
+(s/fdef update-community-fitness!
+        :args (s/cat :application-id int?
+                     :attributes (s/keys :opt-un [::prior-community-housing
+                                                  ::skills
+                                                  ::why-coliving])))
 
 ;; =====================================
 ;; create!

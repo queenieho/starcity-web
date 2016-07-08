@@ -103,10 +103,9 @@
 ;; API
 ;; =============================================================================
 
-;; TODO: Errors
 (defn logistics
   "Show the logistics page."
-  [current-steps application property available-units errors]
+  [current-steps application property available-units & {:keys [errors]}]
   (let [sections [["When would you like to move in? Here's what's available:"
                    (choose-availability application available-units)]
                   ["How long would you like to stay? Here are your options:"
@@ -115,6 +114,7 @@
     (common/application
      current-steps
      [:div.question-container
+      (common/error-alerts errors)
       [:form {:method "POST"}
        [:input {:type "hidden" :name "property-id" :value (:db/id property)}]
        [:ul.question-list
