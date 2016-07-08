@@ -46,13 +46,13 @@
 (defn- start-server
   [{:keys [port] :as conf}]
   (debugf "Starting server on port %d" port)
-  (slack/webhook-request ">> server starting >>")
+  (slack/webhook-request ":: *starting* webserver ::")
   (run-server app-handler {:port port}))
 
 (defn- stop-server
   [server]
   (debug "Shutting down web server")
-  (slack/webhook-request "<< server stopping <<")
+  (slack/webhook-request ":: *stopping* webserver ::")
   (server))
 
 (defstate web-server
