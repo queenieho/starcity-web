@@ -31,4 +31,4 @@
   ([text cb]
    (let [username (get usernames environment)]
      (when-not (= environment :development)
-       (webhook-request text username cb)))))
+       (webhook-request* text username cb)))))
