@@ -1,5 +1,6 @@
 (ns starcity.views.application
-  (:require [starcity.views.application.common :as common]))
+  (:require [starcity.views.application.common :as common]
+            [starcity.views.base :refer [base]]))
 
 ;; =============================================================================
 ;; Helpers
@@ -8,6 +9,15 @@
 ;; =============================================================================
 ;; API
 ;; =============================================================================
+
+(defn locked                            ; TODO: better naming
+  []
+  (base
+   [:div.container
+    [:div.page-header
+     [:h1 "Thanks for submitting your application!"]]
+    [:p.lead "Woo!"]])
+  )
 
 (defn application
   [current-steps]
