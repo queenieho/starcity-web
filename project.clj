@@ -21,7 +21,7 @@
                  ;; [venantius/accountant "0.1.7"]
                  ;; clj
                  ;; [clj-slack "0.5.4"]
-                 [http-kit "2.1.19"]
+                 [http-kit "2.2.0"]
                  [compojure "1.5.0"]
                  [cheshire "5.6.1"]
                  [ring/ring-json "0.4.0"]

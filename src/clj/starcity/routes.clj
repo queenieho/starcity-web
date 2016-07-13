@@ -73,8 +73,11 @@
      (routes
       (GET "/" [] application/show-application)
 
-      (GET "/logistics" [] logistics/show-logistics)
-      (POST "/logistics" [] logistics/save!)
+      (restrict
+       (routes
+        (GET "/logistics" [] logistics/show-logistics)
+        (POST "/logistics" [] logistics/save!))
+       logistics/restrictions)
 
       (restrict
        (routes

@@ -1,5 +1,6 @@
 (ns starcity.controllers.application.logistics
   (:require [ring.util.response :as response]
+            [starcity.controllers.application.common :as common]
             [starcity.controllers.application.logistics
              [data :as data]
              [params :as p]]
@@ -48,3 +49,7 @@
         (response/redirect "/application/checks"))
       ;; results aren't valid! indicate errors
       (malformed (show-logistics* req :errors (errors-from vresult))))))
+
+(def restrictions
+  {:handler {:and [common/not-locked]}
+   :on-error common/on-error})

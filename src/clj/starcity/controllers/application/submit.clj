@@ -1,8 +1,12 @@
 (ns starcity.controllers.application.submit
-  (:require [starcity.models.application :as application]
+  (:require [ring.util.response :as response]
             [starcity.controllers.application.common :as common]
-            [starcity.views.application.submit :as view]
-            [starcity.controllers.utils :refer :all]))
+            [starcity.controllers.utils :refer :all]
+            [starcity.models
+             [account :as account]
+             [application :as application]]
+            [starcity.services.stripe :as stripe]
+            [starcity.views.application.submit :as view]))
 
 ;; =============================================================================
 ;; Helpers
@@ -13,19 +17,36 @@
   (when-let [application-id (:db/id (application/by-account-id (:db/id identity)))]
     (application/community-fitness-complete? application-id)))
 
+(defn show-submit*
+  [{:keys [identity] :as req} & {:keys [errors] :or []}]
+  (let [current-steps (application/current-steps (:db/id identity))]
+    (view/submit current-steps (:account/email identity) errors)))
+
+(defn- payment-error [req]
+  (malformed (show-submit* req :errors ["Something went wrong while processing your payment. Please try again."])))
+
+(defn- charge-application-fee [token email]
+  (stripe/charge 2000 token email))
+
 ;; =============================================================================
 ;; API
 ;; =============================================================================
 
 (defn show-submit
-  [{:keys [identity] :as req}]
-  (let [current-steps (application/current-steps (:db/id identity))
-        ;; data          (pull-data (:db/id identity))
-        ]
-    (ok (view/submit current-steps))))
+  [req]
+  (ok (show-submit* req)))
 
 (defn submit!
-  [{:keys [identity params] :as req}])
+  [{:keys [identity params] :as req}]
+  (let [{:keys [db/id account/email]} identity]
+    (if-let [token (:stripe-token params)]
+      (let [{:keys [status body]} (charge-application-fee token email)]
+        (if (= status 200)              ; if successful...
+          (do
+            (application/complete! id (:id body))
+            (response/redirect "/application?completed=true"))
+          (payment-error req)))
+      (payment-error req))))
 
 (def restrictions
-  (common/restrictions "Community Fitness" "/application/community" can-view-submit?))
+  (common/restrictions can-view-submit?))

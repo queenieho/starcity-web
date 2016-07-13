@@ -116,10 +116,16 @@
   [title content]
   [:li [:h3 title] [:div.question-body content]])
 
-(def onward
-  [:div.row
-   [:div.form-group.col-md-2.col-md-offset-5.col-sm-4.col-sm-offset-4
-    [:input.btn.btn-lg.btn-block.btn-success {:type "submit" :value "Onward"}]]])
+(defn submit-button
+  ([text]
+   (submit-button text ""))
+  ([text id]
+   [:div.row
+    [:div.form-group.col-md-2.col-md-offset-5.col-sm-4.col-sm-offset-4
+     [:button.btn.btn-lg.btn-block.btn-success {:type "submit" :id id}
+      text]]]))
+
+(def onward (submit-button "Onward"))
 
 (defn error-alerts [errors]
   [:div.row

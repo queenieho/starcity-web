@@ -162,6 +162,19 @@
         :args (s/cat :account-id int?)
         :ret  ::steps)
 
+(defn locked?
+  "Is the application for this user locked?"
+  [account-id]
+  (let [ent (by-account-id account-id)]
+    (boolean (:rental-application/locked ent))))
+
+(comment
+
+  (let [acct-id (:db/id (starcity.models.account/by-email "test@test.com"))]
+    (locked? acct-id))
+
+  )
+
 ;; =============================================================================
 ;; Transactions
 
@@ -180,6 +193,21 @@
                                                   ::desired-availability
                                                   ::pet]))
         :ret  int?)
+
+;; =====================================
+;; complete!
+
+(defn complete!
+  [account-id stripe-id]
+  (let [application-id (:db/id (by-account-id account-id))
+        tid            (d/tempid (datomic-partition))]
+    @(d/transact conn [{:db/id                           application-id
+                        :rental-application/locked       true
+                        :rental-application/submitted-at (java.util.Date.)}
+                       {:db/id            tid
+                        :charge/stripe-id stripe-id
+                        :charge/account   account-id
+                        :charge/purpose   "application fee"}])))
 
 ;; =====================================
 ;; update-community-fitness!

@@ -138,4 +138,4 @@
         (malformed (view/checks current-steps params :errors (errors-from vresult)))))))
 
 (def restrictions
-  (common/restrictions "Logistics" "/application/logistics" can-view-checks?))
+  (common/restrictions can-view-checks?))

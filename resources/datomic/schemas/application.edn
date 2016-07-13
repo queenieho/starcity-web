@@ -61,10 +61,17 @@
   :db.install/_attribute :db.part/db}
 
  {:db/id                 #db/id[:db.part/db]
-  :db/ident              :rental-application/completed-at
+  :db/ident              :rental-application/locked
+  :db/valueType          :db.type/boolean
+  :db/cardinality        :db.cardinality/one
+  :db/doc                "Indicates whether or not the application is locked for edits."
+  :db.install/_attribute :db.part/db}
+
+ {:db/id                 #db/id[:db.part/db]
+  :db/ident              :rental-application/submitted-at
   :db/valueType          :db.type/instant
   :db/cardinality        :db.cardinality/one
-  :db/doc                "The time at which the application was completed."
+  :db/doc                "The time at which the application was submitted."
   :db.install/_attribute :db.part/db}
 
  {:db/id                 #db/id[:db.part/db]

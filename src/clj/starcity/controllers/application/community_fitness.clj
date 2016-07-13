@@ -62,4 +62,4 @@
                                            :errors (errors-from vresult)))))))
 
 (def restrictions
-  (common/restrictions "Personal Information" "/application/personal" can-view-community-fitness?))
+  (common/restrictions can-view-community-fitness?))

@@ -1,18 +1,45 @@
 (ns starcity.controllers.application.common
   (:require [ring.util.response :as response]
-            [starcity.auth :refer [user-passes]]
-            [starcity.views.error :as error-view]))
+            [buddy.auth.accessrules :as auth]
+            [starcity.views.error :as view]
+            [starcity.models.application :as application]))
+
+;; =============================================================================
+;; Helpers
+;; =============================================================================
+
+(defn- passes [predicate]
+  (fn [req]
+    (if (predicate req)
+      (auth/success)
+      (auth/error))))
+
+;; (defn- on-error
+;;   [req error-key]
+;;   (if (= error-key ::locked)
+;;     (response/redirect "/application")
+;;     (let [error-message (message-for-key error-key)]
+;;       (-> (view/error error-message)
+;;           (response/response)
+;;           (response/content-type "text/html; charset=utf-8")
+;;           (response/status 403)))))
 
 ;; =============================================================================
 ;; API
 ;; =============================================================================
 
+(defn not-locked
+  [{:keys [identity] :as req}]
+  (let [account-id (:db/id identity)]
+    (if (application/locked? account-id)
+      (auth/error ::locked)
+      (auth/success))))
+
+(defn on-error
+  [_ _]
+  (response/redirect "/application"))
+
 (defn restrictions
-  [previous-step-name previous-step-url predicate]
-  (let [err (format "Please complete the <a href='%s'>%s</a> step first."
-                    previous-step-url previous-step-name)]
-    {:handler  {:and [(user-passes predicate)]}
-     :on-error (fn [req _]
-                 (-> (error-view/error err)
-                     (response/response)
-                     (assoc :status 403)))}))
+  [predicate]
+  {:handler  {:and [(passes predicate) not-locked]}
+   :on-error on-error})

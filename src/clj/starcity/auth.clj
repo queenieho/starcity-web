@@ -5,9 +5,18 @@
             [buddy.auth.backends.session :refer [session-backend]]
             [buddy.auth.accessrules :refer [success error]]))
 
-;; TODO: Different uses depending on whether or not this is an API req or Page
-;; req
-(defn unauthorized-handler
+;; =============================================================================
+;; Constants
+;; =============================================================================
+
+(def ^:private permissions {})
+
+;; =============================================================================
+;; Helpers
+;; =============================================================================
+
+(defn- unauthorized-handler
+  "Default unauthorized handler."
   [{:keys [headers] :as request} metadata]
   (cond
     (authenticated? request) (-> (view/error "You are not authorized to view this page.")
@@ -17,26 +26,23 @@
     :else                    (let [current-url (:uri request)]
                                (response/redirect (format "/login?next=%s" current-url)))))
 
-;; TODO:
-;; (defmulti unauthorized-handler
-;;   "Handler for requests that are not authorized")
+(defn- get-role [req]
+  (get-in req [:identity :account/role]))
 
-;; (defmulti unauthorized-handler
-;;   "Handler for requests that are not authorized."
-;;   (fn [{:keys [content-type]} _] (second (re-find #"(^[^;]+)"))))
+;; =============================================================================
+;; API
+;; =============================================================================
 
 (def auth-backend
   (session-backend {:unauthorized-handler unauthorized-handler}))
 
-(def permissions {})
+;; =============================================================================
+;; Access Rules
 
 (defn authenticated-user [req]
   (if (authenticated? req)
     true
     (throw-unauthorized)))
-
-(defn- get-role [req]
-  (get-in req [:identity :account/role]))
 
 (defn user-can
   "Given a particular action that the authenticated user desires to perform,
@@ -50,16 +56,6 @@
         (success)
         (error (format "User with role %s is not authorized for action %s"
                        (name user-role) (name action)))))))
-
-;; TODO: The error message thing is a little cheesy
-(defn user-passes
-  ([predicate]
-   (user-passes predicate "Didn't pass predicate!"))
-  ([predicate error-msg]
-   (fn [req]
-     (if (predicate req)
-       (success)
-       (error error-msg)))))
 
 (defn user-isa
   "Return a handler that determines whether the authenticated user is of a
