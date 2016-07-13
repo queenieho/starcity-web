@@ -13,9 +13,9 @@
 
 (defn show-application
   "Respond 200 OK with the application page."
-  [{:keys [identity] :as req}]
+  [{:keys [identity params] :as req}]
   (let [sections (application/current-steps (:db/id identity))
         locked   (application/locked? (:db/id identity))]
     (ok (if locked
-          (view/locked)
+          (view/locked (:completed params))
           (view/application sections)))))

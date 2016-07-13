@@ -75,6 +75,13 @@
   :db.install/_attribute :db.part/db}
 
  {:db/id                 #db/id[:db.part/db]
+  :db/ident              :rental-application/approved
+  :db/valueType          :db.type/boolean
+  :db/cardinality        :db.cardinality/one
+  :db/doc                "Indicates whether or not the application has been approved or not by an administrator."
+  :db.install/_attribute :db.part/db}
+
+ {:db/id                 #db/id[:db.part/db]
   :db/ident              :rental-application/unit-preferences
   :db/valueType          :db.type/ref
   :db/cardinality        :db.cardinality/many
