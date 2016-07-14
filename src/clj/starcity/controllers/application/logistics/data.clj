@@ -16,18 +16,35 @@
         pattern [:db/id
                  :member-application/desired-lease
                  :member-application/desired-availability
+                 {:member-application/desired-properties [:db/id]}
                  {:member-application/pet [:db/id :pet/type :pet/weight :pet/breed]}]]
     (d/pull (d/db conn) pattern app-id)))
 
-(defn pull-property
-  "Pull property data from the DB for property identified by `property-id'."
-  [property-id]
-  (let [pattern [:db/id
-                 {:property/available-leases [:db/id
-                                              :available-lease/price
-                                              :available-lease/term]}]]
-    (d/pull (d/db conn) pattern property-id)))
+(defn pull-leases
+  "Pull available leases."
+  []
+  (->> (d/q '[:find ?e :where [?e :available-lease/term _]] (d/db conn))
+       (map first)
+       (d/pull-many (d/db conn) [:db/id :available-lease/term :available-lease/price])))
+
+(defn pull-properties
+  []
+  (letfn [(-count-available [units]
+            (-> (filter :unit/available-on units)
+                (count)))]
+    (->> (d/q '[:find ?e :where [?e :property/name _]] (d/db conn))
+         (map first)
+         (d/pull-many (d/db conn) [:db/id :property/name :property/available-on
+                                   {:property/units [:unit/available-on]}])
+         (map #(update-in % [:property/units] -count-available)))))
 
 (defn property-by-internal-name
   [internal-name]
   (one (d/db conn) :property/internal-name internal-name))
+
+(comment
+
+  (pull-properties)
+
+
+  )

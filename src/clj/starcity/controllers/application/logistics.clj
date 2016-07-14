@@ -19,12 +19,12 @@
 
 (defn- show-logistics*
   [{:keys [params identity] :as req} & {:keys [errors] :or {errors []}}]
-  (let [property-id (:db/id (data/property-by-internal-name "alpha"))
-        account-id  (:db/id identity)]
+  (let [account-id  (:db/id identity)]
     (view/logistics
      (application/current-steps account-id)
+     (data/pull-properties)
      (data/pull-application account-id)
-     (data/pull-property property-id)
+     (data/pull-leases)
      :errors errors)))
 
 ;; =============================================================================
@@ -38,7 +38,7 @@
 (defn save! [{:keys [params form-params identity] :as req}]
   (let [vresult    (-> params p/clean p/validate)
         account-id (:db/id identity)]
-    (if-let [{:keys [selected-lease pet availability property-id]} (valid? vresult)]
+    (if-let [{:keys [selected-lease pet availability properties]} (valid? vresult)]
       (let [desired-availability (c/to-date (f/parse basic-date-formatter availability))]
         ;; If there is an existing rental application for this user, we're
         ;; dealing with an update.
@@ -46,9 +46,10 @@
           (application/update! application-id
                                {:desired-lease        selected-lease
                                 :desired-availability desired-availability
+                                :desired-properties   properties
                                 :pet                  pet})
           ;; otherwise, we're creating a new rental application for this user.
-          (application/create! account-id selected-lease desired-availability :pet pet))
+          (application/create! account-id properties selected-lease desired-availability :pet pet))
         ;; afterwards, redirect to the next step
         (response/redirect "/application/checks"))
       ;; results aren't valid! indicate errors

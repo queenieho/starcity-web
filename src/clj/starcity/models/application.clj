@@ -7,6 +7,7 @@
              [datomic :refer [conn]]]
             [starcity.datomic.util :refer :all]
             [starcity.models.util :refer :all]
+            [starcity.datomic.transaction :refer [replace-unique]]
             [starcity.spec]))
 
 ;; =============================================================================
@@ -19,7 +20,7 @@
 (s/def ::type #{:dog :cat})
 (s/def ::breed string?)
 (s/def ::weight pos-int?)
-(s/def ::id pos-int?)
+(s/def ::id int?)
 
 (defmulti pet-type :type)
 (defmethod pet-type :dog [_] (s/keys :req-un [::type ::breed ::weight] :opt-un [::id]))
@@ -31,8 +32,9 @@
 ;; =====================================
 ;; Application
 
-(s/def ::desired-lease pos-int?)
+(s/def ::desired-lease int?)
 (s/def ::desired-availability :starcity.spec/date)
+(s/def ::desired-properties (s/spec (s/+ int?)))
 
 ;; =============================================================================
 ;; Helpers
@@ -44,6 +46,10 @@
 (defn- desired-availability-update-tx
   [application {availability :desired-availability}]
   [[:db/add (:db/id application) :member-application/desired-availability availability]])
+
+(defn- desired-properties-update-tx
+  [application {properties :desired-properties}]
+  (replace-unique (:db/id application) :member-application/desired-properties properties))
 
 (defn- desired-lease-update-tx
   [application {lease :desired-lease}]
@@ -177,6 +183,7 @@
 (def update!
   (make-update-fn {:desired-lease        desired-lease-update-tx
                    :desired-availability desired-availability-update-tx
+                   :desired-properties   desired-properties-update-tx
                    :pet                  pet-update-tx
                    :address              address-update-tx}))
 
@@ -184,6 +191,7 @@
         :args (s/cat :application-id int?
                      :attributes (s/keys :opt-un [::desired-lease
                                                   ::desired-availability
+                                                  ::desired-properties
                                                   ::pet]))
         :ret  int?)
 
@@ -229,12 +237,13 @@
 
 (defn create!
   "Create a new rental application for `account-id'."
-  [account-id desired-lease desired-availability & {:keys [pet]}]
+  [account-id desired-properties desired-lease desired-availability & {:keys [pet]}]
   (let [tid (d/tempid (datomic-partition))
         pet (when pet (ks->nsks :pet pet))
         ent (-> {:db/id                tid
                  :desired-lease        desired-lease
-                 :desired-availability desired-availability}
+                 :desired-availability desired-availability
+                 :desired-properties   desired-properties}
                 (assoc-when :pet pet)
                 (assoc :account/_member-application account-id))
         tx  @(d/transact conn [(ks->nsks :member-application ent)])]
@@ -242,6 +251,7 @@
 
 (s/fdef create!
         :args (s/cat :account-id int?
+                     :desired-properties ::desired-properties
                      :desired-lease ::desired-lease
                      :desired-availability ::desired-availability
                      :opts (s/keys* :opt-un [::pet]))

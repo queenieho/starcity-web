@@ -3,7 +3,8 @@
             [clj-time.coerce :as c]
             [starcity.time :refer [next-twelve-months]]
             [starcity.views.application.common :as common]
-            [starcity.views.application.logistics.pets :as pets]))
+            [starcity.views.application.logistics.pets :as pets]
+            [clj-time.core :as t]))
 
 ;; =============================================================================
 ;; Helpers
@@ -16,8 +17,37 @@
 ;; =====================================
 ;; Date Formatters
 
-(def ^:private view-formatter (f/formatter "MMMM y"))
+(def ^:private month-year-formatter (f/formatter "MMMM y"))
+(def ^:private month-day-year-formatter (f/formatter "MMMM d, y"))
 (def ^:private value-formatter (f/formatter :basic-date))
+
+;; =============================================================================
+;; Properties
+
+(defn- property-checkbox
+  [chosen idx {:keys [:db/id :property/name :property/available-on :property/units]}]
+  (let [is-chosen?        #(-> (chosen %) nil? not)
+        dt                (c/from-date available-on)
+        availability-text (if (t/after? (t/now) dt)
+                            "now"
+                            (f/unparse month-day-year-formatter dt))]
+    [:label.control.control--checkbox {:for id}
+     [:input {:id       id
+              :type     "checkbox"
+              :name     "properties[]"
+              :value    id
+              :required (when (= idx 0) true)
+              :data-msg "You must choose at least one available move-in date."
+              :checked  (is-chosen? id)}
+      [:span (format "%s, %s units available, starting %s" name units availability-text)]]
+     [:div.control__indicator]]))
+
+(defn- choose-properties
+  [properties desired-properties]
+  (let [properties (sort-by :property/available-on properties)]
+    [:div.form-group
+     (map-indexed (partial property-checkbox (->> desired-properties (map :db/id) set))
+                  properties)])) ; sort-by availability?
 
 ;; =============================================================================
 ;; Availability
@@ -39,7 +69,7 @@
       (for [dt (rest months)]
         [:option {:value    (f/unparse value-formatter dt)
                   :selected (= (c/to-date dt) desired-availability)}
-         (f/unparse view-formatter dt)])]]))
+         (f/unparse month-year-formatter dt)])]]))
 
 ;; =============================================================================
 ;; Lease
@@ -53,8 +83,8 @@
       :otherwise  (format "%d month - $%.0f" term price))))
 
 (defn- lease-radio
-  [application {:keys [db/id available-lease/term available-lease/price]}]
-  (let [is-checked (= id (:db/id (:member-application/desired-lease application)))
+  [desired-lease {:keys [db/id available-lease/term available-lease/price]}]
+  (let [is-checked (= id (:db/id desired-lease))
         radio-id   (str "selected-lease-" id)]
     [:label.control.control--radio {:for radio-id} (lease-text term price)
      [:input {:type     "radio"
@@ -67,9 +97,9 @@
      [:div.control__indicator]]))
 
 (defn- choose-lease
-  [{leases :property/available-leases} application]
+  [leases desired-lease]
   [:div.form-group
-   (map (partial lease-radio application) leases)])
+   (map (partial lease-radio desired-lease) leases)])
 
 ;; =============================================================================
 ;; API
@@ -77,18 +107,20 @@
 
 (defn logistics
   "Show the logistics page."
-  [current-steps application property & {:keys [errors]}]
-  (let [sections [["When is your ideal move-in date?"
+  [current-steps properties application available-leases & {:keys [errors]}]
+  (let [sections [["Which Starcity communities are you applying to?"
+                   (choose-properties properties (:member-application/desired-properties application))]
+                  ["When is your ideal move-in date?"
                    (choose-availability (:member-application/desired-availability application))]
                   ["How long would you like to stay? Here are your options:"
-                   (choose-lease property application)]
+                   (choose-lease available-leases (:member-application/desired-lease application))]
                   ["Do you have pets?" (pets/choose-pet application)]]]
     (common/application
      current-steps
      [:div.question-container
       (common/error-alerts errors)
       [:form {:method "POST"}
-       [:input {:type "hidden" :name "property-id" :value (:db/id property)}]
+       ;; [:input {:type "hidden" :name "property-id" :value (:db/id property)}]
        [:ul.question-list
         (for [[title content] sections]
           (common/section title content))]

@@ -62,10 +62,3 @@
         INCOME-SUCCESS (service/get-income access_token -on-income)
         (warnf "PLAID WEBHOOK: Unrecognized status code :: code - %s :: message - %s :: account-id - %s"
                code message (:db/id identity))))))
-
-
-(comment
-
-  environment
-
-  )
