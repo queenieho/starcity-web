@@ -1,4 +1,6 @@
 $(document).ready(function() {
+  var receiveCopyCheckbox = $('#receive-copy');
+  var paymentSent = false;
   var handler = StripeCheckout.configure({
     name: "Starcity",
     description: "Member Application",
@@ -9,6 +11,7 @@ $(document).ready(function() {
     key: stripe.key,
     locale: 'auto',
     token: function(token) {
+      paymentSent = true;
       // set the stripe token in a hidden input and submit the form.
       $("#stripe-token")
         .val(token.id)
@@ -17,9 +20,18 @@ $(document).ready(function() {
     }
   });
 
-  $('#checkout-btn').click(function(e) {
-    handler.open();
-    e.preventDefault();
+  $("form").validate({
+    submitHandler: function(form) {
+      if (!paymentSent) {
+        handler.open();
+      } else {
+        form.submit();
+      }
+    }
+  });
+
+  $('#background-permission').click(function(e) {
+    receiveCopyCheckbox.fadeToggle();
   });
 
   $(window).on('popstate', function() {

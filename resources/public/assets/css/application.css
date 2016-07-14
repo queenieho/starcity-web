@@ -301,3 +301,12 @@ label.control {
 .select select:disabled ~ .select__arrow {
   border-top-color: #ccc;
 }
+
+.help-description {
+  font-size: 18px;
+  font-weight: lighter;
+}
+
+.help-block {
+  font-weight: lighter;
+}
