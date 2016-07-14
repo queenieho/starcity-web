@@ -11,6 +11,7 @@
 
  {:db/id                 #db/id[:db.part/db]
   :db/ident              :property/internal-name
+  :db/unique             :db.unique/identity
   :db/valueType          :db.type/string
   :db/cardinality        :db.cardinality/one
   :db/fulltext           true
@@ -24,17 +25,8 @@
   :db.install/_attribute :db.part/db}
 
  {:db/id                 #db/id[:db.part/db]
-  :db/ident              :property/available-leases
-  :db/valueType          :db.type/ref
-  :db/cardinality        :db.cardinality/many
-  :db/isComponent        true
-  :db/doc                "The leases that are available for this property."
-  :db.install/_attribute :db.part/db}
-
- {:db/id                 #db/id[:db.part/db]
-  :db/ident              :property/available-community-fitness-preferences
-  :db/valueType          :db.type/ref
-  :db/cardinality        :db.cardinality/many
-  :db/doc                "The community fitness preferences that are available for this property."
-  :db.install/_attribute :db.part/db}
- ]
+  :db/ident              :property/available-on
+  :db/valueType          :db.type/instant
+  :db/cardinality        :db.cardinality/one
+  :db/doc                "The date that this property will come online."
+  :db.install/_attribute :db.part/db}]

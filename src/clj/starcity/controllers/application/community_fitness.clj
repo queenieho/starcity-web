@@ -33,7 +33,7 @@
             {:prior-community-housing prior-community-housing
              :why-coliving            why-coliving
              :skills                  skills})]
-    (if-let [cf-id (-> (application/by-account-id account-id) :rental-application/community-fitness :db/id)]
+    (if-let [cf-id (-> (application/by-account-id account-id) :member-application/community-fitness :db/id)]
       (-format (d/pull (d/db conn) [:community-fitness/prior-community-housing
                                     :community-fitness/why-coliving
                                     :community-fitness/skills] cf-id))

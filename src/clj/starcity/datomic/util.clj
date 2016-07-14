@@ -12,6 +12,9 @@
   (assert (= 1 (count (first query-result))))
   (ffirst query-result))
 
+(defn entity? [x]
+  (= (type x) datomic.query.EntityMap))
+
 ;; (defprotocol Eid
 ;;   (e [_]))
 

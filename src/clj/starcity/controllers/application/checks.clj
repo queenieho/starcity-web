@@ -34,8 +34,8 @@
    :account/middle-name
    :account/last-name
    :account/dob
-   {:account/application
-    [{:rental-application/current-address [:address/lines
+   {:account/member-application
+    [{:member-application/current-address [:address/lines
                                            :address/state
                                            :address/city
                                            :address/postal-code]}]}
@@ -43,8 +43,8 @@
 
 (defn- clean-data
   [{:keys [account/first-name account/middle-name account/last-name
-           account/dob account/application plaid/_account]}]
-  (let [{:keys [address/lines address/state address/city address/postal-code]} (:rental-application/current-address application)]
+           account/dob account/member-application plaid/_account]}]
+  (let [{:keys [address/lines address/state address/city address/postal-code]} (:member-application/current-address member-application)]
     (remove-nil
      {:name         {:first  first-name
                      :middle middle-name
@@ -99,7 +99,7 @@
   [params]
   (transform-when-key-exists params
     {:address  {:lines (partial join "\n")}
-     :dob      (comp c/to-sql-date (partial f/parse ymd-formatter))}))
+     :dob      (comp c/to-date (partial f/parse ymd-formatter))}))
 
 (defn- can-view-checks?
   "Given a request, return true iff requesting user is allowed to view the

@@ -1,26 +1,8 @@
 ;; =============================================================================
-;; Application
+;; Member Application
 
-[
- ;; NOTE"" The following attributes will be useful when we implement a system to
- ;; allow multiple people to live in a single room.
-
- ;; {:db/id                 #db/id[:db.part/db]
- ;;  :db/ident              :rental-application/invitations
- ;;  :db/valueType          :db.type/string
- ;;  :db/cardinality        :db.cardinality/many
- ;;  :db/doc                "A list of emails that invitations to join this application have been sent to."
- ;;  :db.install/_attribute :db.part/db}
-
- ;; {:db/id                 #db/id[:db.part/db]
- ;;  :db/ident              :rental-application/master
- ;;  :db/valueType          :db.type/ref
- ;;  :db/cardinality        :db.cardinality/one
- ;;  :db/doc                "Reference to the master application if this application is part of another application."
- ;;  :db.install/_attribute :db.part/db}
-
- {:db/id                 #db/id[:db.part/db]
-  :db/ident              :rental-application/current-address
+[{:db/id                 #db/id[:db.part/db]
+  :db/ident              :member-application/current-address
   :db/valueType          :db.type/ref
   :db/cardinality        :db.cardinality/one
   :db/isComponent        true
@@ -28,24 +10,29 @@
   :db.install/_attribute :db.part/db}
 
  {:db/id                 #db/id[:db.part/db]
-  :db/ident              :rental-application/desired-lease
+  :db/ident              :member-application/desired-properties
+  :db/valueType          :db.type/ref
+  :db/cardinality        :db.cardinality/many
+  :db/doc                "Desired properties."
+  :db.install/_attribute :db.part/db}
+
+ {:db/id                 #db/id[:db.part/db]
+  :db/ident              :member-application/desired-lease
   :db/valueType          :db.type/ref
   :db/cardinality        :db.cardinality/one
   :db/isComponent        true
-  :db/doc                "Desired type of lease (reference to available-lease of property)."
+  :db/doc                "Desired type of lease (reference to available-lease)."
   :db.install/_attribute :db.part/db}
 
- ;; NOTE: Will cross-check these dates with currently available units later in
- ;; the application process.
  {:db/id                 #db/id[:db.part/db]
-  :db/ident              :rental-application/desired-availability
+  :db/ident              :member-application/desired-availability
   :db/valueType          :db.type/instant
-  :db/cardinality        :db.cardinality/many
-  :db/doc                "Desired availability dates."
+  :db/cardinality        :db.cardinality/one
+  :db/doc                "Desired availability."
   :db.install/_attribute :db.part/db}
 
  {:db/id                 #db/id[:db.part/db]
-  :db/ident              :rental-application/pet
+  :db/ident              :member-application/pet
   :db/valueType          :db.type/ref
   :db/cardinality        :db.cardinality/one
   :db/isComponent        true
@@ -53,7 +40,7 @@
   :db.install/_attribute :db.part/db}
 
  {:db/id                 #db/id[:db.part/db]
-  :db/ident              :rental-application/community-fitness
+  :db/ident              :member-application/community-fitness
   :db/valueType          :db.type/ref
   :db/cardinality        :db.cardinality/one
   :db/isComponent        true
@@ -61,32 +48,24 @@
   :db.install/_attribute :db.part/db}
 
  {:db/id                 #db/id[:db.part/db]
-  :db/ident              :rental-application/locked
+  :db/ident              :member-application/locked
   :db/valueType          :db.type/boolean
   :db/cardinality        :db.cardinality/one
   :db/doc                "Indicates whether or not the application is locked for edits."
   :db.install/_attribute :db.part/db}
 
  {:db/id                 #db/id[:db.part/db]
-  :db/ident              :rental-application/submitted-at
+  :db/ident              :member-application/submitted-at
   :db/valueType          :db.type/instant
   :db/cardinality        :db.cardinality/one
   :db/doc                "The time at which the application was submitted."
   :db.install/_attribute :db.part/db}
 
  {:db/id                 #db/id[:db.part/db]
-  :db/ident              :rental-application/approved
+  :db/ident              :member-application/approved
   :db/valueType          :db.type/boolean
   :db/cardinality        :db.cardinality/one
   :db/doc                "Indicates whether or not the application has been approved or not by an administrator."
-  :db.install/_attribute :db.part/db}
-
- {:db/id                 #db/id[:db.part/db]
-  :db/ident              :rental-application/unit-preferences
-  :db/valueType          :db.type/ref
-  :db/cardinality        :db.cardinality/many
-  :db/isComponent        true
-  :db/doc                "The preferences for units."
   :db.install/_attribute :db.part/db}
 
  ;; =============================================================================
@@ -114,23 +93,6 @@
   :db.install/_attribute :db.part/db}
 
  ;; =============================================================================
- ;; unit-preference
-
- {:db/id                 #db/id[:db.part/db]
-  :db/ident              :unit-preference/unit
-  :db/valueType          :db.type/ref
-  :db/cardinality        :db.cardinality/one
-  :db/doc                "Reference to the unit."
-  :db.install/_attribute :db.part/db}
-
- {:db/id                 #db/id[:db.part/db]
-  :db/ident              :unit-preference/preference
-  :db/valueType          :db.type/long
-  :db/cardinality        :db.cardinality/one
-  :db/doc                "Preference for this unit -- lower number is a higher preference."
-  :db.install/_attribute :db.part/db}
-
- ;; =============================================================================
  ;; community-fitness
 
  {:db/id                 #db/id[:db.part/db]
@@ -155,12 +117,4 @@
   :db/cardinality        :db.cardinality/one
   :db/fulltext           true
   :db/doc                "Response to: 'Why are you interested in coliving?'"
-  :db.install/_attribute :db.part/db}
-
- {:db/id                 #db/id[:db.part/db]
-  :db/ident              :community-fitness/preferences
-  :db/valueType          :db.type/ref
-  :db/cardinality        :db.cardinality/many
-  :db/isComponent        true
-  :db/doc                "Preferences for add-ons to this property."
   :db.install/_attribute :db.part/db}]
