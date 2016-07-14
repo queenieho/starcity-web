@@ -8,10 +8,10 @@
 
 (def ^:private header
   (common/header
-   "Reimagine Home in San Francisco"
-   "Help shape community-focused housing for our city's workforce."
+   "Your New Home in San Francisco"
+   "Comfortable, communal housing for our city's workforce."
    "/assets/img/sf_homes_1.jpeg"
-   {:uri "/signup" :text "Join Our Community"}))
+   {:uri "/signup" :text "Apply for a Home"}))
 
 ;; =============================================================================
 ;; API
@@ -48,8 +48,8 @@
 
      [:div#action-section.row
       [:div.col-md-6.col-md-offset-3
-       [:h2#action-heading "Get Involved"]
-       [:p.lead "Enter your email and we'll be in touch."]
+       [:h2#action-heading "Join Our Community"]
+       [:p.lead "Enter your email to receive updates on Starcity's upcoming housing communities and to be invited to our public events."]
 
        [:form {:action "/register" :method "GET"}
         [:div.input-group.input-group-lg
