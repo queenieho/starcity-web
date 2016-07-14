@@ -1,13 +1,13 @@
 (ns starcity.models.application
-  (:require [starcity.datomic.util :refer :all]
-            [starcity.datomic.transaction :refer [replace-unique]]
-            [starcity.models.util :refer :all]
-            [starcity.datomic :refer [conn]]
-            [starcity.config :refer [datomic-partition]]
+  (:require [clojure.spec :as s]
             [datomic.api :as d]
             [plumbing.core :refer [assoc-when]]
-            [clojure.spec :as s]
-            [clojure.string :refer [trim capitalize]]))
+            [starcity
+             [config :refer [datomic-partition]]
+             [datomic :refer [conn]]]
+            [starcity.datomic.util :refer :all]
+            [starcity.models.util :refer :all]
+            [starcity.spec]))
 
 ;; =============================================================================
 ;; Helper Specs
@@ -32,7 +32,7 @@
 ;; Application
 
 (s/def ::desired-lease pos-int?)
-(s/def ::desired-availability (s/+ :starcity.spec/date))
+(s/def ::desired-availability :starcity.spec/date)
 
 ;; =============================================================================
 ;; Helpers
@@ -43,7 +43,7 @@
 
 (defn- desired-availability-update-tx
   [application {availability :desired-availability}]
-  (replace-unique (:db/id application) :member-application/desired-availability availability))
+  [[:db/add (:db/id application) :member-application/desired-availability availability]])
 
 (defn- desired-lease-update-tx
   [application {lease :desired-lease}]
@@ -91,7 +91,7 @@
    '[:find ?e
      :in $ ?acct
      :where
-     [?acct :account/application ?e]]
+     [?acct :account/member-application ?e]]
    (d/db conn) account-id))
 
 (s/fdef by-account-id
@@ -115,9 +115,9 @@
   considered complete."
   [application-id]
   (let [pattern [:member-application/current-address
-                 {:account/_application [:account/dob :plaid/_account]}]
+                 {:account/_member-application [:account/dob :plaid/_account]}]
         data    (d/pull (d/db conn) pattern application-id)
-        acct    (get-in data [:account/_application 0])
+        acct    (get-in data [:account/_member-application 0])
         plaid   (get-in acct [:plaid/_account 0])]
     (not (or (nil? (:member-application/current-address data))
              (nil? (:account/dob acct))
@@ -167,13 +167,6 @@
   [account-id]
   (let [ent (by-account-id account-id)]
     (boolean (:member-application/locked ent))))
-
-(comment
-
-  (let [acct-id (:db/id (starcity.models.account/by-email "test@test.com"))]
-    (locked? acct-id))
-
-  )
 
 ;; =============================================================================
 ;; Transactions
@@ -243,13 +236,13 @@
                  :desired-lease        desired-lease
                  :desired-availability desired-availability}
                 (assoc-when :pet pet)
-                (assoc :account/_application account-id))
+                (assoc :account/_member-application account-id))
         tx  @(d/transact conn [(ks->nsks :member-application ent)])]
     (d/resolve-tempid (d/db conn) (:tempids tx) tid)))
 
 (s/fdef create!
         :args (s/cat :account-id int?
                      :desired-lease ::desired-lease
-                     :desired-availability (s/spec ::desired-availability)
+                     :desired-availability ::desired-availability
                      :opts (s/keys* :opt-un [::pet]))
         :ret  int?)

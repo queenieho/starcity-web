@@ -3,21 +3,6 @@
  ;; Community Fitness Preferences
 
 
- {:db/id                              #db/id [:db.part/user -100]
-  :community-fitness-preference/title "Monthly Block Parties"}
-
- {:db/id                                    #db/id [:db.part/user -101]
-  :community-fitness-preference/title       "Volunteer Opportunities"
-  :community-fitness-preference/description "Volunteer opportunities in your local neighborhood."}
-
- {:db/id                              #db/id [:db.part/user -102]
-  :community-fitness-preference/title "Garden Space"}
-
- {:db/id                              #db/id [:db.part/user -103]
-  :community-fitness-preference/title "Bike Rentals"
-  :community-fitness-preference/notes ["Price is just a daily deposit."]
-  :community-fitness-preference/price 10.0}
-
  ;; =============================================================================
  ;; Available Leases
 
@@ -101,11 +86,6 @@
    #db/id [:db.part/user -403]
    #db/id [:db.part/user -404]
    #db/id [:db.part/user -405]]
-  :property/available-community-fitness-preferences
-  [#db/id [:db.part/user -100]
-   #db/id [:db.part/user -101]
-   #db/id [:db.part/user -102]
-   #db/id [:db.part/user -103]]
   :property/available-leases
   [#db/id [:db.part/user -300]
    #db/id [:db.part/user -301]

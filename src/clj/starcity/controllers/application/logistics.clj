@@ -1,5 +1,8 @@
 (ns starcity.controllers.application.logistics
-  (:require [ring.util.response :as response]
+  (:require [clj-time
+             [coerce :as c]
+             [format :as f]]
+            [ring.util.response :as response]
             [starcity.controllers.application.common :as common]
             [starcity.controllers.application.logistics
              [data :as data]
@@ -12,6 +15,8 @@
 ;; Helpers
 ;; =============================================================================
 
+(def ^:private basic-date-formatter (f/formatter :basic-date))
+
 (defn- show-logistics*
   [{:keys [params identity] :as req} & {:keys [errors] :or {errors []}}]
   (let [property-id (:db/id (data/property-by-internal-name "alpha"))
@@ -20,7 +25,6 @@
      (application/current-steps account-id)
      (data/pull-application account-id)
      (data/pull-property property-id)
-     (data/pull-available-units property-id)
      :errors errors)))
 
 ;; =============================================================================
@@ -35,7 +39,7 @@
   (let [vresult    (-> params p/clean p/validate)
         account-id (:db/id identity)]
     (if-let [{:keys [selected-lease pet availability property-id]} (valid? vresult)]
-      (let [desired-availability (data/availability property-id availability)]
+      (let [desired-availability (c/to-date (f/parse basic-date-formatter availability))]
         ;; If there is an existing rental application for this user, we're
         ;; dealing with an update.
         (if-let [{application-id :db/id} (application/by-account-id account-id)]

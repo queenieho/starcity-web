@@ -1,25 +1,7 @@
 ;; =============================================================================
 ;; Member Application
 
-[
- ;; NOTE"" The following attributes will be useful when we implement a system to
- ;; allow multiple people to live in a single room.
-
- ;; {:db/id                 #db/id[:db.part/db]
- ;;  :db/ident              :member-application/invitations
- ;;  :db/valueType          :db.type/string
- ;;  :db/cardinality        :db.cardinality/many
- ;;  :db/doc                "A list of emails that invitations to join this application have been sent to."
- ;;  :db.install/_attribute :db.part/db}
-
- ;; {:db/id                 #db/id[:db.part/db]
- ;;  :db/ident              :member-application/master
- ;;  :db/valueType          :db.type/ref
- ;;  :db/cardinality        :db.cardinality/one
- ;;  :db/doc                "Reference to the master application if this application is part of another application."
- ;;  :db.install/_attribute :db.part/db}
-
- {:db/id                 #db/id[:db.part/db]
+[{:db/id                 #db/id[:db.part/db]
   :db/ident              :member-application/current-address
   :db/valueType          :db.type/ref
   :db/cardinality        :db.cardinality/one
@@ -35,13 +17,11 @@
   :db/doc                "Desired type of lease (reference to available-lease of property)."
   :db.install/_attribute :db.part/db}
 
- ;; NOTE: Will cross-check these dates with currently available units later in
- ;; the application process.
  {:db/id                 #db/id[:db.part/db]
   :db/ident              :member-application/desired-availability
   :db/valueType          :db.type/instant
-  :db/cardinality        :db.cardinality/many
-  :db/doc                "Desired availability dates."
+  :db/cardinality        :db.cardinality/one
+  :db/doc                "Desired availability."
   :db.install/_attribute :db.part/db}
 
  {:db/id                 #db/id[:db.part/db]
@@ -81,14 +61,6 @@
   :db/doc                "Indicates whether or not the application has been approved or not by an administrator."
   :db.install/_attribute :db.part/db}
 
- {:db/id                 #db/id[:db.part/db]
-  :db/ident              :member-application/unit-preferences
-  :db/valueType          :db.type/ref
-  :db/cardinality        :db.cardinality/many
-  :db/isComponent        true
-  :db/doc                "The preferences for units."
-  :db.install/_attribute :db.part/db}
-
  ;; =============================================================================
  ;; Pets
 
@@ -111,23 +83,6 @@
   :db/valueType          :db.type/long
   :db/cardinality        :db.cardinality/one
   :db/doc                "The weight of the pet."
-  :db.install/_attribute :db.part/db}
-
- ;; =============================================================================
- ;; unit-preference
-
- {:db/id                 #db/id[:db.part/db]
-  :db/ident              :unit-preference/unit
-  :db/valueType          :db.type/ref
-  :db/cardinality        :db.cardinality/one
-  :db/doc                "Reference to the unit."
-  :db.install/_attribute :db.part/db}
-
- {:db/id                 #db/id[:db.part/db]
-  :db/ident              :unit-preference/preference
-  :db/valueType          :db.type/long
-  :db/cardinality        :db.cardinality/one
-  :db/doc                "Preference for this unit -- lower number is a higher preference."
   :db.install/_attribute :db.part/db}
 
  ;; =============================================================================
@@ -155,12 +110,4 @@
   :db/cardinality        :db.cardinality/one
   :db/fulltext           true
   :db/doc                "Response to: 'Why are you interested in coliving?'"
-  :db.install/_attribute :db.part/db}
-
- {:db/id                 #db/id[:db.part/db]
-  :db/ident              :community-fitness/preferences
-  :db/valueType          :db.type/ref
-  :db/cardinality        :db.cardinality/many
-  :db/isComponent        true
-  :db/doc                "Preferences for add-ons to this property."
   :db.install/_attribute :db.part/db}]

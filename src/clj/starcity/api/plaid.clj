@@ -1,6 +1,7 @@
 (ns starcity.api.plaid
   (:require [starcity.services.plaid :as service]
             [starcity.models.plaid :as model]
+            [starcity.environment :refer [environment]]
             [starcity.api.common :refer [ok malformed ok?]]
             [taoensso.timbre :as timbre]
             [clojure.spec :as s]
@@ -17,7 +18,7 @@
 (defn- log-failure
   ([account-id params]
    (log-failure "Plaid failure" account-id params))
-  ([message account-id {:keys [status body]}]
+  ([message account-id {:keys [status body] :as res}]
    (warnf "PLAID: %s :: account-id - %s :: status - %s :: code - %s :: plaid message - %s :: resolve - %s"
           message account-id status (:code body) (:message body) (:resolve body))))
 
@@ -40,7 +41,9 @@
               (log-failure "Error during public_token exchange" (:db/id identity) res)))]
     (if-let [public-token (:public_token params)]
       (do
-        (service/exchange-token public-token -on-exchange)
+        (if (= environment :development)
+          (model/create! (:db/id identity) public-token "PLACEHOLDER") ; SSL is borked on dev for whatever reason. Heisenbug.
+          (service/exchange-token public-token -on-exchange))
         (ok {:message "Success!"}))
       (malformed {:message "Request must include a :public_token!"}))))
 
@@ -63,10 +66,6 @@
 
 (comment
 
-  (org.httpkit.client/post "http://localhost:8080/webhooks/plaid"
-                           {:body (cheshire.core/generate-string {:access_token "test_wells"
-                                                                  :code 10
-                                                                  :message "income data available"})
-                            :headers {"Content-Type" "application/json"}})
+  environment
 
   )

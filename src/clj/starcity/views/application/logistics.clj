@@ -1,7 +1,7 @@
 (ns starcity.views.application.logistics
-  (:require [clj-time
-             [coerce :as c]
-             [format :as f]]
+  (:require [clj-time.format :as f]
+            [clj-time.coerce :as c]
+            [starcity.time :refer [next-twelve-months]]
             [starcity.views.application.common :as common]
             [starcity.views.application.logistics.pets :as pets]))
 
@@ -16,35 +16,30 @@
 ;; =====================================
 ;; Date Formatters
 
-(def ^:private view-formatter (f/formatter "MMMM d, y"))
+(def ^:private view-formatter (f/formatter "MMMM y"))
 (def ^:private value-formatter (f/formatter :basic-date))
 
 ;; =============================================================================
 ;; Availability
 
-(defn- availability-checkbox
-  [chosen idx [date rooms]]
-  (let [room-text  (if (> (count rooms) 1) "rooms" "room")
-        val        (f/unparse value-formatter (c/from-date date))
-        is-chosen? #(-> (chosen %) nil? not)]
-    [:label.control.control--checkbox {:for (str "availability-" val)}
-     [:input {:id       (str "availability-" val)
-              :type     "checkbox"
-              :name     "availability[]"
-              :value    val
-              :required (when (= idx 0) true)
-              :data-msg "You must choose at least one available move-in date."
-              :checked  (is-chosen? date)}
-      [:span (f/unparse view-formatter (c/from-date date))]
-      [:span (format " (%s %s available)" (count rooms) room-text)]]
-     [:div.control__indicator]]))
-
 (defn- choose-availability
-  [application available-units]
-  (let [units  (->> available-units (group-by :unit/available-on) (sort-by key))
-        chosen (-> application :member-application/desired-availability set)]
+  [desired-availability]
+  (let [months (next-twelve-months)
+        id     "availability"]
     [:div.form-group
-     (map-indexed (partial availability-checkbox chosen) units)]))
+     [:select.form-control {:id       id
+                            :name     id
+                            :value    ""
+                            :required true}
+      [:option {:value    ""
+                :disabled true
+                :selected (nil? desired-availability)}
+       "-- Select Desired Availability --"]
+      [:option {:value (f/unparse value-formatter (first months))} "ASAP"]
+      (for [dt (rest months)]
+        [:option {:value    (f/unparse value-formatter dt)
+                  :selected (= (c/to-date dt) desired-availability)}
+         (f/unparse view-formatter dt)])]]))
 
 ;; =============================================================================
 ;; Lease
@@ -82,9 +77,9 @@
 
 (defn logistics
   "Show the logistics page."
-  [current-steps application property available-units & {:keys [errors]}]
-  (let [sections [["When would you like to move in? Here's what's available:"
-                   (choose-availability application available-units)]
+  [current-steps application property & {:keys [errors]}]
+  (let [sections [["When is your ideal move-in date?"
+                   (choose-availability (:member-application/desired-availability application))]
                   ["How long would you like to stay? Here are your options:"
                    (choose-lease property application)]
                   ["Do you have pets?" (pets/choose-pet application)]]]
