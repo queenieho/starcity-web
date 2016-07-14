@@ -153,7 +153,6 @@
                       :complete (not (nil? plaid-id))}]]
      :js ["https://cdn.plaid.com/link/stable/link-initialize.js"
           "bower/jquery-validation/dist/jquery.validate.js"
-          ;; "bower/field-kit/public/field-kit.js"
           "validation-defaults.js"
           "checks.js"])))
 
