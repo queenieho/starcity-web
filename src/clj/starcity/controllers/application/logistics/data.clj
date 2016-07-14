@@ -29,9 +29,9 @@
   [account-id]
   (let [app-id  (:db/id (application/by-account-id account-id))
         pattern [:db/id
-                 :rental-application/desired-lease
-                 :rental-application/desired-availability
-                 {:rental-application/pet [:db/id :pet/type :pet/weight :pet/breed]}]]
+                 :member-application/desired-lease
+                 :member-application/desired-availability
+                 {:member-application/pet [:db/id :pet/type :pet/weight :pet/breed]}]]
     (d/pull (d/db conn) pattern app-id)))
 
 (comment

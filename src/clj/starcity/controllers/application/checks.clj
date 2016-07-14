@@ -35,7 +35,7 @@
    :account/last-name
    :account/dob
    {:account/application
-    [{:rental-application/current-address [:address/lines
+    [{:member-application/current-address [:address/lines
                                            :address/state
                                            :address/city
                                            :address/postal-code]}]}
@@ -44,7 +44,7 @@
 (defn- clean-data
   [{:keys [account/first-name account/middle-name account/last-name
            account/dob account/application plaid/_account]}]
-  (let [{:keys [address/lines address/state address/city address/postal-code]} (:rental-application/current-address application)]
+  (let [{:keys [address/lines address/state address/city address/postal-code]} (:member-application/current-address application)]
     (remove-nil
      {:name         {:first  first-name
                      :middle middle-name

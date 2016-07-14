@@ -22,9 +22,6 @@
 ;; =============================================================================
 ;; Availability
 
-;; TODO: Potential of no availability -- there should be an option
-;; TODO: Option to select a custom move-in & messaging
-
 (defn- availability-checkbox
   [chosen idx [date rooms]]
   (let [room-text  (if (> (count rooms) 1) "rooms" "room")
@@ -45,7 +42,7 @@
 (defn- choose-availability
   [application available-units]
   (let [units  (->> available-units (group-by :unit/available-on) (sort-by key))
-        chosen (-> application :rental-application/desired-availability set)]
+        chosen (-> application :member-application/desired-availability set)]
     [:div.form-group
      (map-indexed (partial availability-checkbox chosen) units)]))
 
@@ -62,7 +59,7 @@
 
 (defn- lease-radio
   [application {:keys [db/id available-lease/term available-lease/price]}]
-  (let [is-checked (= id (:db/id (:rental-application/desired-lease application)))
+  (let [is-checked (= id (:db/id (:member-application/desired-lease application)))
         radio-id   (str "selected-lease-" id)]
     [:label.control.control--radio {:for radio-id} (lease-text term price)
      [:input {:type     "radio"
@@ -78,26 +75,6 @@
   [{leases :property/available-leases} application]
   [:div.form-group
    (map (partial lease-radio application) leases)])
-
-;; =============================================================================
-;; Completion
-
-;; (defn- acknowledgement
-;;   [application]
-;;   [:div.panel.panel-primary
-;;    [:div.panel-heading
-;;     [:h3.panel-title "Completion"]]
-;;    [:div.panel-body
-;;     [:div.form-group.checkbox
-;;      [:label {:for "num-residents-acknowledged"}
-;;       [:input {:id       "num-residents-acknowledged"
-;;                :type     "checkbox"
-;;                :name     "num-residents-acknowledged"
-;;                :required true
-;;                :checked  (application-exists? application)}
-;;        "I acknowledge that only one resident over 18 can live in this room."]]]
-;;     [:input.btn.btn-default {:type "submit" :value "Complete"}]]])
-
 
 ;; =============================================================================
 ;; API

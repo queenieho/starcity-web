@@ -9,7 +9,7 @@
   (not (nil? (:db/id application))))
 
 (defn- has-pet?
-  [{:keys [rental-application/pet] :as application}]
+  [{:keys [member-application/pet] :as application}]
   (and (application-exists? application) pet))
 
 (defn- has-dog?
@@ -41,7 +41,7 @@
 ;; =============================================================================
 
 (defn choose-pet
-  [{:keys [rental-application/pet] :as application}]
+  [{:keys [member-application/pet] :as application}]
   (let [has-no-pet (and (application-exists? application) (nil? pet))]
     [:div#pets-panel.form-group
      [:div.row

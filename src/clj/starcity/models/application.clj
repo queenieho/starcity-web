@@ -43,16 +43,16 @@
 
 (defn- desired-availability-update-tx
   [application {availability :desired-availability}]
-  (replace-unique (:db/id application) :rental-application/desired-availability availability))
+  (replace-unique (:db/id application) :member-application/desired-availability availability))
 
 (defn- desired-lease-update-tx
   [application {lease :desired-lease}]
   (when lease
-    [[:db/add (:db/id application) :rental-application/desired-lease lease]]))
+    [[:db/add (:db/id application) :member-application/desired-lease lease]]))
 
 (defn- pet-update-tx
   [application {pet :pet}]
-  (let [curr (:rental-application/pet application)]
+  (let [curr (:member-application/pet application)]
     (cond
       ;; No more pet!
       (and (nil? pet) curr) [[:db.fn/retractEntity (:db/id curr)]]
@@ -62,15 +62,15 @@
                                          (ks->nsks :pet)))]
       ;; if there's no id for the pet, but there is a pet, it's a new one
       pet                   [{:db/id                  (:db/id application)
-                              :rental-application/pet (ks->nsks :pet pet)}])))
+                              :member-application/pet (ks->nsks :pet pet)}])))
 
 (defn- address-update-tx
   [application {address :address}]
-  (let [curr         (:rental-application/current-address application)
+  (let [curr         (:member-application/current-address application)
         address-data (ks->nsks :address address)]
     (if (nil? curr)
       [{:db/id                              (:db/id application)
-        :rental-application/current-address address-data}]
+        :member-application/current-address address-data}]
       [(merge {:db/id (:db/id curr)} address-data)])))
 
 ;; =============================================================================
@@ -101,8 +101,8 @@
   "Returns true if the logistics section of the application can be considered
   complete."
   [application-id]
-  (let [ks   [:rental-application/desired-lease
-              :rental-application/desired-availability]
+  (let [ks   [:member-application/desired-lease
+              :member-application/desired-availability]
         data (d/pull (d/db conn) ks application-id)]
     (every? (comp not nil?) ((apply juxt ks) data))))
 
@@ -114,12 +114,12 @@
   "Returns true if the personal information section of the application can be
   considered complete."
   [application-id]
-  (let [pattern [:rental-application/current-address
+  (let [pattern [:member-application/current-address
                  {:account/_application [:account/dob :plaid/_account]}]
         data    (d/pull (d/db conn) pattern application-id)
         acct    (get-in data [:account/_application 0])
         plaid   (get-in acct [:plaid/_account 0])]
-    (not (or (nil? (:rental-application/current-address data))
+    (not (or (nil? (:member-application/current-address data))
              (nil? (:account/dob acct))
              (nil? plaid)))))
 
@@ -131,11 +131,11 @@
   "Returns true if the community fitness section of the application can be
   considered complete."
   [application-id]
-  (let [pattern [{:rental-application/community-fitness
+  (let [pattern [{:member-application/community-fitness
                   [:community-fitness/prior-community-housing
                    :community-fitness/why-coliving
                    :community-fitness/skills]}]
-        data    (:rental-application/community-fitness
+        data    (:member-application/community-fitness
                  (d/pull (d/db conn) pattern application-id))]
     (boolean
      (and (:community-fitness/prior-community-housing data)
@@ -166,7 +166,7 @@
   "Is the application for this user locked?"
   [account-id]
   (let [ent (by-account-id account-id)]
-    (boolean (:rental-application/locked ent))))
+    (boolean (:member-application/locked ent))))
 
 (comment
 
@@ -202,8 +202,8 @@
   (let [application-id (:db/id (by-account-id account-id))
         tid            (d/tempid (datomic-partition))]
     @(d/transact conn [{:db/id                           application-id
-                        :rental-application/locked       true
-                        :rental-application/submitted-at (java.util.Date.)}
+                        :member-application/locked       true
+                        :member-application/submitted-at (java.util.Date.)}
                        {:db/id            tid
                         :charge/stripe-id stripe-id
                         :charge/account   account-id
@@ -220,10 +220,10 @@
   [application-id params]
   (let [application (d/entity (d/db conn) application-id)
         ent         (ks->nsks :community-fitness params)]
-    (if-let [cf-id (-> application :rental-application/community-fitness :db/id)]
+    (if-let [cf-id (-> application :member-application/community-fitness :db/id)]
       @(d/transact conn [(assoc ent :db/id cf-id)])
       @(d/transact conn [{:db/id application-id
-                          :rental-application/community-fitness ent}]))))
+                          :member-application/community-fitness ent}]))))
 
 (s/fdef update-community-fitness!
         :args (s/cat :application-id int?
@@ -244,7 +244,7 @@
                  :desired-availability desired-availability}
                 (assoc-when :pet pet)
                 (assoc :account/_application account-id))
-        tx  @(d/transact conn [(ks->nsks :rental-application ent)])]
+        tx  @(d/transact conn [(ks->nsks :member-application ent)])]
     (d/resolve-tempid (d/db conn) (:tempids tx) tid)))
 
 (s/fdef create!
