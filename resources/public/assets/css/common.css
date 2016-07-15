@@ -2,15 +2,33 @@
 -------------------------------------------------- */
 /* Padding below the footer and lighter body text */
 
+html {
+  position: relative;
+  min-height: 100%;
+}
+
 body {
   color: #5a5a5a;
   font-family: 'Lato', sans-serif;
   /* Margin bottom by footer height */
-  margin-bottom: 60px;
+  margin-bottom: 150px;
 }
 
 footer {
   padding-bottom: 40px;
+}
+
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  /* Set the fixed height of the footer here */
+  height: 150px;
+  background-color: #f5f5f5;
+}
+
+.footer-content {
+  margin: 20px 0;
 }
 
 /* Navbar Overrides
@@ -94,25 +112,4 @@ footer {
 
 ul.nav {
   margin-right: 30px !important;
-}
-
-/* Sticky footer styles
--------------------------------------------------- */
-
-html {
-  position: relative;
-  min-height: 100%;
-}
-
-.footer {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  /* Set the fixed height of the footer here */
-  height: 60px;
-  background-color: #f5f5f5;
-}
-
-.footer-content {
-  margin: 20px 0;
 }
