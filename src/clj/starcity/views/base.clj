@@ -136,8 +136,15 @@
       [:footer.footer
        [:div.container
         [:div.footer-content
-         [:p.pull-right [:a {:href "#"} "Back to top"]]
-         [:p "&copy; 2016 Starcity Properties, Inc."]]]])
+         [:div.row
+          [:div.col-sm-4
+           [:ul.list-unstyled
+            [:li [:a {:href "/fack"} "FAQ"]]
+            [:li [:a {:href "/terms"} "Terms"]]
+            [:li [:a {:href "/privacy"} "Privacy"]]]]]
+         [:div
+          [:p.pull-left {:style "margin-top: 20px;"} "&copy; 2016 Starcity Properties, Inc."]
+          [:p.pull-right {:style "margin-top: 20px;"} [:a {:href "#"} "Back to top"]]]]]])
     (for [[name obj] json]
       [:script
        (format "var %s = %s" name (json/encode obj))])
