@@ -1,63 +1,100 @@
 (ns starcity.views.landing
-  (:require [starcity.views.base :refer [base]]
-            [starcity.views.common :as common]))
+  (:require [starcity.views.base :refer [hero]]
+            [hiccup.core :refer [html]]
+            [hiccup.page :refer [html5 include-css include-js]]
+            [clojure.string :refer [lower-case]]))
 
 ;; =============================================================================
 ;; Helpers
 ;; =============================================================================
 
-(def ^:private header
-  (common/header
-   "Your New Home in San Francisco"
-   "Comfortable, communal housing for our city's workforce."
-   "/assets/img/sf_homes_1.jpeg"
-   {:uri "/signup" :text "Apply for a Home"}))
+(defn- promo-section
+  ([title text img-url]
+   (promo-section title text img-url :right))
+  ([title text img-url img-orientation]
+   (let [lcontent (if (= img-orientation :right)
+                    [:div.col.m7
+                     [:h3 title]
+                     [:p.flow-text text]]
+                    [:div.col.m5
+                     [:img.responsive-img {:src img-url}]])
+         rcontent (if (= img-orientation :right)
+                    [:div.col.m5
+                     [:img.responsive-img {:src img-url}]]
+                    [:div.col.m7
+                     [:h3 title]
+                     [:p.flow-text text]])]
+     [:section
+      [:div.row.valign-wrapper.hide-on-small-only
+       lcontent rcontent]
+
+      [:div.row.hide-on-med-and-up
+       [:div.col.s12
+        [:h3 title]
+        [:p.flow-text text]]
+
+       [:div.col.s12
+        [:img.responsive-img {:src img-url}]]]
+
+      [:div.divider]])))
 
 ;; =============================================================================
 ;; API
 ;; =============================================================================
 
-(defn landing
-  []
-  (base
-   [:div
-    header
-    [:div.container.marketing
-     [:div.row.featurette
-      [:div.col-sm-7
-       [:h2.featurette-heading
-        "Diverse, Resource-Efficient Communities. "
-        [:span.text-muted ""]]
-       [:p.lead "Hard-working San Franciscans form the diverse fabric of this city. Yet we're often left out of the housing conversation. Let's change that. Let's build housing that allows us to thrive in our beloved city. Let's build communities that embrace individuals from all walks of life."]]
-      [:div.col-sm-5
-       [:img.featurette-image.img-responsive.img-rounded
-        {:src "/assets/img/renderings/alpharendering.png"}]]]
+;; TODO: rm -r resources/public/js/bower
 
-     [:hr.featurette-divider]
-     [:div.row.featurette
-      [:div.col-sm-5
-       [:img.featurette-image.img-responsive.img-rounded
-        {:src "/assets/img/renderings/sf_rendering04.png"}]]
-      [:div.col-sm-7
-       [:h2.featurette-heading
-        "Beautiful Private Spaces. <br> "
-        [:span.text-muted "For Everyone."]]
-       [:p.lead "Balancing community space and resources with adequate private space will honor the needs of our workforce. Let's design private rooms in a way that'll allow us to live sustainably in San Francisco."]]]
+(def ^:private landing-content
+  [:div.container
 
-     [:hr#action-divider.featurette-divider]
+    [:section.features
+     [:div.row
+      [:div.col.s4.center-align
+       [:img.circle.responsive-img {:src "/assets/img/promo-bar-community.png"}]
+       [:h5.center "Community"]
+       [:p.light "Diverse people, yada yada"]]
+      [:div.col.s4.center-align
+       [:img.circle.responsive-img {:src "/assets/img/promo-bar-amenities.png"}]
+       [:h5.center "Amenities"]
+       [:p.light "Diverse people, yada yada"]]
+      [:div.col.s4.center-align
+       [:img.circle.responsive-img {:src "/assets/img/promo-bar-privacy.png"}]
+       [:h5.center "Privacy"]
+       [:p.light "Diverse people, yada yada"]]]]
 
-     [:div#action-section.row
-      [:div.col-md-6.col-md-offset-3
-       [:h2#action-heading "Join Our Community"]
-       [:p.lead "Enter your email to receive updates on Starcity's upcoming housing communities and to be invited to our public events."]
+    ;; (promo-section
+    ;;  "Diverse, Resource-Efficient Communities."
+    ;;  "Hard-working San Franciscans form the diverse fabric of this city. Yet we're often left out of the housing conversation. Let's change that. Let's build housing that allows us to thrive in our beloved city. Let's build communities that embrace individuals from all walks of life."
+    ;;  "/assets/img/renderings/alpharendering.png"
+    ;;  :right)
+    ;; (promo-section
+    ;;  "Beautiful Private Spaces. For Everyone."
+    ;;  "Balancing community space and resources with adequate private space will honor the needs of our workforce. Let's design private rooms in a way that'll allow us to live sustainably in San Francisco."
+    ;;  "/assets/img/renderings/sf_rendering04.png"
+    ;;  :left)
 
-       [:form {:action "/register" :method "GET"}
-        [:div.input-group.input-group-lg
-         [:input.input.form-control
-          {:type        "email"
-           :name        "email"
-           :required    true
-           :placeholder "Enter your email address"}]
-         [:span.input-group-btn
-          [:button.btn.btn-primary "Join Us"]]]]]]]]
-   :css ["landing.css"]))
+    [:section
+     [:div.row
+      [:form.col.m8.offset-m2.s12 {:action "/register" :method "GET"}
+       [:div.row
+        [:h4.center-align "Join Our Community"]
+        [:p.flow-text.center "Enter your email to receive updates on Starcity's upcoming housing communities and to be invited to our public events."]]
+       [:div.row
+        [:div.input-field
+         [:input#email.validate {:type "email" :required true}]
+         [:label {:for "email"} "Email"]]]
+       [:div.row
+        [:div.col.s12.center-align
+         [:button.btn.waves-effect.waves-light.btn-large {:type "submit"}
+          "Join Us"
+          [:i.material-icons.right "send"]]]]]]]])
+
+(defn landing []
+  (hero
+   :content landing-content
+   :title "Your new home in san francisco"
+   :description "Comfortable, communal housing for our city's workforce."
+   :background-image "/assets/img/sf_homes_1.jpeg"
+   :action {:uri   "/application"
+            :text  "apply for a home"
+            :class "star-orange"}))

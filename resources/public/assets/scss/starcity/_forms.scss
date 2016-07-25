@@ -1,0 +1,32 @@
+form {
+
+  .validation-group {
+
+    &.has-error .error-block {
+      color: $error-color;
+    }
+  }
+
+  .select-wrapper {
+    margin-bottom: -30px;
+  }
+
+
+  .input-field {
+    &.has-error .error-block {
+      color: $error-color;
+    }
+  }
+}
+
+[type="checkbox"] {
+  + label {
+    color: $checkbox-label-color;
+  }
+}
+
+[type="radio"] {
+  + label {
+    color: $checkbox-label-color;
+  }
+}

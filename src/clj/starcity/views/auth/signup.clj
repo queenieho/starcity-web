@@ -6,58 +6,95 @@
 ;; Helpers
 ;; =============================================================================
 
-(defn- form-group
-  [{:keys [id value type placeholder] :or {type "text" value ""}}]
-  (let [placeholder (or placeholder (-> id s/capitalize (s/replace "-" " ")))
-        attrs       {:name        id
-                     :id          id
-                     :type        type
-                     :required    true
-                     :value       value
-                     :placeholder placeholder}]
-    [:div
-     [:label.sr-only {:for id} placeholder]
-     [:input.form-control attrs]]))
+(defn- signup-content
+  [email first-name last-name errors]
+  [:main#signup.auth
+   [:div.container
+    [:div.row
+     [:div.col.s6.offset-s3
+      [:div.card-panel
+       [:h4.light "Sign up"]
+
+       (for [error errors]
+         [:div.alert.alert-error [:p.alert-text error]])
+
+       [:form {:action "/signup" :method "POST"}
+
+        ;; TODO: abstract this
+        [:div.row
+         [:div.col.s6.input-field
+          [:input#first-name.validate {:type     "text"
+                                       :name     "first-name"
+                                       :required true
+                                       :value    first-name}]
+          [:label {:for "first-name"} "First name"]]
+
+         [:div.col.s6.input-field
+          [:input#first-name.validate {:type     "text"
+                                       :name     "last-name"
+                                       :required true
+                                       :value    last-name}]
+          [:label {:for "last-name"} "Last name"]]]
+
+        [:div.row
+         [:div.input-field.col.s12
+          [:input#email.validate {:type     "email"
+                                  :name     "email"
+                                  :required true
+                                  :value    email}]
+          [:label {:for "email"} "Email"]]]
+
+        [:div.row
+         [:div.input-field.col.s12
+          [:input#password-1.validate {:type     "password"
+                                       :required true
+                                       :name     "password-1"}]
+          [:label {:for "password-1"} "Password"]]]
+
+        [:div.row
+         [:div.input-field.col.s12
+          [:input#password-2.validate {:type     "password"
+                                       :required true
+                                       :name     "password-2"}]
+          [:label {:for "password-2"} "Re-enter password"]]]
+
+        [:div.row
+         [:div.col.s12.center-align
+          [:button.btn.waves-effect.waves-light.btn-large {:type "submit"}
+           "Sign Up"
+           [:i.material-icons.right "send"]]]]
+
+        [:div.divider]
+
+        [:div.row.panel-footer
+         [:div.col.s8
+          [:p "Already have an account?"]]
+         [:div.col.s4
+          [:a.btn.white.star-orange-text.waves-effect.waves-light {:href "/login"}
+           "Sign in"]]]]]]]]])
 
 ;; =============================================================================
 ;; API
 ;; =============================================================================
 
 (defn signup
-  "The content for the signup page."
-  [errors email first-name last-name]
-  (let [inputs [{:id "first-name" :type "text" :value first-name}
-                {:id "last-name" :type "text" :value last-name}
-                {:id "email" :type "email" :value email :placholder "Email address"}
-                {:id "password-1" :type "password" :placeholder "Password"}
-                {:id "password-2" :type "password" :placeholder "Re-enter Password"}]]
-    (base
-     [:div.container
-      [:div.row
-       [:form.form-signup {:action "/signup" :method "post"}
-        [:h2.form-signup-heading "Sign Up"]
-        (for [e errors]
-          [:div.alert.alert-danger {:role "alert"} e])
-
-        (map form-group inputs)
-
-        [:button.btn.btn-lg.btn-success.btn-block {:type "submit"} "Create Account"]
-        [:p.text-center "or"]
-        [:a.btn.btn-primary.btn-block {:href "/login"} "Log In"]]]]
-     :css ["signup.css"])))
+  "The signup view."
+  [email first-name last-name errors ]
+  (base
+   :content (signup-content email first-name last-name errors )))
 
 (defn invalid-activation
   []
   (base
-   [:div.container
-    [:div.page-header
-     [:h1 "Oops!"]]
-    [:p.lead "Your activation link is invalid, or has expired."]]))
+   :content [:main
+             [:div.container
+              [:h3 "Oops!"]
+              [:p.flow-text "Your activation link is invalid, or has expired."]]]))
 
 (defn signup-complete
   []
   (base
-   [:div.container
-    [:div.page-header
-     [:h1 "Thanks for signing up!"]]
-    [:p.lead "Please check your inbox for an activation link."]]))
+   :content [:main
+             [:div.container
+              [:h3 "Thanks for signing up!"]
+              [:p.flow-text "Please check your inbox for an activation link."]]]))

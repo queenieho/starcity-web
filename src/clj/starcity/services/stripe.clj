@@ -25,3 +25,9 @@
 ;; =============================================================================
 
 (defstate charge :start (charge-request (:stripe config)))
+
+(comment
+
+  (charge 3000 "tok_18ZjWcIvRccmW9nOksDM0Tuj" "jalehman37@gmail.com")
+
+  )

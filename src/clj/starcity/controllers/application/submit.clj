@@ -26,7 +26,7 @@
   (malformed (show-submit* req :errors ["Something went wrong while processing your payment. Please try again."])))
 
 (defn- charge-application-fee [token email]
-  (stripe/charge 2000 token email))
+  (stripe/charge 2500 token email))
 
 ;; =============================================================================
 ;; API
@@ -40,8 +40,8 @@
   [{:keys [identity params] :as req}]
   (let [{:keys [db/id account/email]} identity]
     (if-let [token (:stripe-token params)]
-      (let [{:keys [status body]} (charge-application-fee token email)]
-        (if (= status 200)              ; if successful...
+      (let [{:keys [status body] :as res} (charge-application-fee token email)]
+        (if (= status 200)
           (do
             (application/complete! id (:id body))
             (response/redirect "/application?completed=true"))

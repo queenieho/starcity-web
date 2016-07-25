@@ -85,7 +85,7 @@
 
 (def sections
   "Sections of the application process"
-  #{:logistics :checks :community})
+  #{:logistics :personal :community})
 
 ;; =============================================================================
 ;; Queries
@@ -149,8 +149,7 @@
           (:community-fitness/skills data)))))
 
 
-;; TODO: Rename :checks
-(s/def ::step #{:logistics :checks :community :submit})
+(s/def ::step #{:logistics :personal :community :submit})
 (s/def ::steps (s/and set? (s/* ::step)))
 
 (defn current-steps
@@ -159,7 +158,7 @@
   (let [current #{:logistics}]
     (if-let [application-id (:db/id (by-account-id account-id))]
       (cond-> current
-        (logistics-complete? application-id) (conj :checks)
+        (logistics-complete? application-id) (conj :personal)
         (personal-information-complete? application-id) (conj :community)
         (community-fitness-complete? application-id) (conj :submit))
       current)))

@@ -1,153 +1,162 @@
 (ns starcity.views.base
   (:require [hiccup.core :refer [html]]
             [hiccup.page :refer [html5 include-css include-js]]
+            [clojure.string :refer [lower-case]]
             [cheshire.core :as json]))
 
-;;; =============================================================================
-;; Constants
+;; =============================================================================
+;; Helpers
+;; =============================================================================
 
-;; (def ^{:private true} HEAD-JS
-;;   [])
+(def ^:private materialize-js "/assets/bower/Materialize/dist/js/materialize.min.js")
+(def ^:private main-css "/assets/css/main.css")
 
-(def BASE-CSS-DIR "assets/css")
+(def ^:private base-js
+  ["https://code.jquery.com/jquery-2.1.1.min.js"
+   materialize-js])
 
-(def BASE-JS-DIR "js")
-
-(defn- css-path [filename]
-  (format "/%s/%s" BASE-CSS-DIR filename))
-
-(defn- js-path [filename]
-  (if (re-matches #"^https?.+" filename)
-    filename
-    (format "/%s/%s" BASE-JS-DIR filename)))
-
-(def ^{:private true} HEAD-CSS
-  (map css-path ["bootstrap.css" "common.css"]))
-
-(def ^{:private true} HEAD-FONTS
-  ["https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic"
-   "https://fonts.googleapis.com/css?family=Roboto+Condensed:400,300"
-   "https://fonts.googleapis.com/css?family=Lato:300,400,700"
-   "https://fonts.googleapis.com/css?family=Raleway"])
-
-(def ^{:private true} BODY-JS
-  (map js-path
-       ["jquery.min.js"
-        "bootstrap.min.js"]))
+(defn- hero-background-style
+  [url]
+  {:style (format "background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('%s');" url)})
 
 ;; =============================================================================
 ;; Components
+;; =============================================================================
 
-(defn- head [title css]
-  (letfn [(apple-touch-icon [size]
-            [:link {:rel   "apple-touch-icon"
-                    :sizes size
-                    :href  (format "/apple-icon-%s.png" size)}])]
-    (let [sizes ["57x57" "60x60" "72x72" "76x76" "114x114" "120x120" "144x144"
-                 "152x152" "180x180"]]
-      [:head
-       [:meta {:charset "utf-8"}]
-       [:meta {:http-equiv "X-UA-Compatible" :content "IE=edge"}]
-       [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
-       (map apple-touch-icon sizes)
-       [:link {:rel "icon" :type "image/png" :sizes "192x192" :href "/android-icon-192x192.png"}]
-       [:link {:rel "icon" :type "image/png" :sizes "32x32" :href "/favicon-32x32.png"}]
-       [:link {:rel "icon" :type "image/png" :sizes "96x96" :href "/favicon-96x96.png"}]
-       [:link {:rel "icon" :type "image/png" :sizes "16x16" :href "/favicon-16x16.png"}]
-       [:link {:rel "manifest" :href "/manifest.json"}]
-       [:meta {:name "msapplication-TileColor" :content "#ffffff"}]
-       [:meta {:name "msapplication-TileImage" :content "/ms-icon-144x144.png"}]
-       [:meta {:name "theme-color" :content "#ffffff"}]
-       (apply include-css (concat HEAD-CSS css HEAD-FONTS))
-       [:title title]])))
+;; =============================================================================
+;; Hero
 
-;; =====================================
-;; Nav Items
+(defn- hero-content
+  [title description {:keys [uri text class] :as action}]
+  [:div#hero
+   [:div#hero-text-container.container
 
-(defmulti nav-item
-  "Different types of nav items yield different HTML depending on their :type."
-  :type)
+    [:div.row
+     [:div.col.s12.center-align
+      [:h1#hero-title {:itemprop "title"}
+       title]]]
+    [:div.row
+     [:div.col.s12.center-align
+      [:h2#hero-description {:itemprop "description"}
+       description]]]
+    [:div.row
+     [:div.col.s12.center-align
+      [:a.btn.btn-large.hero-btn {:href uri :class class}
+       text]]]]])
 
-(defmethod nav-item :button [{:keys [text uri attrs]}]
-  [:a.btn.navbar-btn (merge {:href uri} attrs) text])
+;; =============================================================================
+;; Generic
 
-(defmethod nav-item :link [{:keys [text uri attrs]}]
-  [:li [:a (merge {:href uri} attrs) text]])
+(defn head []
+  [:head
+   ;; Icon Font
+   [:link {:href "https://fonts.googleapis.com/icon?family=Material+Icons" :rel "stylesheet"}]
+   [:link {:type  "text/css"
+           :rel   "stylesheet"
+           :href  main-css
+           :media "screen,projection"}]
 
-;; default
-(defmethod nav-item nil [{:keys [text uri attrs]}]
-  [:li [:a (merge {:href uri} attrs) text]])
+   ;; Let browser know whebsite is optimized for mobile
+   [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]])
 
-;; =====================================
-;; Navbar
-
-(defn- navbar [nav-items]
-  (let [is-button? #(= (:type %) :button)
-        buttons    (filter is-button? nav-items)
-        links      (remove is-button? nav-items)]
-    [:nav.navbar.navbar-default
+(defn footer []
+  (let [company-links [["About" "/about"]
+                       ["Team" "/team"]
+                       ["Blog" "/blog"]]]
+    [:footer.page-footer
      [:div.container
-      [:div.navbar-header
-       [:button.navbar-toggle.collapsed
-        {:type          "button"
-         :data-toggle   "collapse"
-         :data-target   "#navbar-collapse"
-         :aria-expanded "false"}
-        [:span.sr-only "Toggle navigation"]
-        (for [_ (range 3)]
-          [:span.icon-bar])]
-       [:a.navbar-brand {:href "/"}
-        [:img {:alt "Starcity Logo" :src "/assets/img/starcity-logo-wordmark.png"}]]]
-      [:div#navbar-collapse.navbar-collapse.collapse
-       (map nav-item buttons)
-       [:ul.nav.navbar-nav.navbar-right
-        (map nav-item links)]]]]))
+      [:div.col.l4.offset-l2.s12
+       [:h5.white-text "Company"]
+       [:ul
+        (for [[text uri] company-links]
+          [:li [:a.grey-text.text-lighten-3 {:href uri} text]])]]]
+     [:div.footer-copyright
+      [:div.container
+       "&copy; 2016 Starcity Properties, Inc."
+       [:a.grey-text.text-lighten-4.right {:href "/privacy"} "Privacy"]
+       [:a.grey-text.text-lighten-4.right {:href "/terms"} "Terms of Service"]]]]))
 
-(defn- wrap-content [content nav-items]
-  [:div.navbar-wrapper
-   [:div.container-fluid
-    (navbar nav-items)
-    content]])
+(def ^:private brand-logo
+  [:a.brand-logo {:href "/"}
+   [:img#header-logo {:alt "Starcity Logo" :src "/assets/img/starcity-brand-icon-white.png"}]
+   [:span "Starcity"]])
 
-(def ^:private default-nav-items
-  [{:text "Availability" :uri "/availability"}
-   {:text "FAQ" :uri "/fack"}
-   {:text "Apply Now" :uri "/signup" :type :button :attrs {:class "btn-attention navbar-right"}}])
+(defn nav-link
+  ([text]
+   (nav-link text (format "/%s" (-> text lower-case))))
+  ([text uri]
+   [:li [:a {:href uri} text]]))
+
+(defn nav-button
+  ([text]
+   (nav-button text (format "/%s" (-> text lower-case))))
+  ([text uri & classes]
+   [:li
+    [:a.waves-effect.waves-light.btn {:href uri :class (apply str classes)}
+     text]]))
+
+(defn navbar
+  ([links]
+   (navbar links ""))
+  ([links nav-class]
+   [:header
+    [:nav {:class nav-class}
+     [:div.nav-wrapper.container
+      brand-logo
+      [:a.button-collapse
+       {:href "#" :data-activates "mobile-menu"}
+       [:i.material-icons "menu"]]
+      [:ul.right.hide-on-small-and-down
+       (for [link links] link)]
+      [:ul#mobile-menu.side-nav
+       (for [link links] link)]]]]))
 
 ;; =============================================================================
 ;; API
+;; =============================================================================
 
-(defn base [content & {:keys [body-class css js json nav-items cljs-devtools? wrap? footer?]
-                       :or   {body-class ""
-                              css        []
-                              js         []
-                              json       []
-                              nav-items  default-nav-items
-                              wrap?      true
-                              footer?    true}}]
+(def default-nav-links
+  [(nav-link "Availability")
+   (nav-link "FAQ" "/fack") ; TODO: faq
+   (nav-link "About")
+   (nav-button "Apply Now" "/application" "star-orange")])
+
+(defn hero
+  "Page template with a `hero`."
+  [& {:keys [nav-links content title description action background-image]
+      :or   {nav-links default-nav-links
+             content   [:div]}}]
   (html5
    {:lang "en"}
-   (head "Starcity" (map css-path css))
-   [:body {:class body-class}
-    (if wrap?
-      (wrap-content content nav-items)
-      content)
-    (when footer?
-      [:footer.footer
-       [:div.container
-        [:div.footer-content
-         [:div.row
-          [:div.col-sm-4
-           [:ul.list-unstyled
-            [:li [:a {:href "/fack"} "FAQ"]]
-            [:li [:a {:href "/terms"} "Terms"]]
-            [:li [:a {:href "/privacy"} "Privacy"]]]]]
-         [:div
-          [:p.pull-left {:style "margin-top: 20px;"} "&copy; 2016 Starcity Properties, Inc."]
-          [:p.pull-right {:style "margin-top: 20px;"} [:a {:href "#"} "Back to top"]]]]]])
+   (head)
+   [:body
+    [:div#hero-wrapper (hero-background-style background-image)
+     (navbar nav-links "transparent black-text")
+     (hero-content title description action)]
+    content
+    (footer)
+    (apply include-js base-js)
+    (include-js "/js/hero.js")]))
+
+(defn base
+  "Page template with a solid navbar."
+  [& {:keys [nav-links content js json]
+      :or   {nav-links default-nav-links
+             js        []
+             json      []}}]
+  (html5
+   {:lang "en"}
+   (head)
+   [:body
+    (navbar nav-links)
+    content
+    (footer)
+    (apply include-js (concat base-js js))
     (for [[name obj] json]
       [:script
        (format "var %s = %s" name (json/encode obj))])
-    (apply include-js (->> (map js-path js) (concat BODY-JS)))
-    (when cljs-devtools?
-      [:script "goog.require('user.devtools')"])]))
+    (include-js
+           "/assets/bower/jquery-validation/dist/jquery.validate.js"
+           "/js/validation-defaults.js"
+           "/js/main.js")
+    ]))

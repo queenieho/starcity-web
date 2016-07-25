@@ -6,61 +6,56 @@
 ;; Helpers
 ;; =============================================================================
 
+(defn checkbox
+  [& {:keys [label] :as attrs}]
+  [:p
+   [:input (-> (dissoc attrs :label)
+               (assoc :type "checkbox"))]
+   [:label {:for (:id attrs)} label]])
+
+(defn validation-group
+  [& children]
+  [:div.validation-group children])
 
 ;; =============================================================================
 ;; Sections
 ;; =============================================================================
 
-(defn- tos-section
-  []
-  (let [id "tos-acknowledged"]
-    [:div.form-group
-     [:label.control.control--checkbox {:for id}
-      [:input
-       {:id       id
-        :type     "checkbox"
-        :name     id
-        :required true}
-       "Yes &mdash; I have read and agree to both."]
-      [:div.control__indicator]]]))
+(def ^:private tos-section
+  (validation-group
+   (checkbox :label "Yes &mdash; I have read and agree to both."
+             :id "tos-acknowledged"
+             :name "tos-acknowledged"
+             :required true)))
 
 ;; =============================================================================
 ;; Background Check Permission
 
-(defn- permission-section
-  []
-  [:div
-   (let [name "background-permission"]
-     [:div.form-group
-      [:label.control.control--checkbox {:for name}
-       [:input
-        {:id       name
-         :type     "checkbox"
-         :name     name
-         :required true}
-        "Yes"]
-       [:div.control__indicator]]])
+(def ^:private permission-section
+  (let [bg-name "background-permission"
+        copy-name "receive-background-check"]
+    (validation-group
+     (checkbox :id bg-name :name bg-name :required true :label "Yes")
+     [:div#receive-copy {:style "display: none;"}
+      (checkbox :id copy-name :name copy-name :label "Send me a copy of my background check.")]
+     [:p.help-block "To ensure the safety of our community members, we require background checks on all applicants."]
+     ;; NOTE: This needs to be outside, otherwise it gets the .has-error styling from jquery-validation/bs
 
-   ;; NOTE: This needs to be outside, otherwise it gets the .has-error styling from jquery-validation/bs
-   [:p.help-block "To ensure the safety of our community members, we require background checks on all applicants."]
+     )))
 
-   (let [name "receive-background-check"]
-     [:div#receive-copy.form-group {:style "display: none;"}
-      [:label.control.control--checkbox {:for name}
-       [:input
-        {:id   name
-         :type "checkbox"
-         :name name}
-        "Send me a copy of my background check."]
-       [:div.control__indicator]]])])
-
-(defn- payment-section
-  []
-  [:p.help-block.help-description "The application fee is only to cover the cost of running a background check and verifying your income."])
+(def ^:private payment-section
+  (list
+   [:input#stripe-token {:type "hidden" :name "stripe-token"}]
+   [:p.help-block.help-description "The application fee is only to cover the cost of running a background check and verifying your income."]))
 
 ;; =============================================================================
 ;; API
 ;; =============================================================================
+
+(def ^:private submit-button
+  [:button#stripe-btn.btn.waves-effect.waves-light.btn-large
+   {:type "Submit"}
+   "Pay &amp; Submit"])
 
 (defn submit
   [current-steps email errors]
@@ -69,25 +64,14 @@
                     " &amp; "
                     [:a {:href "/privacy" :target "_blank"} "Privacy Policy"]
                     "?"]
-                   (tos-section)]
+                   tos-section]
                   ["Do we have your permission to run a background check?"
-                   (permission-section)]
+                   permission-section]
                   ["Finally, please pay the $20 application fee."
-                   (payment-section)]]]
-    (common/application
-     current-steps
-     [:div.question-container
-      (common/error-alerts errors)
-      [:form {:method "POST" :action ""}
-       [:input#stripe-token {:type "hidden" :name "stripe-token"}]
-       [:ul.question-list
-        (for [[title content] sections]
-          (common/section title content))]
-       (common/submit-button "Pay &amp; Submit" "stripe-btn")]]
-     :title "Submit"
-     :json [["stripe" {:key   (get-in config [:stripe :public-key])
-                       :email email}]]
-     :js ["https://checkout.stripe.com/checkout.js"
-          "bower/jquery-validation/dist/jquery.validate.js"
-          "validation-defaults.js"
-          "submit.js"])))
+                   payment-section]]]
+    (common/step "Submit" sections current-steps
+                 :submit-button submit-button
+                 :errors errors
+                 :json [["stripe" {:key   (get-in config [:stripe :public-key])
+                                   :email email}]]
+                 :js ["https://checkout.stripe.com/checkout.js"])))

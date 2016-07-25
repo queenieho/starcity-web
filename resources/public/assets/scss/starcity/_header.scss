@@ -1,0 +1,36 @@
+/*
+  ========================================
+  Navigation
+  ========================================
+*/
+
+header {
+
+  nav {
+
+    &.transparent {
+      box-shadow: none;
+      -moz-box-shadow: none;
+      -webkit-box-shadow: none;
+    }
+
+    .brand-logo {
+      font-family: $josefin-sans;
+      font-weight: 400;
+      display: inline-table;
+      font-size: 2.0rem;
+
+      span {
+        margin-left: 10px;
+      }
+    }
+  }
+
+  #header-logo {
+    position: relative;
+    top: 5px;
+    width: 32px;
+    height: 32px;
+  }
+
+}

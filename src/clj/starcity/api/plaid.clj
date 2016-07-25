@@ -41,9 +41,7 @@
               (log-failure "Error during public_token exchange" (:db/id identity) res)))]
     (if-let [public-token (:public_token params)]
       (do
-        (if (= environment :development)
-          (model/create! (:db/id identity) public-token "PLACEHOLDER") ; SSL is borked on dev for whatever reason. Heisenbug.
-          (service/exchange-token public-token -on-exchange))
+        (service/exchange-token public-token -on-exchange) ; TODO: make synchronous
         (ok {:message "Success!"}))
       (malformed {:message "Request must include a :public_token!"}))))
 
