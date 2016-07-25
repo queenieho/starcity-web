@@ -11,14 +11,13 @@
              [application :as application]
              [auth :as auth]
              [availability :as availability]
-             [dashboard :as dashboard]
              [faq :as faq]
              [landing :as landing]
              [register :as register]
              [terms :as terms]
              [privacy :as privacy]]
             [starcity.controllers.application
-             [checks :as checks]
+             [personal :as personal]
              [logistics :as logistics]
              [community-fitness :as community-fitness]
              [submit :as submit]]
@@ -54,8 +53,8 @@
 (defroutes app-routes
   ;; public
   (GET "/" [] landing/show-landing)
-  (GET  "/register"     [] register/register-user!)
-  (GET  "/availability" [] availability/show-availability)
+  (GET "/register"     [] register/register-user!)
+  (GET "/availability" [] availability/show-availability)
   (GET "/fack"          [] faq/show-faq)
   (GET "/terms"         [] terms/show-terms)
   (GET "/privacy"        [] privacy/show-privacy)
@@ -85,9 +84,9 @@
 
       (restrict
        (routes
-        (GET "/checks" [] checks/show-checks)
-        (POST "/checks" [] checks/save!))
-       checks/restrictions)
+        (GET "/personal" [] personal/show-personal)
+        (POST "/personal" [] personal/save!))
+       personal/restrictions)
 
       (restrict
        (routes
@@ -104,9 +103,9 @@
      {:handler  {:and [authenticated-user (user-isa :account.role/applicant)]}
       :on-error (redirect-on-invalid-authorization "/me")}))
 
-  (GET "/me" [] (-> dashboard/show-dashboard
-                    (restrict {:handler  {:and [authenticated-user (user-isa :account.role/tenant)]}
-                               :on-error (redirect-on-invalid-authorization "/application")})))
+  ;; (GET "/me" [] (-> dashboard/show-dashboard
+  ;;                   (restrict {:handler  {:and [authenticated-user (user-isa :account.role/tenant)]}
+  ;;                              :on-error (redirect-on-invalid-authorization "/application")})))
 
   (context "/api/v1" []
     (restrict

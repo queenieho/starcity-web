@@ -56,7 +56,7 @@
                                    email      ""
                                    first-name ""
                                    last-name  ""}}]
-  (view/signup errors email first-name last-name))
+  (view/signup email first-name last-name errors))
 
 ;; =============================================================================
 ;; Activation

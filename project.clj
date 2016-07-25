@@ -8,19 +8,9 @@
 
   :dependencies [[org.clojure/clojure "1.9.0-alpha7"]
                  [org.clojure/core.async "0.2.374"]
-                 ;; [org.clojure/clojurescript "1.7.170"]
                  [org.clojure/tools.nrepl "0.2.12"]
                  [org.clojure/test.check "0.9.0"]
                  [org.clojure/tools.cli "0.3.5"]
-                 ;; cljs
-                 ;; [reagent "0.5.1"]
-                 ;; [re-frame "0.7.0"]
-                 ;; [reagent-reforms "0.4.4-SNAPSHOT"]
-                 ;; [cljsjs/field-kit "2.0.4-0"]
-                 ;; [secretary "1.2.3"]
-                 ;; [venantius/accountant "0.1.7"]
-                 ;; clj
-                 ;; [clj-slack "0.5.4"]
                  [http-kit "2.2.0"]
                  [clj-http "2.2.0"]
                  [compojure "1.5.0"]
@@ -43,41 +33,11 @@
                  ;; util
                  [prismatic/plumbing "0.5.3"]]
 
-  ;; :plugins [[lein-cljsbuild "1.1.3"]]
+  :profiles {:dev {:source-paths ["src/dev" "src/clj"]}
 
-  :profiles
-  {:dev     {:source-paths ["src/dev" "src/clj" ;"src/cljs"
-                            ]
-             ;; :plugins      [[lein-figwheel "0.5.0-2"]]
-             :dependencies [;[figwheel-sidecar "0.5.0-2"]
-                            ;[binaryage/devtools "0.6.1"]
-                            ]}
+             :uberjar       {:aot          [starcity.core]
+                             :source-paths ["src/clj"]}}
 
-   :uberjar {:aot          [starcity.core]
-             ;; :prep-tasks   ["compile" ["cljsbuild" "once"]]
-             ;; :source-paths ["src/clj" "src/cljs"]
-             :source-paths ["src/clj"]
-             ;; :cljsbuild
-             ;; {:builds {:main
-             ;;           {:source-paths ["src/cljs"]
-             ;;            :jar          true
-             ;;            :compiler     {:optimizations    :advanced
-             ;;                           :elide-asserts    true
-             ;;                           :pretty-print     false
-             ;;                           :externs          []
-             ;;                           :output-dir       "resources/public/js/app/out"
-             ;;                           :output-to        "resources/public/js/app/main.js"
-             ;;                           :closure-warnings {:externs-validation :off
-             ;;                                              :non-standard-jsdoc :off}}}}}
-             }
-
-   }
-
-  :repl-options {:init-ns          user
-                 ;; :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]
-                 }
-
-  ;; :clean-targets ^{:protect false} ["resources/public/js/app"
-  ;;                                   :target-path]
+  :repl-options {:init-ns user}
 
   :main starcity.core)

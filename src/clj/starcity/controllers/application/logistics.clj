@@ -51,7 +51,7 @@
           ;; otherwise, we're creating a new rental application for this user.
           (application/create! account-id properties selected-lease desired-availability :pet pet))
         ;; afterwards, redirect to the next step
-        (response/redirect "/application/checks"))
+        (response/redirect "/application/personal"))
       ;; results aren't valid! indicate errors
       (malformed (show-logistics* req :errors (errors-from vresult))))))
 

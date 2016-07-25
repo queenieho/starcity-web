@@ -44,7 +44,7 @@
    (make-section "What sort of events can I expect to happen when I move in?"
                  ["We’ll gather input from the community on types of events you’d like Starcity to organize. Early interest has asked for film nights, yoga classes, art shows, cooking classes, outings to live music as well as our own speaker series. Events will be a great way to build friendships and learn something new!"])
    (make-section "Can I host my own event?"
-                 ["Yes, absolutely! Just speak to us and we can help you out! We want members to make the community their own!"])
+                 ["Yes, absolutely! Just speak to us and we can help you out &emdash; we want members to make the community their own."])
    (make-section "How do I pay my monthly membership?"
                  ["Every member at Starcity will have access to a personal online dashboard. There, you can pay your membership automatically via direct debit/ACH on the 1st of the month. This will all be set up when you sign a Membership Agreement."
                   "We want to make living in Starcity as flexible as possible for members. Upon move-in, if you come halfway through the month, you'll only pay for those days rather than the whole month."])
@@ -76,16 +76,22 @@
 (defn faq
   []
   (base
-   [:div.container
-    [:div.page-header
-     [:h1 "Frequently Asked Questions"]
-     [:h4 {:style "font-weight: lighter;"} "We put together these FAQs to help you better understand how Starcity works. If you're a current member and have questions about your Membership Agreement, please reach out to us at team@starcityproperties.com."]]
-    (for [{:keys [question answers]} sections]
-      [:div
-       [:h3 question]
-       (for [answer answers]
-         (if (vector? answer)
-           [:ul
-            ;; TODO: Make css class for the list items
-            (for [item answer] [:li {:style "font-size: 18px; font-weight: lighter;"} item])]
-           [:p.lead answer]))])]))
+   :content
+   [:main
+    [:div.container
+     [:h3 "Frequently Asked Questions"]
+     [:div.divider]
+     [:p.flow-text "We put together this FAQ to help you better understand how Starcity works. If you're a current member and have questions about your Membership Agreement, please reach out to us at "
+      [:a {:href "mailto:team@starcityproperties.com."}
+       "team@starcityproperties.com"]
+      "."]
+     (for [{:keys [question answers]} sections]
+       [:div.section
+        [:h4 question]
+        (for [answer answers]
+          (if (vector? answer)
+            [:ul
+             ;; TODO: Make css class for the list items
+             (for [item answer]
+               [:li [:p.flow-text item]])]
+            [:p.flow-text answer]))])]]))
