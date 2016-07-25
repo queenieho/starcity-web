@@ -83,7 +83,7 @@
     (list
      (navbar-dropdown current-steps)
      [:nav
-      [:div.nav-wrapper.materialize-red.lighten-2
+      [:div.nav-wrapper.bone-pink.darken-2
        [:a.nav-title.truncate {:href ""} title]
        [:ul.right
         [:li
@@ -106,14 +106,14 @@
    (for [[title section] sections]
      [:div.section;.center
       (wrap-section
-       [:h5.light.center [:u title]]
+       [:h5.light.center title]
        section)])
    [:div.row
     [:div.col.s12.center
      submit-button]]])
 
 (def ^:private default-submit-button
-  [:button.btn.waves-effect.waves-light.btn-large
+  [:button.btn.waves-effect.waves-light.btn-large.star-green.lighten-1
    {:type "submit"}
    "Next"])
 

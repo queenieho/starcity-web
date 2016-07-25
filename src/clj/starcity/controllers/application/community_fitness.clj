@@ -23,20 +23,27 @@
    params
    {:prior-community-housing [(required "Please tell us about any prior community housing experience.")]
     :skills                  [(required "Please tell us about your skills.")]
-    :why-coliving            [(required "Please tell us about why you want to live with others.")]}))
+    :free-time               [(required "Please tell us about how you spend your free time.")]
+    :why-interested          [(required "Please tell us about why you want to live with others.")]}))
 
 (defn- pull-data
   [account-id]
   (letfn [(-format [{:keys [community-fitness/prior-community-housing
-                            community-fitness/why-coliving
-                            community-fitness/skills]}]
+                            community-fitness/why-interested
+                            community-fitness/skills
+                            community-fitness/free-time
+                            community-fitness/dealbreakers]}]
             {:prior-community-housing prior-community-housing
-             :why-coliving            why-coliving
-             :skills                  skills})]
+             :why-interested            why-interested
+             :skills                  skills
+             :free-time               free-time
+             :dealbreakers            dealbreakers})]
     (if-let [cf-id (-> (application/by-account-id account-id) :member-application/community-fitness :db/id)]
       (-format (d/pull (d/db conn) [:community-fitness/prior-community-housing
-                                    :community-fitness/why-coliving
-                                    :community-fitness/skills] cf-id))
+                                    :community-fitness/why-interested
+                                    :community-fitness/skills
+                                    :community-fitness/free-time
+                                    :community-fitness/dealbreakers] cf-id))
       {})))
 
 ;; =============================================================================
@@ -53,7 +60,7 @@
   [{:keys [identity params] :as req}]
   (let [account-id (:db/id identity)
         vresult    (validate-params params)]
-    (if-let [{:keys [why-coliving skills prior-community-housing]} (valid? vresult)]
+    (if-let [_ (valid? vresult)]
       (let [application-id (:db/id (application/by-account-id account-id))]
         (application/update-community-fitness! application-id params)
         (response/redirect "/application/submit"))

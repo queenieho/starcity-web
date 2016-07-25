@@ -117,7 +117,7 @@
    (if plaid-id
      [:button#link-button.btn.disabled {:type "button"}
       [:i.material-icons.right "done"] "Thanks!"]
-     [:button#link-button.btn.blue {:type "button"}
+     [:button#link-button.btn.tranquil-blue.darken-1 {:type "button"}
       "Link Bank Account"])])
 
 ;; =============================================================================

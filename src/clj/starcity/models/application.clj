@@ -139,14 +139,16 @@
   [application-id]
   (let [pattern [{:member-application/community-fitness
                   [:community-fitness/prior-community-housing
-                   :community-fitness/why-coliving
-                   :community-fitness/skills]}]
+                   :community-fitness/why-interested
+                   :community-fitness/skills
+                   :community-fitness/free-time]}]
         data    (:member-application/community-fitness
                  (d/pull (d/db conn) pattern application-id))]
     (boolean
      (and (:community-fitness/prior-community-housing data)
-          (:community-fitness/why-coliving data)
-          (:community-fitness/skills data)))))
+          (:community-fitness/why-interested data)
+          (:community-fitness/skills data)
+          (:community-fitness/free-time data)))))
 
 
 (s/def ::step #{:logistics :personal :community :submit})
@@ -214,7 +216,7 @@
 
 (s/def ::prior-community-housing string?)
 (s/def ::skills string?)
-(s/def ::why-coliving string?)
+(s/def ::why-interested string?)
 
 (defn update-community-fitness!
   [application-id params]
@@ -229,7 +231,9 @@
         :args (s/cat :application-id int?
                      :attributes (s/keys :opt-un [::prior-community-housing
                                                   ::skills
-                                                  ::why-coliving])))
+                                                  ::why-interested
+                                                  ::dealbreakers
+                                                  ::free-time])))
 
 ;; =====================================
 ;; create!
