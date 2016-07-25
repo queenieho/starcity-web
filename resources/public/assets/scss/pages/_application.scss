@@ -1,5 +1,4 @@
 main#member-application {
-  background-color: #fff0df; // TODO: Bone pink
 
   .card-panel {
     padding: 0;
@@ -20,12 +19,12 @@ main#member-application {
         font-size: 2.1rem;
         padding: 0;
         white-space: nowrap;
-        margin-left: 10px;
+        margin-left: 20px;
       }
 
       @media #{$small-and-down} {
         .nav-title {
-          font-size: 1.8rem;
+          font-size: 1.6rem;
         }
       }
 

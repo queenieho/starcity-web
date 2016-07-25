@@ -95,7 +95,7 @@
          [:label {:for "email"} "Email"]]]
        [:div.row
         [:div.col.s12.center-align
-         [:button.btn.waves-effect.waves-light.btn-large {:type "submit"}
+         [:button.btn.waves-effect.waves-light.btn-large.star-green.lighten-1 {:type "submit"}
           "Join Us"
           [:i.material-icons.right "send"]]]]]]]]])
 

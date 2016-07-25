@@ -332,19 +332,68 @@ $grey: (
 );
 
 $slate-blue: (
-  "base": #53748c
+  "base": #53748c,
+  "lighten-5": #7b9ab1,
+  "lighten-4": #7b9ab1,
+  "lighten-3": #7b9ab1,
+  "lighten-2": #6b8ea7,
+  "lighten-1": #5c819c,
+  "darken-1": #4a677c,
+  "darken-2": #40596c,
+  "darken-3": #374c5c,
+  "darken-4": #374c5c
 );
 
 $tranquil-blue: (
-  "base": #a1bed9
+  "base": #a1bed9,
+  "lighten-5": #d7e4ef,
+  "lighten-4": #d7e4ef,
+  "lighten-3": #d7e4ef,
+  "lighten-2": #c5d7e8,
+  "lighten-1": #b3cbe0,
+  "darken-1": #8fb1d2,
+  "darken-2": #7da5ca,
+  "darken-3": #6b98c3,
+  "darken-4": #6b98c3
 );
 
 $star-orange: (
-  "base": #e3a80d
+  "base": #e3a80d,
+  "lighten-5": #f5c548,
+  "lighten-4": #f5c548,
+  "lighten-3": #f5c548,
+  "lighten-2": #f3bd30,
+  "lighten-1": #f2b618,
+  "darken-1": #cb960c,
+  "darken-2": #b3840a,
+  "darken-3": #9b7209,
+  "darken-4": #9b7209
 );
 
 $bone-pink: (
-  "base": #d7c2aa
+  "base": #d7c2aa,
+  "lighten-5": #fbf8f6,
+  "lighten-4": #f7f2ee,
+  "lighten-3": #efe7de,
+  "lighten-2": #e7dbcd,
+  "lighten-1": #dfcebb,
+  "darken-1": #cfb699,
+  "darken-2": #c7a987,
+  "darken-3": #bf9d76,
+  "darken-4": #bf9d76
+);
+
+$star-green: (
+  "base": #7a8e52,
+  "lighten-5": #a0b27a,
+  "lighten-4": #a0b27a,
+  "lighten-3": #a0b27a,
+  "lighten-2": #94a96a,
+  "lighten-1": #889e5b,
+  "darken-1": #6c7e49,
+  "darken-2": #5e6e34,
+  "darken-3": #505e36,
+  "darken-4": #505e36
 );
 
 $shades: (
@@ -379,7 +428,8 @@ $colors: (
   "slate-blue": $slate-blue,
   "tranquil-blue": $tranquil-blue,
   "star-orange": $star-orange,
-  "bone-pink": $bone-pink
+  "bone-pink": $bone-pink,
+  "star-green": $star-green
 );
 
 
