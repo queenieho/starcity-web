@@ -1,6 +1,6 @@
 (ns starcity.views.terms
   (:require [starcity.views.base :refer [base]]
-            [starcity.views.terms :as terms]))
+            [starcity.views.terms.content :as content]))
 
 ;; =============================================================================
 ;; Helpers
@@ -70,8 +70,8 @@
      [:h3 "Starcity Properties, Inc"]
      [:h4 "Terms of Service"]]
     [:div.divider]
-    [:p preamble]
-    [:ol (map render-term terms/terms)]]])
+    [:p content/preamble]
+    [:ol (map render-term content/terms)]]])
 
 ;; =============================================================================
 ;; API

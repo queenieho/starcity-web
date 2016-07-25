@@ -6815,9 +6815,6 @@ main#member-application .card-panel {
       main#member-application .card-panel nav .dropdown-content li.disabled a {
         pointer-events: none;
         color: #9e9e9e; }
-main#member-application h5 u {
-  border-bottom: 1px dotted black;
-  text-decoration: none; }
 main#member-application .section {
   padding-bottom: 0; }
 main#member-application label span:after {

@@ -106,7 +106,7 @@
    (for [[title section] sections]
      [:div.section;.center
       (wrap-section
-       [:h5.light.center [:u title]]
+       [:h5.light.center title]
        section)])
    [:div.row
     [:div.col.s12.center
