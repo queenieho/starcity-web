@@ -1,5 +1,5 @@
 (ns starcity.controllers.terms
-  (:require [starcity.views.terms :as view]
+  (:require [starcity.views.legal.terms :as view]
             [ring.util.response :as response]
             [starcity.controllers.utils :refer :all]))
 

@@ -1,5 +1,5 @@
 (ns starcity.controllers.privacy
-  (:require [starcity.views.privacy :as view]
+  (:require [starcity.views.legal.privacy :as view]
             [ring.util.response :as response]
             [starcity.controllers.utils :refer :all]))
 
