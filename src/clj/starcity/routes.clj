@@ -11,6 +11,7 @@
              [application :as application]
              [auth :as auth]
              [availability :as availability]
+             [elm :as elm]
              [faq :as faq]
              [landing :as landing]
              [register :as register]
@@ -61,6 +62,8 @@
 
   (GET  "/login"        [] login/show-login)
   (POST "/login"        [] login/login!)
+
+  (GET "/elm" [] elm/show)
 
   (ANY  "/logout"       [] auth/logout!)
 
