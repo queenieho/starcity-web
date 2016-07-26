@@ -24,7 +24,12 @@
                                  (response/content-type "text/html; charset=utf-8")
                                  (assoc :status 403))
     :else                    (let [current-url (:uri request)]
-                               (response/redirect (format "/login?next=%s" current-url)))))
+                               ;; NOTE: Treat /application as a special case,
+                               ;; since it'll be triggered from the landing page
+                               ;; most frequently
+                               (if (= current-url "/application")
+                                 (response/redirect "/signup")
+                                 (response/redirect (format "/login?next=%s" current-url))))))
 
 (defn- get-role [req]
   (get-in req [:identity :account/role]))
