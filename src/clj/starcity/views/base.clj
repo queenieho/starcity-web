@@ -2,7 +2,8 @@
   (:require [hiccup.core :refer [html]]
             [hiccup.page :refer [html5 include-css include-js]]
             [clojure.string :refer [lower-case]]
-            [cheshire.core :as json]))
+            [cheshire.core :as json]
+            [starcity.views.base.nav :as nav]))
 
 ;; =============================================================================
 ;; Helpers
@@ -62,7 +63,7 @@
 (defn footer []
   (let [company-links [["About" "/about"]
                        ["Team" "/team"]
-                       ["Blog" "/blog"]]]
+                       ["Blog" "https://blog.starcityproperties.com"]]]
     [:footer.page-footer
      [:div.container
       [:div.col.l4.offset-l2.s12
@@ -80,20 +81,6 @@
   [:a.brand-logo {:href "/"}
    [:img#header-logo {:alt "Starcity Logo" :src "/assets/img/starcity-brand-icon-white.png"}]
    [:span "Starcity"]])
-
-(defn nav-link
-  ([text]
-   (nav-link text (format "/%s" (-> text lower-case))))
-  ([text uri]
-   [:li [:a {:href uri} text]]))
-
-(defn nav-button
-  ([text]
-   (nav-button text (format "/%s" (-> text lower-case))))
-  ([text uri & classes]
-   [:li
-    [:a.waves-effect.waves-light.btn {:href uri :class (apply str classes)}
-     text]]))
 
 (defn navbar
   ([links]
@@ -115,11 +102,7 @@
 ;; API
 ;; =============================================================================
 
-(def default-nav-links
-  [(nav-link "Availability")
-   (nav-link "FAQ" "/fack") ; TODO: faq
-   (nav-link "About")
-   (nav-button "Apply Now" "/application" "star-orange")])
+(def default-nav-links [nav/availability nav/faq nav/about nav/apply])
 
 (defn hero
   "Page template with a `hero`."
@@ -157,6 +140,6 @@
        (format "var %s = %s" name (json/encode obj))])
     (include-js
            "/assets/bower/jquery-validation/dist/jquery.validate.js"
-           "/js/validation-defaults.js"
+           "/js/validation-defaults.js" ; TODO: Bundle with /js/main.js
            "/js/main.js")
     ]))
