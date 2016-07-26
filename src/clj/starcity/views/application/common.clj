@@ -1,5 +1,6 @@
 (ns starcity.views.application.common
   (:require [starcity.views.base :refer [base]]
+            [starcity.views.base.nav :as nav]
             [starcity.models.application]
             [clojure.spec :as s]))
 
@@ -136,5 +137,6 @@
                [:div.col.s12.l8.offset-l2.card-panel.grey-text.text-darken-2
                 (navbar title current-steps)
                 (form-content sections submit-button)]]]]
+   :nav-links [nav/logout]
    :js js
    :json json))

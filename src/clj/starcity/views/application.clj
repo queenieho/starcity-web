@@ -1,5 +1,6 @@
 (ns starcity.views.application
-  (:require [starcity.views.base :refer [base]]))
+  (:require [starcity.views.base :refer [base]]
+            [starcity.views.base.nav :as nav]))
 
 ;; =============================================================================
 ;; Helpers
@@ -48,10 +49,12 @@
   (base
    :content (if just-completed
               just-completed-content
-              post-completion-content)))
+              post-completion-content)
+   :nav-links [nav/logout]))
 
 (defn application
   [current-steps]
   (base
    ;; TODO: Depends on current-steps
-   :content get-started-content))
+   :content get-started-content
+   :nav-links [nav/logout]))
