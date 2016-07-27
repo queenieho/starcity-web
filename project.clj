@@ -33,6 +33,8 @@
                  ;; util
                  [prismatic/plumbing "0.5.3"]]
 
+  :resource-paths ["resources" "src/clj/starcity/datomic"]
+
   :profiles {:dev {:source-paths ["src/dev" "src/clj"]}
 
              :uberjar       {:aot          [starcity.core]
