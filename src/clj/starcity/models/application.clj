@@ -30,7 +30,7 @@
 ;; =====================================
 ;; Application
 
-(s/def ::desired-lease int?)
+(s/def ::desired-license int?)
 (s/def ::desired-availability :starcity.spec/date)
 (s/def ::desired-properties (s/spec (s/+ int?)))
 
@@ -49,10 +49,10 @@
   [application {properties :desired-properties}]
   (replace-unique conn (:db/id application) :member-application/desired-properties properties))
 
-(defn- desired-lease-update-tx
-  [application {lease :desired-lease}]
-  (when lease
-    [[:db/add (:db/id application) :member-application/desired-lease lease]]))
+(defn- desired-license-update-tx
+  [application {license :desired-license}]
+  (when license
+    [[:db/add (:db/id application) :member-application/desired-license license]]))
 
 (defn- pet-update-tx
   [application {pet :pet}]
@@ -105,7 +105,7 @@
   "Returns true if the logistics section of the application can be considered
   complete."
   [application-id]
-  (let [ks   [:member-application/desired-lease
+  (let [ks   [:member-application/desired-license
               :member-application/desired-availability]
         data (d/pull (d/db conn) ks application-id)]
     (every? (comp not nil?) ((apply juxt ks) data))))
@@ -182,7 +182,7 @@
 (def update!
   (make-update-fn
    conn
-   {:desired-lease        desired-lease-update-tx
+   {:desired-license      desired-license-update-tx
     :desired-availability desired-availability-update-tx
     :desired-properties   desired-properties-update-tx
     :pet                  pet-update-tx
@@ -190,7 +190,7 @@
 
 (s/fdef update!
         :args (s/cat :application-id int?
-                     :attributes (s/keys :opt-un [::desired-lease
+                     :attributes (s/keys :opt-un [::desired-license
                                                   ::desired-availability
                                                   ::desired-properties
                                                   ::pet]))
@@ -240,11 +240,11 @@
 
 (defn create!
   "Create a new rental application for `account-id'."
-  [account-id desired-properties desired-lease desired-availability & {:keys [pet]}]
+  [account-id desired-properties desired-license desired-availability & {:keys [pet]}]
   (let [tid (d/tempid (datomic-partition))
         pet (when pet (ks->nsks :pet pet))
         ent (-> {:db/id                tid
-                 :desired-lease        desired-lease
+                 :desired-license      desired-license
                  :desired-availability desired-availability
                  :desired-properties   desired-properties}
                 (assoc-when :pet pet)
@@ -255,7 +255,7 @@
 (s/fdef create!
         :args (s/cat :account-id int?
                      :desired-properties ::desired-properties
-                     :desired-lease ::desired-lease
+                     :desired-license ::desired-license
                      :desired-availability ::desired-availability
                      :opts (s/keys* :opt-un [::pet]))
         :ret  int?)

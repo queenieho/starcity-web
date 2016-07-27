@@ -83,9 +83,6 @@
     (< (/ term 12) 1) (format "%d months" term)
     :otherwise        (format "%d year" (/ term 12))))
 
-(license-term-text 6)
-(< (/ 6 12) 1)
-
 ;; (defn- license-price-text
 ;;   [price]
 ;;   (format "$%.0f/month" price))
