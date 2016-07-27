@@ -74,40 +74,43 @@
          (f/unparse month-year-formatter dt)])]]))
 
 ;; =============================================================================
-;; Lease
+;; License
 
-(defn- lease-term-text
+(defn- license-term-text
   [term]
-  (let [rem (mod term 12)]
-    (cond
-      (= term 1)  "Month-to-month"
-      (even? rem) (format "%d year" (/ term 12))
-      :otherwise  (format "%d month" term))))
+  (cond
+    (= term 1)        "Month-to-month"
+    (< (/ term 12) 1) (format "%d months" term)
+    :otherwise        (format "%d year" (/ term 12))))
 
-(defn- lease-price-text
-  [price]
-  (format "$%.0f/month" price))
+(license-term-text 6)
+(< (/ 6 12) 1)
 
-(defn- lease-radio
-  [desired-lease {:keys [db/id available-lease/term available-lease/price]}]
-  (let [is-checked (= id (:db/id desired-lease))
-        radio-id   (str "selected-lease-" id)]
+;; (defn- license-price-text
+;;   [price]
+;;   (format "$%.0f/month" price))
+
+(defn- license-radio
+  [desired-license {:keys [:db/id :license/term]}]
+  (let [is-checked (= id (:db/id desired-license))
+        radio-id   (str "selected-license-" id)]
     [:p
      [:input {:type     "radio"
-              :name     "selected-lease"
+              :name     "selected-license"
               :id       radio-id
               :value    id
               :checked  is-checked
               :data-msg "Please choose the duration of your stay."
               :required true}]
-     [:label.lease-label {:for radio-id}
-      [:span.lease-term (lease-term-text term)]
-      [:span.lease-price (lease-price-text price)]]]))
+     [:label.license-label {:for radio-id}
+      [:span.license-term (license-term-text term)]
+      ;; [:span.license-price (license-price-text price)]
+      ]]))
 
-(defn- choose-lease
-  [leases desired-lease]
+(defn- choose-license
+  [licenses desired-license]
   [:div.validation-group
-   (map (partial lease-radio desired-lease) leases)])
+   (map (partial license-radio desired-license) (sort-by :license/term licenses))])
 
 ;; =============================================================================
 ;; Pets
@@ -165,7 +168,11 @@
                 :value   "no"
                 :checked has-no-pet}]
        [:label {:for "pets-radio-no"} "No"]]]
-     [:div#pet-inputs (show-when (has-pet? application)) ; for jQuery fadeIn/fadeOut
+     [:div#pet-inputs (show-when (has-pet? application)) ; for jQuery
+                                                         ; fadeIn/fadeOut...which
+                                                         ; I hate. These two
+                                                         ; things shouldn't get
+                                                         ; mingled.
       (pet-inputs pet)])))
 
 ;; =============================================================================
@@ -174,13 +181,12 @@
 
 (defn logistics
   "Show the logistics page."
-  [current-steps properties application available-leases & {:keys [errors]}]
-  (let [sections [["Which Starcity communities are you applying to?"
-                   (choose-properties properties (:member-application/desired-properties application))]
-                  ["When is your ideal move-in date?"
+  [current-steps properties application licenses & {:keys [errors]}]
+  (let [sections [["When is your ideal move-in date?"
                    (choose-availability (:member-application/desired-availability application))]
                   ["How long would you like to stay?"
-                   (choose-lease available-leases (:member-application/desired-lease application))]
-                  ["Do you have a pet?"
-                   (choose-pet application)]]]
+                   (choose-license licenses (:member-application/desired-license application))]
+                  ["Which Starcity communities are you applying to?"
+                   (choose-properties properties (:member-application/desired-properties application))]
+                  ["Do you have a pet?" (choose-pet application)]]]
     (common/step "Logistics" sections current-steps :errors errors)))

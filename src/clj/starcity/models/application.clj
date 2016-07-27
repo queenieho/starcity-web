@@ -5,9 +5,7 @@
             [starcity
              [config :refer [datomic-partition]]
              [datomic :refer [conn]]]
-            [starcity.datomic.util :refer :all]
             [starcity.models.util :refer :all]
-            [starcity.datomic.transaction :refer [replace-unique]]
             [starcity.spec]))
 
 ;; =============================================================================
@@ -49,7 +47,7 @@
 
 (defn- desired-properties-update-tx
   [application {properties :desired-properties}]
-  (replace-unique (:db/id application) :member-application/desired-properties properties))
+  (replace-unique conn (:db/id application) :member-application/desired-properties properties))
 
 (defn- desired-lease-update-tx
   [application {lease :desired-lease}]
@@ -182,11 +180,13 @@
 ;; update!
 
 (def update!
-  (make-update-fn {:desired-lease        desired-lease-update-tx
-                   :desired-availability desired-availability-update-tx
-                   :desired-properties   desired-properties-update-tx
-                   :pet                  pet-update-tx
-                   :address              address-update-tx}))
+  (make-update-fn
+   conn
+   {:desired-lease        desired-lease-update-tx
+    :desired-availability desired-availability-update-tx
+    :desired-properties   desired-properties-update-tx
+    :pet                  pet-update-tx
+    :address              address-update-tx}))
 
 (s/fdef update!
         :args (s/cat :application-id int?

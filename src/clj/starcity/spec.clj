@@ -2,7 +2,6 @@
   (:require [clojure.spec :as s]))
 
 (defn- date? [x]
-  (println (type x))
   (= (type x) java.util.Date))
 
 (s/def ::date date?)

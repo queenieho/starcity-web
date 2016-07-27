@@ -17,7 +17,7 @@
 ;; Constants
 ;; =============================================================================
 
-(def ^:private +redirect-after-activation+ "/availability")
+(def ^:private +redirect-after-activation+ "/communities")
 (def ^:private +redirect-after-signup+ "/signup/complete")
 
 ;; =============================================================================

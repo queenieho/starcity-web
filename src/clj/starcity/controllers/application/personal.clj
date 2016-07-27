@@ -60,13 +60,6 @@
   [account-id]
   (clean-data (d/pull (d/db conn) personal-pattern account-id)))
 
-(comment
-
-  (let [acct-id (:db/id (starcity.datomic.util/one (d/db conn) :account/email "test@test.com"))]
-    (personal-data acct-id))
-
-  )
-
 ;; =============================================================================
 ;; Parameter Validation & Transforms
 

@@ -1,5 +1,6 @@
 (ns starcity.views.base.nav
-  (:require [clojure.string :refer [lower-case]]))
+  (:require [clojure.string :refer [lower-case]])
+  (:refer-clojure :exclude [apply]))
 
 ;; =============================================================================
 ;; Helpers
@@ -16,14 +17,14 @@
    (nav-button text (format "/%s" (-> text lower-case))))
   ([text uri & classes]
    [:li
-    [:a.waves-effect.waves-light.btn {:href uri :class (apply str classes)}
+    [:a.waves-effect.waves-light.btn {:href uri :class (clojure.core/apply str classes)}
      text]]))
 
 ;; =============================================================================
 ;; API
 ;; =============================================================================
 
-(def availability (nav-link "Availability"))
+(def communities (nav-link "Our Communities" "/communities"))
 (def faq (nav-link "FAQ" "/fack"))
 (def about (nav-link "About"))
 (def apply (nav-button "Apply Now" "/application" "star-orange"))

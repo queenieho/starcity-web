@@ -10,7 +10,7 @@
             [starcity.controllers
              [application :as application]
              [auth :as auth]
-             [availability :as availability]
+             [communities :as communities]
              [faq :as faq]
              [landing :as landing]
              [register :as register]
@@ -54,7 +54,7 @@
   ;; public
   (GET "/" [] landing/show-landing)
   (GET "/register"     [] register/register-user!)
-  (GET "/availability" [] availability/show-availability)
+  (GET "/communities" [] communities/show-communities)
   (GET "/fack"          [] faq/show-faq)
   (GET "/terms"         [] terms/show-terms)
   (GET "/privacy"        [] privacy/show-privacy)
