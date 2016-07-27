@@ -49,7 +49,7 @@
   [:div.col.m8.offset-m2.l4.center-align
    [:img.circle.responsive-img {:src img-src}]
    [:h5.center title]
-   [:p.flow-text-small blurb]])
+   [:p.light blurb]])
 
 (def ^:private landing-content
   [:div
@@ -58,16 +58,17 @@
     [:div.container
      [:div.row
       [:div.center-align
-       [:h3 "What's Included"]
-       [:p.flow-text "Here's what we offer to members that join any of our communities:"]]
-      (feature "Private &amp; Secure" "/assets/img/promo-bar-privacy.png"
-               "TODO:")
+       [:h3 "Member Benefits"]
+       [:p.flow-text "All of our communities offer the following:"]
+       ]
+      (feature "Privacy &amp; Security" "/assets/img/promo-bar-privacy.png"
+               "Each member receives a secure, private room to nest in and make their own. All incoming members run through a background check to ensure community safety.")
 
-      (feature "Flexible Terms" "/assets/img/promo-bar-community.png"
-               "TODO:")
+      (feature "Community" "/assets/img/promo-bar-community.png"
+               "Our buildings offer plenty of shared space for everyday interaction with fellow community members and guests. Kitchens, dining areas, and entertainment rooms bring everyone together.")
 
-      (feature "Amenities" "/assets/img/promo-bar-amenities.png"
-               "TODO:")
+      (feature "Comfort" "/assets/img/promo-bar-amenities.png"
+               "Fully-furnished? Yes. On-site laundry? Check. Hi-speed WiFi? Of course. Amenities are included to make your life simple.")
 
       ]]]
 
@@ -75,9 +76,8 @@
     [:div.container
      [:div.row
       [:div.col.s12.center-align.white-text
-       [:h3 "Community"]
-       [:p.flow-text-large "Community-building in this city must reflect the eclectic nature of San Francisco itself. We are looking for members that embrace individuals from all walks of life."]
-       ;; [:p.flow-text "We are building communities that embrace individuals from all walks of life."]
+       [:h3 "A Focus on Community"]
+       [:p.flow-text-large "Our homes are welcoming, relaxing and safe. Our members are respectful, warm and empathetic people that come together to form inclusive, uplifting communities. We are seeking new members that reflect the eclectic nature of San Francisco itself, embracing individuals from all walks of life."]
        ]]]]
 
    ;; memberships from 1 month to 1 year...
@@ -104,7 +104,7 @@
    :content landing-content
    :title "Your new home in san francisco"
    :description "Comfortable, communal housing for our city's workforce."
-   :background-image "/assets/img/sf_homes_1.jpeg"
+   :background-image "/assets/img/starcity-kitchen.png"
    :action {:uri   "/application"
             :text  "apply for a home"
             :class "star-orange"}))
