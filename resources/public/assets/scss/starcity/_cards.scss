@@ -1,0 +1,19 @@
+.card {
+  .activator {
+    cursor: pointer;
+  }
+
+  .card-image {
+    img.gradient {
+      background-position: center center;
+      background-repeat: no-repeat;
+      background-size: cover;
+      height: 400px;
+    }
+  }
+
+  .card-subtitle {
+    font-size: 24px;
+    font-weight: 300;
+  }
+}
