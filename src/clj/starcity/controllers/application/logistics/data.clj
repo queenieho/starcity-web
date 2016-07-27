@@ -1,7 +1,7 @@
 (ns starcity.controllers.application.logistics.data
   (:require [datomic.api :as d]
             [starcity.datomic :refer [conn]]
-            [starcity.datomic.util :refer [one]]
+            [starcity.models.util :refer [one]]
             [starcity.models.application :as application]))
 
 ;; =============================================================================
@@ -14,24 +14,23 @@
   [account-id]
   (let [app-id  (:db/id (application/by-account-id account-id))
         pattern [:db/id
-                 :member-application/desired-lease
+                 :member-application/desired-license
                  :member-application/desired-availability
                  {:member-application/desired-properties [:db/id]}
                  {:member-application/pet [:db/id :pet/type :pet/weight :pet/breed]}]]
     (d/pull (d/db conn) pattern app-id)))
 
-(defn pull-leases
-  "Pull available leases."
+(defn pull-licenses
+  "Pull available licenses."
   []
-  (->> (d/q '[:find ?e :where [?e :available-lease/term _]] (d/db conn))
+  (->> (d/q '[:find ?e :where [?e :license/term _]] (d/db conn))
        (map first)
-       (d/pull-many (d/db conn) [:db/id :available-lease/term :available-lease/price])))
+       (d/pull-many (d/db conn) [:db/id :license/term])))
 
 (defn pull-properties
   []
   (letfn [(-count-available [units]
-            (-> (filter :unit/available-on units)
-                (count)))]
+            (count (filter :unit/available-on units)))]
     (->> (d/q '[:find ?e :where [?e :property/name _]] (d/db conn))
          (map first)
          (d/pull-many (d/db conn) [:db/id :property/name :property/available-on
@@ -41,10 +40,3 @@
 (defn property-by-internal-name
   [internal-name]
   (one (d/db conn) :property/internal-name internal-name))
-
-(comment
-
-  (pull-properties)
-
-
-  )

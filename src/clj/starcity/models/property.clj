@@ -2,24 +2,34 @@
   (:require [starcity.datomic :refer [conn]]
             [starcity.config :as config]
             [starcity.models.util :refer :all]
-            [starcity.datomic.util :refer :all]
             [datomic.api :as d]
-            [starcity.config :as config]))
+            [starcity.config :as config]
+            [starcity.spec]
+            [clojure.spec :as s]))
 
 ;; =============================================================================
 ;; API
 ;; =============================================================================
 
 ;; =============================================================================
+;; Spec
+
+(s/def :property/name string?)
+(s/def :property/available-on :starcity.spec/date)
+(s/def :property/cover-image-url string?)
+(s/def :property/description string?)
+;; (s/def :property/address )
+
+;; =============================================================================
 ;; Queries
 
-(defn available-leases
-  [property]
-  (->> (d/q '[:find ?ls
-              :in $ ?p
-              :where [?p :property/available-leases ?ls]]
-            (d/db conn) (:db/id property))
-       (map first)))
+;; (defn available-leases
+;;   [property]
+;;   (->> (d/q '[:find ?ls
+;;               :in $ ?p
+;;               :where [?p :property/available-leases ?ls]]
+;;             (d/db conn) (:db/id property))
+;;        (map first)))
 
 (defn available-units
   "Retrieve all units that are currently available.
@@ -34,6 +44,12 @@
               [?units :unit/available-on _]]
             (d/db conn) property-id)
        (map first)))
+
+(defn many
+  [pattern]
+  (->> (find-all-by (d/db conn) :property/name) ; get all properties
+       (entids) ; get just their entids
+       (d/pull-many (d/db conn) pattern)))
 
 ;; =============================================================================
 ;; Transactions

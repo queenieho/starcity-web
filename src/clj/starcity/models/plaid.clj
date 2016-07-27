@@ -1,6 +1,5 @@
 (ns starcity.models.plaid
-  (:require [starcity.datomic.util :refer :all]
-            [starcity.datomic :refer [conn]]
+  (:require [starcity.datomic :refer [conn]]
             [starcity.models.util :refer :all]
             [starcity.config :refer [config]]
             [datomic.api :as d]

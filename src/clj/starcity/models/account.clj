@@ -8,7 +8,6 @@
             [starcity
              [config :as config]
              [datomic :refer [conn]]]
-            [starcity.datomic.util :refer :all]
             [starcity.models.util :refer :all]))
 
 ;; =============================================================================
@@ -77,14 +76,16 @@
     @(d/transact conn [ent])))
 
 (def update!
-  (make-update-fn {:ssn  (fn [{id :db/id} {ssn :ssn}]
-                           [[:db/add id :account/ssn ssn]])
-                   :dob  (fn [{id :db/id} {dob :dob}]
-                           [[:db/add id :account/dob dob]])
-                   :name (fn [{id :db/id} {{:keys [first middle last]} :name}]
-                           (map-form->list-form id {:account/first-name  first
-                                                    :account/last-name   last
-                                                    :account/middle-name middle}))}))
+  (make-update-fn
+   conn
+   {:ssn  (fn [{id :db/id} {ssn :ssn}]
+            [[:db/add id :account/ssn ssn]])
+    :dob  (fn [{id :db/id} {dob :dob}]
+            [[:db/add id :account/dob dob]])
+    :name (fn [{id :db/id} {{:keys [first middle last]} :name}]
+            (map-form->list-form id {:account/first-name  first
+                                     :account/last-name   last
+                                     :account/middle-name middle}))}))
 
 ;; =============================================================================
 ;; Misc
