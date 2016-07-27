@@ -5,7 +5,8 @@
             [clojure.string :as str]
             [starcity.datomic.conformity :as c]
             [starcity.environment :refer [environment]]
-            [taoensso.timbre :refer [info infof]]))
+            [taoensso.timbre :refer [info infof]]
+            [clojure.java.io :as io]))
 
 ;; NOTE: Consider parameterizing the migration directory from project
 ;; config, thus allowing for a dir of env-specific migrations
@@ -22,8 +23,11 @@
 (def ^:private migration-formatter
   (f/formatter "YYYY-MM-dd-HH-mm-ss"))
 
-(def ^:private migration-dir
+(def ^:private migration-dir-path
   "src/clj/starcity/datomic/migrations")
+
+(def ^:private migration-dir-resource
+  (io/resource "migrations"))
 
 (defn- migration-template
   [migration-name env]
@@ -50,10 +54,10 @@
                      :or   {include-timestamp? true}}]
   (let [env                (when env (if (true? env) environment env))
         [filename content] (generate-migration migration-name include-timestamp? env)
-        path               (format "%s/%s" migration-dir filename)]
+        path               (format "%s/%s" migration-dir-path filename)]
     (do
-      (when-not (fs/exists? migration-dir)
-        (fs/mkdir migration-dir))
+      (when-not (fs/exists? migration-dir-path)
+        (fs/mkdir migration-dir-path))
       (spit path content)
       path)))
 
@@ -124,5 +128,5 @@
 (defn run-migrations
   "Given a database connection, run database migrations."
   [conn]
-  (let [norms (compile-migrations migration-dir)]
+  (let [norms (compile-migrations migration-dir-resource)]
     (c/ensure-conforms conn norms)))
