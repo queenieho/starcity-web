@@ -38,8 +38,7 @@
   :profiles {:dev {:source-paths ["src/dev" "src/clj"]}
 
              :uberjar       {:aot          [starcity.core]
-                             :source-paths ["src/clj"]
-                             :resource-paths ["resources" "src/clj/starcity/datomic"]}}
+                             :source-paths ["src/clj"]}}
 
   :repl-options {:init-ns user}
 

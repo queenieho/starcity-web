@@ -23,11 +23,12 @@
 (def ^:private migration-formatter
   (f/formatter "YYYY-MM-dd-HH-mm-ss"))
 
+;; TODO: Not a fan of the following two Vars.
 (def ^:private migration-dir-path
   "src/clj/starcity/datomic/migrations")
 
 (def ^:private migration-dir-resource
-  (io/resource "migrations"))
+  (io/file (io/resource "migrations")))
 
 (defn- migration-template
   [migration-name env]
