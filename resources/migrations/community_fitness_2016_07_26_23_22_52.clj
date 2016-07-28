@@ -1,4 +1,4 @@
-(ns starcity.datomic.migrations.community-fitness-2016-07-26-23-22-52)
+(ns migrations.community-fitness-2016-07-26-23-22-52)
 
 (def migration
   [{:db/id                 #db/id[:db.part/db]

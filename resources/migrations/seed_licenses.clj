@@ -1,4 +1,4 @@
-(ns starcity.datomic.migrations.seed-licenses
+(ns migrations.seed-licenses
   (:require [datomic.api :as d]))
 
 (defn migration [conn]

@@ -1,4 +1,4 @@
-(ns starcity.datomic.migrations.seed-union-square
+(ns migrations.seed-union-square
   (:require [datomic.api :as d]
             [starcity.datomic.migration-utils :refer :all]))
 

@@ -1,4 +1,4 @@
-(ns starcity.datomic.migrations.seed-gilbert
+(ns migrations.seed-gilbert
   (:require [datomic.api :as d]
             [starcity.datomic.migration-utils :refer :all]))
 

@@ -25,7 +25,7 @@
 
 ;; TODO: Not a fan of the following two Vars.
 (def ^:private migration-dir-path
-  "src/clj/starcity/datomic/migrations")
+  "resources/migrations")
 
 (def ^:private migration-dir-resource
   (io/file (io/resource "migrations")))
@@ -33,7 +33,7 @@
 (defn- migration-template
   [migration-name env]
   (let [env-str (if env (str "\n:env " env) "")]
-    (format "(ns starcity.datomic.migrations.%s)\n\n(def migration\n  [])\n\n(def norms\n  {:starcity/%s {:txes [migration]%s}})"
+    (format "(ns migrations.%s)\n\n(def migration\n  [])\n\n(def norms\n  {:starcity/%s {:txes [migration]%s}})"
             migration-name migration-name env-str)))
 
 (defn- generate-migration
@@ -69,19 +69,20 @@
 ;; =============================================================================
 ;; Helpers
 
-(defn- filename
+(defn- file-namespace
   [file]
-  (->> (fs/split file)
-       (drop-while #(not= % "clj"))     ; get to the project
-       (rest)
-       (interpose ".")
-       (apply str)))
+  (let [stop (first (butlast (fs/split migration-dir-path)))]
+    (fs/base-name
+     (->> (fs/split file)
+          (drop-while #(not= % stop))     ; get to the project
+          (rest)
+          (interpose ".")
+          (apply str))
+     true)))
 
-(defn- filename->migration
-  [filename]
-  (-> filename
-      (str/split #"\.clj")
-      (first)
+(defn- file-ns->migration
+  [file-ns]
+  (-> file-ns
       (str/replace "_" "-")
       (str "/norms")
       (symbol)
@@ -103,12 +104,12 @@
 (defn- file->norms
   "Given a migration file, produce a map of norms."
   [file]
-  (let [filename' (filename file)
-        ns'       (fs/path-ns filename')]
+  (let [file-ns (file-namespace file)
+        ns'     (fs/path-ns file-ns)]
     (do
       (require ns')
-      (-> filename'
-          (filename->migration)
+      (-> file-ns
+          (file-ns->migration)
           (parse-migration)))))
 
 (defn- compile-migrations
