@@ -1,4 +1,4 @@
-(ns starcity.datomic.migrations.starcity-partition)
+(ns migrations.starcity-partition)
 
 (def migration
   [{:db/id                 #db/id[:db.part/db]

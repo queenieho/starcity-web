@@ -1,4 +1,4 @@
-(ns starcity.datomic.migrations.seed-historic-tenderloin
+(ns migrations.seed-historic-tenderloin
   (:require [datomic.api :as d]
             [starcity.datomic.migration-utils :refer :all]))
 

@@ -1,4 +1,4 @@
-(ns starcity.datomic.migrations.property-license-2016-07-26-22-39-25)
+(ns migrations.property-license-2016-07-26-22-39-25)
 
 (def migration
   [{:db/id                 #db/id[:db.part/db]

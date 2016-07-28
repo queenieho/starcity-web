@@ -1,4 +1,4 @@
-(ns starcity.datomic.migrations.seed-test-accounts-2016-07-27-18-31-45
+(ns migrations.seed-test-accounts-2016-07-27-18-31-45
   (:require [starcity.datomic.migration-utils :refer :all]))
 
 (def migration
