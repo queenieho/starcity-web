@@ -1,6 +1,6 @@
-(ns starcity.datomic.migration-utils
-  (:require [datomic.api :as d]
-            [starcity.models.util :refer [one]]))
+(ns starcity.datomic.migrations.utils
+  (:require [starcity.models.util :refer [one]]
+            [datomic.api :as d]))
 
 ;; =============================================================================
 ;; General
