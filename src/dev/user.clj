@@ -7,7 +7,6 @@
             [starcity.server]
             [starcity.datomic :refer [conn]]
             [starcity.config]
-            [starcity.datomic.migration :refer [new-migration!]]
             [datomic.api :as d]
             [starcity.models.util :refer :all]
             [starcity.services.mailgun]
