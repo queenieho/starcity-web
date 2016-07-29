@@ -38,4 +38,4 @@
 
 (defn team
   []
-  (base :content content))
+  (base :content content :title "Team"))

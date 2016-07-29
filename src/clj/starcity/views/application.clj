@@ -55,6 +55,7 @@
 (defn application
   [current-steps]
   (base
+   :title "Apply"
    ;; TODO: Depends on current-steps
    :content get-started-content
    :nav-links [nav/logout]))

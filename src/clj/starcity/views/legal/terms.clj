@@ -23,4 +23,6 @@
 
 (defn terms
   []
-  (base :content content))
+  (base
+   :title "Terms of Service"
+   :content content))

@@ -87,7 +87,9 @@
 
 (defn communities
   [properties]
-  (base :content (content properties)))
+  (base
+   :title "Communities"
+   :content (content properties)))
 
 (s/fdef communities
         :args (s/cat :properties (s/spec (s/+ ::property)))

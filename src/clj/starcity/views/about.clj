@@ -18,4 +18,4 @@
 
 (defn about
   []
-  (base :content content))
+  (base :content content :title "About Us"))
