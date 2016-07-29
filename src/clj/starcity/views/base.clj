@@ -102,7 +102,7 @@
 ;; API
 ;; =============================================================================
 
-(def default-nav-links [nav/communities nav/faq nav/about nav/apply])
+(def default-nav-links [nav/communities nav/faq nav/apply])
 
 (defn hero
   "Page template with a `hero`."
