@@ -23,4 +23,6 @@
 
 (defn privacy
   []
-  (base :content content))
+  (base
+   :title "Privacy Policy"
+   :content content))

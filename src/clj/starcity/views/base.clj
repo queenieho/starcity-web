@@ -48,7 +48,7 @@
 ;; =============================================================================
 ;; Generic
 
-(defn head []
+(defn head [title]
   [:head
    ;; Icon Font
    [:link {:href "https://fonts.googleapis.com/icon?family=Material+Icons" :rel "stylesheet"}]
@@ -57,6 +57,7 @@
            :href  main-css
            :media "screen,projection"}]
 
+   [:title title]
    ;; Let browser know whebsite is optimized for mobile
    [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]])
 
@@ -106,12 +107,13 @@
 
 (defn hero
   "Page template with a `hero`."
-  [& {:keys [nav-links content title description action background-image]
-      :or   {nav-links default-nav-links
-             content   [:div]}}]
+  [& {:keys [nav-links content title description action background-image head-title]
+      :or   {nav-links  default-nav-links
+             head-title "Starcity"
+             content    [:div]}}]
   (html5
    {:lang "en"}
-   (head)
+   (head head-title)
    [:body
     [:div#hero-wrapper (hero-background-style background-image)
      (navbar nav-links "transparent black-text")
@@ -123,13 +125,14 @@
 
 (defn base
   "Page template with a solid navbar."
-  [& {:keys [nav-links content js json]
+  [& {:keys [nav-links content js json title]
       :or   {nav-links default-nav-links
+             ;; title     "Starcity"
              js        []
              json      []}}]
   (html5
    {:lang "en"}
-   (head)
+   (head (if title (str "Starcity &mdash; " title) "Starcity"))
    [:body
     (navbar nav-links)
     content

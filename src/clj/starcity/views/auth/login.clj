@@ -62,4 +62,5 @@
   "The login view."
   [errors email next-url]
   (base
+   :title "Log In"
    :content (login-content errors email next-url)))

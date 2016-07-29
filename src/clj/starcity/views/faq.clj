@@ -75,6 +75,7 @@
 (defn faq
   []
   (base
+   :title "FAQ"
    :content
    [:main
     [:div.container

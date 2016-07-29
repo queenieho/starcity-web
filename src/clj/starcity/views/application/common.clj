@@ -127,6 +127,7 @@
                                    :or   {errors        []
                                           submit-button default-submit-button}}]
   (base
+   :title "Apply"
    :content [:main#member-application
              [:div.container
               [:div.row {:style "margin-bottom: 0;"}
