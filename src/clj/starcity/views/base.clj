@@ -62,13 +62,13 @@
    [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]])
 
 (defn footer []
-  (let [company-links [["About" "/about"]
-                       ["Team" "/team"]
+  (let [company-links [["About Us" "/about"]
+                       ["Our Team" "/team"]
                        ["Blog" "https://blog.starcityproperties.com"]]]
     [:footer.page-footer
      [:div.container
       [:div.col.l4.offset-l2.s12
-       [:h5.white-text "Company"]
+       [:h5.white-text "Starcity"]
        [:ul
         (for [[text uri] company-links]
           [:li [:a.grey-text.text-lighten-3 {:href uri} text]])]]]

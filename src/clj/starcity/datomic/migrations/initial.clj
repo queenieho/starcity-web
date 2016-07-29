@@ -15,6 +15,7 @@
   add-property-license-schema
   add-property-schema
   add-unit-schema
+  add-community-safety-schema
   add-starcity-partition
   seed-licenses
   seed-gilbert

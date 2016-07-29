@@ -1,30 +1,5 @@
 (ns starcity.models.util
-  (:require [datomic.api :as d]
-            [clojure.set :as set]))
-
-(declare entity?)
-
-;; =============================================================================
-;; Helpers
-;; =============================================================================
-
-(defn- gen-tx
-  [params txfns]
-  (->> (keys params)
-       (reduce (fn [fns k]
-                 (if (contains? params k)
-                   (conj fns (get txfns k))
-                   fns))
-               [])
-       (apply juxt)))
-
-(defn- ents->ids
-  [entities]
-  (set
-   (map
-    (fn [e]
-      (if (entity? e) (:db/id e) e))
-    entities)))
+  (:require [datomic.api :as d]))
 
 ;; =============================================================================
 ;; API
@@ -129,19 +104,6 @@
             (conj acc [:db/add entity-id k v]))
           [] m))
 
-(defn replace-unique
-  "Given an entity-id, cardinality many attribute and new values, generate a
-  transact to remove all values that are not present in `new-values' and add
-  any values that were not already present."
-  [conn entity-id attribute new-values]
-  (let [ent        (one (d/db conn) entity-id)
-        old-values (ents->ids (get ent attribute))
-        to-remove  (set/difference old-values (set new-values))]
-    (vec
-     (concat
-      (map (fn [v] [:db/retract entity-id attribute v]) to-remove)
-      (map (fn [v] [:db/add entity-id attribute v]) new-values)))))
-
 (defn ks->nsks [ns m]
   (let [ns (if (string? ns) ns (name ns))]
     (reduce (fn [acc [k v]]
@@ -150,12 +112,3 @@
                 (assoc acc (keyword ns (name k)) v)))
             {}
             m)))
-
-(defn make-update-fn
-  "TODO: documentation"
-  [conn txfns]
-  (fn [entity-id params]
-    (let [tx (->> ((gen-tx params txfns) (one (d/db conn) entity-id) params)
-                  (apply concat))]
-      @(d/transact conn (vec tx))
-      entity-id)))

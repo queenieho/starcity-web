@@ -3,9 +3,10 @@
             [datomic.api :as d]
             [plumbing.core :refer [assoc-when]]
             [starcity
-             [config :refer [datomic-partition]]
+             [config :refer [datomic] :rename {datomic config}]
              [datomic :refer [conn]]]
             [starcity.models.util :refer :all]
+            [starcity.models.util.update :refer :all]
             [starcity.spec]))
 
 ;; =============================================================================
@@ -181,7 +182,6 @@
 
 (def update!
   (make-update-fn
-   conn
    {:desired-license      desired-license-update-tx
     :desired-availability desired-availability-update-tx
     :desired-properties   desired-properties-update-tx
@@ -202,7 +202,7 @@
 (defn complete!
   [account-id stripe-id]
   (let [application-id (:db/id (by-account-id account-id))
-        tid            (d/tempid (datomic-partition))]
+        tid            (d/tempid (:partition config))]
     @(d/transact conn [{:db/id                           application-id
                         :member-application/locked       true
                         :member-application/submitted-at (java.util.Date.)}
@@ -241,7 +241,7 @@
 (defn create!
   "Create a new rental application for `account-id'."
   [account-id desired-properties desired-license desired-availability & {:keys [pet]}]
-  (let [tid (d/tempid (datomic-partition))
+  (let [tid (d/tempid (:partition config))
         pet (when pet (ks->nsks :pet pet))
         ent (-> {:db/id                tid
                  :desired-license      desired-license

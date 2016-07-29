@@ -3,7 +3,7 @@
             [starcity.config :as config]
             [starcity.models.util :refer :all]
             [datomic.api :as d]
-            [starcity.config :as config]
+            [starcity.config :refer [datomic] :rename {datomic config}]
             [starcity.spec]
             [clojure.spec :as s]))
 
@@ -63,6 +63,6 @@
                          {:name            name
                           :internal-name   internal-name
                           :units-available units-available})
-        tid    (d/tempid (config/datomic-partition))
+        tid    (d/tempid (:partition config))
         tx     @(d/transact conn [(assoc entity :db/id tid)])]
     (d/resolve-tempid (d/db conn) (:tempids tx) tid)))

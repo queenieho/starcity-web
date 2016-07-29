@@ -38,6 +38,7 @@
           :db/doc                "The user's hashed password."
           :db.install/_attribute :db.part/db}
 
+         ;; TODO: Flip
          {:db/id                 #db/id[:db.part/db]
           :db/ident              :account/member-application
           :db/valueType          :db.type/ref
@@ -59,6 +60,7 @@
           :db/doc                "The user's license."
           :db.install/_attribute :db.part/db}
 
+         ;; TODO: Flip
          {:db/id                 #db/id[:db.part/db]
           :db/ident              :account/activation-hash
           :db/valueType          :db.type/string

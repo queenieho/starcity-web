@@ -1,6 +1,7 @@
 (ns starcity.views.legal.render
   (:require [hiccup.core :refer [html]]
-            [clojure.string :refer [replace]]))
+            [clojure.string :refer [replace]])
+  (:refer-clojure :exclude [replace]))
 
 (declare render-term)
 
