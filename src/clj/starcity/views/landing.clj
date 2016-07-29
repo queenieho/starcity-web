@@ -62,7 +62,7 @@
        [:p.flow-text "All of our communities offer the following:"]
        ]
       (feature "Privacy &amp; Security" "/assets/img/promo-bar-privacy.png"
-               "Each member receives a secure, private room to nest in and make their own. All incoming members run through a background check to ensure community safety.")
+               "Each member receives a secure, private room to nest in and make their own. All members run through a background check to ensure community safety.")
 
       (feature "Community" "/assets/img/promo-bar-community.png"
                "Our buildings offer plenty of shared space for everyday interaction with fellow community members and guests. Kitchens, dining areas, and entertainment rooms bring everyone together.")
