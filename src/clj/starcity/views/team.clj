@@ -13,26 +13,26 @@
 
 (def ^:private founders
   [{:name        "Jon Dishotsky"
-    :title       "Founder &amp; CEO"
+    :title       "CEO & Co-Founder"
     :image       "/assets/img/jon.jpg"
-    :description "Donec posuere augue in quam.  Aliquam erat volutpat.  Pellentesque condimentum, magna ut suscipit hendrerit, ipsum augue ornare nulla, non luctus diam neque sit amet urna.  Nam a sapien.  Nam a sapien.  Nam a sapien.  Sed diam.  Cras placerat accumsan nulla.  Pellentesque condimentum, magna ut suscipit hendrerit, ipsum augue ornare nulla, non luctus diam neque sit amet urna.  Nulla posuere."}
+    :description "Jon is the founder and CEO of Starcity. He has lived in San Francisco since rent for an apartment was ~$1,000 (a long time ago). He grew up in Palo Alto, where his family fostered a communal lifestyle with people from around the world. They shacked up in the family’s cottage and developed a deep sense of (hippie) community spirit. At Starcity, Jon shapes company culture, finds and closes deals to grow Starcity's network of communal homes, identifies future growth opportunities, and handles public relations."}
    {:name        "Mo Sakrani"
-    :title       "Cofounder &amp; CPO"
+    :title       "CPO & Co-Founder"
     :image       "/assets/img/mo.jpg"
-    :description "Donec posuere augue in quam.  Aliquam erat volutpat.  Pellentesque condimentum, magna ut suscipit hendrerit, ipsum augue ornare nulla, non luctus diam neque sit amet urna.  Nam a sapien.  Nam a sapien.  Nam a sapien.  Sed diam.  Cras placerat accumsan nulla.  Pellentesque condimentum, magna ut suscipit hendrerit, ipsum augue ornare nulla, non luctus diam neque sit amet urna.  Nulla posuere."}
+    :description "Mo is the co-founder and CPO of Starcity. He has lived in shared, communal housing his entire life, from growing up in a tiny apartment with a family of six in NYC to his current San Francisco apartment that he shares with a group of four. At Starcity, Mo shapes the design aesthetic, manages software and physical product development, and works closely with our communities to address their needs."}
    {:name        "Jesse Suarez"
-    :title       "Cofounder &amp; COO"
+    :title       "COO & Co-Founder"
     :image       "/assets/img/jesse.jpg"
-    :description "Donec posuere augue in quam.  Aliquam erat volutpat.  Pellentesque condimentum, magna ut suscipit hendrerit, ipsum augue ornare nulla, non luctus diam neque sit amet urna.  Nam a sapien.  Nam a sapien.  Nam a sapien.  Sed diam.  Cras placerat accumsan nulla.  Pellentesque condimentum, magna ut suscipit hendrerit, ipsum augue ornare nulla, non luctus diam neque sit amet urna.  Nulla posuere."}
+    :description "Jesse is the co-founder and COO of Starcity. He lived in a communal house during his undergraduate days at UC Berkeley. There he learned the power of sharing resources and community interaction. Jesse was living in San Francisco until rent increases caused him to move east to Oakland. At Starcity, Jesse structures relationships with our many partners, handles financial operations, and spearheads recruitment."}
    {:name        "Josh Lehman"
-    :title       "Cofounder &amp; CTO"
+    :title       "CTO & Co-Founder"
     :image       "/assets/img/josh.jpg"
-    :description "Donec posuere augue in quam.  Aliquam erat volutpat.  Pellentesque condimentum, magna ut suscipit hendrerit, ipsum augue ornare nulla, non luctus diam neque sit amet urna.  Nam a sapien.  Nam a sapien.  Nam a sapien.  Sed diam.  Cras placerat accumsan nulla.  Pellentesque condimentum, magna ut suscipit hendrerit, ipsum augue ornare nulla, non luctus diam neque sit amet urna.  Nulla posuere."}])
+    :description "Josh is the co-founder and CTO of Starcity. He recently lived on a tiny sailboat for several weeks during a race from Port Townsend, Washington to Ketchikan, Alaska. He now lives in Oakland, though he's often found with his camera in Golden Gate Park, taking photos of everyday San Franciscans. At Starcity, Josh builds all of our software and handles smart-home tech integrations for our communal homes."}])
 
 (def ^:private content
   [:main
    [:div.container
-    [:h2 "The Team"]
+    [:h2 "Our Team"]
     [:div.card-panel
      (map founder founders)]]])
 
