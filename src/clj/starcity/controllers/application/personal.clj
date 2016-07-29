@@ -136,7 +136,7 @@
 (comment
 
   (let [vresult (validate-params
-                 {:name {:first "Josh", :middle "Dickface", :last "Lehman"},
+                 {:name {:first "Josh" :last "Lehman"},
                   :dob "1998-07-11",
                   :address
                   {:lines ["adsfa dadf" ""],

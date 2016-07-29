@@ -6,7 +6,7 @@
             [clojure.string :refer [lower-case trim]]
             [datomic.api :as d]
             [starcity
-             [config :as config]
+             [config :refer [datomic] :rename {datomic config}]
              [datomic :refer [conn]]]
             [starcity.models.util :refer :all]
             [starcity.models.util.update :refer [make-update-fn]]))
@@ -67,7 +67,7 @@
                         :activation-hash (generate-activation-hash email)
                         :activated       false
                         :role            :account.role/applicant})
-        tid  (d/tempid (config/datomic-partition))
+        tid  (d/tempid (:partition config))
         tx   @(d/transact conn [(assoc acct :db/id tid)])]
     (d/resolve-tempid (d/db conn) (:tempids tx) tid)))
 
