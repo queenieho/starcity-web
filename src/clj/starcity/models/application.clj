@@ -6,6 +6,7 @@
              [config :refer [datomic-partition]]
              [datomic :refer [conn]]]
             [starcity.models.util :refer :all]
+            [starcity.models.util.update :refer :all]
             [starcity.spec]))
 
 ;; =============================================================================
@@ -181,7 +182,6 @@
 
 (def update!
   (make-update-fn
-   conn
    {:desired-license      desired-license-update-tx
     :desired-availability desired-availability-update-tx
     :desired-properties   desired-properties-update-tx

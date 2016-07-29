@@ -8,7 +8,8 @@
             [starcity
              [config :as config]
              [datomic :refer [conn]]]
-            [starcity.models.util :refer :all]))
+            [starcity.models.util :refer :all]
+            [starcity.models.util.update :refer [make-update-fn]]))
 
 ;; =============================================================================
 ;; Helpers
@@ -77,7 +78,6 @@
 
 (def update!
   (make-update-fn
-   conn
    {:ssn  (fn [{id :db/id} {ssn :ssn}]
             [[:db/add id :account/ssn ssn]])
     :dob  (fn [{id :db/id} {dob :dob}]
