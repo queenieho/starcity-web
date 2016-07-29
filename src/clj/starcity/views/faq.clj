@@ -79,19 +79,19 @@
    :content
    [:main
     [:div.container
-     [:h3 "Frequently Asked Questions"]
-     [:div.divider]
+     [:h2 "Frequently Asked Questions"]
      [:p.flow-text "We put together this FAQ to help you better understand how Starcity works. If you're a current member and have questions about your Membership Agreement, please reach out to us at "
       [:a {:href "mailto:team@starcityproperties.com."}
        "team@starcityproperties.com"]
       "."]
-     (for [{:keys [question answers]} sections]
-       [:div.section
-        [:h4 question]
-        (for [answer answers]
-          (if (vector? answer)
-            [:ul
-             ;; TODO: Make css class for the list items
-             (for [item answer]
-               [:li [:p.flow-text item]])]
-            [:p.flow-text answer]))])]]))
+     [:div.card-panel
+      (for [{:keys [question answers]} sections]
+        [:div.half-section
+         [:h4 question]
+         (for [answer answers]
+           (if (vector? answer)
+             [:ul.bullets
+              ;; TODO: Make css class for the list items
+              (for [item answer]
+                [:li.flow-text-small item])]
+             [:p.flow-text-small answer]))])]]]))

@@ -25,7 +25,7 @@
 ;; =============================================================================
 
 (def communities (nav-link "Our Communities" "/communities"))
-(def faq (nav-link "FAQ" "/fack"))
+(def faq (nav-link "FAQ" "/faq"))
 (def about (nav-link "About"))
 (def apply (nav-button "Apply Now" "/application" "star-orange"))
 (def logout (nav-link "Log Out" "/logout"))

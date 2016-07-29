@@ -6500,6 +6500,9 @@ main {
 footer.page-footer {
   margin-top: 0px; }
 
+.half-section {
+  padding-bottom: 1rem; }
+
 .card .activator {
   cursor: pointer; }
 .card .card-image img.gradient {

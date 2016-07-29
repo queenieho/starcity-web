@@ -60,14 +60,13 @@
           (->> licenses
                (sort-by :property-license/base-price <)
                (map (fn [property-license]
-                      [:li (membership-rate-text property-license)])))]))
-      ]]))
+                      [:li (membership-rate-text property-license)])))]))]]))
 
 (defn- content
   [properties]
   [:main
    [:div.container
-    [:h3 "Our Communities"]
+    [:h2 "Our Communities"]
     [:p.flow-text "Here's a catalog of homes you can apply to live in. Each community has a unique character and layout. Explore them below to determine which appeal to you."]
     [:div.row
      (for [p (sort-by :property/available-on properties)]

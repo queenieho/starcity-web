@@ -15,7 +15,9 @@
              [landing :as landing]
              [register :as register]
              [terms :as terms]
-             [privacy :as privacy]]
+             [privacy :as privacy]
+             [team :as team]
+             [about :as about]]
             [starcity.controllers.application
              [personal :as personal]
              [logistics :as logistics]
@@ -55,9 +57,11 @@
   (GET "/" [] landing/show-landing)
   (GET "/register"     [] register/register-user!)
   (GET "/communities" [] communities/show-communities)
-  (GET "/fack"          [] faq/show-faq)
+  (GET "/faq"          [] faq/show-faq)
   (GET "/terms"         [] terms/show-terms)
   (GET "/privacy"        [] privacy/show-privacy)
+  (GET "/about" [] about/show-about)
+  (GET "/team" [] team/show-team)
 
   (GET  "/login"        [] login/show-login)
   (POST "/login"        [] login/login!)
