@@ -23,7 +23,7 @@
     [:h3 "Application Status"]
     [:div.divider]
     [:p.flow-text "Your application is under review &mdash; please reach out to us "
-     [:a {:href "mailto:team@starcityproperties.com"} "here"]
+     [:a {:href "mailto:team@joinstarcity.com"} "here"]
      " if you have any questions about your application."]]])
 
 (def ^:private get-started-content
@@ -33,7 +33,7 @@
      [:div.card-panel
       [:h3 "Let's Get Started"]
       [:div.divider]
-      [:p.flow-text "Integer placerat tristique nisl.  Etiam vel tortor sodales tellus ultricies commodo.  Vestibulum convallis, lorem a tempus semper, dui dui euismod elit, vitae placerat urna tortor vitae lacus.  Nullam eu ante vel est convallis dignissim.  Etiam vel neque nec dui dignissim bibendum.  Cras placerat accumsan nulla.  Vivamus id enim.  Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.  Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.  Donec vitae dolor.  Sed diam.  Sed bibendum."]
+      [:p.flow-text "This application should take no more than a few minutes of your time. You'll answer a few simple questions about your move-in logistics, indicate which Starcity communities you're interested in, and enter some basic information to enable us to perform a community safety check. Once you submit, we'll take steps to pre-qualify you for the Starcity community and reach out to schedule a tour."]
       [:div.row
        [:div.col.s12
         [:a.btn.waves-effect.waves-light.btn-large
