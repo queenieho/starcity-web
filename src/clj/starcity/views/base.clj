@@ -137,9 +137,7 @@
     content
     (footer)
     (apply include-js base-js)
-    [:script {:src "/js/hero.js" :type "application/javascript"}]
-    ;; (include-js "/js/hero.js")
-    ]))
+    (include-js "/js/hero.js")]))
 
 (defn base
   "Page template with a solid navbar."

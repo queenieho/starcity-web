@@ -2,6 +2,7 @@
   (:require [ring.adapter.jetty :refer [run-jetty]] ; server
             [org.httpkit.server :refer [run-server]]
             ;; middleware
+            [ring.middleware.content-type :refer [wrap-content-type]]
             [ring.middleware.resource :refer [wrap-resource]]
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.params :refer [wrap-params]]
@@ -36,9 +37,10 @@
       (wrap-json-params)
       (wrap-json-response)
       (wrap-params)
-      (wrap-session)
       (wrap-resource "public")
-      (wrap-exception-handling)))
+      (wrap-session)
+      (wrap-exception-handling)
+      (wrap-content-type)))
 
 ;; =============================================================================
 ;; API
