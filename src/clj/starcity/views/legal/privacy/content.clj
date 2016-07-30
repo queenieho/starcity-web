@@ -12,7 +12,7 @@
 (def ^:private what-covered
   (with-title "What This Policy Covers"
     (paragraphs-list
-     "This Policy pertains specifically to the way we collect, use, and store information from www.starcityproperties.com (the “Site”) and the services, features, content or applications we offer (collectively with the Site, these are the “Services”)."
+     "This Policy pertains specifically to the way we collect, use, and store information from www.joinstarcity.com (the “Site”) and the services, features, content or applications we offer (collectively with the Site, these are the “Services”)."
      "Specifically, we put this Policy together to tell you about how we treat the personally identifiable information (“Personal Information”) that is either gathered when you use our Services or provided to us by our third-party partners that help our Services work more efficiently (“Partners”)."
      "While we seek out Partners that share our respect for your privacy, you should note that this Policy does not cover the practices of our Partners, since we do not own or control them. Even though you may engage with our Partners while interacting with our Services, such as payment processors, you should review the privacy policy of each Partner independently and carefully. Starcity does not take responsibility for the policies held by our Partners."
      "For example, before you apply to live in a Starcity community, you should also read Plaid’s privacy policy, since they are one of our Partners and the information you provide to them through our Services will be treated in accordance with their privacy policy. ")))
@@ -92,7 +92,7 @@
 
 (def ^:private how-delete
   (with-title "How Can I Delete My Account?"
-    (content "You can delete your Account by emailing team@starcityproperties.com with the subject line “Terminate My Account”. If you terminate your Account, any association between your Account and information we store will no longer be accessible through your Account.")))
+    (content "You can delete your Account by emailing team@joinstarcity.com with the subject line “Terminate My Account”. If you terminate your Account, any association between your Account and information we store will no longer be accessible through your Account.")))
 
 (def ^:private choices-regarding-information
   (with-title "What Choices Do I Have Regarding My Information"
@@ -107,7 +107,7 @@
 
 (def ^:private questions-concerns
   (with-title "What if I Have Questions or Concerns?"
-    (content "If you have any questions or concerns regarding privacy using the Services, please send us a detailed message to team@starcityproperties.com. We will make every effort to resolve your concerns.")))
+    (content "If you have any questions or concerns regarding privacy using the Services, please send us a detailed message to team@joinstarcity.com. We will make every effort to resolve your concerns.")))
 
 (def privacy
   (render-terms

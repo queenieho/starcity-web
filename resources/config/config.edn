@@ -1,8 +1,6 @@
 {:webserver {:port 8080}
 
- :datomic   {:schema-dir "datomic/schemas"
-             :seed-dir   "datomic/seed"
-             :partition  :db.part/starcity}
+ :datomic   {:partition :db.part/starcity}
 
  :logger    {:level   :trace
              :logfile "logs/server.log"}

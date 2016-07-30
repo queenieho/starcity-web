@@ -64,7 +64,7 @@
 (defn footer []
   (let [company-links [["About Us" "/about"]
                        ["Our Team" "/team"]
-                       ["Blog" "https://blog.starcityproperties.com"]]]
+                       ["Blog" "https://blog.joinstarcity.com"]]]
     [:footer.page-footer
      [:div.container
       [:div.col.l4.offset-l2.s12
