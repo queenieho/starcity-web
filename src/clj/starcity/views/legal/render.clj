@@ -48,7 +48,7 @@
   {:content content})
 
 (def ^:private default-substitutions
-  {"team@starcityproperties.com" [:a {:href "mailto:team@starcityproperties.com"} "team@starcityproperties.com"]
+  {"team@joinstarcity.com" [:a {:href "mailto:team@joinstarcity.com"} "team@joinstarcity.com"]
    "Plaid"                       [:a {:href "https://plaid.com/legal/#plaid-services"} "Plaid"]})
 
 (defn- make-substitutions

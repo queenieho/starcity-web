@@ -62,7 +62,7 @@ function personal() {
   var linkHandler = Plaid.create({
     env: plaid.env,
     clientName: 'Starcity',
-    product: 'connect',
+    product: 'auth',
     key: plaid.key,
     onSuccess: sendPublicToken,
     onExit: function() {

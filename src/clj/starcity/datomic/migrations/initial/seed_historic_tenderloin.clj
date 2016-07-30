@@ -7,7 +7,7 @@
   :txes (let [pls [[1 2300.0] [6 2100.0] [12 2000.0]]]
           [{:db/id                    (d/tempid :db.part/starcity)
             :property/name            "Historic Tenderloin"
-            :property/description     "TODO:"
+            :property/description     "This is a ground-up development in the historic Tenderloin neighborhood. It will offer 231 new housing units with lots of communal space. All units will have state of the art private baths and cooking facilities. Units will be approximately 250 square feet, 350 square feet, and 450 square feet. This project will be two, seven-story buildings adjacent to each other with 5,000 square feet of retail space on the ground. There will be shared roof decks and double height lounges on every other floor. We are implementing state of the art green technologies with very low energy and water costs. Sign up now to have a say in the development of communal areas and to engage with early community members!"
             :property/cover-image-url "/assets/img/tenderloin-cover-image.jpeg"
             :property/upcoming        "Coming Q4 2017"
             :property/internal-name   "361turk"

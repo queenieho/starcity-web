@@ -48,23 +48,39 @@
 ;; =============================================================================
 ;; Generic
 
-(defn head [title]
-  [:head
-   ;; Icon Font
-   [:link {:href "https://fonts.googleapis.com/icon?family=Material+Icons" :rel "stylesheet"}]
-   [:link {:type  "text/css"
-           :rel   "stylesheet"
-           :href  main-css
-           :media "screen,projection"}]
+(defn- apple-touch-icon [size]
+  [:link {:rel   "apple-touch-icon"
+          :sizes size
+          :href  (format "/apple-icon-%s.png" size)}])
 
-   [:title title]
-   ;; Let browser know whebsite is optimized for mobile
-   [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]])
+(defn head [title]
+  (let [sizes ["57x57" "60x60" "72x72" "76x76" "114x114" "120x120" "144x144"
+               "152x152" "180x180"]]
+    [:head
+     [:meta {:charset "utf-8"}]
+     [:meta {:http-equiv "X-UA-Compatible" :content "IE=edge"}]
+     ;; google site verification
+     [:meta {:name "google-site-verification" :content "efd7Gz_b7RGhSoL42WIElePfRXEZlKgguT-2ha5Zlqs"}]
+     ;; Let browser know whebsite is optimized for mobile
+     [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]
+     (map apple-touch-icon sizes)
+     [:link {:rel "icon" :type "image/png" :sizes "192x192" :href "/android-icon-192x192.png"}]
+     [:link {:rel "icon" :type "image/png" :sizes "32x32" :href "/favicon-32x32.png"}]
+     [:link {:rel "icon" :type "image/png" :sizes "96x96" :href "/favicon-96x96.png"}]
+     [:link {:rel "icon" :type "image/png" :sizes "16x16" :href "/favicon-16x16.png"}]
+     [:link {:rel "manifest" :href "/manifest.json"}]
+     [:meta {:name "msapplication-TileColor" :content "#ffffff"}]
+     [:meta {:name "msapplication-TileImage" :content "/ms-icon-144x144.png"}]
+     [:meta {:name "theme-color" :content "#ffffff"}]
+     ;; Icon Font
+     [:link {:href "https://fonts.googleapis.com/icon?family=Material+Icons" :rel "stylesheet"}]
+     [:link {:type "text/css" :rel "stylesheet" :href main-css :media "screen,projection"}]
+     [:title title]]))
 
 (defn footer []
   (let [company-links [["About Us" "/about"]
                        ["Our Team" "/team"]
-                       ["Blog" "https://blog.starcityproperties.com"]]]
+                       ["Blog" "https://blog.joinstarcity.com"]]]
     [:footer.page-footer
      [:div.container
       [:div.col.l4.offset-l2.s12
@@ -127,7 +143,6 @@
   "Page template with a solid navbar."
   [& {:keys [nav-links content js json title]
       :or   {nav-links default-nav-links
-             ;; title     "Starcity"
              js        []
              json      []}}]
   (html5
@@ -137,12 +152,12 @@
     (navbar nav-links)
     content
     (footer)
-    (apply include-js (concat base-js js))
+    (for [script (concat base-js js)]
+      [:script {:src script :type "application/json"}])
     (for [[name obj] json]
-      [:script
+      [:script {:type "application/json"}
        (format "var %s = %s" name (json/encode obj))])
-    (include-js
-           "/assets/bower/jquery-validation/dist/jquery.validate.js"
-           "/js/validation-defaults.js" ; TODO: Bundle with /js/main.js
-           "/js/main.js")
-    ]))
+    (for [script ["/assets/bower/jquery-validation/dist/jquery.validate.js"
+                  "/js/validation-defaults.js" ; TODO: Bundle with /js/main.js
+                  "/js/main.js"]]
+      [:script {:src script :type "application/json"}])]))
