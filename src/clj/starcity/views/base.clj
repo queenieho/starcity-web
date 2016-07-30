@@ -143,6 +143,7 @@
   "Page template with a solid navbar."
   [& {:keys [nav-links content js json title]
       :or   {nav-links default-nav-links
+             ;; title     "Starcity"
              js        []
              json      []}}]
   (html5
@@ -152,12 +153,12 @@
     (navbar nav-links)
     content
     (footer)
-    (for [script (concat base-js js)]
-      [:script {:src script :type "application/json"}])
+    (apply include-js (concat base-js js))
     (for [[name obj] json]
-      [:script {:type "application/json"}
+      [:script
        (format "var %s = %s" name (json/encode obj))])
-    (for [script ["/assets/bower/jquery-validation/dist/jquery.validate.js"
-                  "/js/validation-defaults.js" ; TODO: Bundle with /js/main.js
-                  "/js/main.js"]]
-      [:script {:src script :type "application/json"}])]))
+    (include-js
+     "/assets/bower/jquery-validation/dist/jquery.validate.js"
+     "/js/validation-defaults.js" ; TODO: Bundle with /js/main.js
+     "/js/main.js")
+    ]))
