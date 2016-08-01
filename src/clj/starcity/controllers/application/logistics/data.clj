@@ -1,7 +1,7 @@
 (ns starcity.controllers.application.logistics.data
   (:require [datomic.api :as d]
             [starcity.datomic :refer [conn]]
-            [starcity.models.util :refer [one]]
+            [starcity.models.util :refer [one qes find-all-by entids]]
             [starcity.models.application :as application]))
 
 ;; =============================================================================
@@ -23,8 +23,8 @@
 (defn pull-licenses
   "Pull available licenses."
   []
-  (->> (d/q '[:find ?e :where [?e :license/term _]] (d/db conn))
-       (map first)
+  (->> (find-all-by (d/db conn) :license/term)
+       (entids)
        (d/pull-many (d/db conn) [:db/id :license/term])))
 
 (defn pull-properties
@@ -33,7 +33,12 @@
             (count (filter :unit/available-on units)))]
     (->> (d/q '[:find ?e :where [?e :property/name _]] (d/db conn))
          (map first)
-         (d/pull-many (d/db conn) [:db/id :property/name :property/available-on
+         (d/pull-many (d/db conn) [:db/id
+                                   :property/upcoming
+                                   :property/name
+                                   :property/available-on
+                                   {:property/licenses [:property-license/license
+                                                        :property-license/base-price]}
                                    {:property/units [:unit/available-on]}])
          (map #(update-in % [:property/units] -count-available)))))
 

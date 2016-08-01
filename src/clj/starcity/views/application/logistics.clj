@@ -24,12 +24,13 @@
 ;; Properties
 
 (defn- property-checkbox
-  [chosen idx {:keys [:db/id :property/name :property/available-on :property/units]}]
+  [chosen idx {:keys [:db/id :property/name :property/upcoming :property/available-on :property/units]}]
   (let [is-chosen?        #(-> (chosen %) nil? not)
         dt                (c/from-date available-on)
-        availability-text (if (t/after? (t/now) dt)
-                            "now"
-                            (f/unparse month-day-year-formatter dt))]
+        availability-text (cond
+                            upcoming              upcoming
+                            (t/after? (t/now) dt) "now"
+                            :otherwise            (f/unparse month-day-year-formatter dt))]
     [:p; TODO: .tooltipped {:data-position "left" :data-tooltip  "woot!"}
      [:input {:id       id
               :type     "checkbox"
@@ -43,12 +44,13 @@
        (let [text (if (zero? units) "full" (format "%s units available" units))]
          [:span.property-units {:class (when (zero? units) "full")}
           text])
+       [:span.license-price {:style "display: none;"} ""]
        [:span.availability-date availability-text]]]]))
 
 (defn- choose-properties
   [properties desired-properties]
   (let [properties (sort-by :property/available-on properties)]
-    [:div.validation-group
+    [:div#properties-section.validation-group
      (map-indexed (partial property-checkbox (->> desired-properties (map :db/id) set))
                   properties)])) ; sort-by availability?
 
@@ -83,10 +85,6 @@
     (< (/ term 12) 1) (format "%d months" term)
     :otherwise        (format "%d year" (/ term 12))))
 
-;; (defn- license-price-text
-;;   [price]
-;;   (format "$%.0f/month" price))
-
 (defn- license-radio
   [desired-license {:keys [:db/id :license/term]}]
   (let [is-checked (= id (:db/id desired-license))
@@ -100,13 +98,11 @@
               :data-msg "Please choose the duration of your stay."
               :required true}]
      [:label.license-label {:for radio-id}
-      [:span.license-term (license-term-text term)]
-      ;; [:span.license-price (license-price-text price)]
-      ]]))
+      [:span.license-term (license-term-text term)]]]))
 
 (defn- choose-license
   [licenses desired-license]
-  [:div.validation-group
+  [:div#license-section.validation-group
    (map (partial license-radio desired-license) (sort-by :license/term licenses))])
 
 ;; =============================================================================
@@ -166,11 +162,26 @@
                 :checked has-no-pet}]
        [:label {:for "pets-radio-no"} "No"]]]
      [:div#pet-inputs (show-when (has-pet? application)) ; for jQuery
-                                                         ; fadeIn/fadeOut...which
-                                                         ; I hate. These two
-                                                         ; things shouldn't get
-                                                         ; mingled.
+                                        ; fadeIn/fadeOut...which
+                                        ; I hate. These two
+                                        ; things shouldn't get
+                                        ; mingled.
       (pet-inputs pet)])))
+
+(defn- property-license-mapping
+  [properties]
+  (reduce
+   (fn [acc {property-id :db/id
+            licenses    :property/licenses
+            upcoming    :property/upcoming}]
+     (assoc acc property-id
+            (reduce (fn [acc {license    :property-license/license
+                             base-price :property-license/base-price}]
+                      (assoc acc (:db/id license) (if upcoming "Price TBD" base-price)))
+                    {}
+                    licenses)))
+   {}
+   properties))
 
 ;; =============================================================================
 ;; API
@@ -186,4 +197,6 @@
                   ["Which Starcity communities are you applying to?"
                    (choose-properties properties (:member-application/desired-properties application))]
                   ["Do you have a pet?" (choose-pet application)]]]
-    (common/step "Logistics" sections current-steps :errors errors)))
+    (common/step "Logistics" sections current-steps
+                 :errors errors
+                 :json [["licenseMapping" (property-license-mapping properties)]])))

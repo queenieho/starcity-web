@@ -48,7 +48,7 @@
         (list
          [:p (str "Available " (->> available-on c/from-date (f/unparse month-day-year-formatter)))]
          [:p.light (format "From $%.0f/month" starting-price)])
-        [:p upcoming])]
+        [:p (str "Coming " upcoming)])]
      [:div.card-reveal
       [:span.card-title name
        [:i.material-icons.right "close"]]

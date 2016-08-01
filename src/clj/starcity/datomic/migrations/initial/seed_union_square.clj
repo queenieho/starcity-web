@@ -9,7 +9,7 @@
             :property/name            "Union Square"
             :property/description     "Our Union Square location is a four-story, masonry structure completed in 1910. The building was built as a bathhouse and continued to be used as such until the mid-1980's. We're converting the top three floors into private units for our members and the ground-level offerings will be determined by the initial members of the community. Sign up now to be a part of this communal building and have a say on the function of communal spaces! This community has room for 40 private units."
             :property/cover-image-url "/assets/img/union-square-cover.jpg"
-            :property/upcoming        "Coming Q1 2017"
+            :property/upcoming        "Q1 2017"
             :property/internal-name   "229ellis"
             :property/available-on    #inst "2017-02-01T00:00:00.000-00:00"
             :property/address         {:address/lines "229 Ellis St."
