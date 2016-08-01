@@ -24,6 +24,13 @@
           :db.install/_attribute :db.part/db}
 
          {:db/id                 #db/id[:db.part/db]
+          :db/ident              :account/phone-number
+          :db/valueType          :db.type/string
+          :db/cardinality        :db.cardinality/one
+          :db/doc                "The user's phone number."
+          :db.install/_attribute :db.part/db}
+
+         {:db/id                 #db/id[:db.part/db]
           :db/ident              :account/email
           :db/unique             :db.unique/identity
           :db/valueType          :db.type/string
