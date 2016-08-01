@@ -3,6 +3,7 @@
              [core :as b]
              [validators :as v]]
             [ring.util.response :as response]
+            [hiccup.core :refer [html]]
             [starcity.controllers.application.common :as common]
             [starcity.controllers.utils :refer :all]
             [starcity.models
@@ -11,6 +12,7 @@
              [community-safety :as community-safety]]
             [starcity.datomic :refer [conn]]
             [starcity.services.stripe :as stripe]
+            [starcity.services.mailgun :as mailgun]
             [starcity.services.community-safety :refer [background-check]]
             [starcity.views.application.submit :as view]
             [taoensso.timbre :as timbre]
@@ -53,6 +55,30 @@
      {:tos-acknowledged      [(required tos-msg) [v/member #{"on"} :message tos-msg]]
       :background-permission [(required bgc-msg) [v/member #{"on"} :message bgc-msg]]
       :stripe-token          [[v/string :message stripe-msg] (required stripe-msg)]})))
+
+;; =============================================================================
+;; Submission Email
+
+(defn- submission-email-content
+  [first-name]
+  (html
+   [:body
+    [:p (format "Hi %s," first-name)]
+    [:p "Thank you for completing Starcity's membership application. Here's what to expect now:"]
+    [:ol
+     [:li "Over the next couple of business days, we'll process your application (community safety and financial checks) to pre-qualify you for the community."]
+     [:li "We'll notify you as soon as you're pre-qualified, and one of our community members will then reach out to schedule an interview and tour of the home you've applied for."]]
+    [:p "Stay tuned and thanks for your patience!"]
+    [:p "Best,"
+     [:br]
+     "Team Starcity"]]))
+
+(defn- send-submission-email
+  [account-id]
+  (let [{:keys [:account/email :account/first-name]}
+        (d/pull (d/db conn) [:account/email :account/first-name] account-id)]
+    (mailgun/send-email email "We Are Processing Your Application"
+                        (submission-email-content first-name))))
 
 ;; =============================================================================
 ;; API
@@ -107,6 +133,7 @@
         (if (= status 200)
           (do
             (run-background-check id (is-on? receive-background-check))
+            (send-submission-email id)
             (application/complete! id (:id body))
             (response/redirect "/application?completed=true"))
           (payment-error req)))
