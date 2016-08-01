@@ -6,7 +6,7 @@
 ;; =============================================================================
 
 (defn- login-content
-  [errors email next-url]
+  [errors email next-url did-activate]
   [:main#login.auth
    [:div.container
     [:div.row
@@ -17,6 +17,10 @@
        (for [error errors]
          [:div.alert.alert-error
           [:p.alert-text error]])
+
+       (when did-activate
+         [:div.alert.alert-success
+          [:p.alert-text "Thanks for activating your account!"]])
 
        [:form {:action "/login" :method "POST"}
         [:input {:type "hidden" :name "next" :value next-url}]
@@ -60,7 +64,7 @@
 
 (defn login
   "The login view."
-  [errors email next-url]
+  [errors email next-url did-activate]
   (base
    :title "Log In"
-   :content (login-content errors email next-url)))
+   :content (login-content errors email next-url did-activate)))

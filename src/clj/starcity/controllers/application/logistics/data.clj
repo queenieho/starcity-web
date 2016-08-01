@@ -45,9 +45,3 @@
 (defn property-by-internal-name
   [internal-name]
   (one (d/db conn) :property/internal-name internal-name))
-
-(comment
-
-  (pull-properties)
-
-  )
