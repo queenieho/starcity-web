@@ -64,7 +64,7 @@
   (ok (show-submit* req)))
 
 (defn- pull-background-information
-  "Pull the "
+  "Pull the requisite/availabile information needed to run a background check."
   [account-id]
   (let [pattern [:db/id
                  :account/first-name
