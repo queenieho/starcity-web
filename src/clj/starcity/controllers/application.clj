@@ -7,21 +7,15 @@
 ;; Helpers
 ;; =============================================================================
 
-;; 1. Logistics is always enabled
-;; 2. Can view checks iff #{:rental-application/desired-lease :rental-application/desired-availability} are non-nil
-;; 3. Can view community fitness iff #{}
-
 ;; =============================================================================
 ;; API
 ;; =============================================================================
 
 (defn show-application
   "Respond 200 OK with the application page."
-  [{:keys [identity] :as req}]
-  (let [sections (application/current-steps (:db/id identity))]
-    (ok (view/application sections))))
-
-;; TODO:
-;; NOTE: Use multimethod!?
-;; (def restrictions
-;;   )
+  [{:keys [identity params] :as req}]
+  (let [sections (application/current-steps (:db/id identity))
+        locked   (application/locked? (:db/id identity))]
+    (ok (if locked
+          (view/locked (:completed params))
+          (view/application sections)))))

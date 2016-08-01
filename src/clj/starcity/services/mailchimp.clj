@@ -15,7 +15,6 @@
   (let [base-endpoint (mailchimp-endpoint data-center)
         url           (str base-endpoint endpoint)]
     (fn [opts cb]
-      (println opts)
       (http/request
        (merge {:method     method
                :url        url

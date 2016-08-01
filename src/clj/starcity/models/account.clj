@@ -1,13 +1,15 @@
 (ns starcity.models.account
-  (:require [starcity.datomic.util :refer :all]
-            [starcity.models.util :refer :all]
-            [starcity.datomic :refer [conn]]
-            [starcity.config :as config]
+  (:require [buddy.core
+             [codecs :refer [bytes->hex]]
+             [hash :refer [md5]]]
             [buddy.hashers :as hashers]
-            [buddy.core.hash :refer [md5]]
-            [buddy.core.codecs :refer [bytes->hex]]
-            [clojure.string :refer [trim lower-case]]
-            [datomic.api :as d]))
+            [clojure.string :refer [lower-case trim]]
+            [datomic.api :as d]
+            [starcity
+             [config :refer [datomic] :rename {datomic config}]
+             [datomic :refer [conn]]]
+            [starcity.models.util :refer :all]
+            [starcity.models.util.update :refer [make-update-fn]]))
 
 ;; =============================================================================
 ;; Helpers
@@ -65,7 +67,7 @@
                         :activation-hash (generate-activation-hash email)
                         :activated       false
                         :role            :account.role/applicant})
-        tid  (d/tempid (config/datomic-partition))
+        tid  (d/tempid (:partition config))
         tx   @(d/transact conn [(assoc acct :db/id tid)])]
     (d/resolve-tempid (d/db conn) (:tempids tx) tid)))
 
@@ -75,14 +77,15 @@
     @(d/transact conn [ent])))
 
 (def update!
-  (make-update-fn {:ssn  (fn [{id :db/id} {ssn :ssn}]
-                           [[:db/add id :account/ssn ssn]])
-                   :dob  (fn [{id :db/id} {dob :dob}]
-                           [[:db/add id :account/dob dob]])
-                   :name (fn [{id :db/id} {{:keys [first middle last]} :name}]
-                           (map-form->list-form id {:account/first-name  first
-                                                    :account/last-name   last
-                                                    :account/middle-name middle}))}))
+  (make-update-fn
+   {:ssn  (fn [{id :db/id} {ssn :ssn}]
+            [[:db/add id :account/ssn ssn]])
+    :dob  (fn [{id :db/id} {dob :dob}]
+            [[:db/add id :account/dob dob]])
+    :name (fn [{id :db/id} {{:keys [first middle last]} :name}]
+            (map-form->list-form id {:account/first-name  first
+                                     :account/last-name   last
+                                     :account/middle-name middle}))}))
 
 ;; =============================================================================
 ;; Misc

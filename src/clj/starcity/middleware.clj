@@ -2,6 +2,9 @@
   (:require [starcity.views.error :as view]
             [taoensso.timbre :refer [debugf error]]))
 
+(def ^:private params-blacklist
+  #{:password :password-1 :password-2})
+
 (defn wrap-exception-handling
   [handler]
   (fn [req]
@@ -18,5 +21,5 @@
   (fn [{:keys [uri params request-method] :as req}]
     (when-not (= uri "/favicon.ico")
       (debugf "REQUEST :: uri -- %s :: params -- %s :: method -- %s"
-              uri params request-method))
+              uri (apply dissoc params params-blacklist) request-method))
     (handler req)))

@@ -1,10 +1,10 @@
-{:datomic {:seed-dir  nil
-           :partition :starcity}
+{:logger   {:level   :info
+            :logfile "/var/log/starcity-web/server.log"}
 
- :logger  {:level   :info
-           :logfile "/var/log/starcity/server.log"}
+ :hostname "https://joinstarcity.com"
 
- :hostname "https://starcityproperties.com"
+ :mailgun  {:domain "mg.joinstarcity.com"
+            :sender "Starcity <team@joinstarcity.com>"}
 
- :mailgun {:domain "mg.starcityproperties.com"
-           :sender "team@starcityproperties.com"}}
+ :plaid    {:env     "api"
+            :webhook "https://joinstarcity.com/webhooks/plaid"}}

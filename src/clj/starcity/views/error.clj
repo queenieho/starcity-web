@@ -10,7 +10,9 @@
    (error "Whoops!" message))
   ([title message]
    (base
-    [:div.container
-     [:div.page-header
-      [:h1.text-danger title]]
-     [:p.text-danger.lead message]])))
+    :content
+    [:main
+     [:div.container
+      [:h1.red-text title]
+      [:div.divider]
+      [:p.red-text.flow-text message]]])))
