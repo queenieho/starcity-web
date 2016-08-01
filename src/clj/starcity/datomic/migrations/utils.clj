@@ -1,12 +1,16 @@
 (ns starcity.datomic.migrations.utils
   (:require [starcity.models.util :refer [one]]
+            [starcity.config :refer [datomic]]
             [datomic.api :as d]))
 
 ;; =============================================================================
 ;; General
 
 (defn add-tempids [txes]
-  (map #(assoc % :db/id (d/tempid :db.part/starcity)) txes))
+  (map #(assoc % :db/id (d/tempid (:partition datomic))) txes))
+
+(defn tempids [n]
+  (repeatedly n (fn [] (d/tempid (:partition datomic)))))
 
 ;; =============================================================================
 ;; Property Seeding

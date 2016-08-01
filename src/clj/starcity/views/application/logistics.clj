@@ -103,7 +103,7 @@
 (defn- choose-license
   [licenses desired-license]
   [:div#license-section.validation-group
-   (map (partial license-radio desired-license) (sort-by :license/term licenses))])
+   (map (partial license-radio desired-license) (sort-by :license/term > licenses))])
 
 ;; =============================================================================
 ;; Pets
