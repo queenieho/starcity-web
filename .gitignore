@@ -9,6 +9,8 @@ pom.xml.asc
 /.nrepl-port
 .hgignore
 .hg/
+/resources/public/assets/bower
+/resources/public/assets/.sass-cache
 /resources/public/js/app
 /resources/public/js/bower
 *.log            # TODO: move to /logs

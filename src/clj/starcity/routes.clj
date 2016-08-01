@@ -6,20 +6,27 @@
              [route :as route]]
             [ring.util.response :as response]
             [starcity.auth :refer [authenticated-user user-isa]]
+            [starcity.api.plaid :as plaid]
             [starcity.controllers
              [application :as application]
              [auth :as auth]
-             [availability :as availability]
-             [dashboard :as dashboard]
+             [communities :as communities]
              [faq :as faq]
              [landing :as landing]
-             [register :as register]]
+             [register :as register]
+             [terms :as terms]
+             [privacy :as privacy]
+             [team :as team]
+             [about :as about]]
             [starcity.controllers.application
-             [checks :as checks]
-             [logistics :as logistics]]
+             [personal :as personal]
+             [logistics :as logistics]
+             [community-fitness :as community-fitness]
+             [submit :as submit]]
             [starcity.controllers.auth
              [login :as login]
-             [signup :as signup]]))
+             [signup :as signup]]
+            [clojure.pprint :as pprint]))
 
 ;; NOTE: If an user is currently listed as an applicant, he/she should only be
 ;; able to access the /application endpoint; similarly, users listed as tenants
@@ -34,6 +41,13 @@
       (response/redirect to)
       (response/redirect "/"))))
 
+(defn- wrap-log-response
+  [handler]
+  (fn [req]
+    (let [res (handler req)]
+      (pprint/pprint res)
+      res)))
+
 ;; =============================================================================
 ;; API
 ;; =============================================================================
@@ -41,9 +55,13 @@
 (defroutes app-routes
   ;; public
   (GET "/" [] landing/show-landing)
-  (GET  "/register"     [] register/register-user!)
-  (GET  "/availability" [] availability/show-availability)
-  (GET "/fack"          [] faq/show-faq)
+  (GET "/register"     [] register/register-user!)
+  (GET "/communities" [] communities/show-communities)
+  (GET "/faq"          [] faq/show-faq)
+  (GET "/terms"         [] terms/show-terms)
+  (GET "/privacy"        [] privacy/show-privacy)
+  (GET "/about" [] about/show-about)
+  (GET "/team" [] team/show-team)
 
   (GET  "/login"        [] login/show-login)
   (POST "/login"        [] login/login!)
@@ -62,21 +80,45 @@
      (routes
       (GET "/" [] application/show-application)
 
-      (GET "/logistics" [] logistics/show-logistics)
-      (POST "/logistics" [] logistics/save!)
+      (restrict
+       (routes
+        (GET "/logistics" [] logistics/show-logistics)
+        (POST "/logistics" [] logistics/save!))
+       logistics/restrictions)
 
       (restrict
        (routes
-        (GET "/checks" [] checks/show-checks)
-        (POST "/checks" [] checks/save!))
-       checks/restrictions))
+        (GET "/personal" [] personal/show-personal)
+        (POST "/personal" [] personal/save!))
+       personal/restrictions)
+
+      (restrict
+       (routes
+        (GET "/community" [] community-fitness/show-community-fitness)
+        (POST "/community" [] community-fitness/save!))
+       community-fitness/restrictions)
+
+      (restrict
+       (routes
+        (GET "/submit" [] submit/show-submit)
+        (POST "/submit" [] submit/submit!))
+       submit/restrictions))
 
      {:handler  {:and [authenticated-user (user-isa :account.role/applicant)]}
       :on-error (redirect-on-invalid-authorization "/me")}))
 
-  (GET "/me" [] (-> dashboard/show-dashboard
-                    (restrict {:handler  {:and [authenticated-user (user-isa :account.role/tenant)]}
-                               :on-error (redirect-on-invalid-authorization "/application")})))
+  ;; (GET "/me" [] (-> dashboard/show-dashboard
+  ;;                   (restrict {:handler  {:and [authenticated-user (user-isa :account.role/tenant)]}
+  ;;                              :on-error (redirect-on-invalid-authorization "/application")})))
+
+  (context "/api/v1" []
+    (restrict
+     (routes
+      (POST "/plaid/auth" [] plaid/authenticate!))
+     {:handler {:and [authenticated-user]}}))
+
+  (context "/webhooks" []
+    (POST "/plaid" [] plaid/hook))
 
   ;; catch-all
   (route/not-found "<p>Not Found</p>"))

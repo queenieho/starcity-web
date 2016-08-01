@@ -17,7 +17,7 @@
 ;; Constants
 ;; =============================================================================
 
-(def ^:private +redirect-after-activation+ "/availability")
+(def ^:private +redirect-after-activation+ "/login?next=/application&activated=true")
 (def ^:private +redirect-after-signup+ "/signup/complete")
 
 ;; =============================================================================
@@ -56,7 +56,7 @@
                                    email      ""
                                    first-name ""
                                    last-name  ""}}]
-  (view/signup errors email first-name last-name))
+  (view/signup email first-name last-name errors))
 
 ;; =============================================================================
 ;; Activation
@@ -73,10 +73,9 @@
                 account/first-name
                 account/last-name
                 account/activation-hash]} (d/pull (d/db conn) pattern user-id)]
-    (send-email email "Starcity Account Activation"
-                (format "Hello %s %s,\n%s/signup/activate?email=%s&hash=%s"
+    (send-email email "Activate Your Account"
+                (format "Hi %s,<br><br>Thank you for signing up! <a href='%s/signup/activate?email=%s&hash=%s'>Click here to activate your account</a> and apply for a home.<br><br>Best,<br>Team Starcity"
                         first-name
-                        last-name
                         (:hostname config)
                         (url-encode email)
                         activation-hash))))
@@ -131,9 +130,8 @@
       (show-invalid-activation req)
       (let [user (account/by-email email)]
         (if (= hash (:account/activation-hash user))
-          (let [_       (account/activate! user)
-                session (assoc session :identity (account/by-email email))]
-            (-> (response/redirect +redirect-after-activation+)
-                (assoc :session session)))
+          (do
+            (account/activate! user)
+            (response/redirect +redirect-after-activation+))
           ;; hashes don't match
           (show-invalid-activation req))))))

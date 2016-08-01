@@ -22,16 +22,15 @@
   (letfn [(-has-dog? [m] (and (has-pet? m) (= (get-in m [:pet :type]) "dog")))]
     (b/validate
      params
-     {:availability               [(required "Availability must be indicated.")]
-      :property-id                [(required "A property must be selected.")
-                                   [property/exists? :message "That property is invalid."]]
-      :selected-lease             [(required "A lease must be selected")]
-      :has-pet                    [(required "A 'yes' or 'no' must be provided.")]
+     {:availability     [(required "Availability must be indicated.")]
+      :properties       [(required "At least one property must be selected.")]
+      :selected-license [(required "A license must be selected")]
+      :has-pet          [(required "A 'yes' or 'no' must be provided.")]
       ;; :num-residents-acknowledged [(required "The per-unit resident limit must be acknowledged.")]
-      [:pet :type]                [[v/required :message "A type of pet must be selected." :pre has-pet?]
-                                   [v/member #{:dog :cat} :message "Only dogs and cats are allowed." :pre has-pet?]]
-      [:pet :breed]               [[v/required :message "You must select a breed for your dog." :pre -has-dog?]]
-      [:pet :weight]              [[v/required :message "You must select a weight for your dog." :pre -has-dog?]]})))
+      [:pet :type]      [[v/required :message "A type of pet must be selected." :pre has-pet?]
+                         [v/member #{:dog :cat} :message "Only dogs and cats are allowed." :pre has-pet?]]
+      [:pet :breed]     [[v/required :message "You must select a breed for your dog." :pre -has-dog?]]
+      [:pet :weight]    [[v/required :message "You must select a weight for your dog." :pre -has-dog?]]})))
 
 (defn clean
   "Transform values in params to correct types and remove unnecessary
@@ -39,12 +38,12 @@
   [params]
   (letfn [(-clean-values [params]
             (transform-when-key-exists params
-              {:selected-lease str->int
-               :property-id    str->int
-               :pet            {:type   (comp keyword trim lower-case)
-                                :id     str->int
-                                :weight str->int
-                                :breed  (comp trim lower-case)}}))
+              {:selected-license str->int
+               :properties       (partial map str->int)
+               :pet              {:type   (comp keyword trim lower-case)
+                                  :id     str->int
+                                  :weight str->int
+                                  :breed  (comp trim lower-case)}}))
           (-clean-pet [params]
             (if (has-pet? params)
               (-> (dissoc-when params [:pet :weight] nil?)

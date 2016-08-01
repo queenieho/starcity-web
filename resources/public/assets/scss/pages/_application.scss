@@ -1,0 +1,85 @@
+main#member-application {
+
+  .card-panel {
+    padding: 0;
+
+    nav {
+      border-top-left-radius: 2px;
+      border-top-right-radius: 2px;
+
+      .nav-wrapper {
+        border-top-left-radius: 2px;
+        border-top-right-radius: 2px;
+      }
+
+      .nav-title {
+        position: absolute;
+        color: #fff;
+        display: inline-block;
+        font-size: 2.1rem;
+        padding: 0;
+        white-space: nowrap;
+        margin-left: 20px;
+      }
+
+      @media #{$small-and-down} {
+        .nav-title {
+          font-size: 1.6rem;
+        }
+      }
+
+      .dropdown-content li.disabled {
+        cursor: default;
+
+        a {
+          pointer-events: none;
+          color: color('grey', 'base');
+        }
+      }
+    }
+  }
+
+  .section {
+    padding-bottom: 0;
+  }
+
+  label {
+
+    span:after {
+      content: '\00B7';
+      padding-right: 5px;
+      padding-left: 5px;
+      font-weight: 600;
+      color: color("grey", "base");
+    }
+
+    span:last-child {
+      &:after {
+        content: '';
+      }
+    }
+
+    &.property-label {
+
+      .property-name {
+        font-weight: 400;
+      }
+
+      .property-units {
+        color: $success-color;
+      }
+
+      .property-units, .availability-date {
+        font-weight: 300;
+      }
+
+      .property-units.full {
+        color: $error-color;
+      }
+
+      .license-price {
+        font-weight: 300;
+      }
+    }
+  }
+}

@@ -42,7 +42,7 @@
   "NOTE: Preserves the next url through the POST req by using a hidden input."
   [{:keys [identity] :as req} & {:keys [errors email] :or {errors [] email ""}}]
   (let [next-url (get-in req [:params :next])]
-    (view/login errors email next-url)))
+    (view/login errors email next-url (-> (get-in req [:params :activated]) nil? not))))
 
 ;; =============================================================================
 ;; API

@@ -1,63 +1,82 @@
 (ns starcity.views.landing
-  (:require [starcity.views.base :refer [base]]
-            [starcity.views.common :as common]))
+  (:require [starcity.views.base :refer [hero]]
+            [hiccup.core :refer [html]]
+            [hiccup.page :refer [html5 include-css include-js]]
+            [clojure.string :refer [lower-case]]))
 
 ;; =============================================================================
 ;; Helpers
 ;; =============================================================================
 
-(def ^:private header
-  (common/header
-   "Reimagine Home in San Francisco"
-   "Help shape community-focused housing for our city's workforce."
-   "/assets/img/sf_homes_1.jpeg"
-   {:uri "/signup" :text "Join Our Community"}))
+(defn- feature
+  [title img-src blurb]
+  [:div.col.m8.offset-m2.l4.center-align
+   [:img.circle.responsive-img {:src img-src}]
+   [:h5.center title]
+   [:p.light blurb]])
 
 ;; =============================================================================
 ;; API
 ;; =============================================================================
 
-(defn landing
-  []
-  (base
-   [:div
-    header
-    [:div.container.marketing
-     [:div.row.featurette
-      [:div.col-sm-7
-       [:h2.featurette-heading
-        "Diverse, Resource-Efficient Communities. "
-        [:span.text-muted ""]]
-       [:p.lead "Hard-working San Franciscans form the diverse fabric of this city. Yet we're often left out of the housing conversation. Let's change that. Let's build housing that allows us to thrive in our beloved city. Let's build communities that embrace individuals from all walks of life."]]
-      [:div.col-sm-5
-       [:img.featurette-image.img-responsive.img-rounded
-        {:src "/assets/img/renderings/alpharendering.png"}]]]
+;; TODO: rm -r resources/public/js/bower
 
-     [:hr.featurette-divider]
-     [:div.row.featurette
-      [:div.col-sm-5
-       [:img.featurette-image.img-responsive.img-rounded
-        {:src "/assets/img/renderings/sf_rendering04.png"}]]
-      [:div.col-sm-7
-       [:h2.featurette-heading
-        "Beautiful Private Spaces. <br> "
-        [:span.text-muted "For Everyone."]]
-       [:p.lead "Balancing community space and resources with adequate private space will honor the needs of our workforce. Let's design private rooms in a way that'll allow us to live sustainably in San Francisco."]]]
+(def ^:private landing-content
+  [:div
 
-     [:hr#action-divider.featurette-divider]
+   [:section.features
+    [:div.container
+     [:div.row
+      [:div.center-align
+       [:h3 "Member Benefits"]
+       [:p.flow-text "All of our residences offer the following:"]
+       ]
+      (feature "Privacy &amp; Security" "/assets/img/promo-bar-privacy.png"
+               "Each member receives a secure, private room to nest in and make their own. All members run through a background check to ensure community safety.")
 
-     [:div#action-section.row
-      [:div.col-md-6.col-md-offset-3
-       [:h2#action-heading "Get Involved"]
-       [:p.lead "Enter your email and we'll be in touch."]
+      (feature "Community" "/assets/img/promo-bar-community.png"
+               "Members interact with one another and their guests in beautiful shared spaces. Social, educational and volunteering events bring the community together.")
 
-       [:form {:action "/register" :method "GET"}
-        [:div.input-group.input-group-lg
-         [:input.input.form-control
-          {:type        "email"
-           :name        "email"
-           :required    true
-           :placeholder "Enter your email address"}]
-         [:span.input-group-btn
-          [:button.btn.btn-primary "Join Us"]]]]]]]]
-   :css ["landing.css"]))
+      (feature "Comfort" "/assets/img/promo-bar-comfort.png"
+               "Fully-furnished? Yes. On-site laundry? Check. Hi-speed WiFi? Of course. A comprehensive set of amenities is included to make your life simple.")
+
+      ]]]
+
+   [:section.community.grey.valign-wrapper
+    [:div.container
+     [:div.row
+      [:div.col.s12.center-align.white-text
+       [:h3 "A Focus on Community"]
+       [:p.flow-text-large "Our homes are welcoming, relaxing and safe. Our members are respectful, warm and empathetic people that come together to form inclusive, uplifting communities. We are seeking new members that reflect the eclectic nature of San Francisco itself, embracing individuals from all walks of life."]
+       ]]]]
+
+   ;; memberships from 1 month to 1 year...
+
+   [:section
+    [:div.container
+     [:div.row
+      [:form.col.m8.offset-m2.s12 {:action "/register" :method "GET"}
+       [:div.row
+        [:h3.center-align "Join Us"]
+        [:p.flow-text.center "Enter your email to receive updates on Starcity's upcoming housing communities and events."]]
+       [:div.row
+        [:div.input-field
+         [:input#email.validate {:type     "email"
+                                 :name     "email"
+                                 :required true}]
+         [:label {:for "email"} "Email"]]]
+       [:div.row
+        [:div.col.s12.center-align
+         [:button.btn.waves-effect.waves-light.btn-large.star-green.lighten-1 {:type "submit"}
+          "Join Us"
+          [:i.material-icons.right "send"]]]]]]]]])
+
+(defn landing []
+  (hero
+   :content landing-content
+   :title "Your new home"
+   :description "Comfortable communal housing in San Francisco."
+   :background-image "/assets/img/starcity-kitchen.png"
+   :action {:uri   "/application"
+            :text  "apply for a home"
+            :class "star-orange"}))
