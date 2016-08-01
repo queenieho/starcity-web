@@ -60,7 +60,7 @@
 (defn submit
   [current-steps email errors]
   (let [sections [[[:span "Have you read our "
-                    [:a {:href "/tos" :target "_blank"} "Terms of Service"]
+                    [:a {:href "/terms" :target "_blank"} "Terms of Service"]
                     " &amp; "
                     [:a {:href "/privacy" :target "_blank"} "Privacy Policy"]
                     "?"]

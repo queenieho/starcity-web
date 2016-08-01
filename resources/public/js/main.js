@@ -48,6 +48,38 @@ function logistics() {
       $("#pet-inputs .dog-field input").attr("required", false);
     }
   });
+
+  $("#license-section input:radio").on("change", function(evt) {
+    var licenseSelection = $(evt.currentTarget).val();
+
+    $("#properties-section input:checkbox")
+      .each(function(_, input) {
+        var propertyId = $(input).attr("id");
+        $(input)
+          .siblings("label")
+          .children(".license-price")
+          .fadeIn()
+          .text(formatPrice(getPrice(propertyId)));
+      });
+
+    function formatPrice(price) {
+      if (typeof price === "string") {
+        return price;
+      }
+      return "$" + price + "/mo";
+    }
+
+    function getPrice(forProperty) {
+      for (var propertyId in licenseMapping) {
+        var property = licenseMapping[propertyId];
+        var price = property[licenseSelection];
+        if (propertyId === forProperty) {
+          return price;
+        }
+      }
+      return "";
+    }
+  });
 }
 
 function personal() {

@@ -6854,7 +6854,7 @@ main#member-application label.property-label .property-units, main#member-applic
   font-weight: 300; }
 main#member-application label.property-label .property-units.full {
   color: #F44336; }
-main#member-application label.license-label .license-price {
+main#member-application label.property-label .license-price {
   font-weight: 300; }
 
 /*# sourceMappingURL=main.css.map */
