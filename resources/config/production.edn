@@ -1,6 +1,4 @@
-{:datomic  {:partition :starcity}
-
- :logger   {:level   :info
+{:logger   {:level   :info
             :logfile "/var/log/starcity-web/server.log"}
 
  :hostname "https://joinstarcity.com"
