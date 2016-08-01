@@ -29,16 +29,16 @@
      [:div.row
       [:div.center-align
        [:h3 "Member Benefits"]
-       [:p.flow-text "All of our communities offer the following:"]
+       [:p.flow-text "All of our residences offer the following:"]
        ]
       (feature "Privacy &amp; Security" "/assets/img/promo-bar-privacy.png"
                "Each member receives a secure, private room to nest in and make their own. All members run through a background check to ensure community safety.")
 
       (feature "Community" "/assets/img/promo-bar-community.png"
-               "Our buildings offer plenty of shared space for everyday interaction with fellow community members and guests. Kitchens, dining areas, and entertainment rooms bring everyone together.")
+               "Members interact with one another and their guests in beautiful shared spaces. Social, educational and volunteering events bring the community together.")
 
-      (feature "Comfort" "/assets/img/promo-bar-amenities.png"
-               "Fully-furnished? Yes. On-site laundry? Check. Hi-speed WiFi? Of course. Amenities are included to make your life simple.")
+      (feature "Comfort" "/assets/img/promo-bar-comfort.png"
+               "Fully-furnished? Yes. On-site laundry? Check. Hi-speed WiFi? Of course. A comprehensive set of amenities is included to make your life simple.")
 
       ]]]
 
@@ -74,8 +74,8 @@
 (defn landing []
   (hero
    :content landing-content
-   :title "Your new home in san francisco"
-   :description "Comfortable, communal housing for our city's workforce."
+   :title "Your new home"
+   :description "Comfortable communal housing in San Francisco."
    :background-image "/assets/img/starcity-kitchen.png"
    :action {:uri   "/application"
             :text  "apply for a home"
