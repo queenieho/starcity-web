@@ -34,6 +34,7 @@
    :account/middle-name
    :account/last-name
    :account/dob
+   :account/phone-number
    {:account/member-application
     [{:member-application/current-address [:address/lines
                                            :address/state
@@ -43,7 +44,8 @@
 
 (defn- clean-data
   [{:keys [account/first-name account/middle-name account/last-name
-           account/dob account/member-application plaid/_account]}]
+           account/dob account/member-application plaid/_account
+           account/phone-number]}]
   (let [{:keys [address/lines address/state address/city address/postal-code]} (:member-application/current-address member-application)]
     (remove-nil
      {:name         {:first  first-name
@@ -54,6 +56,7 @@
                      :city        city
                      :postal-code postal-code}
       :dob          (when dob (f/unparse ymd-formatter (c/from-date dob)))
+      :phone-number phone-number
       :plaid-id     (-> _account first :db/id)})))
 
 (defn- personal-data
@@ -73,20 +76,22 @@
             (-> lines first empty? not))]
     (b/validate
      params
-     {:dob      [(required "Your date of birth is required!")
-                 [v/datetime ymd-formatter :message "Please enter a valid date of birth."]
-                 [-old-enough? :message "You must be at least 18 years of age to apply."]]
-      :name     {:first [(required "Your first name is required.")]
-                 :last  [(required "Your last name is required.")]}
-      :plaid-id [(required "Please link your bank account so that we can verify your income.")]
-      :address  {:lines       [(required "Your street address is required.")
-                               [v/min-count 1 :message "You must provide at least one address line."]
-                               [-non-empty? :message "Your street address must not be empty."]]
-                 :state       [(required "The state that you presently live in is required.")
-                               [v/member states/abbreviations :message "Please supply a valid state."]]
-                 :city        [(required "The city that you presently live in is required.")]
-                 :postal-code [(required "Your postal code is required.")
-                               [v/matches #"^\d{5}(-\d{4})?$" :message "Please enter a valid US postal code."]]}})))
+     {:dob          [(required "Your date of birth is required!")
+                     [v/datetime ymd-formatter :message "Please enter a valid date of birth."]
+                     [-old-enough? :message "You must be at least 18 years of age to apply."]]
+      :name         {:first [(required "Your first name is required.")]
+                     :last  [(required "Your last name is required.")]}
+      :phone-number [(required "Your phone number is required!")
+                     [v/matches #"^\(?\d{3}\)?(\s+)?\d{3}\-?\d{4}$" :message "Please enter a valid phone number."]]
+      :plaid-id     [(required "Please link your bank account so that we can verify your income.")]
+      :address      {:lines       [(required "Your street address is required.")
+                                   [v/min-count 1 :message "You must provide at least one address line."]
+                                   [-non-empty? :message "Your street address must not be empty."]]
+                     :state       [(required "The state that you presently live in is required.")
+                                   [v/member states/abbreviations :message "Please supply a valid state."]]
+                     :city        [(required "The city that you presently live in is required.")]
+                     :postal-code [(required "Your postal code is required.")
+                                   [v/matches #"^\d{5}(-\d{4})?$" :message "Please enter a valid US postal code."]]}})))
 
 (defn- transform-params
   [params]
@@ -121,9 +126,9 @@
   [{:keys [identity params] :as req}]
   (let [account-id (:db/id identity)
         vresult    (-> params (wrap-plaid-id account-id) validate-params)]
-    (if-let [{:keys [name address dob] :as ps} (valid? vresult transform-params)]
+    (if-let [{:keys [name phone-number address dob] :as ps} (valid? vresult transform-params)]
       (let [application-id (:db/id (application/by-account-id account-id))]
-        (account/update! account-id {:dob dob :name name})
+        (account/update! account-id {:dob dob :name name :phone-number phone-number})
         (application/update! application-id {:address address})
         (response/redirect "/application/community"))
       ;; didn't pass validation

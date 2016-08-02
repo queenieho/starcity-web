@@ -102,6 +102,10 @@ function personal() {
     }
   });
 
+  // Install field-kit on phone number
+  var fk = new FieldKit.TextField(document.getElementById("phone"),
+                                  new FieldKit.PhoneFormatter());
+
   // install jquery-validation on the form
   $("form").validate();
   // setup materialize components
