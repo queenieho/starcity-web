@@ -20,7 +20,7 @@
 
        (when did-activate
          [:div.alert.alert-success
-          [:p.alert-text "Thanks for activating your account!"]])
+          [:p.alert-text "Account activated! Please log in below to apply for a home."]])
 
        [:form {:action "/login" :method "POST"}
         [:input {:type "hidden" :name "next" :value next-url}]
@@ -36,7 +36,10 @@
 
         [:div.row
          [:div.input-field.col.s12
-          [:input#password.validate {:type "password" :required true :name "password"}]
+          [:input#password.validate {:type      "password"
+                                     :required  true
+                                     :name      "password"
+                                     :autofocus did-activate}]
           [:label {:for "password"} "Password"]]]
 
         [:div.row
