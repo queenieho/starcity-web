@@ -1,6 +1,6 @@
 $(document).ready(function() {
   var resizeHeroTitle = wrapFlowText($("#hero-title"), 12, 80);
-  var resizeHeroDesc = wrapFlowText($("#hero-description"), 18, 60);
+  var resizeHeroDesc = wrapFlowText($("#hero-description"), 16, 60);
 
   function setDimensions() {
     var h = $(window).height();
