@@ -11,7 +11,7 @@
   [:main#signup.auth
    [:div.container
     [:div.row
-     [:div.col.s6.offset-s3
+     [:div.col.l6.offset-l3.m8.offset-m2.s12
       [:div.card-panel
        [:h4.light "Sign up"]
 
@@ -66,11 +66,12 @@
 
         [:div.divider]
 
-        [:div.row.panel-footer
-         [:div.col.s8
+        [:div.row.panel-footer.valign-wrapper
+         [:div.col.s6
           [:p "Already have an account?"]]
-         [:div.col.s4
-          [:a.btn.white.star-orange-text.waves-effect.waves-light {:href "/login"}
+         [:div.col.s6
+          [:a.right.btn.white.star-orange-text.waves-effect.waves-light
+           {:href "/login"}
            "Sign in"]]]]]]]]])
 
 ;; =============================================================================
