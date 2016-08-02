@@ -13,7 +13,7 @@
 
 (defn- plaid-request
   [{:keys [endpoint token-key params webhook?] :or {token-key :access_token params {}}}
-   {:keys [secret client-id env webhook]}]
+   {:keys [secret client-id env webhook] :as conf}]
   (fn [token cb]
     (let [url  (format "https://%s.plaid.com/%s" (if (= env "production") "api" env) endpoint)
           body (merge {:secret    secret
@@ -26,6 +26,7 @@
                                                          body))
                         :headers {"Content-Type" "application/json"}}
                    (fn [res]
+                     (infof "PLAID RESPONSE - endpoint: %s - response: %s" endpoint res)
                      (let [res (update-in res [:body] json/parse-string true)]
                        (cb (:body res) res))))))))
 
@@ -50,3 +51,14 @@
 (defstate exchange-token :start (exchange-token-request (:plaid config)))
 (defstate get-income :start (income-request (:plaid config)))
 (defstate upgrade-to-income :start (upgrade-income-request (:plaid config)))
+
+(comment
+
+  (doseq [access-token []]
+    @(http/post "https://joinstarcity.com/webhooks/plaid"
+                {:body (json/generate-string {:code 10
+                                              :message "testing..."
+                                              :access_token access-token})
+                 :headers {"Content-Type" "application/json"}}))
+
+  )
