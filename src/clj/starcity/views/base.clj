@@ -72,7 +72,7 @@
      ;; google site verification
      [:meta {:name "google-site-verification" :content "efd7Gz_b7RGhSoL42WIElePfRXEZlKgguT-2ha5Zlqs"}]
      ;; Let browser know whebsite is optimized for mobile
-     [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]
+     [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
      (map apple-touch-icon sizes)
      [:link {:rel "icon" :type "image/png" :sizes "192x192" :href "/android-icon-192x192.png"}]
      [:link {:rel "icon" :type "image/png" :sizes "32x32" :href "/favicon-32x32.png"}]
@@ -109,7 +109,10 @@
       [:div.container
        "&copy; 2016 Starcity Properties, Inc."
        [:a.grey-text.text-lighten-4.right {:href "/privacy"} "Privacy"]
-       [:a.grey-text.text-lighten-4.right {:href "/terms"} "Terms of Service"]]]]))
+       [:a.hide-on-small-only.grey-text.text-lighten-4.right {:href "/terms"}
+        "Terms of Service"]
+       [:a.hide-on-med-and-up.grey-text.text-lighten-4.right {:href "/terms"}
+        "Terms"]]]]))
 
 (def ^:private brand-logo
   [:a.brand-logo {:href "/"}
@@ -161,7 +164,6 @@
   "Page template with a solid navbar."
   [& {:keys [nav-links content js json title]
       :or   {nav-links default-nav-links
-             ;; title     "Starcity"
              js        []
              json      []}}]
   (html5
