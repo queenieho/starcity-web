@@ -15,7 +15,7 @@
   [{:keys [endpoint token-key params webhook?] :or {token-key :access_token params {}}}
    {:keys [secret client-id env webhook]}]
   (fn [token cb]
-    (let [url  (format "https://%s.plaid.com/%s" env endpoint)
+    (let [url  (format "https://%s.plaid.com/%s" (if (= env "production") "api" env) endpoint)
           body (merge {:secret    secret
                        :client_id client-id
                        token-key  token} params)]

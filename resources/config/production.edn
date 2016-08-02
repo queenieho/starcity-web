@@ -6,5 +6,5 @@
  :mailgun  {:domain "mg.joinstarcity.com"
             :sender "Starcity <team@joinstarcity.com>"}
 
- :plaid    {:env     "api"
+ :plaid    {:env     "production"
             :webhook "https://joinstarcity.com/webhooks/plaid"}}
