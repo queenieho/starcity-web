@@ -93,11 +93,18 @@
                        ["Blog" "https://blog.joinstarcity.com"]]]
     [:footer.page-footer
      [:div.container
-      [:div.col.l4.offset-l2.s12
-       [:h5.white-text "Starcity"]
-       [:ul
-        (for [[text uri] company-links]
-          [:li [:a.grey-text.text-lighten-3 {:href uri} text]])]]]
+      [:div.row
+       [:div.col.m3.s6
+        [:h5.white-text "Company"]
+        [:ul
+         (for [[text uri] company-links]
+           [:li [:a.grey-text.text-lighten-3 {:href uri} text]])]]
+       [:div.col.m3.s6
+        [:h5.white-text "Contact Us"]
+        [:ul
+         [:li [:a.grey-text.text-lighten-3 {:href "mailto:team@joinstarcity.com"}
+               "team@joinstarcity.com"]]
+         [:li.grey-text.text-lighten-3 "(415) 496-9706"]]]]]
      [:div.footer-copyright
       [:div.container
        "&copy; 2016 Starcity Properties, Inc."
