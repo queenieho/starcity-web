@@ -24,6 +24,8 @@
 ;; Helpers
 ;; =============================================================================
 
+(def ^:private payment-amount 2500)
+
 (defn- can-view-submit?
   [{:keys [identity] :as req}]
   (when-let [application-id (:db/id (application/by-account-id (:db/id identity)))]
@@ -32,13 +34,13 @@
 (defn show-submit*
   [{:keys [identity] :as req} & {:keys [errors] :or []}]
   (let [current-steps (application/current-steps (:db/id identity))]
-    (view/submit current-steps (:account/email identity) errors)))
+    (view/submit current-steps (:account/email identity) payment-amount errors)))
 
 (defn- payment-error [req]
   (malformed (show-submit* req :errors ["Something went wrong while processing your payment. Please try again."])))
 
 (defn- charge-application-fee [token email]
-  (stripe/charge 2500 token email))
+  (stripe/charge payment-amount token email))
 
 ;; =============================================================================
 ;; Parameter Validation

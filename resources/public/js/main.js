@@ -144,7 +144,7 @@ function personal() {
     var today = new Date();
 
     $(".datepicker").pickadate({
-      selectYears: true,
+      selectYears: 40,
       selectMonths: true,
       max: new Date(today.getFullYear() - 18, today.getMonth(), today.getDate()),
       today: '',
@@ -164,7 +164,7 @@ function submit() {
   var handler = StripeCheckout.configure({
     name: "Starcity",
     description: "Member Application",
-    amount: 2000,
+    amount: stripe.amount,
     zipCode: true,
     email: stripe.email,
     allowRememberMe: true,
@@ -190,13 +190,27 @@ function submit() {
     }
   });
 
-  $('#background-permission').click(function(e) {
-    receiveCopyCheckbox.fadeToggle();
-  });
-
   $(window).on('popstate', function() {
     handler.close();
   });
+
+  // background check modal
+  $("#background-permission").click(function(evt) {
+    var checked = !evt.currentTarget.checked;
+    if (!checked) {
+      evt.preventDefault();
+      $("#background-check-modal").openModal();
+    } else {
+      receiveCopyCheckbox.fadeOut();
+    }
+  });
+
+  $("#background-check-agree").click(function(evt) {
+    evt.preventDefault();
+    $("#background-permission").prop("checked", true);
+    receiveCopyCheckbox.fadeIn();
+  });
+
 }
 
 function installMaterialSelects() {

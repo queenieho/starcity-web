@@ -6523,6 +6523,9 @@ ul.bullets {
 strong {
   font-weight: 600; }
 
+b {
+  font-weight: 600; }
+
 .flow-text-small {
   font-weight: 300; }
   @media only screen and (min-width: 360px) {
