@@ -38,7 +38,7 @@
                "Members interact with one another and their guests in beautiful shared spaces. Social, educational and volunteering events bring the community together.")
 
       (feature "Comfort" "/assets/img/promo-bar-comfort.png"
-               "Fully-furnished? Yes. On-site laundry? Check. Hi-speed WiFi? Of course. A comprehensive set of amenities is included to make your life simple.")
+               "Fully-furnished? Yes. Weekly cleaning? Check. Hi-speed WiFi? Of course. A comprehensive set of amenities is included to make your life simple.")
 
       ]]]
 
