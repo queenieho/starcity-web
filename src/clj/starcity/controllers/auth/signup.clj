@@ -17,7 +17,6 @@
 ;; Constants
 ;; =============================================================================
 
-(def ^:private +redirect-after-activation+ "/login?next=/application&activated=true")
 (def ^:private +redirect-after-signup+ "/signup/complete")
 
 ;; =============================================================================
@@ -26,6 +25,10 @@
 
 ;; =============================================================================
 ;; Signup
+
+(defn- redirect-after-activation
+  [email]
+  (format "/login?next=/application&activated=true&email=%s" (url-encode email)))
 
 (defn- validate
   [params]
@@ -132,6 +135,6 @@
         (if (= hash (:account/activation-hash user))
           (do
             (account/activate! user)
-            (response/redirect +redirect-after-activation+))
+            (response/redirect (redirect-after-activation email)))
           ;; hashes don't match
           (show-invalid-activation req))))))
