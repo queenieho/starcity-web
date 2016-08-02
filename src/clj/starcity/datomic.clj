@@ -3,7 +3,9 @@
             [mount.core :as mount :refer [defstate]]
             [starcity.config :refer [config]]
             [starcity.datomic.conformity :as c]
-            [starcity.datomic.migrations.initial :refer [initial-migration]]
+            [starcity.datomic.migrations
+             [initial :refer [initial-migration]]
+             [properties-schema-8-2-16 :refer [properties-schema-8-2-16]]]
             [taoensso.timbre :as timbre]))
 
 (timbre/refer-timbre)
@@ -15,7 +17,8 @@
 (defn- run-migrations
   "Given a database connection, run database migrations."
   [conn]
-  (let [norms (initial-migration)]
+  (let [norms (merge (initial-migration)
+                     (properties-schema-8-2-16))]
     (c/ensure-conforms conn norms)))
 
 (defn- new-connection [{:keys [uri schema-dir seed-dir]}]

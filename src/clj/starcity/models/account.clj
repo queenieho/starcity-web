@@ -78,14 +78,14 @@
 
 (def update!
   (make-update-fn
-   {:ssn  (fn [{id :db/id} {ssn :ssn}]
-            [[:db/add id :account/ssn ssn]])
-    :dob  (fn [{id :db/id} {dob :dob}]
-            [[:db/add id :account/dob dob]])
-    :name (fn [{id :db/id} {{:keys [first middle last]} :name}]
-            (map-form->list-form id {:account/first-name  first
-                                     :account/last-name   last
-                                     :account/middle-name middle}))}))
+   {:dob          (fn [{id :db/id} {dob :dob}]
+                    [[:db/add id :account/dob dob]])
+    :name         (fn [{id :db/id} {{:keys [first middle last]} :name}]
+                    (map-form->list-form id {:account/first-name  first
+                                             :account/last-name   last
+                                             :account/middle-name middle}))
+    :phone-number (fn [{id :db/id} {phone-number :phone-number}]
+                    [[:db/add id :account/phone-number phone-number]])}))
 
 ;; =============================================================================
 ;; Misc
