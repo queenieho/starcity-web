@@ -107,12 +107,12 @@
          [:li.grey-text.text-lighten-3 "(415) 496-9706"]]]]]
      [:div.footer-copyright
       [:div.container
-       [:div.row
-        [:div.col.s6
-         "&copy; 2016 Starcity Properties, Inc."]
-        [:div.col.s6
-         [:a.grey-text.text-lighten-4.right {:href "/privacy"} "Privacy"]
-         [:a.grey-text.text-lighten-4.right {:href "/terms"} "Terms of Service"]]]]]]))
+       "&copy; 2016 Starcity Properties, Inc."
+       [:a.grey-text.text-lighten-4.right {:href "/privacy"} "Privacy"]
+       [:a.hide-on-small-only.grey-text.text-lighten-4.right {:href "/terms"}
+        "Terms of Service"]
+       [:a.hide-on-med-and-up.grey-text.text-lighten-4.right {:href "/terms"}
+        "Terms"]]]]))
 
 (def ^:private brand-logo
   [:a.brand-logo {:href "/"}
@@ -164,7 +164,6 @@
   "Page template with a solid navbar."
   [& {:keys [nav-links content js json title]
       :or   {nav-links default-nav-links
-             ;; title     "Starcity"
              js        []
              json      []}}]
   (html5

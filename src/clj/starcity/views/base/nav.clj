@@ -29,3 +29,5 @@
 (def about (nav-link "About"))
 (def apply (nav-button "Apply Now" "/application" "star-orange"))
 (def logout (nav-link "Log Out" "/logout"))
+(def terms (nav-link "Terms of Service" "/terms"))
+(def privacy (nav-link "Privacy Policy" "/privacy"))
