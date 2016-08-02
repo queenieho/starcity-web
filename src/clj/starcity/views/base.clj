@@ -12,6 +12,16 @@
 (def ^:private materialize-js "/assets/bower/Materialize/dist/js/materialize.min.js")
 (def ^:private main-css "/assets/css/main.css")
 
+(def ^:private google-analytics
+  [:script
+   "(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-81813253-1', 'auto');
+  ga('send', 'pageview');"])
+
 (def ^:private base-js
   ["https://code.jquery.com/jquery-2.1.1.min.js"
    materialize-js])
@@ -137,7 +147,8 @@
     content
     (footer)
     (apply include-js base-js)
-    (include-js "/js/hero.js")]))
+    (include-js "/js/hero.js")
+    google-analytics]))
 
 (defn base
   "Page template with a solid navbar."
@@ -161,4 +172,4 @@
      "/assets/bower/jquery-validation/dist/jquery.validate.js"
      "/js/validation-defaults.js" ; TODO: Bundle with /js/main.js
      "/js/main.js")
-    ]))
+    google-analytics]))
