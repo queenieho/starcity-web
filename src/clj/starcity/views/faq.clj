@@ -10,7 +10,7 @@
 (def sections
   [(make-section "What is communal housing?"
                  ["Communal housing, sometimes referred to as co-living, is a new way of living inspired by the old, with community and collective experiences at its core."
-                  "Starcity in particular offers welcoming, furnished spaces such as a lounge, kitchen, dining area, movie room, and laundry for all of our members to share. In these comfortable spaces, our community members come together to collaborate and exchange ideas and experiences."])
+                  "Starcity in particular offers welcoming, furnished spaces such as lounges, kitchens, dining areas, movie rooms, and laundry-rooms for our members to share. In these comfortable spaces, our community members come together to collaborate and exchange ideas and experiences."])
    (make-section "What about private spaces?"
                  ["Every Starcity member has a secure private room for rest and relaxation. Within our first two communities in San Francisco, each private room offers a full or queen-sized bed with fresh linens and modern furnishings."
                   "In the near future, private spaces at Starcity will have all the features and amenities of a private apartment (private bathrooms, showers and kitchenettes)."])
@@ -21,23 +21,22 @@
    (make-section "What does a Starcity membership include?"
                  ["Beyond living with a worldly and authentic collective of people, a membership includes:"
                   ["Well-designed communal spaces with furniture, appliances and more"
-                   "Fully-furnished private room (queen-sized bed, high-end linens, nightstand, dresser, reading lamp)"
+                   "Fully-furnished private room (queen or full-sized bed, high-end linens, nightstand, dresser, reading lamp)"
                    "Tech-enabled spaces: HDTVs and connected devices"
-                   "In-home laundry"
                    "Hi-speed WiFi"
                    "All utilities: electricity, gas, water, trash disposal"
                    "Weekly cleaning services"
                    "Resources to plan and host community events"
                    "Bicycle storage"]])
    (make-section "How much does it cost?"
-                 ["Our memberships are all-inclusive &mdash; we couple rent with all of the extras described above to make your life simple. The amount you pay depends on the community you join and the term of your Membership Agreemeent:"
+                 ["Our memberships are all-inclusive &mdash; we couple rent with all of the extras described above to make your life simple. The amount you pay depends on the community you join and the term of your Membership Agreemeent. Typically:"
                   ["12-months: $2,000 per month"
                    "6-months: $2,100 per month"
                    "Month-to-month: $2,300 per month"]])
    (make-section "I want to move in. How do I secure my place in the community?"
-                 ["In order to secure your spot in the community, <a href='/signup'>apply here</a>. Starcity takes care of pre-qualifying you for membership (i.e., conducting background and credit checks) and community members living in your desired home make the ultimate decision on who will join their community."])
+                 ["In order to secure your spot in the community, <a href='/signup'>apply here</a>. Starcity takes care of pre-qualifying you for membership (i.e., conducting community safety and financial checks) and our community members that live in your desired home make the ultimate decision on who will join their community."])
    (make-section "What are the fees to move in?"
-                 ["There is a minimal admin fee of $20 which is used to run background and financial screens to pre-qualify you."
+                 ["There is a minimal admin fee of $25 which is used to run community safety and financial screens to pre-qualify you."
                   "After pre-qualification, if our community selects you for membership, simply pay $500 towards your new member deposit to secure your room. That's it. No two month's rent, security deposit and large out of pocket before move-in."
                   "You'll pay first month's membership the day you move-in and have 30 days from move-in to pay the remainder of your new member deposit."])
    (make-section "What sort of events can I expect to happen when I move in?"
@@ -45,12 +44,12 @@
    (make-section "Can I host my own event?"
                  ["Yes, absolutely! Just speak to us and we can help you out. We want members to make the community their own."])
    (make-section "How do I pay my monthly membership?"
-                 ["Every member at Starcity will have access to a personal online dashboard. There, you can pay your membership automatically via direct debit/ACH on the 1st of the month. This will all be set up when you sign a Membership Agreement."
+                 ["Every member at Starcity will have access to a personal online dashboard. There, you can pay your membership automatically via direct debit/ACH on the 1st of each month. This will all be set up when you sign a Membership Agreement."
                   "We want to make living in Starcity as flexible as possible for members. Upon move-in, if you come halfway through the month, you'll only pay for those days rather than the whole month."])
    (make-section "Can I decorate my room?"
                  ["Yes, you’ll be able to make yourself at home. We have a staff of expert designers and handy(wo)men who can do the work for you as part of a premium package or we can give you the tools you need to spruce up your room. Please speak to our team before putting holes in the wall yourself."])
    (make-section "Are the community spaces cleaned?"
-                 ["Yes! All the community spaces are cleaned regularly by a professional cleaning service. Room clean are available upon request as part of a premium package. We get a great rate since we'll have onsite cleaning staff each week."])
+                 ["Yes! All the community spaces are cleaned regularly by a professional cleaning service. Room cleans are available upon request as part of a premium package. We get a great rate since we'll have onsite cleaning staff each week."])
    (make-section "What is the length of a member's stay?"
                  ["We offer flexible month-to-month memberships as well as 6-month and 12-month memberships. The amount you pay is calculated based on the time you plan to stay. A longer stay means a lower monthly cost."])
    (make-section "Are there rooms available for couples and families?"

@@ -7,8 +7,7 @@
 ;; =============================================================================
 
 (def ^:private next-steps
-  ["We will process your application shortly &mdash; it should take 1-2 business days to pre-qualify you for the community."
-   "Then, you will receive an email with instructions to schedule a tour."])
+  ["We will process your application shortly &mdash; once we've pre-qualified you for the community, we'll reach out to schedule a tour and community-interview."])
 
 (def ^:private just-completed-content
   [:main
