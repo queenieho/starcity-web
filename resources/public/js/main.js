@@ -7,6 +7,9 @@ $(document).ready(function() {
     '/application/submit': submit
   };
 
+  // activate side menu
+  $(".button-collapse").sideNav();
+
   var jsForURI = paths[window.location.pathname];
   if (jsForURI) {
     if (Array.isArray(jsForURI)) {
