@@ -45,9 +45,10 @@
            "Sign In"
            [:i.material-icons.right "send"]]]]
 
-        [:div.row
-         [:div.col.s12.center-align
-          [:a {:href "#"} "Forgotten password?"]]]
+        ;; NOTE: Remove until this is actually implemented
+        ;; [:div.row
+        ;;  [:div.col.s12.center-align
+        ;;   [:a {:href "#"} "Forgotten password?"]]]
 
         [:div.divider]
 
