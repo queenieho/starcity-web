@@ -72,7 +72,7 @@
      ;; google site verification
      [:meta {:name "google-site-verification" :content "efd7Gz_b7RGhSoL42WIElePfRXEZlKgguT-2ha5Zlqs"}]
      ;; Let browser know whebsite is optimized for mobile
-     [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]
+     [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0, maximum-scale=1.0"}]
      (map apple-touch-icon sizes)
      [:link {:rel "icon" :type "image/png" :sizes "192x192" :href "/android-icon-192x192.png"}]
      [:link {:rel "icon" :type "image/png" :sizes "32x32" :href "/favicon-32x32.png"}]
