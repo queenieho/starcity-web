@@ -18,8 +18,10 @@
 (defn wrap-logging
   "Middleware to log requests."
   [handler]
-  (fn [{:keys [uri params request-method] :as req}]
+  (fn [{:keys [uri params request-method identity] :as req}]
     (when-not (= uri "/favicon.ico")
-      (infof "REQUEST :: uri -- %s :: params -- %s :: method -- %s"
-              uri (apply dissoc params params-blacklist) request-method))
+      (if identity
+        (infof "%s REQUEST by %s for %s -- params: %s" request-method (:account/email identity) uri params)
+        (infof "REQUEST :: uri -- %s :: params -- %s :: method -- %s"
+               uri (apply dissoc params params-blacklist) request-method)))
     (handler req)))
