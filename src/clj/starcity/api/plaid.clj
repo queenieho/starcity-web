@@ -41,7 +41,7 @@
               (log-failure "Error during public_token exchange" (:db/id identity) res)))]
     (if-let [public-token (:public_token params)]
       (do
-        (service/exchange-token public-token -on-exchange) ; TODO: make synchronous
+        (service/exchange-token public-token -on-exchange)
         (ok {:message "Success!"}))
       (malformed {:message "Request must include a :public_token!"}))))
 
