@@ -3,9 +3,9 @@
  :logger      {:level   :trace
                :logfile "/var/log/starcity-web/server.log"}
 
- :hostname    "http://staging.joinstarcity.com"
+ :hostname    "https://staging.joinstarcity.com"
 
- :plaid       {:webhook "http://staging.joinstarcity.com/webhooks/plaid"}
+ :plaid       {:webhook "https://staging.joinstarcity.com/webhooks/plaid"}
 
  :mailgun     {:domain "sandboxeec004e4d33845edaef9b962843713a7.mailgun.org"
                :sender "Mailgun Sandbox <postmaster@sandboxeec004e4d33845edaef9b962843713a7.mailgun.org>"}}

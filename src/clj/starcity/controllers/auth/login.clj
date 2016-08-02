@@ -40,8 +40,9 @@
 
 (defn- show-login*
   "NOTE: Preserves the next url through the POST req by using a hidden input."
-  [{:keys [identity] :as req} & {:keys [errors email] :or {errors [] email ""}}]
-  (let [next-url (get-in req [:params :next])]
+  [{:keys [identity params] :as req} & {:keys [errors email] :or {errors []}}]
+  (let [next-url (get-in req [:params :next])
+        email    (or email (:email params) "")]
     (view/login errors email next-url (-> (get-in req [:params :activated]) nil? not))))
 
 ;; =============================================================================
