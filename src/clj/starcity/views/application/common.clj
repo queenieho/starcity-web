@@ -105,10 +105,11 @@
   [sections submit-button]
   [:form {:method "POST"}
    (for [[title section] sections]
-     [:div.section;.center
+     [:div.section
       (wrap-section
-       [:h5.light.center title]
-       section)])
+       [:h5.section-title title]
+       [:div.section-content
+        section])])
    [:div.row
     [:div.col.s12.center
      submit-button]]])
