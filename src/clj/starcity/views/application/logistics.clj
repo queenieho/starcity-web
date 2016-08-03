@@ -190,7 +190,7 @@
 (defn logistics
   "Show the logistics page."
   [current-steps properties application licenses & {:keys [errors]}]
-  (let [sections [["When is your ideal move-in date?"
+  (let [sections [["When is the ideal time frame for you to move in?"
                    (choose-availability (:member-application/desired-availability application))]
                   ["How long would you like to stay?"
                    (choose-license licenses (:member-application/desired-license application))]
