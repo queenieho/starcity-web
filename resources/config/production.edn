@@ -1,4 +1,4 @@
-{:logger   {:level   :info
+{:log      {:level   :info
             :logfile "/var/log/starcity-web/server.log"}
 
  :hostname "https://joinstarcity.com"
