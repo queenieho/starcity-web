@@ -21,15 +21,17 @@
                      (properties-schema-8-2-16))]
     (c/ensure-conforms conn norms)))
 
-(defn- new-connection [{:keys [uri schema-dir seed-dir]}]
-  (infof "Establishing Datomic Connection @ URI: %s" uri)
+;; TODO: Include information about the connection URI, but without the
+;; username/password included
+(defn- new-connection [{:keys [uri]}]
+  (info "Establishing Datomic Connection!")
   (d/create-database uri)
   (let [conn (d/connect uri)]
     (run-migrations conn)
     conn))
 
 (defn- disconnect [{:keys [uri]} conn]
-  (infof "Releasing Datomic connection @ %s" uri)
+  (info "Releasing Datomic connection!")
   (.release conn))
 
 ;; =============================================================================
