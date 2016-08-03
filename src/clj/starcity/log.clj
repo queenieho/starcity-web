@@ -72,3 +72,8 @@
      (if error
        (timbre/error error log-statement)
        (timbre/info log-statement)))))
+
+;; =============================================================================
+;; Service Logging
+
+;; TODO:
