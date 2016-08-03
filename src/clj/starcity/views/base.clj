@@ -35,27 +35,6 @@
 ;; =============================================================================
 
 ;; =============================================================================
-;; Hero
-
-(defn- hero-content
-  [title description {:keys [uri text class] :as action}]
-  [:div#hero
-   [:div#hero-text-container.container
-
-    [:div.row
-     [:div.col.s12.center-align
-      [:h1#hero-title {:itemprop "title"}
-       title]]]
-    [:div.row
-     [:div.col.s12.center-align
-      [:h2#hero-description {:itemprop "description"}
-       description]]]
-    [:div.row
-     [:div.col.s12.center-align
-      [:a.btn.btn-large.hero-btn {:href uri :class class}
-       text]]]]])
-
-;; =============================================================================
 ;; Generic
 
 (defn- apple-touch-icon [size]
@@ -134,6 +113,27 @@
        (for [link links] link)]
       [:ul#mobile-menu.side-nav
        (for [link links] link)]]]]))
+
+;; =============================================================================
+;; Hero
+
+(defn- hero-content
+  [title description {:keys [uri text class] :as action}]
+  [:div#hero
+   [:div#hero-text-container.container
+
+    [:div.row
+     [:div.col.s12.center-align
+      [:h1#hero-title {:itemprop "title"}
+       title]]]
+    [:div.row
+     [:div.col.s12.center-align
+      [:h2#hero-description {:itemprop "description"}
+       description]]]
+    [:div.row
+     [:div.col.s12.center-align
+      [:a.btn.btn-large.hero-btn {:href uri :class class}
+       text]]]]])
 
 ;; =============================================================================
 ;; API

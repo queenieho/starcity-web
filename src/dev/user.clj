@@ -3,7 +3,7 @@
             [mount.core :as mount :refer [defstate]]
             ;; [figwheel-sidecar.repl-api :as ra]
             ;; [figwheel-sidecar.system :refer [fetch-config]]
-            [starcity.logger]
+            [starcity.log]
             [starcity.server]
             [starcity.datomic :refer [conn]]
             [starcity.config]

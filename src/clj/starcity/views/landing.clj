@@ -75,7 +75,8 @@
   (hero
    :content landing-content
    :title "Your new home"
-   :description "Comfortable communal housing in San Francisco."
+   :description (list [:span "Comfortable communal housing in"]
+                      [:span {:style "display: block;"}" San Francisco."])
    :background-image "/assets/img/starcity-kitchen.png"
    :action {:uri   "/application"
             :text  "apply for a home"

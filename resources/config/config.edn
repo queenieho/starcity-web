@@ -2,8 +2,8 @@
 
  :datomic   {:partition :db.part/starcity}
 
- :logger    {:level    :trace
-             :logfile  "logs/server.log"}
+ :log       {:level   :trace
+             :logfile "logs/server.log"}
 
  :nrepl     {:port 7889}
 

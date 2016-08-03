@@ -2,7 +2,7 @@
   (:gen-class)
   (:require [starcity.server]
             [starcity.datomic]
-            [starcity.logger]
+            [starcity.log]
             [starcity.nrepl]
             [starcity.config]
             [starcity.environment]
