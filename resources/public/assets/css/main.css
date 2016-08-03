@@ -6841,6 +6841,19 @@ main#member-application .card-panel {
         color: #9e9e9e; }
 main#member-application .section {
   padding-bottom: 0; }
+  main#member-application .section .section-title {
+    margin-bottom: 20px; }
+  main#member-application .section .input-field {
+    margin-top: 0; }
+  main#member-application .section .section-content {
+    border: 1px solid #eeeeee;
+    border-radius: 3px;
+    padding: 20px 20px 30px 20px;
+    background-color: #fbf8f5; }
+    main#member-application .section .section-content .row {
+      margin-bottom: 0; }
+      main#member-application .section .section-content .row .input-field {
+        margin-top: 1rem; }
 main#member-application label span:after {
   content: '\00B7';
   padding-right: 5px;

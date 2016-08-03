@@ -41,6 +41,29 @@ main#member-application {
 
   .section {
     padding-bottom: 0;
+
+    .section-title {
+      margin-bottom: 20px;
+    }
+
+    .input-field {
+      margin-top: 0;
+    }
+
+    .section-content {
+      border: 1px solid color('grey', 'lighten-3');
+      border-radius: 3px;
+      padding: 20px 20px 30px 20px;
+      background-color: #fbf8f5;
+
+      .row {
+        margin-bottom: 0;
+
+        .input-field {
+          margin-top: 1rem;
+        }
+      }
+    }
   }
 
   label {
