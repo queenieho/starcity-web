@@ -4,12 +4,7 @@
             [taoensso.timbre :as timbre :refer [merge-config! set-level!]]
             [starcity.environment :refer [environment]]
             [starcity.config :refer [config]]
-            [mount.core :as mount :refer [defstate]]
-            [clojure.string :as str]))
-
-;; =============================================================================
-;; Log Configuration
-;; =============================================================================
+            [mount.core :as mount :refer [defstate]]))
 
 (defn- appenders-for-environment
   [{:keys [logfile]}]
@@ -26,54 +21,5 @@
    {:level     level
     :appenders (appenders-for-environment conf)}))
 
-;; =============================================================================
-;; API
-;; =============================================================================
-
-(defstate logger :start (setup-log (:log config)))
-
-;; =============================================================================
-;; Request Logging
-
-(def ^:private params-blacklist
-  #{:password :password-1 :password-2})
-
-(defn- unidentified-request
-  [{:keys [remote-addr request-method uri] :as req}]
-  (format "REQUEST - [%s] - %s - %s"
-          (-> request-method name str/upper-case)
-          remote-addr
-          uri))
-
-(defn- identified-request
-  [{:keys [identity] :as req}]
-  (format "%s - %s"
-          (unidentified-request req)
-          (format "%s:%s" (:db/id identity) (:account/email identity))))
-
-(defn- log-for-identity
-  [{:keys [identity] :as req}]
-  (if (empty? identity)
-    (unidentified-request req)
-    (identified-request req)))
-
-(defn- include-params
-  [log-statement params]
-  (format "%s - %s" log-statement params))
-
-(defn request
-  ([req]
-   (request req nil))
-  ([{:keys [params identity] :as req} error]
-   (let [with-identity (log-for-identity req)
-         log-statement (if (not-empty params)
-                         (include-params with-identity (apply dissoc params params-blacklist))
-                         with-identity)]
-     (if error
-       (timbre/error error log-statement)
-       (timbre/info log-statement)))))
-
-;; =============================================================================
-;; Service Logging
-
-;; TODO:
+(defstate log
+  :start (setup-log (:log config)))
