@@ -10,6 +10,7 @@ pom.xml.asc
 .hgignore
 .hg/
 /data
+/resources/public/js/elm
 /resources/public/assets/bower
 /resources/public/assets/.sass-cache
 /resources/public/js/app
