@@ -41,6 +41,61 @@ main#member-application {
 
   .section {
     padding-bottom: 0;
+
+    .section-title {
+      margin-bottom: 20px;
+    }
+
+    .input-field {
+      margin-top: 0;
+    }
+
+    .help-text {
+      color: color('grey', 'darken-1');
+      margin-bottom: 20px;
+
+      p {
+        color: color('grey', 'darken-1');
+      }
+    }
+
+    .section-content {
+      border: 1px solid color('grey', 'lighten-3');
+      border-radius: 3px;
+      padding: 20px 20px 30px 20px;
+      background-color: #fbf8f5;
+
+      .row {
+        margin-bottom: 0;
+
+        .input-field {
+          margin-top: 1rem;
+        }
+      }
+    }
+  }
+
+  #income-section {
+
+    button {
+      height: 3rem;
+    }
+
+    .file-field {
+      margin-top: 0;
+
+      .file-path {
+        margin-bottom: 0;
+      }
+
+      .btn {
+        padding: 0 0.75rem;
+
+        i {
+          font-size: 1.4rem;
+        }
+      }
+    }
   }
 
   label {

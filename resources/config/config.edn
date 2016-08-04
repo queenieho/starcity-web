@@ -1,3 +1,4 @@
+;; NOTE: Toplevel values MUST be maps...will come up with a workaround for this eventually
 {:webserver {:port 8080}
 
  :datomic   {:partition :db.part/starcity}

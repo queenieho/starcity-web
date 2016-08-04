@@ -9,6 +9,7 @@ pom.xml.asc
 /.nrepl-port
 .hgignore
 .hg/
+/data
 /resources/public/assets/bower
 /resources/public/assets/.sass-cache
 /resources/public/js/app

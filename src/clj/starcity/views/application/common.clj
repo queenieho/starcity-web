@@ -102,13 +102,15 @@
     children]])
 
 (defn- form-content
-  [sections submit-button]
-  [:form {:method "POST"}
-   (for [[title section] sections]
-     [:div.section;.center
+  [sections submit-button encoding-type]
+  [:form {:method "POST" :enctype encoding-type}
+   (for [{:keys [title help-text content]} sections]
+     [:div.section
       (wrap-section
-       [:h5.light.center title]
-       section)])
+       [:h5.section-title title]
+       (when help-text
+         [:div.help-text help-text])
+       [:div.section-content content])])
    [:div.row
     [:div.col.s12.center
      submit-button]]])
@@ -122,22 +124,29 @@
 ;; API
 ;; =============================================================================
 
+(defn make-step
+  ([title content]
+   (make-step title nil content))
+  ([title help-text content]
+   {:title title :help-text help-text :content content}))
+
 (defn step
-  [title sections current-steps & {:keys [js json errors submit-button] ; TODO
+  [title sections current-steps & {:keys [js json errors submit-button encoding-type]
                                    :or   {errors        []
-                                          submit-button default-submit-button}}]
+                                          submit-button default-submit-button
+                                          encoding-type "application/x-www-form-urlencoded"}}]
   (base
    :title "Apply"
    :content [:main#member-application
              [:div.container
               [:div.row {:style "margin-bottom: 0;"}
                (for [error errors]
-                 [:div.alert.alert-error.col.s12.l8.offset-l2
+                 [:div.alert.alert-error.col.s12.l10.offset-l1
                   [:p.alert-text error]])]
               [:div.row.section
-               [:div.col.s12.l8.offset-l2.card-panel.grey-text.text-darken-2
+               [:div.col.s12.m12.l10.offset-l1.card-panel.grey-text.text-darken-2
                 (navbar title current-steps)
-                (form-content sections submit-button)]]]]
+                (form-content sections submit-button encoding-type)]]]]
    :nav-links [nav/logout]
    :js js
    :json json))

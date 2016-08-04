@@ -190,13 +190,14 @@
 (defn logistics
   "Show the logistics page."
   [current-steps properties application licenses & {:keys [errors]}]
-  (let [sections [["When is your ideal move-in date?"
-                   (choose-availability (:member-application/desired-availability application))]
-                  ["How long would you like to stay?"
-                   (choose-license licenses (:member-application/desired-license application))]
-                  ["Which Starcity communities are you applying to?"
-                   (choose-properties properties (:member-application/desired-properties application))]
-                  ["Do you have a pet?" (choose-pet application)]]]
+  (let [sections (map (partial apply common/make-step)
+                      [["When is the ideal time frame for you to move in?"
+                        (choose-availability (:member-application/desired-availability application))]
+                       ["How long would you like to stay?"
+                        (choose-license licenses (:member-application/desired-license application))]
+                       ["Which Starcity communities are you applying to?"
+                        (choose-properties properties (:member-application/desired-properties application))]
+                       ["Do you have a pet?" (choose-pet application)]])]
     (common/step "Logistics" sections current-steps
                  :errors errors
                  :json [["licenseMapping" (property-license-mapping properties)]])))
