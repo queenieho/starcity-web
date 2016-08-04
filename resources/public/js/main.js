@@ -151,6 +151,8 @@ function submit() {
         handler.open();
       } else {
         form.submit();
+        $("#submit-section button").fadeOut();
+        $("#submit-section #loading").fadeIn();
       }
     }
   });

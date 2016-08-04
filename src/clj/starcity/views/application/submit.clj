@@ -60,10 +60,10 @@
         [:li [:u "Phone:"] " 855-278-7451"]
         [:li [:u "Email:"] [:a {:href "mailto:support@communitysafety.goodhire.com"} " support@communitysafety.goodhire.com"]]]]
       [:div.modal-footer
-       [:a.modal-action.modal-close.waves-effect.waves-red.btn-flat {:href "#"}
-        "Disagree"]
        [:a#background-check-agree.modal-action.modal-close.waves-effect.waves-green.btn-flat {:href "#"}
-        "Agree"]]]
+        "Agree"]
+       [:a.modal-action.modal-close.waves-effect.waves-red.btn-flat {:href "#"}
+        "Disagree"]]]
      )))
 ;; =============================================================================
 ;; Plaid
@@ -137,9 +137,20 @@
 ;; =============================================================================
 
 (def ^:private submit-button
-  [:button#stripe-btn.btn.waves-effect.waves-light.btn-large
-   {:type "Submit"}
-   "Pay &amp; Submit"])
+  [:div#submit-section
+   [:button#stripe-btn.btn.waves-effect.waves-light.btn-large
+    {:type "Submit"}
+    "Pay &amp; Submit"]
+   [:div#loading {:style "display: none;"}
+    [:p.center.flow-text "Submitting..."]
+    [:div.preloader-wrapper.big.active
+     [:div.spinner-layer.spinner-blue-only
+      [:div.circle-clipper.left
+       [:div.circle]]
+      [:div.gap-patch
+       [:div.circle]]
+      [:div.circle-clipper.right
+       [:div.circle]]]]]])
 
 (defn submit
   [current-steps email plaid-id amount errors]

@@ -51,7 +51,7 @@
   [{:keys [port] :as conf}]
   (debugf "Starting server on port %d" port)
   (slack/webhook-request ":: *starting* webserver ::")
-  (run-server app-handler {:port port}))
+  (run-server app-handler {:port port :max-body (* 20 1024 1024)}))
 
 (defn- stop-server
   [server]
