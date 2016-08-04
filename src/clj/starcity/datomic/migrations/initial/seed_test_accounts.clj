@@ -27,8 +27,8 @@
 
           {:account/email      "admin@test.com"
            :account/password   "bcrypt+blake2b-512$30e1776f40ee533841fcba62a0dbd580$12$2dae523ec1eb9fd91409ebb5ed805fe53e667eaff0333243"
-           :account/first-name "Jon"
-           :account/last-name  "Dishotsky"
+           :account/first-name "Josh"
+           :account/last-name  "Lehman"
            :account/role       :account.role/admin
            :account/activated  true}])
   :env  #{:development :staging}

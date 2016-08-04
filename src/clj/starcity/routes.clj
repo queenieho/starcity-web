@@ -11,7 +11,7 @@
              [application :as application]
              [auth :as auth]
              [communities :as communities]
-             [elm :as elm]
+             [admin :as admin]
              [faq :as faq]
              [landing :as landing]
              [register :as register]
@@ -67,8 +67,6 @@
   (GET  "/login"        [] login/show-login)
   (POST "/login"        [] login/login!)
 
-  (GET "/elm" [] elm/show)
-
   (ANY  "/logout"       [] auth/logout!)
 
   (context "/signup" []
@@ -109,6 +107,13 @@
 
      {:handler  {:and [authenticated-user (user-isa :account.role/applicant)]}
       :on-error (redirect-on-invalid-authorization "/me")}))
+
+  (context "/admin" []
+    (restrict
+     (routes
+      (GET "*" [] admin/show))
+     {:handler {:and [authenticated-user (user-isa :account.role/admin)]}
+      :on-error (redirect-on-invalid-authorization "/")}))
 
   ;; (GET "/me" [] (-> dashboard/show-dashboard
   ;;                   (restrict {:handler  {:and [authenticated-user (user-isa :account.role/tenant)]}

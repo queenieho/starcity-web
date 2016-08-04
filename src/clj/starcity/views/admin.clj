@@ -1,4 +1,4 @@
-(ns starcity.views.elm
+(ns starcity.views.admin
   (:require [hiccup.core :refer [html]]
             [hiccup.page :refer [html5 include-js]]))
 
@@ -15,8 +15,8 @@
             :media "screen,projection"}]
 
     ;; Let browser know whebsite is optimized for mobile
-    [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]]
+    [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]]
    [:body
-    (include-js "/js/elm.js")
+    (include-js "/js/admin.js")
     [:script
      "var app = Elm.Main.fullscreen();"]]))
