@@ -60,10 +60,10 @@
         [:li [:u "Phone:"] " 855-278-7451"]
         [:li [:u "Email:"] [:a {:href "mailto:support@communitysafety.goodhire.com"} " support@communitysafety.goodhire.com"]]]]
       [:div.modal-footer
-       [:a.modal-action.modal-close.waves-effect.waves-red.btn-flat {:href "#"}
-        "Disagree"]
        [:a#background-check-agree.modal-action.modal-close.waves-effect.waves-green.btn-flat {:href "#"}
-        "Agree"]]]
+        "Agree"]
+       [:a.modal-action.modal-close.waves-effect.waves-red.btn-flat {:href "#"}
+        "Disagree"]]]
      )))
 ;; =============================================================================
 ;; Plaid
