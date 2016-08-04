@@ -6845,6 +6845,11 @@ main#member-application .section {
     margin-bottom: 20px; }
   main#member-application .section .input-field {
     margin-top: 0; }
+  main#member-application .section .help-text {
+    color: #757575;
+    margin-bottom: 20px; }
+    main#member-application .section .help-text p {
+      color: #757575; }
   main#member-application .section .section-content {
     border: 1px solid #eeeeee;
     border-radius: 3px;
@@ -6854,6 +6859,16 @@ main#member-application .section {
       margin-bottom: 0; }
       main#member-application .section .section-content .row .input-field {
         margin-top: 1rem; }
+main#member-application #income-section button {
+  height: 3rem; }
+main#member-application #income-section .file-field {
+  margin-top: 0; }
+  main#member-application #income-section .file-field .file-path {
+    margin-bottom: 0; }
+  main#member-application #income-section .file-field .btn, main#member-application #income-section .file-field .btn-large {
+    padding: 0 0.75rem; }
+    main#member-application #income-section .file-field .btn i, main#member-application #income-section .file-field .btn-large i {
+      font-size: 1.4rem; }
 main#member-application label span:after {
   content: '\00B7';
   padding-right: 5px;

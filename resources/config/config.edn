@@ -1,5 +1,7 @@
 {:webserver {:port 8080}
 
+ :data-dir  "data"
+
  :datomic   {:partition :db.part/starcity}
 
  :log       {:level   :trace

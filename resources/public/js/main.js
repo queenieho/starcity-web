@@ -86,25 +86,6 @@ function logistics() {
 }
 
 function personal() {
-  var linkButton = $("#link-button");
-  var linkButtonEnabled = plaid.complete === false;
-  var alertTypes = {
-    success: "alert-success",
-    error: "alert-danger"
-  };
-
-  // NOTE: `plaid` variable is populated by server as a var holding some JSON.
-  var linkHandler = Plaid.create({
-    env: plaid.env,
-    clientName: 'Starcity',
-    product: 'auth',
-    key: plaid.key,
-    onSuccess: sendPublicToken,
-    onExit: function() {
-      console.log("Exited!");
-    }
-  });
-
   // Install field-kit on phone number
   var fk = new FieldKit.TextField(document.getElementById("phone"),
                                   new FieldKit.PhoneFormatter());
@@ -114,38 +95,6 @@ function personal() {
   // setup materialize components
   installMaterialSelects();
   initializeDatePicker();
-
-  function sendPublicToken(public_token, metadata) {
-    toggleLinkButton();         // disable link button while sending to server
-    $.post("/api/v1/plaid/auth", {public_token: public_token})
-      .done(function(data) {
-        linkButton
-          .addClass("disabled")
-          .text("Account Linked!") // TODO:
-          .prepend("<i class='material-icons right'>done</i.");
-        linkButtonEnabled = false;
-      })
-      .fail(function(data) {
-        addPlaidAlert("error", "Whoops! Something went wrong &mdash; please try linking your account again.");
-        toggleLinkButton();     // re-enable link button to try again
-      });
-  }
-
-  function addPlaidAlert(type, content) {
-    var alertClass = alertTypes[type];
-    $("#plaid-section").prepend("<div class='alert " + alertClass + "' role='alert'>" + content + "</div>");
-  }
-
-  function toggleLinkButton() {
-    linkButton.toggleClass('disabled');
-    linkButtonEnabled = !linkButtonEnabled;
-  }
-
-  linkButton.click(function() {
-    if (linkButtonEnabled) {
-      linkHandler.open();
-    }
-  });
 
   function initializeDatePicker() {
     var today = new Date();
@@ -168,6 +117,14 @@ function community() {
 function submit() {
   var receiveCopyCheckbox = $('#receive-copy');
   var paymentSent = false;
+  var linkButton = $("#link-button");
+  var linkButtonEnabled = plaid.complete === false;
+  var alertTypes = {
+    success: "alert-success",
+    error: "alert-danger"
+  };
+
+  // Stripe Configuration
   var handler = StripeCheckout.configure({
     name: "Starcity",
     description: "Member Application",
@@ -187,6 +144,7 @@ function submit() {
     }
   });
 
+  // Intercept submits to collect payment
   $("form").validate({
     submitHandler: function(form) {
       if (!paymentSent) {
@@ -197,11 +155,12 @@ function submit() {
     }
   });
 
+  // Close Stripe on nav
   $(window).on('popstate', function() {
     handler.close();
   });
 
-  // background check modal
+  // Display modal with compliance info when the `[ ] Yes` box is unchecked
   $("#background-permission").click(function(evt) {
     var checked = !evt.currentTarget.checked;
     if (!checked) {
@@ -212,11 +171,67 @@ function submit() {
     }
   });
 
+  // Check box when agree button pushed on modal
   $("#background-check-agree").click(function(evt) {
     evt.preventDefault();
     $("#background-permission").prop("checked", true);
     receiveCopyCheckbox.fadeIn();
   });
+
+
+  // NOTE: `plaid` variable is populated by server as a var holding some JSON.
+  var linkHandler = Plaid.create({
+    env: plaid.env,
+    clientName: 'Starcity',
+    product: 'auth',
+    key: plaid.key,
+    onSuccess: sendPublicToken,
+    onExit: function() {
+      console.log("Exited!");
+    }
+  });
+
+  // Present Plaid Link when button is pushed
+  linkButton.click(function() {
+    if (linkButtonEnabled) {
+      linkHandler.open();
+    }
+  });
+
+  $("#income-section .modal-trigger").click(function(e) {
+    e.preventDefault();
+    $("#bank-account-info-modal").openModal();
+  });
+
+  // ==============================
+  // Plaid Helper Functions
+
+  function sendPublicToken(public_token, metadata) {
+    toggleLinkButton();         // disable link button while sending to server
+    $.post("/api/v1/plaid/auth", {public_token: public_token})
+      .done(function(data) {
+        linkButton
+          .addClass("disabled")
+          .text("Verified") // TODO:
+          .prepend("<i class='material-icons right'>done</i>");
+        linkButtonEnabled = false;
+      })
+      .fail(function(data) {
+        addPlaidAlert("error", "Whoops! Something went wrong &mdash; please try linking your account again.");
+        toggleLinkButton();     // re-enable link button to try again
+      });
+  }
+
+  function addPlaidAlert(type, content) {
+    var alertClass = alertTypes[type];
+    $("#income-section").prepend("<div class='alert " + alertClass + "' role='alert'>" + content + "</div>");
+  }
+
+  function toggleLinkButton() {
+    linkButton.toggleClass('disabled');
+    linkButtonEnabled = !linkButtonEnabled;
+  }
+
 
 }
 

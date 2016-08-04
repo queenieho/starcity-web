@@ -7,6 +7,7 @@
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.params :refer [wrap-params]]
             [ring.middleware.nested-params :refer [wrap-nested-params]]
+            [ring.middleware.multipart-params :refer [wrap-multipart-params]]
             [ring.middleware.session :refer [wrap-session]]
             [ring.middleware.json :refer [wrap-json-params
                                           wrap-json-response]]
@@ -37,6 +38,7 @@
       (wrap-json-params)
       (wrap-json-response)
       (wrap-params)
+      (wrap-multipart-params)
       (wrap-resource "public")
       (wrap-session)
       (wrap-exception-handling)

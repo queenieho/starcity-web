@@ -7,6 +7,7 @@
             [starcity.controllers.application.common :as common]
             [starcity.controllers.utils :refer :all]
             [starcity.models
+             [plaid :as plaid]
              [account :as account]
              [application :as application]
              [community-safety :as community-safety]]
@@ -27,23 +28,49 @@
 (def ^:private payment-amount 2500)
 
 (defn- can-view-submit?
+  "Given a request, returns true iff requester is allowed to view the submit
+  page."
   [{:keys [identity] :as req}]
   (when-let [application-id (:db/id (application/by-account-id (:db/id identity)))]
     (application/community-fitness-complete? application-id)))
 
-(defn show-submit*
+(defn- show-submit*
+  "Render the submit page given a request."
   [{:keys [identity] :as req} & {:keys [errors] :or []}]
-  (let [current-steps (application/current-steps (:db/id identity))]
-    (view/submit current-steps (:account/email identity) payment-amount errors)))
+  (let [current-steps (application/current-steps (:db/id identity))
+        plaid-id      (:db/id (plaid/by-account-id (:db/id identity)))]
+    (view/submit current-steps
+                 (:account/email identity)
+                 plaid-id
+                 payment-amount
+                 errors)))
 
-(defn- payment-error [req]
+(defn- payment-error
+  "Something went wrong while attempting to process a Stripe payment -- return
+  400 response with canned error message."
+  [req]
   (malformed (show-submit* req :errors ["Something went wrong while processing your payment. Please try again."])))
 
-(defn- charge-application-fee [token email]
+(defn- charge-application-fee
+  "Perform a Stripe API request that charges user identified by `email` for
+  applying."
+  [token email]
   (stripe/charge payment-amount token email))
 
 ;; =============================================================================
 ;; Parameter Validation
+
+(defn- inject-plaid-id
+  "Lookup the plaid-id for this account and inject it into the params map for
+  validation."
+  [params account-id]
+  (assoc params :plaid-id (:db/id (plaid/by-account-id account-id))))
+
+(defn- files-missing?
+  [file-or-files]
+  (or (empty? file-or-files)
+      (and (empty? (:filename file-or-files))
+           (= 0 (:size file-or-files)))))
 
 (defn- validate-params
   "Validate that user has accepted terms of service, allowed us to run a
@@ -51,12 +78,14 @@
   [params]
   (let [tos-msg    "You must acknowledge the terms of service to proceed."
         bgc-msg    "You must allow us to run a background check in order to become part of a Starcity community."
-        stripe-msg "Something went wrong while processing your payment. Please try again."]
+        stripe-msg "Something went wrong while processing your payment. Please try again."
+        income-msg "Please verify your income."]
     (b/validate
      params
      {:tos-acknowledged      [(required tos-msg) [v/member #{"on"} :message tos-msg]]
       :background-permission [(required bgc-msg) [v/member #{"on"} :message bgc-msg]]
-      :stripe-token          [[v/string :message stripe-msg] (required stripe-msg)]})))
+      :stripe-token          [[v/string :message stripe-msg] (required stripe-msg)]
+      :plaid-id              [[v/required :message income-msg :pre (comp files-missing? :income-files)]]})))
 
 ;; =============================================================================
 ;; Submission Email
@@ -83,13 +112,11 @@
                         (submission-email-content first-name))))
 
 ;; =============================================================================
-;; API
-;; =============================================================================
+;; Background Check
 
-(defn show-submit
-  "Show the submit page."
-  [req]
-  (ok (show-submit* req)))
+(defn- is-on?
+  [checkbox-answer]
+  (= checkbox-answer "on"))
 
 (defn- pull-background-information
   "Pull the requisite/availabile information needed to run a background check."
@@ -122,18 +149,35 @@
       (background-check
        (partial handle-background-check-result account-id wants-report?))))
 
-(defn- is-on?
-  [checkbox-answer]
-  (= checkbox-answer "on"))
+;; =============================================================================
+;; Proof of Income File Handling
+
+(defn- save-files-when-present
+  [account-id file-or-files]
+  (when-not (files-missing? file-or-files)
+    (let [files (if (map? file-or-files) [file-or-files] file-or-files)]
+      (account/save-income-files! account-id files))))
+
+;; =============================================================================
+;; API
+;; =============================================================================
+
+(defn show-submit
+  "Show the submit page."
+  [req]
+  (ok (show-submit* req)))
 
 (defn submit!
   [{:keys [identity params] :as req}]
-  (let [{:keys [db/id account/email]} identity
-        vresult                       (validate-params params)]
-    (if-let [{:keys [stripe-token receive-background-check]} (valid? vresult)]
+  (let [{:keys [:db/id :account/email]} identity
+        vresult                         (-> params
+                                            (inject-plaid-id id)
+                                            validate-params)]
+    (if-let [{:keys [stripe-token receive-background-check income-files]} (valid? vresult)]
       (let [{:keys [status body] :as res} (charge-application-fee stripe-token email)]
         (if (= status 200)
           (do
+            (save-files-when-present id income-files)
             (run-background-check id (is-on? receive-background-check))
             (send-submission-email id)
             (application/complete! id (:id body))

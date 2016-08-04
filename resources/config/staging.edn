@@ -1,5 +1,7 @@
 {:datomic  {:uri "datomic:mem://localhost:4334/starcity"}
 
+ :data-dir "/var/starcity-web"
+
  :log      {:level   :trace
             :logfile "/var/log/starcity-web/server.log"}
 
