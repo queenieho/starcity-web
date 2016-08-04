@@ -17,8 +17,7 @@
             [starcity.controllers.utils :refer :all]
             [starcity.models
              [account :as account]
-             [application :as application]
-             [plaid :as plaid]]
+             [application :as application]]
             [starcity.views.application.personal :as view]))
 
 ;; =============================================================================
@@ -39,12 +38,11 @@
     [{:member-application/current-address [:address/lines
                                            :address/state
                                            :address/city
-                                           :address/postal-code]}]}
-   :plaid/_account])
+                                           :address/postal-code]}]}])
 
 (defn- clean-data
   [{:keys [account/first-name account/middle-name account/last-name
-           account/dob account/member-application plaid/_account
+           account/dob account/member-application
            account/phone-number]}]
   (let [{:keys [address/lines address/state address/city address/postal-code]} (:member-application/current-address member-application)]
     (remove-nil
@@ -56,8 +54,7 @@
                      :city        city
                      :postal-code postal-code}
       :dob          (when dob (f/unparse ymd-formatter (c/from-date dob)))
-      :phone-number phone-number
-      :plaid-id     (-> _account first :db/id)})))
+      :phone-number phone-number})))
 
 (defn- personal-data
   [account-id]
@@ -83,7 +80,6 @@
                      :last  [(required "Your last name is required.")]}
       :phone-number [(required "Your phone number is required!")
                      [v/matches #"^\(?\d{3}\)?(\s+)?\d{3}\-?\d{4}$" :message "Please enter a valid phone number."]]
-      :plaid-id     [(required "Please link your bank account so that we can verify your income.")]
       :address      {:lines       [(required "Your street address is required.")
                                    [v/min-count 1 :message "You must provide at least one address line."]
                                    [-non-empty? :message "Your street address must not be empty."]]
@@ -106,10 +102,6 @@
   (when-let [application-id (:db/id (application/by-account-id (:db/id identity)))]
     (application/logistics-complete? application-id)))
 
-(defn- wrap-plaid-id
-  [params account-id]
-  (assoc params :plaid-id (:db/id (plaid/by-account-id account-id))))
-
 ;; =============================================================================
 ;; API
 ;; =============================================================================
@@ -125,7 +117,7 @@
   "Save new data to the rental application."
   [{:keys [identity params] :as req}]
   (let [account-id (:db/id identity)
-        vresult    (-> params (wrap-plaid-id account-id) validate-params)]
+        vresult    (validate-params params)]
     (if-let [{:keys [name phone-number address dob] :as ps} (valid? vresult transform-params)]
       (let [application-id (:db/id (application/by-account-id account-id))]
         (account/update! account-id {:dob dob :name name :phone-number phone-number})
@@ -147,8 +139,7 @@
                   {:lines ["adsfa dadf" ""],
                    :city "adfa d",
                    :state "HI",
-                   :postal-code "41561561"}
-                  :plaid-id 1241561414})]
+                   :postal-code "41561561"}})]
     (if-let [ps (valid? vresult)]
       (println "success")
       (println "no success")))

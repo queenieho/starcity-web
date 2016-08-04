@@ -6,10 +6,13 @@
             [clojure.string :refer [lower-case trim]]
             [datomic.api :as d]
             [starcity
-             [config :refer [datomic] :rename {datomic config}]
-             [datomic :refer [conn]]]
+             [config :as config]
+             [datomic :refer [conn tempid]]]
             [starcity.models.util :refer :all]
-            [starcity.models.util.update :refer [make-update-fn]]))
+            [starcity.models.util.update :refer [make-update-fn]]
+            [clojure.java.io :as io]
+            [me.raynes.fs :as fs]
+            [taoensso.timbre :as timbre]))
 
 ;; =============================================================================
 ;; Helpers
@@ -67,7 +70,7 @@
                         :activation-hash (generate-activation-hash email)
                         :activated       false
                         :role            :account.role/applicant})
-        tid  (d/tempid (:partition config))
+        tid  (tempid)
         tx   @(d/transact conn [(assoc acct :db/id tid)])]
     (d/resolve-tempid (d/db conn) (:tempids tx) tid)))
 
@@ -87,6 +90,33 @@
     :phone-number (fn [{id :db/id} {phone-number :phone-number}]
                     [[:db/add id :account/phone-number phone-number]])}))
 
+(defn- write-income-file
+  "Write a an income file to the filesystem and add an entity that points to the
+  account and file path."
+  [account-id {:keys [filename content-type tempfile size]}]
+  (try
+    (let [output-dir  (format "%s/income-uploads/%s" (:data-dir config/config) account-id)
+          output-path (str output-dir "/" filename)]
+      (do
+        (when-not (fs/exists? output-dir)
+          (fs/mkdirs output-dir))
+        (io/copy tempfile (java.io.File. output-path))
+        @(d/transact conn [{:income-file/account     account-id
+                            :income-file/content-type content-type
+                            :income-file/path         output-path
+                            :income-file/size         (long size)
+                            :db/id                    (tempid)}])
+        (timbre/infof "Wrote income file for account-id %s - %s - %s - %d"
+                      account-id filename content-type size)))
+    (catch Exception e
+      (timbre/error e "Error encountered while writing income file!"
+                    (format "%s - %s - %s - %d" account-id filename content-type size)))))
+
+(defn save-income-files!
+  "Save the income files for a given account."
+  [account-id files]
+  (dorun (map (partial write-income-file account-id) files)))
+
 ;; =============================================================================
 ;; Misc
 
@@ -96,7 +126,10 @@
   [email password]
   (when-let [user (one (d/db conn) :account/email email)]
     (when (check-password password (:account/password user))
-      user)))
+      {:account/email     (:account/email user)
+       :account/role      (:account/role user)
+       :account/activated (:account/activated user)
+       :db/id             (:db/id user)})))
 
 (defn applicant?
   [account]

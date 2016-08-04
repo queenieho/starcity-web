@@ -41,12 +41,13 @@
 
 (defn- phone-section
   [phone-number]
-  [:div.input-field
-   [:input#phone {:name "phone-number"
-                  :type "tel"
-                  :value phone-number
-                  :required true}]
-   [:label {:for "phone-number"} "Phone Number"]])
+  [:div.row
+   [:div.col.s12.input-field
+    [:input#phone {:name     "phone-number"
+                   :type     "tel"
+                   :value    phone-number
+                   :required true}]
+    [:label {:for "phone-number"} "Phone Number"]]])
 
 ;; =============================================================================
 ;; Birthdate
@@ -56,13 +57,14 @@
 (defn- birthday-section
   [dob]
   (let [max-dob (f/unparse ymd-formatter (t/minus (t/now) (t/years 18)))]
-    [:div.input-field
-     [:input#dob.datepicker {:name     "dob"
-                             :type     "date"
-                             :max      max-dob
-                             :value    dob
-                             :required true}]
-     [:label {:for "dob"} "Choose Your Birthday"]]))
+    [:div.row
+     [:div.col.s12.input-field
+      [:input#dob.datepicker {:name     "dob"
+                              :type     "date"
+                              :max      max-dob
+                              :value    dob
+                              :required true}]
+      [:label {:for "dob"} "Choose Your Birthday"]]]))
 
 ;; =====================================
 ;; Address
@@ -120,17 +122,6 @@
               :value    postal-code
               :required true}]]]))
 
-;; =============================================================================
-;; Plaid
-
-(defn- plaid-section
-  [plaid-id]
-  [:div#plaid-section.row.center
-   (if plaid-id
-     [:button#link-button.btn.disabled {:type "button"}
-      [:i.material-icons.right "done"] "Thanks!"]
-     [:button#link-button.btn.tranquil-blue.darken-1 {:type "button"}
-      "Link Bank Account"])])
 
 ;; =============================================================================
 ;; API
@@ -153,23 +144,20 @@
 
 (defn personal
   "Render the personal page."
-  [current-steps {:keys [name address phone-number dob plaid-id]} & {:keys [errors]}]
-  (let [sections [["What is your full legal name?" (name-section name)]
-                  ["What is the best phone number to reach you?" (phone-section phone-number)]
-                  ["When were you born?" (birthday-section dob)]
-                  ["Where do you currently live?" (address-section address)]
-                  ["Finally, let's verify your income." (plaid-section plaid-id)]]]
+  [current-steps {:keys [name address phone-number dob]} & {:keys [errors]}]
+  (let [sections (map (partial apply common/make-step)
+                      [["What is your full legal name?" (name-section name)]
+                       ["What is the best phone number to reach you?" (phone-section phone-number)]
+                       ["When were you born?" (birthday-section dob)]
+                       ["Where do you currently live?" (address-section address)]])]
     (common/step "Personal Information" sections current-steps
                  :errors errors
-                 :js   ["https://cdn.plaid.com/link/stable/link-initialize.js"
-                        "https://cdnjs.cloudflare.com/ajax/libs/field-kit/2.1.0/field-kit.min.js"]
-                 :json [["plaid" {:key      (get-in config [:plaid :public-key])
-                                  :env      (get-in config [:plaid :env])
-                                  :complete (not (nil? plaid-id))}]])))
+                 :js   ["https://cdnjs.cloudflare.com/ajax/libs/field-kit/2.1.0/field-kit.min.js"])))
 
 (s/fdef personal
         :args (s/cat :current-steps :starcity.models.application/steps
                      :form-data (s/keys :req-un [::name ::address]
-                                        :opt-un [::dob ::plaid-id ::phone-number])
+                                        :opt-un [::dob ;; ::plaid-id
+                                                 ::phone-number])
                      :opts      (s/keys* :opt-un [::errors]))
         :ret  string?)

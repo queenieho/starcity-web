@@ -120,13 +120,16 @@
   considered complete."
   [application-id]
   (let [pattern [:member-application/current-address
-                 {:account/_member-application [:account/dob :plaid/_account]}]
+                 {:account/_member-application [:account/dob ;:plaid/_account
+                                                ]}]
         data    (d/pull (d/db conn) pattern application-id)
         acct    (get-in data [:account/_member-application 0])
-        plaid   (get-in acct [:plaid/_account 0])]
+        ;plaid   (get-in acct [:plaid/_account 0])
+        ]
     (not (or (nil? (:member-application/current-address data))
              (nil? (:account/dob acct))
-             (nil? plaid)))))
+             ;(nil? plaid)
+             ))))
 
 (s/fdef personal-information-complete?
         :args (s/cat :application-id int?)

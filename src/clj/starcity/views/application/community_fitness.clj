@@ -72,14 +72,15 @@
   [current-steps
    {:keys [why-interested skills prior-community-housing dealbreakers free-time]}
    & {:keys [errors]}]
-  (let [sections [["Have you ever lived in community housing?"
-                   (prior-community-housing-section prior-community-housing)]
-                  ["What skills or traits do you hope to share with the community?"
-                   (skills-section skills)]
-                  ["Why are you interested in Starcity?"
-                   (why-interested-section why-interested)]
-                  ["How do you spend your free time?"
-                   (free-time-section free-time)]
-                  ["Do you have any dealbreakers?"
-                   (dealbreakers-section dealbreakers)]]]
+  (let [sections (map (partial apply common/make-step)
+                      [["Have you ever lived in community housing?"
+                        (prior-community-housing-section prior-community-housing)]
+                       ["What skills or traits do you hope to share with the community?"
+                        (skills-section skills)]
+                       ["Why are you interested in Starcity?"
+                        (why-interested-section why-interested)]
+                       ["How do you spend your free time?"
+                        (free-time-section free-time)]
+                       ["Do you have any dealbreakers?"
+                        (dealbreakers-section dealbreakers)]])]
     (common/step "Community Fitness" sections current-steps :errors errors)))
