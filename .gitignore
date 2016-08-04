@@ -20,3 +20,4 @@ pom.xml.asc
 .cljs_rhino_repl/*
 figwheel_server.log
 .DS_Store
+/elm/elm-stuff
