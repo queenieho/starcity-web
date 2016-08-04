@@ -137,9 +137,20 @@
 ;; =============================================================================
 
 (def ^:private submit-button
-  [:button#stripe-btn.btn.waves-effect.waves-light.btn-large
-   {:type "Submit"}
-   "Pay &amp; Submit"])
+  [:div#submit-section
+   [:button#stripe-btn.btn.waves-effect.waves-light.btn-large
+    {:type "Submit"}
+    "Pay &amp; Submit"]
+   [:div#loading {:style "display: none;"}
+    [:p.center.flow-text "Submitting..."]
+    [:div.preloader-wrapper.big.active
+     [:div.spinner-layer.spinner-blue-only
+      [:div.circle-clipper.left
+       [:div.circle]]
+      [:div.gap-patch
+       [:div.circle]]
+      [:div.circle-clipper.right
+       [:div.circle]]]]]])
 
 (defn submit
   [current-steps email plaid-id amount errors]
