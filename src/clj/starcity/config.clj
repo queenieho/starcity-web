@@ -38,10 +38,6 @@
   (assert (#{:production :development :staging} environment)
           (format "Environment must be one of #{:production :development :staging}, not %s!" environment))
   (let [defaults (read-config (config-file "config.edn"))]
-    ;; TODO: deep-merge-with
-    (timbre/debugf "defaults - %s" defaults)
-    (timbre/debugf "secrets - %s" (read-secrets +secrets-file+))
-    (timbre/debugf "environ - %s" (read-config (config-for-environment environment)))
     (-> (merge-with merge
                     defaults
                     (read-secrets +secrets-file+)
