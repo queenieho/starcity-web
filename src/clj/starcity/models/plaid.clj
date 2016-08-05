@@ -1,9 +1,11 @@
 (ns starcity.models.plaid
   (:require [starcity.datomic :refer [conn]]
+            [starcity.util :refer [remove-nil]]
             [starcity.models.util :refer :all]
             [starcity.config :refer [config]]
             [datomic.api :as d]
-            [plumbing.core :refer [assoc-when]]))
+            [plumbing.core :refer [assoc-when]]
+            [taoensso.timbre :as timbre]))
 
 ;; =============================================================================
 ;; Helpers
@@ -12,22 +14,24 @@
 (defn- extract-income-stream
   [{:keys [active confidence days monthly_income period]}]
   (ks->nsks :income-stream
-            {:active     active
-             :confidence (float confidence)
-             :days       days
-             :income     monthly_income
-             :period     period}))
+            (remove-nil
+             {:active     active
+              :confidence (float confidence)
+              :days       days
+              :income     monthly_income
+              :period     period})))
 
 (defn- extract-income
   [{:keys [income_streams last_year_income last_year_income_before_tax
            projected_yearly_income projected_yearly_income_before_tax]}]
   (ks->nsks :plaid-income
-            {:last-year                last_year_income
-             :last-year-pre-tax        last_year_income_before_tax
-             :projected-yearly         projected_yearly_income
-             :projected-yearly-pre-tax projected_yearly_income_before_tax
-             :obtained-at              (java.util.Date.)
-             :income-streams           (map extract-income-stream income_streams)}))
+            (remove-nil
+             {:last-year                last_year_income
+              :last-year-pre-tax        last_year_income_before_tax
+              :projected-yearly         projected_yearly_income
+              :projected-yearly-pre-tax projected_yearly_income_before_tax
+              :obtained-at              (java.util.Date.)
+              :income-streams           (map extract-income-stream income_streams)})))
 
 (defn- extract-account
   [{:keys [balance institution_type subtype type meta]}]
@@ -35,14 +39,15 @@
         current-balance   (when-let [x (:current balance)] (float x))
         credit-limit      (when-let [x (:limit meta)] (float x))]
     (ks->nsks :bank-account
-              (assoc-when
-               {:type             type
-                :institution-type institution_type
-                :obtained-at      (java.util.Date.)}
-               :credit-limit credit-limit
-               :current-balance current-balance
-               :available-balance available-balance
-               :subtype subtype))))
+              (remove-nil
+               (assoc-when
+                {:type             type
+                 :institution-type institution_type
+                 :obtained-at      (java.util.Date.)}
+                :credit-limit credit-limit
+                :current-balance current-balance
+                :available-balance available-balance
+                :subtype subtype)))))
 
 (defn- add-income-tx
   [entity-id access-token {:keys [accounts income]}]
