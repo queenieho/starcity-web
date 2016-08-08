@@ -78,33 +78,3 @@
   [access-token data]
   (let [ent (one (d/db conn) :plaid/access-token access-token)]
     (d/transact conn [(add-income-tx (:db/id ent) access-token data)])))
-
-(comment
-
-  (d/touch
-   (by-account-id (:db/id (one (d/db conn) :account/email "test@test.com"))))
-
-  ;; add income data
-  (let [account-id (:db/id (one (d/db conn) :account/email "test@test.com"))]
-    (add-income-data! account-id "abc" sample-income-data)
-    )
-
-  ;; inspect
-  (let [account-id (:db/id (one (d/db conn) :account/email "test@test.com"))]
-    (d/touch (lookup account-id))
-    )
-
-  (def sample-income-data
-    {:accounts
-     {},
-     :income
-     {},
-     :access_token
-     ""})
-
-
-  (let [account-id (:db/id (one (d/db conn) :account/email "test@test.com"))]
-    (create! account-id "abc" "def"))
-
-
-  )

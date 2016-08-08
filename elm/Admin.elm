@@ -1,11 +1,16 @@
 module Admin exposing (..)
 
-import Html.App as App
+import Html.App as App exposing (map)
 import Html exposing (..)
 import Html.Lazy
 import Html.Attributes exposing (href, class, style)
 import Array exposing (Array)
 import Dict exposing (Dict)
+import String
+
+import Navigation
+import RouteUrl as Routing exposing (UrlChange)
+import RouteUrl.Builder as Builder exposing (Builder)
 
 import Material
 import Material.Color as Color
@@ -14,72 +19,99 @@ import Material.Typography as Typography
 import Material.Layout as Layout
 import Material.Helpers exposing (lift)
 
-import Admin.Applications
+import Admin.Applications as Applications
 
+import Debug exposing (..)
+
+-- MAIN
+
+
+main : Program Never
+main =
+    Routing.program
+        { delta2url = delta2url
+        , location2messages = location2messages
+        , init = init
+        , view = view
+        , update = update
+        , subscriptions = subscriptions
+        }
 
 -- MODEL
 
+type View
+    = Home
+    | Applications
 
 type alias Model =
-    { selectedTab : Int
+    { currentView : View
+    , applications : Applications.Model
     , mdl : Material.Model -- boilerplate model for Mdl components
-    , applications : Admin.Applications.Model
-
     }
 
-model: Model
-model =
-    { selectedTab = 0
-    , mdl = Material.model -- boilerplate: always use this initial mdl model store
-    , applications = Admin.Applications.model
-    }
+
+init : (Model, Cmd Msg)
+init =
+    let
+        materialModel =
+            Layout.setTabsWidth 400 Material.model
+
+        (applicationsModel, applicationsFx) =
+            Applications.init 0
+    in
+        ( Model Home applicationsModel materialModel
+        , Cmd.batch
+            [ Cmd.map ApplicationsMsg applicationsFx
+            , Layout.sub0 Mdl
+            ]
+        )
 
 -- ACTION, UPDATE
 
 
 type Msg
-    = SelectTab Int
+    = ShowView View
+    | SelectTab Int
+    | ApplicationsMsg Applications.Msg
     | Mdl (Material.Msg Msg)
-    | ApplicationsMsg Admin.Applications.Msg
-      -- Boilerplate: Msg clause for internal Mdl messages
+
+
+-- TODO: Better way to do this?
+viewForTabIndex : Int -> View
+viewForTabIndex index =
+    case index of
+        0 -> Applications
+
+        -- Catch-all
+        _ -> Home
+
+tabIndexForView : View -> Int
+tabIndexForView view =
+    case view of
+        Home -> -1
+        Applications -> 0
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        ShowView view ->
+            ( { model | currentView = view }
+            , Cmd.none
+            )
+
         SelectTab t ->
-            ( { model | selectedTab = t } , Cmd.none )
+            ( { model | currentView = viewForTabIndex t}
+            , Cmd.none
+            )
 
         ApplicationsMsg msg' ->
-            lift .applications (\m sm -> {m | applications = sm}) ApplicationsMsg Admin.Applications.update msg' model
+            lift .applications (\m sm -> {m | applications = sm}) ApplicationsMsg Applications.update msg' model
 
         -- Boilerplate: Mdl action handler
         Mdl msg' ->
             Material.update msg' model
 
 -- VIEW
-
-tabs : List (String, String, Model -> Html Msg)
-tabs =
-    [ ("Applications", "applications", .applications >> Admin.Applications.view >> App.map ApplicationsMsg) ]
-
-tabTitles : List (Html a)
-tabTitles =
-    List.map (\ (x,_,_) -> text x) tabs
-
-tabViews : Array (Model -> Html Msg)
-tabViews =
-    List.map (\ (_,_,x) -> x) tabs
-        |> Array.fromList
-
-tabUrls : Array String
-tabUrls =
-    List.map (\ (_,url,_) -> url) tabs
-        |> Array.fromList
-
-urlTabs : Dict String Int
-urlTabs =
-    List.indexedMap (\idx (_,url,_) -> (url, idx)) tabs
-        |> Dict.fromList
 
 e404 : Model -> Html Msg
 e404 _ =
@@ -112,37 +144,99 @@ view = Html.Lazy.lazy view'
 view' : Model -> Html Msg
 view' model =
     let
-        top =
-            (Array.get model.selectedTab tabViews |> Maybe.withDefault e404) model
+        view =
+            case model.currentView of
+                Home ->
+                    div [] [ h3 [] [ text "Choose a tab above." ] ]
+
+                Applications ->
+                    map ApplicationsMsg (Applications.view model.applications)
     in
     Layout.render Mdl model.mdl
         [ Layout.fixedHeader
-        , Layout.selectedTab model.selectedTab
+        , Layout.selectedTab (tabIndexForView model.currentView)
         , Layout.onSelectTab SelectTab
         ]
     { header = header model
     , drawer = []
     , tabs = (tabTitles, [ Color.background (Color.color Color.Green Color.S400) ])
-    , main = [ top ]
+    , main = [ view ]
     }
 
 
 -- SUBSCRIPTIONS
 
+
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Layout.subs Mdl model.mdl
 
--- MAIN
+
+-- ROUTING
 
 
-main : Program Never
-main =
-    App.program
-        { init = ( { model | mdl = Layout.setTabsWidth 400 model.mdl }
-                 , Layout.sub0 Mdl
-                 )
-        , view = view
-        , update = update
-        , subscriptions = subscriptions
-        }
+tabs : List (String, String, Model -> Html Msg)
+tabs =
+    [ ("Applications", "applications", .applications >> Applications.view >> App.map ApplicationsMsg) ]
+
+tabTitles : List (Html a)
+tabTitles =
+    List.map (\ (x,_,_) -> text x) tabs
+
+-- tabViews : Array (Model -> Html Msg)
+-- tabViews =
+--     List.map (\ (_,_,x) -> x) tabs
+--         |> Array.fromList
+
+-- tabUrls : Array String
+-- tabUrls =
+--     List.map (\ (_,url,_) -> url) tabs
+--         |> Array.fromList
+
+
+delta2url : Model -> Model -> Maybe UrlChange
+delta2url previous current =
+    Maybe.map Builder.toUrlChange
+        <| Maybe.map (Builder.prependToPath ["admin"])
+        <| delta2builder previous current
+
+delta2builder : Model -> Model -> Maybe Builder
+delta2builder previous current =
+    case current.currentView of
+        Home ->
+            Nothing
+
+        Applications ->
+            Applications.delta2builder previous.applications current.applications
+                |> Maybe.map (Builder.prependToPath ["applications"])
+
+
+location2messages : Navigation.Location -> List Msg
+location2messages location =
+    builder2messages <| Builder.fromUrl location.href
+
+
+builder2messages : Builder -> List Msg
+builder2messages builder =
+    case Builder.path builder of
+        first :: rest ->
+            let
+                subBuilder =
+                    Builder.replacePath rest builder
+            in
+                case first of
+                    -- Trick to essentially skip the base url of /admin
+                    "admin" ->
+                        builder2messages
+                            <| Builder.replacePath rest builder
+
+                    "applications" ->
+                        (ShowView Applications) :: List.map ApplicationsMsg (Applications.builder2messages subBuilder)
+
+                    -- Error?
+                    _ ->
+                        [ ShowView Home ]
+
+        -- Error?
+        _ ->
+            [ ShowView Home ]

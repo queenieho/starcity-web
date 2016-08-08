@@ -7,6 +7,7 @@
             [ring.util.response :as response]
             [starcity.auth :refer [authenticated-user user-isa]]
             [starcity.api.plaid :as plaid]
+            [starcity.api.admin.applications :as api-applications]
             [starcity.controllers
              [application :as application]
              [auth :as auth]
@@ -112,7 +113,7 @@
     (restrict
      (routes
       (GET "*" [] admin/show))
-     {:handler {:and [authenticated-user (user-isa :account.role/admin)]}
+     {:handler  {:and [authenticated-user (user-isa :account.role/admin)]}
       :on-error (redirect-on-invalid-authorization "/")}))
 
   ;; (GET "/me" [] (-> dashboard/show-dashboard
@@ -122,7 +123,15 @@
   (context "/api/v1" []
     (restrict
      (routes
-      (POST "/plaid/auth" [] plaid/authenticate!))
+      (POST "/plaid/auth" [] plaid/authenticate!)
+
+      (context "/admin" []
+        (restrict
+         (routes
+          (GET "/applications" [] api-applications/fetch-applications)
+          )
+         {:handler  {:and [(user-isa :account.role/admin)]}
+          :on-error (fn [_ _] {:status 403 :body "You are not authorized."})})))
      {:handler {:and [authenticated-user]}}))
 
   (context "/webhooks" []
