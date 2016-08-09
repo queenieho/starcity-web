@@ -2,21 +2,29 @@
   (:require [starcity.api.common :as common :refer [ok malformed]]
             [starcity.models.util :refer :all]
             [starcity.datomic :refer [conn]]
+            [starcity.util :refer :all]
             [datomic.api :as d]))
 
 ;; =============================================================================
 ;; Helpers
 ;; =============================================================================
 
-(defn- strip-namespaces
-  [data]
-  )
+;; (defn- strip-namespaces
+;;   [data]
+;;   )
 
-(defn- pull-applications
-  []
-  (let [ids (map :db/id (find-all-by (d/db conn) :member-application/locked true))]
-    (d/pull-many (d/db conn)
-                 [{:account/_member-application
+(def ^:private list-pattern
+  [{:account/_member-application
+    [:account/first-name
+     :account/middle-name
+     :account/last-name
+     :account/email]}
+   :member-application/locked
+   :member-application/submitted-at
+   :db/id])
+
+(def ^:private item-pattern
+  [{:account/_member-application
                    [:db/id
                     :account/first-name
                     :account/middle-name
@@ -56,8 +64,7 @@
                   :member-application/locked
                   :member-application/submitted-at
                   :member-application/desired-availability
-                  :db/id]
-                 ids)))
+                  :db/id])
 
 (defn- parse-name
   [{:keys [:account/first-name :account/last-name :account/middle-name]}]
@@ -65,26 +72,28 @@
     (format "%s %s %s" first-name middle-name last-name)
     (format "%s %s" first-name last-name)))
 
-(defn- parse-application
-  [{:keys [:account/_member-application] :as application}]
-  (let [account (first _member-application)]
-    {:account_id   (:db/id account)
-     :name         (parse-name account)
-     :email        (:account/email account)
-     :completed    (boolean (:member-application/locked application))
-     :completed_at (:member-application/submitted-at application)}))
-
 ;; =============================================================================
 ;; API
 ;; =============================================================================
 
-(comment
-
-  (let [applications (pull-applications)]
-    (parse-application (first applications)))
-
-  )
-
 (defn fetch-applications
   [{:keys [params] :as req}]
-  (ok (map parse-application (pull-applications))))
+  (letfn [(-parse-application [{:keys [:account/_member-application] :as application}]
+            (let [account (first _member-application)]
+              {:application_id (:db/id application)
+               :name           (parse-name account)
+               :email          (:account/email account)
+               :completed      (boolean (:member-application/locked application))
+               :completed_at   (:member-application/submitted-at application)}))]
+    (let [ids (map :db/id (find-all-by (d/db conn) :member-application/locked true))]
+     (->> (d/pull-many (d/db conn) list-pattern ids)
+          (map -parse-application)
+          (ok)))))
+
+(fetch-applications {})
+
+
+(defn fetch-application
+  [{:keys [params] :as req}]
+  (clojure.pprint/pprint req)
+  (ok {:id (str->int (:application-id params))}))

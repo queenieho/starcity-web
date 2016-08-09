@@ -129,6 +129,7 @@
         (restrict
          (routes
           (GET "/applications" [] api-applications/fetch-applications)
+          (GET "/applications/:application-id" [] api-applications/fetch-application)
           )
          {:handler  {:and [(user-isa :account.role/admin)]}
           :on-error (fn [_ _] {:status 403 :body "You are not authorized."})})))

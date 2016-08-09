@@ -14,6 +14,7 @@ import String exposing (toInt)
 import Material.Table as Table
 
 import Admin.Page as Page
+import Admin.Application as Application
 
 -- MODEL
 
@@ -24,7 +25,7 @@ type View
 
 type alias Model =
     { applications : List ApplicationRow
-    , currentApplication : Maybe Application
+    , currentApplication : Maybe Application.Model
     , currentView : View
     }
 
@@ -36,25 +37,25 @@ type alias ApplicationRow =
     , completed: Bool
     }
 
-type alias Application = Int
-
 -- INIT
 
-init : Int -> (Model, Cmd Msg)
-init num =
+init : (Model, Cmd Msg)
+init =
     ( Model [] Nothing List
-    , fetchApplications num
+    , fetchApplications
     )
 
 -- MESSAGES
 
 
 type Msg
-    = Fetch
-    | FetchSucceed (List ApplicationRow)
-    | FetchFail Http.Error
+    = FetchListSucceed (List ApplicationRow)
+    | FetchListFail Http.Error
+    -- | FetchApplicationSucceed Application
+    -- | FetchApplicationFail Http.Error
     | ShowList
     | ShowApplication Int
+    | ApplicationMsg Application.Msg
 
 
 -- UPDATE
@@ -63,22 +64,59 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Fetch ->
-            (model, fetchApplications 0)
+        FetchListSucceed applications ->
+            ( { model | applications = applications }, Cmd.none )
 
-        FetchSucceed applications ->
-            (Model applications model.currentApplication List, Cmd.none)
+        FetchListFail _ ->
+            (Model model.applications model.currentApplication model.currentView, Cmd.none)
 
-        FetchFail _ ->
-            (model, Cmd.none)
+        -- FetchApplicationSucceed application ->
+        --     ( { model | currentApplication = Just application}, Cmd.none )
 
+        -- FetchApplicationFail err ->
+        --     (model, Cmd.none)
         ShowList ->
-            ( { model | currentView = List }, Cmd.none )
+            ( { model | currentView = List }, fetchApplications )
 
         ShowApplication applicationId ->
-            ( { model | currentView = Single applicationId }, Cmd.none ) -- TODO: Network call
+            let
+                (m, fx) = Application.init applicationId
+            in
+                ( { model
+                      | currentView = Single applicationId
+                      , currentApplication = Just m
+                  }
+                , Cmd.map ApplicationMsg fx
+                )
+
+        ApplicationMsg msg' ->
+            maybePassApplicationMessage model msg'
+
+maybePassApplicationMessage : Model -> Application.Msg -> (Model, Cmd Msg)
+maybePassApplicationMessage model msg =
+    case model.currentApplication of
+        Just model' ->
+            let
+                (m, fx) = Application.update msg model'
+            in
+                ( { model | currentApplication = Just m }
+                , Cmd.map ApplicationMsg fx
+                )
+
+        Nothing ->
+            ( model, Cmd.none )
 
 
+-- TODO: Understand how to do this
+-- passApplicationMessage : Application.Msg -> Model -> Application.Model -> Maybe (Model, Cmd Msg)
+-- passApplicationMessage msg model subModel =
+--     let
+--         (m, fx) = Application.update msg subModel
+--     in
+--         ( { model | currentApplication = Just m }
+--         , Cmd.map ApplicationMsg fx
+--         )
+--         |> Just
 
 -- VIEW
 
@@ -127,20 +165,38 @@ view model =
 
     in
         case model.currentView of
-            Single id ->
-                Page.body ("Showing Single Application w/ id " ++ (toString id)) (div [] [])
+            Single _ ->
+                case model.currentApplication of
+                    Just id ->
+                        Page.body ("Showing Application w/ id " ++ (toString id)) (div [] [])
+
+                    Nothing ->
+                        Page.body "Loading..." (div [] [])
 
             List ->
                 Page.body "Applications" (div [] [ table ])
 
 -- HTTP
 
-fetchApplications : Int -> Cmd Msg
-fetchApplications num =
+
+-- fetchApplication : Int -> Cmd Msg
+-- fetchApplication applicationId =
+--     let
+--         url = "/api/v1/admin/applications/" ++ toString applicationId
+--     in
+--         Task.perform FetchApplicationFail FetchApplicationSucceed (Http.get applicationDecoder2 url)
+
+
+-- applicationDecoder2 : Decoder Application
+-- applicationDecoder2 =
+--     at ["id"] int
+
+fetchApplications : Cmd Msg
+fetchApplications =
     let
         url = "/api/v1/admin/applications"
     in
-        Task.perform FetchFail FetchSucceed (Http.get decodeApplications url)
+        Task.perform FetchListFail FetchListSucceed (Http.get decodeApplications url)
 
 decodeApplications : Decoder (List ApplicationRow)
 decodeApplications =
@@ -149,7 +205,7 @@ decodeApplications =
 applicationDecoder : Decoder ApplicationRow
 applicationDecoder =
     object5 ApplicationRow
-                ("account_id" := int)
+                ("application_id" := int)
                 ("name" := string)
                 ("email" := string)
                 ("completed_at" := nullOr date)
@@ -183,8 +239,11 @@ delta2builder previous current =
     let
         path =
             case current.currentView of
-                Single applicationId -> [ toString applicationId ]
-                List -> []
+                Single applicationId ->
+                    [ toString applicationId ]
+
+                List ->
+                    []
     in
         builder
             |> replacePath path

@@ -3,10 +3,10 @@ module Admin exposing (..)
 import Html.App as App exposing (map)
 import Html exposing (..)
 import Html.Lazy
-import Html.Attributes exposing (href, class, style)
-import Array exposing (Array)
-import Dict exposing (Dict)
-import String
+-- import Html.Attributes exposing (href, class, style)
+-- import Array exposing (Array)
+-- import Dict exposing (Dict)
+-- import String
 
 import Navigation
 import RouteUrl as Routing exposing (UrlChange)
@@ -21,7 +21,6 @@ import Material.Helpers exposing (lift)
 
 import Admin.Applications as Applications
 
-import Debug exposing (..)
 
 -- MAIN
 
@@ -57,7 +56,7 @@ init =
             Layout.setTabsWidth 400 Material.model
 
         (applicationsModel, applicationsFx) =
-            Applications.init 0
+            Applications.init
     in
         ( Model Home applicationsModel materialModel
         , Cmd.batch
