@@ -9,6 +9,7 @@ pom.xml.asc
 /.nrepl-port
 .hgignore
 .hg/
+/resources/public/assets/css
 /data
 /resources/public/js/elm
 /resources/public/assets/bower
