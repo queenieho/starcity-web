@@ -11,4 +11,4 @@
    initial-migration
    update-properties-descriptions
    add-income-files-schema
-   (only-when #{:development :staging} seed-test-applications)))
+   (only-when #{:development} seed-test-applications)))

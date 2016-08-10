@@ -130,6 +130,8 @@
          (routes
           (GET "/applications" [] api-applications/fetch-applications)
           (GET "/applications/:application-id" [] api-applications/fetch-application)
+
+          (GET "/income-file/:file-id" [] api-applications/fetch-income-file)
           )
          {:handler  {:and [(user-isa :account.role/admin)]}
           :on-error (fn [_ _] {:status 403 :body "You are not authorized."})})))

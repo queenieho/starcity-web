@@ -6,7 +6,8 @@
 (def seed-test-applications
   {:starcity/seed-test-applications
    {:txes     [(fn [conn]
-                 (let [application-id (d/tempid (:partition datomic))]
+                 (let [application-id  (d/tempid (:partition datomic))
+                       application-id2 (d/tempid (:partition datomic))]
                    [{:db/id                                   application-id
                      :member-application/current-address      {:address/lines       "7255 Wild Currant Way\nLower Floor"
                                                                :address/city        "Oakland"
@@ -22,9 +23,7 @@
                                                                :community-fitness/skills                  "Emacs. Codez."
                                                                :community-fitness/free-time               "Photography."
                                                                :community-fitness/dealbreakers            "Stupidity."}
-                     :member-application/submitted-at         (java.util.Date.)
-                     ;; TODO:
-                     }
+                     :member-application/submitted-at         (java.util.Date.)}
                     {:account/member-application application-id
                      :db/id                      [:account/email "test@test.com"]}
                     {:db/id               (d/tempid (:partition datomic))
@@ -50,6 +49,28 @@
                                             :bank-account/current-balance   3889.0
                                             :bank-account/type              "depository"
                                             :bank-account/subtype           "checking"
-                                            :bank-account/institution-type  "wells"}]}]))]
+                                            :bank-account/institution-type  "wells"}]}
+
+                    ;; BEGIN SECOND APPLICATION
+                    {:db/id                                   application-id2
+                     :member-application/current-address      {:address/lines       "123 Main St."
+                                                               :address/city        "San Francisco"
+                                                               :address/state       "CA"
+                                                               :address/postal-code "94103"}
+                     :member-application/desired-properties   [[:property/internal-name "52gilbert"]]
+                     :member-application/desired-license      (:db/id (one (d/db conn) :license/term 12))
+                     :member-application/locked               true
+                     :member-application/desired-availability (java.util.Date.)
+                     :member-application/community-fitness    {:community-fitness/why-interested          "Because."
+                                                               :community-fitness/prior-community-housing "Dorms."
+                                                               :community-fitness/skills                  "Emacs. Codez."
+                                                               :community-fitness/free-time               "Photography."}
+                     :member-application/submitted-at         (java.util.Date.)}
+                    {:account/member-application application-id2
+                     :db/id                      [:account/email "tenant@test.com"]}
+                    {:db/id               (d/tempid (:partition datomic))
+                     :income-file/account [:account/email "tenant@test.com"]
+                     :income-file/path    "data/income-uploads/285873023222771/starcity-kitchen.png"}]))]
     :requires [:starcity/seed-test-accounts
+               :starcity/add-income-files-schema-8-3-16
                :starcity/seed-gilbert]}})

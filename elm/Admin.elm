@@ -99,7 +99,13 @@ update msg model =
             )
 
         SelectTab t ->
-            ( { model | currentView = viewForTabIndex t}
+            -- let
+            --     (m, fx) = Applications.update Applications.ShowList model.applications
+            -- in
+            ( { model
+                  | currentView = viewForTabIndex t
+                  -- , applications = m
+              }
             , Cmd.none
             )
 
@@ -109,6 +115,7 @@ update msg model =
         -- Boilerplate: Mdl action handler
         Mdl msg' ->
             Material.update msg' model
+
 
 -- VIEW
 
@@ -206,6 +213,11 @@ delta2builder previous current =
             Nothing
 
         Applications ->
+            -- case (previous.currentView, current.currentView) of
+            --     (View.Application, View.List) ->
+            --         Just Builder.replacePath ["applications"]
+
+            --     _ ->
             Applications.delta2builder previous.applications current.applications
                 |> Maybe.map (Builder.prependToPath ["applications"])
 
