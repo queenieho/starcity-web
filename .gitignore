@@ -9,8 +9,9 @@ pom.xml.asc
 /.nrepl-port
 .hgignore
 .hg/
-/resources/public/assets/css
 /data
+.sass-cache
+/resources/public/assets/css
 /resources/public/js/elm
 /resources/public/assets/bower
 /resources/public/assets/.sass-cache
