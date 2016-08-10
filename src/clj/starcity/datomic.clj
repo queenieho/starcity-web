@@ -16,7 +16,9 @@
 (defn- run-migrations
   "Given a database connection, run database migrations."
   [conn]
-  (c/ensure-conforms conn migration-norms))
+  (let [norms (migration-norms conn)]
+    (info "Ensuring the following conforms: " (keys norms))
+    (c/ensure-conforms conn norms)))
 
 ;; TODO: Include information about the connection URI, but without the
 ;; username/password included

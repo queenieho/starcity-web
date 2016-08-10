@@ -23,7 +23,7 @@
              [seed-test-accounts :refer [seed-test-accounts]]
              [seed-union-square :refer [seed-union-square]]]))
 
-(def initial-migration
+(defn initial-migration [conn]
   (merge
    add-starcity-partition
    add-account-roles
