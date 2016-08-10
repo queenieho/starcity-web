@@ -10,6 +10,9 @@ pom.xml.asc
 .hgignore
 .hg/
 /data
+.sass-cache
+/resources/public/assets/css
+/resources/public/js/elm
 /resources/public/assets/bower
 /resources/public/assets/.sass-cache
 /resources/public/js/app
@@ -20,3 +23,4 @@ pom.xml.asc
 .cljs_rhino_repl/*
 figwheel_server.log
 .DS_Store
+/elm/elm-stuff
