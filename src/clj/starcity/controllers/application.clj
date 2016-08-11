@@ -1,7 +1,8 @@
 (ns starcity.controllers.application
   (:require [starcity.views.application :as view]
             [starcity.models.application :as application]
-            [starcity.controllers.utils :refer :all]))
+            [starcity.controllers.utils :refer :all]
+            [ring.util.response :as response]))
 
 ;; =============================================================================
 ;; Helpers
@@ -16,6 +17,6 @@
   [{:keys [identity params] :as req}]
   (let [sections (application/current-steps (:db/id identity))
         locked   (application/locked? (:db/id identity))]
-    (ok (if locked
-          (view/locked (:completed params))
-          (view/application sections)))))
+    (if locked
+      (ok (view/locked (:completed params)))
+      (response/redirect "/application/logistics"))))

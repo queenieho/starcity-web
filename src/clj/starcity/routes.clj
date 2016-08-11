@@ -27,14 +27,7 @@
              [submit :as submit]]
             [starcity.controllers.auth
              [login :as login]
-             [signup :as signup]]
-            [clojure.pprint :as pprint]))
-
-;; NOTE: If an user is currently listed as an applicant, he/she should only be
-;; able to access the /application endpoint; similarly, users listed as tenants
-;; should not be allowed to access the /application endpoint (only the dashboard)
-;; The `redirect-on-invalid-authorization' handler is to enforce this behavior.
-;; It's likely that there's a better way to do this.
+             [signup :as signup]]))
 
 (defn- redirect-on-invalid-authorization
   [to]
@@ -42,13 +35,6 @@
     (if (authenticated? req)
       (response/redirect to)
       (response/redirect "/"))))
-
-(defn- wrap-log-response
-  [handler]
-  (fn [req]
-    (let [res (handler req)]
-      (pprint/pprint res)
-      res)))
 
 ;; =============================================================================
 ;; API

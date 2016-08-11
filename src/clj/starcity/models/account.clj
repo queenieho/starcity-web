@@ -138,3 +138,10 @@
 (defn admin?
   [account]
   (= (:account/role account) :account.role/admin))
+
+(defn full-name
+  "Full name of this account."
+  [{:keys [:account/first-name :account/last-name :account/middle-name]}]
+  (if (not-empty middle-name)
+    (format "%s %s %s" first-name middle-name last-name)
+    (format "%s %s" first-name last-name)))

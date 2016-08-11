@@ -11,13 +11,17 @@
             [clojure.string :refer [trim capitalize lower-case]]
             [ring.util.response :as response]
             [ring.util.codec :refer [url-encode]]
+            [taoensso.timbre :as timbre]
             [datomic.api :as d]))
+
+(timbre/refer-timbre)
 
 ;; =============================================================================
 ;; Constants
 ;; =============================================================================
 
-(def ^:private +redirect-after-signup+ "/signup/complete")
+(def redirect-after-signup "/signup/complete")
+(def redirect-after-activation "/application/logistics")
 
 ;; =============================================================================
 ;; Helpers
@@ -26,9 +30,6 @@
 ;; =============================================================================
 ;; Signup
 
-(defn- redirect-after-activation
-  [email]
-  (format "/login?next=/application&activated=true&email=%s" (url-encode email)))
 
 (defn- validate
   [params]
@@ -72,12 +73,13 @@
 (defn- send-activation-email
   [user-id]
   (let [pattern [:account/email :account/first-name :account/last-name :account/activation-hash]
-        {:keys [account/email
-                account/first-name
-                account/last-name
-                account/activation-hash]} (d/pull (d/db conn) pattern user-id)]
+        {:keys [:account/email
+                :account/first-name
+                :account/last-name
+                :account/activation-hash]} (d/pull (d/db conn) pattern user-id)]
+    (infof "EMAIL - [ACTIVATION] - sending activation email to '%s'" email)
     (send-email email "Activate Your Account"
-                (format "Hi %s,<br><br>Thank you for signing up! <a href='%s/signup/activate?email=%s&hash=%s'>Click here to activate your account</a> and apply for a home.<br><br>Best,<br>Team Starcity"
+                (format "Hi %s,<br><br>Thank you for signing up! <a href='%s/signup/activate?email=%s&hash=%s'>Click here to activate your account</a> and apply for a home.<br><br>Best,<br><br>Mo<br>Head of Community"
                         first-name
                         (:hostname config)
                         (url-encode email)
@@ -116,7 +118,7 @@
             (let [uid (account/create! email password first-name last-name)]
               (do
                 (send-activation-email uid)
-                (response/redirect +redirect-after-signup+)))
+                (response/redirect redirect-after-signup)))
             ;; account already exists for email
             (-respond-malformed (format "An account is already registered for %s." email)))
           ;; validation failure
@@ -131,10 +133,11 @@
   (let [{:keys [email hash]} params]
     (if (or (nil? email) (nil? hash))
       (show-invalid-activation req)
-      (let [user (account/by-email email)]
-        (if (= hash (:account/activation-hash user))
-          (do
-            (account/activate! user)
-            (response/redirect (redirect-after-activation email)))
+      (let [acct (account/by-email email)]
+        (if (= hash (:account/activation-hash acct))
+          (let [session (assoc session :identity acct)]
+            (account/activate! acct)
+            (-> (response/redirect redirect-after-activation)
+                (assoc :session session)))
           ;; hashes don't match
           (show-invalid-activation req))))))
