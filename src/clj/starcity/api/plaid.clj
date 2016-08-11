@@ -56,6 +56,7 @@
                 (model/add-income-data! access_token params)
                 (log-failure "Error while retrieving income information!" account-id res))))]
     (let [{:keys [code message access_token]} params]
+      (info "PLAID WEBHOOK: Received request!" params)
       (condp = code
         INCOME-SUCCESS (service/get-income access_token -on-income)
         (warnf "PLAID WEBHOOK: Unrecognized status code :: code - %s :: message - %s :: account-id - %s"
