@@ -25,20 +25,6 @@
      [:a {:href "mailto:team@joinstarcity.com"} "here"]
      " if you have any questions about your application."]]])
 
-(def ^:private get-started-content
-  [:main
-   [:div.container
-    [:div.row.section
-     [:div.card-panel
-      [:h3 "Let's Get Started"]
-      [:div.divider]
-      [:p.flow-text "This application should take no more than a few minutes of your time. You'll answer a few simple questions about your move-in logistics, indicate which Starcity communities you're interested in, and enter some basic information to enable us to perform a community safety check. Once you submit, we'll take steps to pre-qualify you for the Starcity community and reach out to schedule a tour."]
-      [:div.row
-       [:div.col.s12
-        [:a.btn.waves-effect.waves-light.btn-large
-         {:href "/application/logistics"}
-         "Start"]]]]]]])
-
 ;; =============================================================================
 ;; API
 ;; =============================================================================
@@ -49,12 +35,4 @@
    :content (if just-completed
               just-completed-content
               post-completion-content)
-   :nav-links [nav/logout]))
-
-(defn application
-  [current-steps]
-  (base
-   :title "Apply"
-   ;; TODO: Depends on current-steps
-   :content get-started-content
    :nav-links [nav/logout]))

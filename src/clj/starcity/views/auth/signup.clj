@@ -13,7 +13,10 @@
     [:div.row
      [:div.col.l6.offset-l3.m8.offset-m2.s12
       [:div.card-panel
-       [:h4.light "Sign up"]
+       [:h3.light "Apply for a Home"]
+
+       [:p.flow-text-small
+        "To get started, please create an account so we can save your application."]
 
        (for [error errors]
          [:div.alert.alert-error [:p.alert-text error]])
@@ -30,7 +33,7 @@
           [:label {:for "first-name"} "First name"]]
 
          [:div.col.s6.input-field
-          [:input#first-name.validate {:type     "text"
+          [:input#last-name.validate {:type     "text"
                                        :name     "last-name"
                                        :required true
                                        :value    last-name}]
@@ -61,7 +64,8 @@
         [:div.row
          [:div.col.s12.center-align
           [:button.btn.waves-effect.waves-light.btn-large.star-green.lighten-1 {:type "submit"}
-           "Sign Up"
+           [:span.hide-on-small-only "Get Started"]
+           [:span.hide-on-med-and-up "Begin"]
            [:i.material-icons.right "send"]]]]
 
         [:div.divider]
@@ -72,7 +76,7 @@
          [:div.col.s6
           [:a.right.btn.white.star-orange-text.waves-effect.waves-light
            {:href "/login"}
-           "Sign in"]]]]]]]]])
+           "Log In"]]]]]]]]])
 
 ;; =============================================================================
 ;; API

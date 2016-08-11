@@ -17,7 +17,8 @@
 ;; Constants
 ;; =============================================================================
 
-(def ^:private +redirect-after-signup+ "/signup/complete")
+(def redirect-after-signup "/signup/complete")
+(def redirect-after-activation "/application/logistics")
 
 ;; =============================================================================
 ;; Helpers
@@ -26,9 +27,6 @@
 ;; =============================================================================
 ;; Signup
 
-(defn- redirect-after-activation
-  [email]
-  (format "/login?next=/application&activated=true&email=%s" (url-encode email)))
 
 (defn- validate
   [params]
@@ -116,7 +114,7 @@
             (let [uid (account/create! email password first-name last-name)]
               (do
                 (send-activation-email uid)
-                (response/redirect +redirect-after-signup+)))
+                (response/redirect redirect-after-signup)))
             ;; account already exists for email
             (-respond-malformed (format "An account is already registered for %s." email)))
           ;; validation failure
@@ -131,10 +129,11 @@
   (let [{:keys [email hash]} params]
     (if (or (nil? email) (nil? hash))
       (show-invalid-activation req)
-      (let [user (account/by-email email)]
-        (if (= hash (:account/activation-hash user))
-          (do
-            (account/activate! user)
-            (response/redirect (redirect-after-activation email)))
+      (let [acct (account/by-email email)]
+        (if (= hash (:account/activation-hash acct))
+          (let [session (assoc session :identity acct)]
+            (account/activate! acct)
+            (-> (response/redirect redirect-after-activation)
+                (assoc :session session)))
           ;; hashes don't match
           (show-invalid-activation req))))))
