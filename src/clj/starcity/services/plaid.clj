@@ -26,7 +26,6 @@
                                                          body))
                         :headers {"Content-Type" "application/json"}}
                    (fn [res]
-                     (infof "PLAID RESPONSE - endpoint: %s - response: %s" endpoint res)
                      (let [res (update-in res [:body] json/parse-string true)]
                        (cb (:body res) res))))))))
 
