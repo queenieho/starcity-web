@@ -12,7 +12,7 @@
     [:div.row
      [:div.col.l6.offset-l3.m8.offset-m2.s12
       [:div.card-panel
-       [:h4.light "Sign in"]
+       [:h3.light "Log in"]
 
        (for [error errors]
          [:div.alert.alert-error
@@ -61,7 +61,7 @@
          [:div.col.s6
           [:a.right.btn.white.star-orange-text.waves-effect.waves-light
            {:href "/signup"}
-           "Sign Up"]]]]]]]]])
+           "Begin"]]]]]]]]])
 
 ;; =============================================================================
 ;; API

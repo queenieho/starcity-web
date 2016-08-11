@@ -21,6 +21,7 @@
             ;; util
             [mount.core :as mount :refer [defstate]]
             [starcity.config :refer [config]]
+            [starcity.environment :refer [environment]]
             [taoensso.timbre :as timbre]))
 
 (timbre/refer-timbre)
@@ -50,13 +51,15 @@
 (defn- start-server
   [{:keys [port] :as conf}]
   (debugf "Starting server on port %d" port)
-  (slack/webhook-request ":: *starting* webserver ::")
+  (when-not (= :development environment)
+    (slack/send-message "starting webserver"))
   (run-server app-handler {:port port :max-body (* 20 1024 1024)}))
 
 (defn- stop-server
   [server]
   (debug "Shutting down web server")
-  (slack/webhook-request ":: *stopping* webserver ::")
+  (when-not (= :development environment)
+    (slack/send-message "stopping webserver"))
   (server))
 
 (defstate web-server

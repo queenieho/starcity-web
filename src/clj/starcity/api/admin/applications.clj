@@ -1,5 +1,6 @@
 (ns starcity.api.admin.applications
   (:require [starcity.api.common :as common :refer [ok malformed]]
+            [starcity.models.account :refer [full-name]]
             [starcity.models.util :refer :all]
             [starcity.datomic :refer [conn]]
             [starcity.util :refer :all]
@@ -86,12 +87,6 @@
    :member-application/desired-availability
    :db/id])
 
-(defn- parse-name
-  [{:keys [:account/first-name :account/last-name :account/middle-name]}]
-  (if (not-empty middle-name)
-    (format "%s %s %s" first-name middle-name last-name)
-    (format "%s %s" first-name last-name)))
-
 (defn- parse-plaid-income
   [{:keys [:plaid/income :plaid/bank-accounts]}]
   (let [income (first income)]
@@ -118,7 +113,7 @@
   [{:keys [:account/_member-application :member-application/community-fitness] :as application}]
   (let [account (first _member-application)]
     {:id                (:db/id application)
-     :name              (parse-name account)
+     :name              (full-name account)
      :email             (:account/email account)
      :phone_number      (:account/phone-number account)
      :move_in           (:member-application/desired-availability application)
@@ -140,7 +135,7 @@
   (letfn [(-parse-application [{:keys [:account/_member-application] :as application}]
             (let [account (first _member-application)]
               {:application_id (:db/id application)
-               :name           (parse-name account)
+               :name           (full-name account)
                :email          (:account/email account)
                :phone_number   (:account/phone-number account)
                :move_in        (:member-application/desired-availability application)

@@ -12,12 +12,16 @@
              [application :as application]
              [community-safety :as community-safety]]
             [starcity.datomic :refer [conn]]
+            [starcity.config :refer [config]]
+            [starcity.environment :refer [environment]]
             [starcity.services.stripe :as stripe]
             [starcity.services.mailgun :as mailgun]
             [starcity.services.community-safety :refer [background-check]]
             [starcity.views.application.submit :as view]
             [taoensso.timbre :as timbre]
-            [datomic.api :as d]))
+            [datomic.api :as d]
+            [starcity.services.slack :as slack]
+            [clojure.string :as str]))
 
 (timbre/refer-timbre)
 
@@ -158,6 +162,28 @@
     (let [files (if (map? file-or-files) [file-or-files] file-or-files)]
       (account/save-income-files! account-id files))))
 
+
+;; =============================================================================
+;; Internal Notification
+
+(defn- rand-doge
+  []
+  (let [phrases ["Such marketing" "Wow" "Much victory"
+                 "Great success" "Very amazing"
+                 "Dope" "So skilled"]]
+    (->> phrases count rand-int (get phrases))))
+
+(defn notify-us
+  [{:keys [:account/email :db/id] :as acct}]
+  (let [title (format "%s's application" (account/full-name acct))
+        link  (format "%s/admin/applications/%s" (:hostname config) id)]
+    (slack/rich-message title "View it here on the admin dashboard."
+                        :opts {:pretext    (format "%s! Someone signed up! :partyparrot:"
+                                                   (rand-doge))
+                               :title_link link
+                               :color      "#7a8e52"}
+                        :channel "#members")))
+
 ;; =============================================================================
 ;; API
 ;; =============================================================================
@@ -180,6 +206,8 @@
             (save-files-when-present id income-files)
             (run-background-check id (is-on? receive-background-check))
             (send-submission-email id)
+            (when (= environment :production)
+              (notify-us identity))
             (application/complete! id (:id body))
             (response/redirect "/application?completed=true"))
           (payment-error req)))
