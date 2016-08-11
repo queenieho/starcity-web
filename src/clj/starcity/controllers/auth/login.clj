@@ -35,6 +35,7 @@
 (defn- url-after-login [acct {:keys [params] :as req}]
   (cond
     (not-empty (:next params)) (:next params)
+    (account/admin? acct)      "/admin"
     (account/applicant? acct)  "/application"
     :otherwise                 +redirect-after-login+))
 

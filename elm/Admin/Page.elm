@@ -2,7 +2,6 @@ module Admin.Page exposing ( body )
 
 import Html exposing (..)
 
-import Material.Grid exposing (..)
 import Material.Options as Options exposing (styled, cs, css)
 import Material.Color as Color
 
@@ -12,11 +11,7 @@ body t contents =
   Options.div
     boxed
     [ title t
-    , grid [ noSpacing ]
-       [ cell
-             [ size All 6, size Phone 4 ]
-             [ contents ]
-       ]
+    , div [] [ contents ]
     ]
 
 -- TITLE

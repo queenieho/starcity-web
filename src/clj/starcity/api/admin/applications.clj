@@ -33,7 +33,11 @@
     [:account/first-name
      :account/middle-name
      :account/last-name
+     :account/phone-number
      :account/email]}
+   {:member-application/desired-properties [:property/name]}
+   {:member-application/desired-license [:license/term]}
+   :member-application/desired-availability
    :member-application/locked
    :member-application/submitted-at
    :db/id])
@@ -44,6 +48,7 @@
      :account/first-name
      :account/middle-name
      :account/last-name
+     :account/phone-number
      :account/email
      {:income-file/_account
       [:db/id :income-file/path]}
@@ -64,7 +69,8 @@
    {:member-application/current-address
     [:address/city
      :address/postal-code
-     :address/state]}
+     :address/state
+     :address/lines]}
    {:member-application/desired-properties [:property/name]}
    {:member-application/desired-license [:license/term]}
    {:member-application/pet
@@ -104,16 +110,26 @@
     (merge (parse-plaid-income plaid) {:type "plaid"})
     {:type "file" :files (map parse-income-file (:income-file/_account account))}))
 
+(defn- format-address
+  [{:keys [:address/lines :address/city :address/state :address/postal-code]}]
+  (format "%s, %s %s, %s" lines city state postal-code))
+
 (defn- parse-application
   [{:keys [:account/_member-application :member-application/community-fitness] :as application}]
-  (let [account   (first _member-application)]
+  (let [account (first _member-application)]
     {:id                (:db/id application)
      :name              (parse-name account)
      :email             (:account/email account)
+     :phone_number      (:account/phone-number account)
+     :move_in           (:member-application/desired-availability application)
+     :properties        (map :property/name (:member-application/desired-properties application))
+     :term              (get-in application [:member-application/desired-license :license/term])
      :completed         (boolean (:member-application/locked application))
      :completed_at      (:member-application/submitted-at application)
      :community_fitness (clean-map community-fitness)
-     :income            (parse-income account)}))
+     :income            (parse-income account)
+     :address           (format-address (:member-application/current-address application))
+     :pet               (clean-map (:member-application/pet application))}))
 
 ;; =============================================================================
 ;; API
@@ -126,6 +142,10 @@
               {:application_id (:db/id application)
                :name           (parse-name account)
                :email          (:account/email account)
+               :phone_number   (:account/phone-number account)
+               :move_in        (:member-application/desired-availability application)
+               :properties     (map :property/name (:member-application/desired-properties application))
+               :term           (get-in application [:member-application/desired-license :license/term])
                :completed      (boolean (:member-application/locked application))
                :completed_at   (:member-application/submitted-at application)}))]
     (let [ids (map :db/id (find-all-by (d/db conn) :member-application/locked true))]
@@ -147,6 +167,7 @@
 
 (comment
 
-  (fetch-application {:params {:application-id "285873023223094"}})
+  (fetch-application {:params {:application-id "285873023223095"}})
+
 
   )

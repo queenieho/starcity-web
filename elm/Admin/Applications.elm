@@ -6,12 +6,18 @@ import Html.Events exposing (onClick)
 import Html.Attributes exposing (style)
 import Http
 import Task
+import String as String
 import Json.Decode exposing (..)
-import Date as Date exposing (Date)
+import Json.Decode.Extra exposing (..)
+import Date exposing (Date)
+import Date.Extra as Date
 
 import RouteUrl.Builder exposing (Builder, builder, path, replacePath, newEntry)
 import String exposing (toInt)
 
+import Material
+import Material.Color as Color
+import Material.Options as Options exposing (nop, when)
 import Material.Table as Table
 
 import Json.Decode.Extra exposing (date, maybeNull)
@@ -25,29 +31,48 @@ type View
     = List
     | Single Int
 
-type alias Model =
-    { applications : List ApplicationRow
-    , currentApplication : Maybe Application.Model
-    , currentView : View
-    }
+type SortColumn
+    = MoveIn
+    | CompletedAt
+    | Term
+
+type alias SortOrder = (SortColumn, Maybe Table.Order)
 
 type alias ApplicationRow =
     { id : Int
     , name : String
     , email : String
-    , completedAt : Maybe Date
-    , completed: Bool
+    , phoneNumber : String
+    , moveIn : Date
+    , properties : List String
+    , term : Int
+    , completed : Bool
+    , completedAt : Date
     }
+
+type alias Model =
+    { applications : List ApplicationRow
+    , currentApplication : Maybe Application.Model
+    , currentView : View
+    , sort : SortOrder
+    , mdl : Material.Model
+    }
+
 
 -- INIT
 
 init : (Model, Cmd Msg)
 init =
-    ( Model [] Nothing List
+    ( { applications = []
+      , currentApplication = Nothing
+      , currentView = List
+      , sort = (CompletedAt, Just Table.Descending)
+      , mdl = Material.model
+      }
     , fetchApplications
     )
 
--- MESSAGES
+-- UPDATE
 
 
 type Msg
@@ -55,37 +80,49 @@ type Msg
     | FetchFail Http.Error
     | ShowList
     | ShowApplication Int
+    | Reorder SortColumn
     | ApplicationMsg Application.Msg
+    | Mdl (Material.Msg Msg)
 
-
--- UPDATE
+rotate : SortColumn -> SortOrder -> SortOrder
+rotate col sort =
+    if (col /= fst sort)
+    then (col, Just Table.Ascending)
+    else case sort of
+             (_, Just Table.Ascending) -> (col, Just Table.Descending)
+             (_, Just Table.Descending) -> (col, Nothing)
+             (_, Nothing) -> (col, Just Table.Ascending)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         FetchSucceed applications ->
-            ( { model | applications = applications }, Cmd.none )
+           { model | applications = applications } ! []
 
-        FetchFail _ ->
-            (Model model.applications model.currentApplication model.currentView, Cmd.none)
+        FetchFail e ->
+            model ! []
 
         ShowList ->
-            ( { model | currentView = List }, fetchApplications )
+            { model | currentView = List } ! [ fetchApplications ]
 
         ShowApplication applicationId ->
             let
                 (m, fx) = Application.init applicationId
             in
-                ( { model
-                      | currentView = Single applicationId
-                      , currentApplication = Just m
-                  }
-                , Cmd.map ApplicationMsg fx
-                )
+                { model
+                    | currentView = Single applicationId
+                    , currentApplication = Just m
+                } ! [ Cmd.map ApplicationMsg fx ]
+
+        Reorder c ->
+            { model | sort = rotate c model.sort } ! []
 
         ApplicationMsg msg' ->
             maybePassApplicationMessage model msg'
+
+        Mdl msg' ->
+            Material.update msg' model
 
 maybePassApplicationMessage : Model -> Application.Msg -> (Model, Cmd Msg)
 maybePassApplicationMessage model msg =
@@ -103,22 +140,6 @@ maybePassApplicationMessage model msg =
 
 -- VIEW
 
-applicationRow : ApplicationRow -> Html Msg
-applicationRow {id,name,email,completedAt,completed} =
-    Table.tr []
-        [ Table.td []
-              [ a [ onClick <| ShowApplication id
-                  , style [("cursor", "pointer")]
-                  ]
-                    [ text (toString id) ]
-              ]
-        , Table.td [] [ text name ]
-        , Table.td [] [ text email ]
-        , Table.td [] [ text (toString completed) ]
-        , Table.td [] [ Maybe.map toString completedAt
-                      |> Maybe.withDefault "Incomplete"
-                      |> text ]
-        ]
 
 view : Model -> Html Msg
 view model =
@@ -134,21 +155,96 @@ view model =
         List ->
             Page.body "Applications" <| listView model
 
+
 listView : Model -> Html Msg
 listView model =
+    let
+        sort =
+            case model.sort of
+                (MoveIn, Just Table.Ascending) ->
+                    List.sortBy (.moveIn >> toString)
+
+                (MoveIn, Just Table.Descending) ->
+                    List.sortWith (\x y -> reverse
+                                       ((.moveIn >> toString) x)
+                                       ((.moveIn >> toString) y))
+
+                (CompletedAt, Just Table.Ascending) ->
+                    List.sortBy (.completedAt >> toString)
+
+                (CompletedAt, Just Table.Descending) ->
+                    List.sortWith (\x y -> reverse
+                                       ((.completedAt >> toString) x)
+                                       ((.completedAt >> toString) y))
+
+                (Term, Just Table.Ascending) ->
+                    List.sortBy .term
+
+                (Term,Just Table.Descending) ->
+                    List.sortWith (\x y -> reverse (.term x) (.term y))
+
+                (_, Nothing) ->
+                    identity
+
+        applicationRow idx row =
+            Table.tr []
+                [ Table.td [] [ idx + 1 |> toString |> text ]
+                , Table.td []
+                      [ a [ onClick <| ShowApplication row.id
+                          , style [("cursor", "pointer")]
+                          ]
+                            [ text row.name ]
+                      ]
+                , Table.td [] [ text row.email ]
+                , Table.td [] [ text row.phoneNumber ]
+                , Table.td [] [ String.join ", " row.properties |> text]
+                , Table.td [] [ toString row.term |> text]
+                , Table.td [] [ shortDate row.moveIn |> text]
+                , Table.td [] [ shortDate row.completedAt |> text ]
+                ]
+
+        (col, currOrder) = model.sort
+
+        colProps col' =
+           [ (snd model.sort
+             |> Maybe.map Table.sorted
+             |> Maybe.withDefault nop) `when` (col' == col)
+           , Table.onClick (Reorder col')
+           , Color.text Color.accent
+           ]
+
+    in
     Table.table []
         [ Table.thead []
               [ Table.tr []
-                    [ Table.th [] [ text "ID" ]
+                    [ Table.th [] [ text "Number" ]
                     , Table.th [] [ text "Name" ]
                     , Table.th [] [ text "Email" ]
-                    , Table.th [] [ text "Completed?" ]
-                    , Table.th [] [ text "Completed At" ]
+                    , Table.th [] [ text "Phone Number" ]
+                    , Table.th [] [ text "Properties" ]
+                    , Table.th ([ Table.numeric] ++ colProps Term) [ text "Term" ]
+                    , Table.th (colProps MoveIn) [ text "Desired Move-In" ]
+                    , Table.th (colProps CompletedAt) [ text "Completed At" ]
                     ]
               ]
         , Table.tbody []
-            (List.map applicationRow model.applications)
+            ( sort model.applications
+                |> (List.indexedMap applicationRow)
+            )
         ]
+
+reverse : comparable -> comparable -> Order
+reverse x y =
+  case compare x y of
+    LT -> GT
+    GT -> LT
+    EQ -> EQ
+
+
+shortDate : Date -> String
+shortDate date =
+    Date.toFormattedString "M/dd/y" date
+
 
 -- HTTP
 
@@ -166,12 +262,16 @@ decodeApplications =
 
 applicationDecoder : Decoder ApplicationRow
 applicationDecoder =
-    object5 ApplicationRow
-                ("application_id" := int)
-                ("name" := string)
-                ("email" := string)
-                ("completed_at" := maybeNull date)
-                ("completed" := bool)
+    succeed ApplicationRow
+        |: ("application_id" := int)
+        |: ("name" := string)
+        |: ("email" := string)
+        |: ("phone_number" := string)
+        |: ("move_in" := date)
+        |: ("properties" := list string)
+        |: ("term" := int)
+        |: ("completed" := bool)
+        |: ("completed_at" := date)
 
 -- ROUTING
 

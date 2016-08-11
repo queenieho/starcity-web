@@ -3,15 +3,14 @@ module Admin.Application exposing (..)
 import Html exposing (..)
 import Http
 import Task
+import String as String
 import Json.Decode exposing (..)
 import Date as Date exposing (Date)
 import Json.Decode.Extra exposing (..)
 
-import Material.Card as Card
-import Material.Color as Color
-import Material.Options as Options
-import Material.List as Lists
+import Material.Grid exposing (grid, cell, size, Device(..))
 
+import Util exposing (humanDate)
 import Admin.Page as Page
 import Admin.Application.CommunityFitness as CommunityFitness exposing (CommunityFitness)
 import Admin.Application.Income as Income exposing (Income)
@@ -26,13 +25,23 @@ type alias Model =
     , data : Maybe Application
     }
 
+type PetInfo
+    = Cat
+    | Dog String Int
+
 type alias Application =
     { id : Int
     , name : String
     , email : String
+    , phoneNumber : String
+    , moveIn : Date
+    , properties : List String
+    , term : Int
     , completedAt : Date
     , communityFitness : CommunityFitness
     , income : Income
+    , address : String
+    , pet: Maybe PetInfo
     }
 
 
@@ -53,6 +62,7 @@ update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
         FetchSucceed application ->
+            Debug.log (toString application)
             ( { model | data = Just application }, Cmd.none )
 
         FetchFail err ->
@@ -72,10 +82,26 @@ view model =
 
 content : Application -> Html Msg
 content application =
+    let
+        topRowSizes =
+            case application.pet of
+                Just _ -> [ size Desktop 4, size Tablet 6, size Phone 12 ]
+                Nothing -> [ size Desktop 6, size Phone 12 ]
+    in
     div []
-        [ basicInfo application
-        , CommunityFitness.view application.communityFitness
-        , Income.view application.income
+        [ grid []
+              [ cell topRowSizes [ basicInfo application ]
+              , cell topRowSizes [ moveInInfo application ]
+              , cell topRowSizes [ Maybe.map otherInfo application.pet |> Maybe.withDefault (div [] []) ]
+              ]
+        , grid []
+            [ cell [ size All 12]
+                  [ CommunityFitness.view application.communityFitness ]
+            ]
+        , grid []
+            [ cell [ size All 12 ]
+                  [ Income.view application.income ]
+            ]
         ]
 
 basicInfo : Application -> Html a
@@ -84,12 +110,34 @@ basicInfo application =
         <| Common.definitionList
             [ ("Name", application.name)
             , ("Email", application.email)
-            , ("Completed At", toString application.completedAt)
+            , ("Phone Number", application.phoneNumber)
+            , ("Completed At", humanDate application.completedAt)
+            , ("Current Address", application.address)
             ]
 
-white : Options.Property c m
-white =
-    Color.text Color.white
+moveInInfo : Application -> Html a
+moveInInfo application =
+    Common.section "Move-in"
+        <| Common.definitionList
+            [ ("Desired Move-in Date", humanDate application.moveIn)
+            , ("Desired Properties", String.join ", " application.properties)
+            , ("Term", toString application.term ++ " months")
+            ]
+
+otherInfo : PetInfo -> Html a
+otherInfo pet =
+    let
+        petContent =
+            ( "Pet"
+             , case pet of
+                   Cat -> "Cat"
+                   Dog breed weight -> (toString weight) ++ "lb " ++ breed
+              )
+
+    in
+        Common.section "Other Information"
+            <| Common.definitionList
+                [ petContent ]
 
 -- HTTP
 
@@ -108,6 +156,28 @@ decoder =
         |: ("id" := int)
         |: ("name" := string)
         |: ("email" := string)
+        |: ("phone_number" := string)
+        |: ("move_in" := date)
+        |: ("properties" := list string)
+        |: ("term" := int)
         |: ("completed_at" := date)
         |: ("community_fitness" := CommunityFitness.decoder)
         |: ("income" := Income.decoder)
+        |: ("address" := string)
+        |: (maybe ("pet" := petDecoder))
+
+
+petDecoder : Decoder PetInfo
+petDecoder =
+    ("type" := string) `andThen`
+        (\t ->
+             case t of
+                 "cat" ->
+                     succeed Cat
+                 "dog" ->
+                     object2 Dog
+                         ("breed" := string)
+                         ("weight" := int)
+                 _ ->
+                     fail ("Expecting either 'cat' or 'dog', got " ++ t)
+        )

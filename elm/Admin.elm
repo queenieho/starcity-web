@@ -2,11 +2,9 @@ module Admin exposing (..)
 
 import Html.App as App exposing (map)
 import Html exposing (..)
+import Html.Attributes exposing (style)
+import Html.Events exposing (onClick)
 import Html.Lazy
--- import Html.Attributes exposing (href, class, style)
--- import Array exposing (Array)
--- import Dict exposing (Dict)
--- import String
 
 import Navigation
 import RouteUrl as Routing exposing (UrlChange)
@@ -20,6 +18,7 @@ import Material.Layout as Layout
 import Material.Helpers exposing (lift)
 
 import Admin.Applications as Applications
+import Admin.Page as Page
 
 
 -- MAIN
@@ -90,6 +89,25 @@ tabIndexForView view =
         Home -> -1
         Applications -> 0
 
+tabSelected : Int -> Model -> ( Model, Cmd Msg )
+tabSelected tabIndex model =
+    case tabIndex of
+        0 ->
+            let
+                (m, fx) = Applications.update Applications.ShowList model.applications
+            in
+            ( { model
+                  | currentView = viewForTabIndex tabIndex
+                  , applications = m
+              }
+            , Cmd.map ApplicationsMsg fx
+            )
+
+        -- Catch-all
+        _ ->
+            ( { model | currentView = Home }, Cmd.none )
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -99,15 +117,7 @@ update msg model =
             )
 
         SelectTab t ->
-            -- let
-            --     (m, fx) = Applications.update Applications.ShowList model.applications
-            -- in
-            ( { model
-                  | currentView = viewForTabIndex t
-                  -- , applications = m
-              }
-            , Cmd.none
-            )
+            tabSelected t model
 
         ApplicationsMsg msg' ->
             lift .applications (\m sm -> {m | applications = sm}) ApplicationsMsg Applications.update msg' model
@@ -121,9 +131,7 @@ update msg model =
 
 e404 : Model -> Html Msg
 e404 _ =
-  div
-    [
-    ]
+  div []
     [ Options.styled Html.h1
         [ Options.cs "mdl-typography--display-4"
         , Typography.center
@@ -134,7 +142,12 @@ e404 _ =
 header : Model -> List (Html Msg)
 header model =
     [ Layout.row []
-          [ Layout.title [] [ text "Starcity Admin" ]
+          [ Layout.title []
+                [ a [ onClick (ShowView Home)
+                    , style [ ("cursor", "pointer")
+                            , ("color", "white")]
+                    ]
+                      [ text "Starcity Admin" ] ]
           , Layout.spacer
           , Layout.navigation []
               [ Layout.link
@@ -153,7 +166,8 @@ view' model =
         view =
             case model.currentView of
                 Home ->
-                    div [] [ h3 [] [ text "Choose a tab above." ] ]
+                    Page.body "Welcome!"
+                        <| p [] [ text "Choose a tab above." ]
 
                 Applications ->
                     map ApplicationsMsg (Applications.view model.applications)
@@ -165,7 +179,7 @@ view' model =
         ]
     { header = header model
     , drawer = []
-    , tabs = (tabTitles, [ Color.background (Color.color Color.Green Color.S400) ])
+    , tabs = (tabTitles, [ Color.background Color.primaryDark ])
     , main = [ view ]
     }
 
@@ -189,17 +203,6 @@ tabTitles : List (Html a)
 tabTitles =
     List.map (\ (x,_,_) -> text x) tabs
 
--- tabViews : Array (Model -> Html Msg)
--- tabViews =
---     List.map (\ (_,_,x) -> x) tabs
---         |> Array.fromList
-
--- tabUrls : Array String
--- tabUrls =
---     List.map (\ (_,url,_) -> url) tabs
---         |> Array.fromList
-
-
 delta2url : Model -> Model -> Maybe UrlChange
 delta2url previous current =
     Maybe.map Builder.toUrlChange
@@ -210,14 +213,11 @@ delta2builder : Model -> Model -> Maybe Builder
 delta2builder previous current =
     case current.currentView of
         Home ->
-            Nothing
+            Builder.builder
+                |> Builder.replacePath [""]
+                |> Just
 
         Applications ->
-            -- case (previous.currentView, current.currentView) of
-            --     (View.Application, View.List) ->
-            --         Just Builder.replacePath ["applications"]
-
-            --     _ ->
             Applications.delta2builder previous.applications current.applications
                 |> Maybe.map (Builder.prependToPath ["applications"])
 
