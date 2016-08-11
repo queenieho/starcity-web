@@ -1,12 +1,10 @@
 (ns starcity.datomic
   (:require [datomic.api :as d]
             [mount.core :as mount :refer [defstate]]
+            [starcity.environment :as env]
             [starcity.config :as config]
             [starcity.datomic.conformity :as c]
-            [starcity.datomic.migrations
-             [initial :refer [initial-migration]]
-             [properties-schema-8-2-16 :refer [properties-schema-8-2-16]]
-             [income-files-8-3-16 :refer [add-income-files-schema]]]
+            [starcity.datomic.migrations :refer [migration-norms]]
             [taoensso.timbre :as timbre]))
 
 (timbre/refer-timbre)
@@ -18,9 +16,8 @@
 (defn- run-migrations
   "Given a database connection, run database migrations."
   [conn]
-  (let [norms (merge (initial-migration)
-                     (properties-schema-8-2-16)
-                     add-income-files-schema)]
+  (let [norms (migration-norms conn)]
+    (info "Ensuring the following conforms: " (keys norms))
     (c/ensure-conforms conn norms)))
 
 ;; TODO: Include information about the connection URI, but without the
