@@ -134,3 +134,7 @@
 (defn applicant?
   [account]
   (= (:account/role account) :account.role/applicant))
+
+(defn admin?
+  [account]
+  (= (:account/role account) :account.role/admin))

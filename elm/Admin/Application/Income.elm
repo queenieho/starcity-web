@@ -7,6 +7,7 @@ import Json.Decode exposing (..)
 import Json.Decode.Extra exposing (..)
 
 import Material.Table as Table
+import Material.Tabs as Tabs
 
 import Admin.Application.Common as Common
 
@@ -45,6 +46,9 @@ type alias FileIncome =
 type Income
     = Plaid PlaidIncome
     | File (List FileIncome)
+
+-- type alias Model =
+--     { }
 
 
 -- VIEW

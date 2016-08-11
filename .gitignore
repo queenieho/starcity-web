@@ -24,3 +24,4 @@ pom.xml.asc
 figwheel_server.log
 .DS_Store
 /elm-stuff
+/elm/TAGS
