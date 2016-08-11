@@ -8,7 +8,7 @@
 
  :nrepl {:port 7889}
 
- :session {:key "nottheactualsecret"}
+ :session {:key "notactualsecret!"}
 
  :plaid {:env "tartan"}
 
