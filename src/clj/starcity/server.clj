@@ -9,6 +9,7 @@
             [ring.middleware.nested-params :refer [wrap-nested-params]]
             [ring.middleware.multipart-params :refer [wrap-multipart-params]]
             [ring.middleware.session :refer [wrap-session]]
+            [ring.middleware.session.cookie :refer [cookie-store]]
             [ring.middleware.json :refer [wrap-json-params
                                           wrap-json-response]]
             [buddy.auth.middleware :refer [wrap-authentication
@@ -41,7 +42,7 @@
       (wrap-params)
       (wrap-multipart-params)
       (wrap-resource "public")
-      (wrap-session)
+      (wrap-session {:store (cookie-store {:key (get-in config [:session :key])})})
       (wrap-exception-handling)
       (wrap-content-type)))
 
