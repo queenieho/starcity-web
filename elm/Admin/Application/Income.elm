@@ -86,7 +86,6 @@ renderPlaid plaid =
 renderBankAccounts : List BankAccount -> Html a
 renderBankAccounts accounts =
     let
-
         row t st curr avail lim =
             Table.tr []
                 [ Table.td [] [ text t ]
