@@ -17,7 +17,8 @@ import String exposing (toInt)
 
 import Material
 import Material.Color as Color
-import Material.Options as Options exposing (nop, when)
+import Material.Grid exposing (grid, cell, size, Device(..))
+import Material.Options as Options exposing (nop, when, css)
 import Material.Table as Table
 
 import Json.Decode.Extra exposing (date, maybeNull)
@@ -153,29 +154,38 @@ view model =
                     Page.body "Loading..." (div [] [])
 
         List ->
-            Page.body "Applications" <| listView model
+            Page.body "Applications"
+                <| grid []
+                    [ cell [ size All 12 ] [ tableView model ] ]
+
+type WhiteSpace = Normal | NoWrap
+
+ws opt =
+    case opt of
+        Normal -> css "white-space" "normal"
+        NoWrap -> css "white-space" "nowrap"
 
 
-listView : Model -> Html Msg
-listView model =
+tableView : Model -> Html Msg
+tableView model =
     let
         sort =
             case model.sort of
                 (MoveIn, Just Table.Ascending) ->
-                    List.sortBy (.moveIn >> toString)
+                    List.sortBy (.moveIn >> Date.toTime)
 
                 (MoveIn, Just Table.Descending) ->
                     List.sortWith (\x y -> reverse
-                                       ((.moveIn >> toString) x)
-                                       ((.moveIn >> toString) y))
+                                       ((.moveIn >> Date.toTime) x)
+                                       ((.moveIn >> Date.toTime) y))
 
                 (CompletedAt, Just Table.Ascending) ->
-                    List.sortBy (.completedAt >> toString)
+                    List.sortBy (.completedAt >> Date.toTime)
 
                 (CompletedAt, Just Table.Descending) ->
                     List.sortWith (\x y -> reverse
-                                       ((.completedAt >> toString) x)
-                                       ((.completedAt >> toString) y))
+                                       ((.completedAt >> Date.toTime) x)
+                                       ((.completedAt >> Date.toTime) y))
 
                 (Term, Just Table.Ascending) ->
                     List.sortBy .term
@@ -196,7 +206,7 @@ listView model =
                             [ text row.name ]
                       ]
                 , Table.td [] [ text row.email ]
-                , Table.td [] [ text row.phoneNumber ]
+                , Table.td [ ws NoWrap ] [ text row.phoneNumber ]
                 , Table.td [] [ String.join ", " row.properties |> text]
                 , Table.td [] [ toString row.term |> text]
                 , Table.td [] [ shortDate row.moveIn |> text]
@@ -211,23 +221,24 @@ listView model =
              |> Maybe.withDefault nop) `when` (col' == col)
            , Table.onClick (Reorder col')
            , Color.text Color.accent
+           , Table.numeric
            ]
 
     in
     Table.table []
-        [ Table.thead []
+        [ Table.thead [ ws NoWrap ]
               [ Table.tr []
                     [ Table.th [] [ text "Number" ]
                     , Table.th [] [ text "Name" ]
                     , Table.th [] [ text "Email" ]
                     , Table.th [] [ text "Phone Number" ]
                     , Table.th [] [ text "Properties" ]
-                    , Table.th ([ Table.numeric] ++ colProps Term) [ text "Term" ]
+                    , Table.th (colProps Term) [ text "Term" ]
                     , Table.th (colProps MoveIn) [ text "Desired Move-In" ]
                     , Table.th (colProps CompletedAt) [ text "Completed At" ]
                     ]
               ]
-        , Table.tbody []
+        , Table.tbody [ ws Normal ]
             ( sort model.applications
                 |> (List.indexedMap applicationRow)
             )
