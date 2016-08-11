@@ -1,14 +1,16 @@
 ;; NOTE: Toplevel values MUST be maps...will come up with a workaround for this eventually
 {:webserver {:port 8080}
 
- :datomic   {:partition :db.part/starcity}
+ :datomic {:partition :db.part/starcity}
 
- :log       {:level   :trace
-             :logfile "logs/server.log"}
+ :log {:level   :trace
+       :logfile "logs/server.log"}
 
- :nrepl     {:port 7889}
+ :nrepl {:port 7889}
 
- :plaid     {:env "tartan"}
+ :session {:key "nottheactualsecret"}
+
+ :plaid {:env "tartan"}
 
  :mailchimp {:data-center "us13"
              :lists       {:subscribers "357c7315fb"}}}
