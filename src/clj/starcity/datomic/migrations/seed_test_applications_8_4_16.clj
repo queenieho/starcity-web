@@ -18,7 +18,9 @@
                                                            :address/state       "CA"
                                                            :address/postal-code "94611"}
                  :member-application/desired-properties   [[:property/internal-name "52gilbert"]
-                                                           [:property/internal-name "229ellis"]]
+                                                           [:property/internal-name "229ellis"]
+                                                           [:property/internal-name "361turk"]
+                                                           [:property/internal-name "2072mission"]]
                  :member-application/desired-license      (:db/id (one (d/db conn) :license/term 6))
                  :member-application/locked               true
                  :member-application/desired-availability (c/to-date (t/date-time 2016 9 1))
@@ -33,9 +35,9 @@
                  :db/id                      [:account/email "test@test.com"]}
                 {:db/id               (d/tempid (:partition datomic))
                  :plaid/account       [:account/email "test@test.com"]
-                 :plaid/income        [{:plaid-income/last-year         50000
-                                        :plaid-income/last-year-pre-tax 70000
-                                        :plaid-income/projected-yearly  80000
+                 :plaid/income        [{;:plaid-income/last-year         50000
+                                        ;:plaid-income/last-year-pre-tax 70000
+                                        ;:plaid-income/projected-yearly  80000
                                         :plaid-income/income-streams
                                         [{:income-stream/active     true
                                           :income-stream/confidence 1.0
@@ -49,6 +51,16 @@
                                         :bank-account/current-balance   3889.0
                                         :bank-account/type              "depository"
                                         :bank-account/subtype           "checking"
+                                        :bank-account/institution-type  "wells"}
+                                       {:bank-account/available-balance 4000.0
+                                        :bank-account/current-balance   3889.0
+                                        :bank-account/type              "mortgage"
+                                        :bank-account/subtype           "mortgage"
+                                        :bank-account/institution-type  "wells"}
+                                       {:bank-account/available-balance 4000.0
+                                        :bank-account/current-balance   3889.0
+                                        :bank-account/type              "other"
+                                        :bank-account/subtype           "rewards"
                                         :bank-account/institution-type  "wells"}
                                        {:bank-account/available-balance 4000.0
                                         :bank-account/current-balance   3889.0
@@ -81,4 +93,7 @@
                  :income-file/path    "data/income-uploads/285873023222771/starcity-kitchen.png"}]))]
     :requires [:starcity/seed-test-accounts
                :starcity/add-income-files-schema-8-3-16
+               :starcity/seed-mission
+               :starcity/seed-union-square
+               :starcity/seed-historic-tenderloin
                :starcity/seed-gilbert]}})
