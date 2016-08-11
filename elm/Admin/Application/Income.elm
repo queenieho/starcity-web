@@ -7,7 +7,6 @@ import Json.Decode exposing (..)
 import Json.Decode.Extra exposing (..)
 
 import Material.Table as Table
-import Material.Tabs as Tabs
 
 import Admin.Application.Common as Common
 
@@ -20,20 +19,18 @@ type alias IncomeStream =
     , income : Int
     }
 
-type DepositoryType
-    = Checking
-    | Savings
-
-type BankAccount
-    -- type, current balance, available balance
-    = Depository DepositoryType Float Float
-    -- current balance, available balance credit limit
-    | Credit Float Float Float
+type alias BankAccount =
+    { accountType : String
+    , subType : String
+    , currentBalance : Float
+    , availableBalance : Maybe Float
+    , creditLimit : Maybe Float
+    }
 
 type alias PlaidIncome =
-    { lastYear : Int
-    , lastYearPreTax : Int
-    , projectedYearly : Int
+    { lastYear : Maybe Int
+    , lastYearPreTax : Maybe Int
+    , projectedYearly : Maybe Int
     , streams : Maybe (List IncomeStream)
     , accounts : Maybe (List BankAccount)
     }
@@ -66,13 +63,18 @@ view data =
 
 renderPlaid : PlaidIncome -> Html a
 renderPlaid plaid =
+    let
+        dollar amt =
+            Maybe.map (\x -> "$" ++ toString x) amt
+                |> Maybe.withDefault "Unknown"
+    in
     div []
         [ div []
               [ h4 [] [ text "Basic" ]
               , Common.definitionList
-                  [ ("Last Year's Income", "$" ++ toString plaid.lastYear)
-                  , ("Last Year's Income, Pre-Tax", "$" ++ toString plaid.lastYearPreTax)
-                  , ("Projected Yearly Income", "$" ++ toString plaid.projectedYearly)
+                  [ ("Last Year's Income", dollar plaid.lastYear)
+                  , ("Last Year's Income, Pre-Tax", dollar plaid.lastYearPreTax)
+                  , ("Projected Yearly Income", dollar plaid.projectedYearly)
                   ]
               ]
         , Maybe.map renderIncomeStreams plaid.streams
@@ -84,10 +86,6 @@ renderPlaid plaid =
 renderBankAccounts : List BankAccount -> Html a
 renderBankAccounts accounts =
     let
-        textForDepositoryType t =
-            case t of
-                Checking -> "Checking"
-                Savings -> "Savings"
 
         row t st curr avail lim =
             Table.tr []
@@ -98,21 +96,16 @@ renderBankAccounts accounts =
                 , Table.td [] [ text lim ]
                 ]
 
-        accountRow account =
-            case account of
-                Depository t curr avail ->
-                    row "Depository"
-                        (textForDepositoryType t)
-                        ("$" ++ toString curr)
-                        ("$" ++ toString avail)
-                        "N/A"
+        maybeDollar amt =
+            Maybe.map (\x -> "$" ++ toString x) amt
+                |> Maybe.withDefault "N/A"
 
-                Credit curr avail lim ->
-                    row "Credit"
-                        "N/A"
-                        ("$" ++ toString curr)
-                        ("$" ++ toString avail)
-                        ("$" ++ toString lim)
+        accountRow account =
+            row account.accountType
+                account.subType
+                    ("$" ++ toString account.currentBalance)
+                    (maybeDollar account.availableBalance)
+                    (maybeDollar account.creditLimit)
 
     in
     div []
@@ -120,8 +113,8 @@ renderBankAccounts accounts =
         , Table.table []
             [ Table.thead []
                   [ Table.tr []
-                        [ Table.th [] [ text "Account Type" ]
-                        , Table.th [] [ text "Account Subtype" ]
+                        [ Table.th [] [ text "Type" ]
+                        , Table.th [] [ text "Subtype" ]
                         , Table.th [] [ text "Current Balance" ]
                         , Table.th [] [ text "Available Balance" ]
                         , Table.th [] [ text "Credit LImit" ]
@@ -199,9 +192,9 @@ incomeInfo t =
         "plaid" ->
             map Plaid
                 <| succeed PlaidIncome
-                    |: ("last_year" := int)
-                    |: ("last_year_pre_tax" := int)
-                    |: ("projected_yearly" := int)
+                    |: (maybe ("last_year" := int))
+                    |: (maybe ("last_year_pre_tax" := int))
+                    |: (maybe ("projected_yearly" := int))
                     |: (maybe ("streams" := list incomeStream))
                     |: (maybe ("accounts" := list bankAccount))
 
@@ -233,29 +226,9 @@ bankAccount =
 
 bankAccountInfo : String -> Decoder BankAccount
 bankAccountInfo t =
-    case t of
-        "depository" ->
-            object3 Depository
-                ("subtype" := depositoryType)
-                ("current_balance" := float)
-                ("available_balance" := float)
-
-        "credit" ->
-            object3 Credit
-                ("current_balance" := float)
-                ("available_balance" := float)
-                ("credit_limit" := float)
-
-        _ ->
-            fail (t ++ " is not a recognized bank account type.")
-
-depositoryType : Decoder DepositoryType
-depositoryType =
-    let
-        decoder subtype =
-            case subtype of
-                "checking" -> Result.Ok Checking
-                "savings" -> Result.Ok Savings
-                _ -> Result.Err ("expecting either 'checking' or 'savings', got " ++ subtype)
-    in
-    customDecoder string decoder
+    succeed BankAccount
+        |: ("type" := string)
+        |: ("subtype" := string)
+        |: ("current_balance" := float)
+        |: (maybe ("available_balance" := float))
+        |: (maybe ("credit_limit" := float))
