@@ -11,7 +11,10 @@
             [clojure.string :refer [trim capitalize lower-case]]
             [ring.util.response :as response]
             [ring.util.codec :refer [url-encode]]
+            [taoensso.timbre :as timbre]
             [datomic.api :as d]))
+
+(timbre/refer-timbre)
 
 ;; =============================================================================
 ;; Constants
@@ -70,12 +73,13 @@
 (defn- send-activation-email
   [user-id]
   (let [pattern [:account/email :account/first-name :account/last-name :account/activation-hash]
-        {:keys [account/email
-                account/first-name
-                account/last-name
-                account/activation-hash]} (d/pull (d/db conn) pattern user-id)]
+        {:keys [:account/email
+                :account/first-name
+                :account/last-name
+                :account/activation-hash]} (d/pull (d/db conn) pattern user-id)]
+    (infof "EMAIL - [ACTIVATION] - sending activation email to '%s'" email)
     (send-email email "Activate Your Account"
-                (format "Hi %s,<br><br>Thank you for signing up! <a href='%s/signup/activate?email=%s&hash=%s'>Click here to activate your account</a> and apply for a home.<br><br>Best,<br>Team Starcity"
+                (format "Hi %s,<br><br>Thank you for signing up! <a href='%s/signup/activate?email=%s&hash=%s'>Click here to activate your account</a> and apply for a home.<br><br>Best,<br><br>Mo<br>Head of Community"
                         first-name
                         (:hostname config)
                         (url-encode email)

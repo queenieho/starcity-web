@@ -102,5 +102,6 @@
   (base
    :content [:main
              [:div.container
-              [:h3 "Thanks for signing up!"]
-              [:p.flow-text "Please check your inbox for an activation link."]]]))
+              [:h3 "Thanks for creating an account!"]
+              [:p.flow-text "Please look out for an activation email in your inbox."]
+              [:p.flow-text "To continue the application, click the activation link found in that email."]]]))
