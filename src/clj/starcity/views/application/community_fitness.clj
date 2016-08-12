@@ -83,4 +83,4 @@
                         (free-time-section free-time)]
                        ["Do you have any dealbreakers?"
                         (dealbreakers-section dealbreakers)]])]
-    (common/step "Community Fitness" sections current-steps :errors errors)))
+    (common/step req "Community Fitness" sections current-steps :errors errors)))
