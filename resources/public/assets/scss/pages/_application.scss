@@ -1,4 +1,4 @@
-main#member-application {
+main#central-card {
 
   .card-panel {
     padding: 0;
@@ -20,6 +20,7 @@ main#member-application {
         padding: 0;
         white-space: nowrap;
         margin-left: 20px;
+        margin-top: 1rem;
       }
 
       @media #{$small-and-down} {

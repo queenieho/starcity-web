@@ -9,4 +9,4 @@
 
 (defn show-faq
   [req]
-  (ok (view/faq)))
+  (ok (view/faq req)))

@@ -1,6 +1,5 @@
 (ns starcity.views.application
-  (:require [starcity.views.base :refer [base]]
-            [starcity.views.base.nav :as nav]))
+  (:require [starcity.views.base :refer [base]]))
 
 ;; =============================================================================
 ;; Helpers
@@ -30,9 +29,9 @@
 ;; =============================================================================
 
 (defn locked
-  [just-completed]
+  [req just-completed]
   (base
+   :req req
    :content (if just-completed
               just-completed-content
-              post-completion-content)
-   :nav-links [nav/logout]))
+              post-completion-content)))

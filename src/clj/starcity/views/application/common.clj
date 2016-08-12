@@ -1,6 +1,5 @@
 (ns starcity.views.application.common
   (:require [starcity.views.base :refer [base]]
-            [starcity.views.base.nav :as nav]
             [starcity.models.application]
             [clojure.spec :as s]))
 
@@ -85,17 +84,17 @@
      (navbar-dropdown current-steps)
      [:nav
       [:div.nav-wrapper.bone-pink.darken-2
-       [:a.nav-title.truncate {:href ""} title]
+       [:h4.nav-title.truncate title]
        [:ul.right
         [:li
-         [:a.dropdown-button {:href "" :data-activates "steps-dropdown"}
+         [:a.dropdown-button {:href "#" :data-activates "steps-dropdown"}
           (format "Step %s of %s" (:num current) (count +steps+))
           [:i.material-icons.right "arrow_drop_down"]]]]]])))
 
 ;; =============================================================================
 ;; Sections
 
-(defn- wrap-section
+(defn- wrap-section-content
   [& children]
   [:div.row
    [:div.col.s10.offset-s1
@@ -106,7 +105,7 @@
   [:form {:method "POST" :enctype encoding-type}
    (for [{:keys [title help-text content]} sections]
      [:div.section
-      (wrap-section
+      (wrap-section-content
        [:h5.section-title title]
        (when help-text
          [:div.help-text help-text])
@@ -131,13 +130,13 @@
    {:title title :help-text help-text :content content}))
 
 (defn step
-  [title sections current-steps & {:keys [js json errors submit-button encoding-type]
-                                   :or   {errors        []
-                                          submit-button default-submit-button
-                                          encoding-type "application/x-www-form-urlencoded"}}]
+  [req title sections current-steps & {:keys [js json errors submit-button encoding-type]
+                                       :or   {errors        []
+                                              submit-button default-submit-button
+                                              encoding-type "application/x-www-form-urlencoded"}}]
   (base
    :title "Apply"
-   :content [:main#member-application
+   :content [:main#central-card
              [:div.container
               [:div.row {:style "margin-bottom: 0;"}
                (for [error errors]
@@ -147,6 +146,6 @@
                [:div.col.s12.m12.l10.offset-l1.card-panel.grey-text.text-darken-2
                 (navbar title current-steps)
                 (form-content sections submit-button encoding-type)]]]]
-   :nav-links [nav/logout]
+   :req req
    :js js
    :json json))

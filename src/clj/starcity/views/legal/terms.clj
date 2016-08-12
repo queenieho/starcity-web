@@ -22,7 +22,8 @@
 ;; =============================================================================
 
 (defn terms
-  []
+  [req]
   (base
+   :req req
    :title "Terms of Service"
    :content content))

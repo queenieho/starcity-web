@@ -21,6 +21,7 @@
   [{:keys [params identity] :as req} & {:keys [errors] :or {errors []}}]
   (let [account-id  (:db/id identity)]
     (view/logistics
+     req
      (application/current-steps account-id)
      (data/pull-properties)
      (data/pull-application account-id)

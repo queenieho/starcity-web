@@ -22,7 +22,8 @@
 ;; =============================================================================
 
 (defn privacy
-  []
+  [req]
   (base
+   :req req
    :title "Privacy Policy"
    :content content))

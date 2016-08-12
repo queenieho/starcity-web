@@ -43,7 +43,8 @@
   [{:keys [identity] :as req} & {:keys [errors] :or []}]
   (let [current-steps (application/current-steps (:db/id identity))
         plaid-id      (:db/id (plaid/by-account-id (:db/id identity)))]
-    (view/submit current-steps
+    (view/submit req
+                 current-steps
                  (:account/email identity)
                  plaid-id
                  payment-amount
@@ -106,7 +107,9 @@
     [:p "Stay tuned and thanks for your patience!"]
     [:p "Best,"
      [:br]
-     "Team Starcity"]]))
+     [:br]
+     "Mo"
+     "Head of Community"]]))
 
 (defn- send-submission-email
   [account-id]

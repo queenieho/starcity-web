@@ -189,7 +189,7 @@
 
 (defn logistics
   "Show the logistics page."
-  [current-steps properties application licenses & {:keys [errors]}]
+  [req current-steps properties application licenses & {:keys [errors]}]
   (let [sections (map (partial apply common/make-step)
                       [["When is the ideal time frame for you to move in?"
                         (choose-availability (:member-application/desired-availability application))]
@@ -198,6 +198,6 @@
                        ["Which Starcity communities are you applying to?"
                         (choose-properties properties (:member-application/desired-properties application))]
                        ["Do you have a pet?" (choose-pet application)]])]
-    (common/step "Logistics" sections current-steps
+    (common/step req "Logistics" sections current-steps
                  :errors errors
                  :json [["licenseMapping" (property-license-mapping properties)]])))

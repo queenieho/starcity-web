@@ -6,7 +6,7 @@
 ;; =============================================================================
 
 (defn- login-content
-  [errors email next-url did-activate]
+  [errors email {:keys [next reset-password] :as params}]
   [:main#login.auth
    [:div.container
     [:div.row
@@ -18,12 +18,12 @@
          [:div.alert.alert-error
           [:p.alert-text error]])
 
-       (when did-activate
+       (when reset-password
          [:div.alert.alert-success
-          [:p.alert-text "Account activated! Please log in below to apply for a home."]])
+          [:p.alert-text "Password reset! Please check your inbox."]])
 
        [:form {:action "/login" :method "POST"}
-        [:input {:type "hidden" :name "next" :value next-url}]
+        [:input {:type "hidden" :name "next" :value next}]
 
         [:div.row
          [:div.input-field.col.s12
@@ -38,8 +38,7 @@
          [:div.input-field.col.s12
           [:input#password.validate {:type      "password"
                                      :required  true
-                                     :name      "password"
-                                     :autofocus did-activate}]
+                                     :name      "password"}]
           [:label {:for "password"} "Password"]]]
 
         [:div.row
@@ -48,10 +47,9 @@
            "Sign In"
            [:i.material-icons.right "send"]]]]
 
-        ;; NOTE: Remove until this is actually implemented
-        ;; [:div.row
-        ;;  [:div.col.s12.center-align
-        ;;   [:a {:href "#"} "Forgotten password?"]]]
+        [:div.row
+         [:div.col.s12.center-align
+          [:a {:href "/forgot-password"} "Forgotten password?"]]]
 
         [:div.divider]
 
@@ -69,7 +67,7 @@
 
 (defn login
   "The login view."
-  [errors email next-url did-activate]
+  [errors email params]
   (base
    :title "Log In"
-   :content (login-content errors email next-url did-activate)))
+   :content (login-content errors email params)))

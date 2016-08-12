@@ -9,6 +9,7 @@
             [starcity.api.plaid :as plaid]
             [starcity.api.admin.applications :as api-applications]
             [starcity.controllers
+             [account :as account]
              [application :as application]
              [auth :as auth]
              [communities :as communities]
@@ -51,8 +52,19 @@
   (GET "/about" [] about/show-about)
   (GET "/team" [] team/show-team)
 
+  (GET "/forgot-password" [] auth/show-forgot-password)
+  (POST "/forgot-password" [] auth/forgot-password!)
+
   (GET  "/login"        [] login/show-login)
   (POST "/login"        [] login/login!)
+
+  (context "/account" []
+    (restrict
+     (routes
+      (GET "/" [] account/show-account-settings)
+      (POST "/password" [] account/update-password!))
+     {:handler  authenticated-user
+      :on-error (redirect-on-invalid-authorization "/")}))
 
   (ANY  "/logout"       [] auth/logout!)
 
@@ -117,8 +129,7 @@
           (GET "/applications" [] api-applications/fetch-applications)
           (GET "/applications/:application-id" [] api-applications/fetch-application)
 
-          (GET "/income-file/:file-id" [] api-applications/fetch-income-file)
-          )
+          (GET "/income-file/:file-id" [] api-applications/fetch-income-file))
          {:handler  {:and [(user-isa :account.role/admin)]}
           :on-error (fn [_ _] {:status 403 :body "You are not authorized."})})))
      {:handler {:and [authenticated-user]}}))
