@@ -54,7 +54,7 @@
   [{:keys [identity] :as req}]
   (let [current-steps (application/current-steps (:db/id identity))
         data          (pull-data (:db/id identity))]
-    (ok (view/community-fitness current-steps data))))
+    (ok (view/community-fitness req current-steps data))))
 
 (defn save!
   [{:keys [identity params] :as req}]
@@ -65,7 +65,7 @@
         (application/update-community-fitness! application-id params)
         (response/redirect "/application/submit"))
       (let [current-steps (application/current-steps account-id)]
-        (malformed (view/community-fitness current-steps params
+        (malformed (view/community-fitness req current-steps params
                                            :errors (errors-from vresult)))))))
 
 (def restrictions

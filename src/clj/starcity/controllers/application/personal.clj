@@ -111,7 +111,7 @@
   [{:keys [identity] :as req}]
   (let [data          (-> identity :db/id personal-data)
         current-steps (application/current-steps (:db/id identity))]
-    (ok (view/personal current-steps data))))
+    (ok (view/personal req current-steps data))))
 
 (defn save!
   "Save new data to the rental application."
@@ -125,23 +125,7 @@
         (response/redirect "/application/community"))
       ;; didn't pass validation
       (let [current-steps (application/current-steps account-id)]
-        (malformed (view/personal current-steps params :errors (errors-from vresult)))))))
+        (malformed (view/personal req current-steps params :errors (errors-from vresult)))))))
 
 (def restrictions
   (common/restrictions can-view-personal?))
-
-(comment
-
-  (let [vresult (validate-params
-                 {:name {:first "Josh" :last "Lehman"},
-                  :dob "1998-07-11",
-                  :address
-                  {:lines ["adsfa dadf" ""],
-                   :city "adfa d",
-                   :state "HI",
-                   :postal-code "41561561"}})]
-    (if-let [ps (valid? vresult)]
-      (println "success")
-      (println "no success")))
-
-  )

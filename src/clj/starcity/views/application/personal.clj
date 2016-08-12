@@ -144,18 +144,19 @@
 
 (defn personal
   "Render the personal page."
-  [current-steps {:keys [name address phone-number dob]} & {:keys [errors]}]
+  [req current-steps {:keys [name address phone-number dob]} & {:keys [errors]}]
   (let [sections (map (partial apply common/make-step)
                       [["What is your full legal name?" (name-section name)]
                        ["What is the best phone number to reach you?" (phone-section phone-number)]
                        ["When were you born?" (birthday-section dob)]
                        ["Where do you currently live?" (address-section address)]])]
-    (common/step "Personal Information" sections current-steps
+    (common/step req "Personal Information" sections current-steps
                  :errors errors
                  :js   ["https://cdnjs.cloudflare.com/ajax/libs/field-kit/2.1.0/field-kit.min.js"])))
 
 (s/fdef personal
-        :args (s/cat :current-steps :starcity.models.application/steps
+        :args (s/cat :request map?
+                     :current-steps :starcity.models.application/steps
                      :form-data (s/keys :req-un [::name ::address]
                                         :opt-un [::dob ;; ::plaid-id
                                                  ::phone-number])

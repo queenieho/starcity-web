@@ -9,4 +9,4 @@
 
 (defn show-terms
   [req]
-  (ok (view/terms)))
+  (ok (view/terms req)))

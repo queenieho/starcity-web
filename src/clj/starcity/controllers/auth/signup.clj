@@ -21,7 +21,8 @@
 ;; =============================================================================
 
 (def redirect-after-signup "/signup/complete")
-(def redirect-after-activation "/application/logistics")
+(def redirect-after-activation
+  "/application/logistics")
 
 ;; =============================================================================
 ;; Helpers
@@ -135,7 +136,7 @@
       (show-invalid-activation req)
       (let [acct (account/by-email email)]
         (if (= hash (:account/activation-hash acct))
-          (let [session (assoc session :identity acct)]
+          (let [session (assoc session :identity (account/session-data acct))]
             (account/activate! acct)
             (-> (response/redirect redirect-after-activation)
                 (assoc :session session)))

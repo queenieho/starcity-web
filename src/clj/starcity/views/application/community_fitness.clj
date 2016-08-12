@@ -69,7 +69,7 @@
 ;; =============================================================================
 
 (defn community-fitness
-  [current-steps
+  [req current-steps
    {:keys [why-interested skills prior-community-housing dealbreakers free-time]}
    & {:keys [errors]}]
   (let [sections (map (partial apply common/make-step)

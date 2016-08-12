@@ -37,5 +37,5 @@
      (map founder founders)]]])
 
 (defn team
-  []
-  (base :content content :title "Team"))
+  [req]
+  (base :req req :content content :title "Team"))

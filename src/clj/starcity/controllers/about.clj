@@ -9,4 +9,4 @@
 
 (defn show-about
   [req]
-  (ok (view/about)))
+  (ok (view/about req)))

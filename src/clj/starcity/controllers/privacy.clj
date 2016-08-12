@@ -9,4 +9,4 @@
 
 (defn show-privacy
   [req]
-  (ok (view/privacy)))
+  (ok (view/privacy req)))

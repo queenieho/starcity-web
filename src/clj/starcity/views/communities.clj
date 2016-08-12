@@ -86,11 +86,13 @@
                                 :property/licenses])) ; TODO: Spec these
 
 (defn communities
-  [properties]
+  [req properties]
   (base
+   :req req
    :title "Communities"
    :content (content properties)))
 
 (s/fdef communities
-        :args (s/cat :properties (s/spec (s/+ ::property)))
+        :args (s/cat :request map?
+                     :properties (s/spec (s/+ ::property)))
         :ret  string?)

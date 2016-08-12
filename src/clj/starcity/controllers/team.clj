@@ -9,4 +9,4 @@
 
 (defn show-team
   [req]
-  (ok (view/team)))
+  (ok (view/team req)))

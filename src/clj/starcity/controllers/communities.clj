@@ -20,4 +20,4 @@
                                    :property/upcoming
                                    {:property/licenses [:property-license/base-price
                                                         {:property-license/license [:license/term]}]}])]
-    (ok (view/communities properties))))
+    (ok (view/communities req properties))))
