@@ -13,7 +13,7 @@
      [:div.col.l6.offset-l3.m8.offset-m2.s12
       [:div.card-panel
        [:h3.light "Forgotten Password"]
-       [:p.flow-text-small "Enter your email below and we'll send you a new password."]
+       [:p.flow-text-small "Enter your email below, and we'll send you a new password."]
 
        (for [error errors]
          [:div.alert.alert-error
