@@ -29,7 +29,7 @@
                 [:p [:b new-password]]
                 [:p
                  "After logging in "
-                 [:a {:href (format "%s/login?email=%s" (:hostname config) (url-encode email))} "here"]
+                 [:a {:href (format "%s/login?email=%s&next=/account" (:hostname config) (url-encode email))} "here"]
                  ", please change your password to something more memorable by clicking on "
                  [:b "My Account"]
                  " in the upper right-hand corner of the page."]
