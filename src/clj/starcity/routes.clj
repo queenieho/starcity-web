@@ -14,6 +14,7 @@
              [auth :as auth]
              [communities :as communities]
              [admin :as admin]
+             [dashboard :as dashboard]
              [faq :as faq]
              [landing :as landing]
              [register :as register]
@@ -114,9 +115,12 @@
      {:handler  {:and [authenticated-user (user-isa :account.role/admin)]}
       :on-error (redirect-on-invalid-authorization "/")}))
 
-  ;; (GET "/me" [] (-> dashboard/show-dashboard
-  ;;                   (restrict {:handler  {:and [authenticated-user (user-isa :account.role/tenant)]}
-  ;;                              :on-error (redirect-on-invalid-authorization "/application")})))
+  (context "/me" []
+    (restrict
+     (routes
+      (GET "/*" [] dashboard/show))
+     {:handler  {:and [authenticated-user (user-isa :account.role/tenant)]}
+      :on-error (redirect-on-invalid-authorization "/application")}))
 
   (context "/api/v1" []
     (restrict
@@ -132,6 +136,7 @@
           (GET "/income-file/:file-id" [] api-applications/fetch-income-file))
          {:handler  {:and [(user-isa :account.role/admin)]}
           :on-error (fn [_ _] {:status 403 :body "You are not authorized."})})))
+
      {:handler {:and [authenticated-user]}}))
 
   (context "/webhooks" []
