@@ -31,13 +31,24 @@
 (derive :account.role/admin :account.role/tenant)
 
 ;; =============================================================================
-;; Password Hashing
+;; Passwords
 
 (defn- hash-password [password]
   (hashers/derive password {:alg :bcrypt+blake2b-512 :iterations 12}))
 
 (defn- check-password [password hash]
   (hashers/check password hash))
+
+(defn generate-random-password
+  ([]
+   (generate-random-password 8))
+  ([n]
+   (let [chars    (concat
+                   (map char (range 48 58))
+                   (map char (range 65 91))
+                   (map char (range 97 123)))
+         password (take n (repeatedly #(rand-nth chars)))]
+     (reduce str password))))
 
 ;; =============================================================================
 ;; API
@@ -120,16 +131,32 @@
 ;; =============================================================================
 ;; Misc
 
+(defn session-data
+  [ent]
+  {:account/email      (:account/email ent)
+   :account/role       (:account/role ent)
+   :account/activated  (:account/activated ent)
+   :account/first-name (:account/first-name ent)
+   :account/last-name  (:account/last-name ent)
+   :db/id              (:db/id ent)})
+
 (defn authenticate
   "Return the user record found under `username' iff a user record exists for
   that username and the password matches."
   [email password]
-  (when-let [user (one (d/db conn) :account/email email)]
-    (when (check-password password (:account/password user))
-      {:account/email     (:account/email user)
-       :account/role      (:account/role user)
-       :account/activated (:account/activated user)
-       :db/id             (:db/id user)})))
+  (when-let [acct (one (d/db conn) :account/email email)]
+    (when (check-password password (:account/password acct))
+      (session-data acct))))
+
+(defn change-password!
+  [account-id new-password]
+  @(d/transact conn [{:db/id account-id :account/password (hash-password new-password)}]))
+
+(defn reset-password!
+  [account-id]
+  (let [new-password (generate-random-password)]
+    (change-password! account-id new-password)
+    new-password))
 
 (defn applicant?
   [account]
@@ -145,3 +172,8 @@
   (if (not-empty middle-name)
     (format "%s %s %s" first-name middle-name last-name)
     (format "%s %s" first-name last-name)))
+
+(defn is-password?
+  [account-id password]
+  (let [hash (:account/password (d/entity (d/db conn) account-id))]
+    (check-password password hash)))

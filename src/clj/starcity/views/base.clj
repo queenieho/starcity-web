@@ -2,8 +2,7 @@
   (:require [hiccup.core :refer [html]]
             [hiccup.page :refer [html5 include-css include-js]]
             [clojure.string :refer [lower-case]]
-            [cheshire.core :as json]
-            [starcity.views.base.nav :as nav]))
+            [cheshire.core :as json]))
 
 ;; =============================================================================
 ;; Helpers
@@ -98,21 +97,62 @@
    [:img#header-logo {:alt "Starcity Logo" :src "/assets/img/starcity-brand-icon-white.png"}]
    [:span "Starcity"]])
 
-(defn navbar
-  ([links]
-   (navbar links ""))
-  ([links nav-class]
-   [:header
-    [:nav {:class nav-class}
-     [:div.nav-wrapper.container
-      brand-logo
-      [:a.button-collapse
-       {:href "#" :data-activates "mobile-menu"}
-       [:i.material-icons "menu"]]
-      [:ul.right.hide-on-small-and-down
-       (for [link links] link)]
-      [:ul#mobile-menu.side-nav
-       (for [link links] link)]]]]))
+(defn- nav-link
+  ([text]
+   (nav-link text (format "/%s" (-> text lower-case))))
+  ([text uri]
+   [:li [:a {:href uri} text]]))
+
+(defn- nav-button
+  ([text]
+   (nav-button text (format "/%s" (-> text lower-case))))
+  ([text uri & classes]
+   [:li
+    [:a.waves-effect.waves-light.btn {:href uri :class (clojure.core/apply str classes)}
+     text]]))
+
+(def ^:private unauth-nav-items
+  [(nav-link "Our Communities" "/communities")
+   (nav-link "FAQ" "/faq")
+   (nav-button "Apply Now" "/application" "star-orange")])
+
+(def ^:private auth-nav-items
+  [(nav-link "Our Communities" "/communities")
+   (nav-link "FAQ" "/faq")
+   (nav-link "Application" "/application")
+   (nav-link "My Account" "/account")])
+
+(def ^:private hero-navbar
+  (let [links unauth-nav-items]
+    [:header
+     [:nav.transparent.black-text
+      [:div.nav-wrapper.container
+       brand-logo
+       [:a.button-collapse
+        {:href "#" :data-activates "mobile-menu"}
+        [:i.material-icons "menu"]]
+       [:ul.right.hide-on-small-and-down
+        (for [link links] link)]
+       [:ul#mobile-menu.side-nav
+        (for [link links] link)]]]]))
+
+(defn- navbar
+  [{:keys [identity] :as req}]
+  (let [links (if (nil? identity)
+                unauth-nav-items
+                auth-nav-items)]
+    [:header
+     (list
+      [:nav
+       [:div.nav-wrapper.container
+        brand-logo
+        [:a.button-collapse
+         {:href "#" :data-activates "mobile-menu"}
+         [:i.material-icons "menu"]]
+        [:ul.right.hide-on-small-and-down
+         (for [link links] link)]
+        [:ul#mobile-menu.hide-on-med-and-up.side-nav
+         (for [link links] link)]]])]))
 
 ;; =============================================================================
 ;; Hero
@@ -139,20 +179,16 @@
 ;; API
 ;; =============================================================================
 
-(def default-nav-links [nav/communities nav/faq nav/apply])
-
 (defn hero
   "Page template with a `hero`."
-  [& {:keys [nav-links content title description action background-image head-title]
-      :or   {nav-links  default-nav-links
-             head-title "Starcity"
-             content    [:div]}}]
+  [& {:keys [content title description action background-image head-title]
+      :or   {head-title "Starcity", content [:div]}}]
   (html5
    {:lang "en"}
    (head head-title)
    [:body
     [:div#hero-wrapper (hero-background-style background-image)
-     (navbar nav-links "transparent black-text")
+     hero-navbar
      (hero-content title description action)]
     content
     (footer)
@@ -162,15 +198,13 @@
 
 (defn base
   "Page template with a solid navbar."
-  [& {:keys [nav-links content js json title]
-      :or   {nav-links default-nav-links
-             js        []
-             json      []}}]
+  [& {:keys [content js json title req]
+      :or   {js [], json []}}]
   (html5
    {:lang "en"}
    (head (if title (str "Starcity &mdash; " title) "Starcity"))
    [:body
-    (navbar nav-links)
+    (navbar req)
     content
     (footer)
     (apply include-js (concat base-js js))
@@ -179,6 +213,5 @@
        (format "var %s = %s" name (json/encode obj))])
     (include-js
      "/assets/bower/jquery-validation/dist/jquery.validate.js"
-     "/js/validation-defaults.js" ; TODO: Bundle with /js/main.js
      "/js/main.js")
     google-analytics]))

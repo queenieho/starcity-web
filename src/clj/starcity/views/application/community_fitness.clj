@@ -69,7 +69,7 @@
 ;; =============================================================================
 
 (defn community-fitness
-  [current-steps
+  [req current-steps
    {:keys [why-interested skills prior-community-housing dealbreakers free-time]}
    & {:keys [errors]}]
   (let [sections (map (partial apply common/make-step)
@@ -83,4 +83,4 @@
                         (free-time-section free-time)]
                        ["Do you have any dealbreakers?"
                         (dealbreakers-section dealbreakers)]])]
-    (common/step "Community Fitness" sections current-steps :errors errors)))
+    (common/step req "Community Fitness" sections current-steps :errors errors)))

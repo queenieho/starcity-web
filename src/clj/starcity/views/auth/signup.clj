@@ -84,7 +84,7 @@
 
 (defn signup
   "The signup view."
-  [email first-name last-name errors ]
+  [email first-name last-name errors]
   (base
    :title "Sign Up"
    :content (signup-content email first-name last-name errors )))

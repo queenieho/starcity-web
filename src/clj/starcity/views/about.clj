@@ -17,5 +17,5 @@
     ]])
 
 (defn about
-  []
-  (base :content content :title "About Us"))
+  [req]
+  (base :req req :content content :title "About Us"))

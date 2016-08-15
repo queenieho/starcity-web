@@ -153,7 +153,7 @@
        [:div.circle]]]]]])
 
 (defn submit
-  [current-steps email plaid-id amount errors]
+  [req current-steps email plaid-id amount errors]
   (let [sections (map (partial apply common/make-step)
                       [[[:span "Have you read our "
                          [:a {:href "/terms" :target "_blank"} "Terms of Service"]
@@ -170,7 +170,7 @@
                         (income-section plaid-id)]
                        [(format "Finally, please pay the $%s application fee." (/ amount 100))
                         payment-section]])]
-    (common/step "Submit" sections current-steps
+    (common/step req "Submit" sections current-steps
                  :encoding-type "multipart/form-data"
                  :submit-button submit-button
                  :errors errors

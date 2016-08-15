@@ -4,11 +4,16 @@ $(document).ready(function() {
     '/application/logistics': logistics,
     '/application/personal': personal,
     '/application/community': community,
-    '/application/submit': submit
+    '/application/submit': submit,
+    '/account': function() {
+      $("form").validate();
+    }
   };
 
   // activate side menu
   $(".button-collapse").sideNav();
+
+  setupFormValidation();
 
   var jsForURI = paths[window.location.pathname];
   if (jsForURI) {
@@ -243,4 +248,42 @@ function installMaterialSelects() {
 
   // hack to allow jquery-validation to work on materialize selects
   $("select[required]").css({display: "inline", height: 0, padding: 0, width: 0, border: "none"});
+}
+
+function setupFormValidation() {
+  $.validator.setDefaults({
+    highlight: function(element) {
+      $(element).closest('.validation-group').addClass('has-error');
+      $(element).closest('.input-field').addClass('has-error');
+      if ($(element).is("select")) {
+        $(element)
+          .closest(".select-wrapper")
+          .find("input.select-dropdown")
+          .addClass("invalid");
+      } else {
+        $(element).addClass('invalid');
+      }
+    },
+    unhighlight: function(element) {
+      var inputGroup = $(element).closest('.validation-group');
+      inputGroup.removeClass('has-error');
+      $(element).closest('.input-field').removeClass('has-error');
+      $(element).removeClass('invalid');
+      // NOTE: Need this specifically for selects. Shouldn't be any harm in
+      // having this here...
+      inputGroup.find('.error-block').css({display: 'none'});
+    },
+    errorElement: 'span',
+    errorClass: 'error-block',
+    errorPlacement: function(error, element) {
+      if(element.parent('.validation-group').length) {
+        error.insertAfter(element.parent());
+      } else if ($(element).closest('.validation-group').length > 0) {
+        $(element).closest('.validation-group').append(error);
+      } else {
+        error.insertAfter(element);
+      }
+
+    }
+  });
 }

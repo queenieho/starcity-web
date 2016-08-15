@@ -18,5 +18,5 @@
   (let [sections (application/current-steps (:db/id identity))
         locked   (application/locked? (:db/id identity))]
     (if locked
-      (ok (view/locked (:completed params)))
+      (ok (view/locked req (:completed params)))
       (response/redirect "/application/logistics"))))
