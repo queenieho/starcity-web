@@ -29,6 +29,7 @@
 
 (derive :account.role/admin :account.role/applicant)
 (derive :account.role/admin :account.role/tenant)
+(derive :account.role/admin :account.role/pending)
 
 ;; =============================================================================
 ;; Passwords

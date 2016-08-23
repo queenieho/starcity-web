@@ -1,7 +1,8 @@
-module Main exposing (..)
+module Dashboard exposing (..)
 
 -- import Html.App as App exposing (map)
 import Html exposing (..)
+import Html.App as App
 import Html.Attributes exposing (style, class, id, src, alt)
 import Html.Events exposing (onClick)
 
@@ -12,10 +13,11 @@ import RouteUrl.Builder as Builder exposing (Builder)
 import Material
 import Material.Color as Color
 import Material.Options as Options -- exposing (css, when)
+import Material.Helpers exposing (map1st, map2nd)
 import Material.Typography as Typography
 import Material.Layout as Layout
--- import Material.Helpers exposing (lift)
 
+import Dashboard.Onboarding as Onboarding
 
 -- MAIN
 
@@ -35,10 +37,12 @@ main =
 
 type View
     = Home
+    | Onboarding
 
 
 type alias Model =
     { currentView : View
+    , gs : Onboarding.Model
     , mdl : Material.Model -- boilerplate model for Mdl components
     }
 
@@ -48,11 +52,15 @@ init =
     let
         materialModel =
             Layout.setTabsWidth 400 Material.model
+
+        (gsModel, gsFx) =
+            Onboarding.init
     in
-        ( Model Home materialModel
+        ( Model Home gsModel materialModel
         , Cmd.batch
             [ Cmd.none
             , Layout.sub0 Mdl
+            , Cmd.map OnboardingMsg gsFx
             ]
         )
 
@@ -61,6 +69,7 @@ init =
 
 type Msg
     = ShowView View
+    | OnboardingMsg Onboarding.Msg
     | Mdl (Material.Msg Msg)
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -71,6 +80,10 @@ update msg model =
             , Cmd.none
             )
 
+        OnboardingMsg msg' ->
+            Onboarding.update msg' model.gs
+                |> map1st (\gs' -> { model | gs = gs' })
+                |> map2nd (Cmd.map OnboardingMsg)
 
         -- Boilerplate: Mdl action handler
         Mdl msg' ->
@@ -126,7 +139,7 @@ view model =
         view =
             case model.currentView of
                 Home ->
-                    Html.div [] [ text "Hello, World!" ]
+                    App.map OnboardingMsg (Onboarding.view model.gs)
 
     in
     Layout.render Mdl model.mdl

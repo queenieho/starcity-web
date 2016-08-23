@@ -1,6 +1,10 @@
 @charset "UTF-8";
 
+// Import MDL
+@import "../../material-design-lite/src/material-design-lite.scss";
+
 // components
 @import "variables";
 @import "components/josefin-sans";
 @import "components/header";
+@import "components/onboarding";
