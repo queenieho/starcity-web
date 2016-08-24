@@ -105,7 +105,7 @@ function personal() {
     var today = new Date();
 
     $(".datepicker").pickadate({
-      selectYears: 40,
+      selectYears: 70,
       selectMonths: true,
       max: new Date(today.getFullYear() - 18, today.getMonth(), today.getDate()),
       today: '',
