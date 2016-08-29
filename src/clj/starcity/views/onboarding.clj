@@ -21,4 +21,4 @@
     (include-js "https://cdn.plaid.com/link/stable/link-initialize.js"
                 "https://js.stripe.com/v2/"
                 "/js/elm/onboarding.js"
-                "/js/elm/onboarding_bootstrap.js")]))
+                "/js/elm/onboarding/onboarding_bootstrap.js")]))

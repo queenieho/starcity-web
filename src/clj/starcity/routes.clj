@@ -6,9 +6,8 @@
              [route :as route]]
             [ring.util.response :as response]
             [starcity.auth :refer [authenticated-user user-isa]]
+            [starcity.api :as api]
             [starcity.api.plaid :as plaid]
-            [starcity.api.admin.applications :as api-applications]
-            [starcity.api.dashboard.routes :as dashboard-routes]
             [starcity.controllers
              [account :as account]
              [application :as application]
@@ -136,23 +135,7 @@
              :on-error redirect-by-role}))
 
   (context "/api/v1" []
-           (restrict
-            (routes
-             (POST "/plaid/auth" [] plaid/authenticate!)
-
-             (context "/dashboard" [] dashboard-routes/routes)
-
-             (context "/admin" []
-                      (restrict
-                       (routes
-                        (GET "/applications" [] api-applications/fetch-applications)
-                        (GET "/applications/:application-id" [] api-applications/fetch-application)
-
-                        (GET "/income-file/:file-id" [] api-applications/fetch-income-file))
-                       {:handler  {:and [(user-isa :account.role/admin)]}
-                        :on-error (fn [_ _] {:status 403 :body "You are not authorized."})})))
-
-            {:handler {:and [authenticated-user]}}))
+           (restrict api/routes {:handler authenticated-user}))
 
   (context "/webhooks" []
            (POST "/plaid" [] plaid/hook))

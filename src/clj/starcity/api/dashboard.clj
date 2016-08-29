@@ -1,4 +1,4 @@
-(ns starcity.api.dashboard.routes
+(ns starcity.api.dashboard
   (:require [compojure.core :refer [context defroutes GET POST]]
             [starcity.api.common :refer :all]))
 

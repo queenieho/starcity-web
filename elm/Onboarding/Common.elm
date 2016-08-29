@@ -9,6 +9,7 @@ import Material.Elevation as Elevation
 import Material.Grid exposing (grid, cell, size, offset, Device(..))
 import Material.Options as Options exposing (cs)
 
+
 container : String -> List (Html m) -> Html m
 container title content =
     Options.div
@@ -28,6 +29,25 @@ container title content =
                     ]
                     [ h2 [] [ text title ] ]
                 , div [ class "content-card__content" ] content
+                ]
+
+            ]
+        ]
+
+container' : String -> List (Html m) -> Html m
+container' title content =
+    Options.div
+        Page.boxed
+        [ grid []
+            [ cell
+                [ size Desktop 8
+                , size Tablet 8
+                , size Phone 4
+                ]
+                [ Options.div
+                    []
+                    [ h1 [] [ text title ] ]
+                , div [] content
                 ]
 
             ]
