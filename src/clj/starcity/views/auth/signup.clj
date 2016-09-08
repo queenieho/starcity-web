@@ -19,7 +19,8 @@
         "To get started, please create an account so we can save your application."]
 
        (for [error errors]
-         [:div.alert.alert-error [:p.alert-text error]])
+         [:div.alert.alert-error
+          [:div.alert-text error]])
 
        [:form {:action "/signup" :method "POST"}
 

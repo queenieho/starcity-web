@@ -3,7 +3,7 @@
             [starcity.models.account :refer [full-name]]
             [starcity.models.util :refer :all]
             [starcity.datomic :refer [conn]]
-            [starcity.util :refer :all]
+            [starcity.util :refer [str->int]]
             [clojure.string :as str]
             [datomic.api :as d]))
 

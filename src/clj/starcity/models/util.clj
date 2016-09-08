@@ -1,5 +1,8 @@
 (ns starcity.models.util
-  (:require [datomic.api :as d]))
+  (:require [datomic.api :as d]
+            [plumbing.core :refer [assoc-when]]
+            [starcity.spec]
+            [clojure.spec :as s]))
 
 ;; =============================================================================
 ;; API
@@ -112,3 +115,13 @@
                 (assoc acc (keyword ns (name k)) v)))
             {}
             m)))
+
+(defn ent->map
+  [entity]
+  (-> (into {} (seq entity))
+      (assoc-when :db/id (:db/id entity))))
+
+(s/fdef ent->map
+        :args (s/cat :entity (s/or :entity :starcity.spec/entity
+                                   :nothing nil?))
+        :ret  map?)

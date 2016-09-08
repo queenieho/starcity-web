@@ -5,7 +5,8 @@
              [income-files-8-3-16 :refer [add-income-files-schema]]
              [seed-test-applications-8-4-16 :refer [seed-test-applications]]
              [add-account-role-pending-8-18-16 :refer [add-account-role-pending]]
-             [add-security-deposit-schema-8-18-16 :refer [add-security-deposit-schema]]]
+             [add-security-deposit-schema-8-18-16 :refer [add-security-deposit-schema]]
+             [add-stripe-customer-schema-8-30-16 :refer [add-stripe-customer-schema]]]
             [starcity.datomic.migrations.utils :refer [only-when]]
             [starcity.environment]
             [mount.core :refer [defstate]]))
@@ -17,4 +18,5 @@
    add-income-files-schema
    (only-when #{:development} seed-test-applications)
    add-account-role-pending
-   add-security-deposit-schema))
+   add-security-deposit-schema
+   add-stripe-customer-schema))

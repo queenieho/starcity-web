@@ -1,10 +1,127 @@
+var ach = {};
+
+ach.verify = function() {
+  var $form = $("form");
+
+  // Set up Stripe w/ api key
+  Stripe.setPublishableKey(stripe.key);
+
+  // Add routing number validation rule to jquery-validation
+  $.validator.addMethod("routingNumber", function(value, element) {
+    return Stripe.bankAccount.validateRoutingNumber(value, $("#country").val());;
+  }, "That is not a valid routing number.");
+
+  // Add account number validation rule to jQuery-validation
+  $.validator.addMethod("accountNumber", function(value, element) {
+    return Stripe.bankAccount.validateAccountNumber(value, $("#country").val());;
+  }, "That is not a valid account number.");
+
+  // Install above validation rules on form elements
+  $form.validate({
+    rules: {
+      "routing-number" : {
+        routingNumber: true,
+        required: true
+      },
+      "account-number" : {
+        accountNumber: true,
+        required: true
+      }
+    }
+  });
+
+  // intercept form submission after validation, initiate stripe request
+  $form.on('submit', function(e) {
+    // only halt submission if there's no stripe token
+    if (!$("#stripe-token").val()) {
+      e.preventDefault();
+
+      // disable submit button
+      $form.find('button').prop('disabled', true);
+
+      // initiate stripe request
+      Stripe.bankAccount.createToken({
+        country: $('#country').val(),
+        currency: $('#currency').val(),
+        routing_number: $('#routing-number').val(),
+        account_number: $('#account-number').val(),
+        account_holder_name: $('#account-holder-name').val(),
+        account_holder_type: $('#account-holder-type').val()
+      }, stripeResponseHandler);
+    }
+  });
+
+  function stripeResponseHandler(status, response) {
+    if (response.error) {
+      alert(response.error.message); // show error message
+      $form.find('button').prop('disabled', false); // re-enable submit button
+    } else {
+      var token = response.id;
+
+      // hide any visible error messages
+      $form.find('.alert-error').fadeOut();
+
+      // insert token into form and submit to server
+      $("#stripe-token")
+        .val(token)
+        .closest("form")
+        .submit();
+    }
+  }
+
+  // The microdeposits form uses Materialize selects that need to be initialized
+  installMaterialSelects();
+
+  function alert(message) {
+    $form.find('.alert-error')
+      .fadeIn()
+      .find('.alert-text')
+      .text(message);
+  }
+};
+
+
+
+ach.pay = function() {
+  // The elements we'll be interacting with.
+  var $payBtn = $("#pay-btn");
+  var $modal = $("#confirmation-modal");
+  var $submitBtn = $("#submit");
+  var $form = $("form");
+
+  // When an payment choice is made, enable the pay button.
+  $("input:radio").on("change", function() {
+    $payBtn.prop("disabled", false).removeClass("disabled");
+  });
+
+  // When the pay button is pressed, show the confirmation modal
+  $payBtn.click(function() {
+    $modal.openModal();
+  });
+
+  // When the submit button is pressed, submit the form!
+  $submitBtn.click(function() {
+    $form.submit();
+  });
+};
+
+
+
 $(document).ready(function() {
   // ad hoc module system
+
+  function formValidationOnly() {
+    $("form").validate();
+  }
+
   var paths = {
     '/application/logistics': logistics,
     '/application/personal': personal,
     '/application/community': community,
     '/application/submit': submit,
+    '/onboarding/security-deposit/payment-method': formValidationOnly,
+    '/onboarding/security-deposit/payment-method/ach/verify': ach.verify,
+    '/onboarding/security-deposit/payment-method/ach/pay': ach.pay,
     '/account': function() {
       $("form").validate();
     }
@@ -192,10 +309,7 @@ function submit() {
     clientName: 'Starcity',
     product: 'auth',
     key: plaid.key,
-    onSuccess: sendPublicToken,
-    onExit: function() {
-      console.log("Exited!");
-    }
+    onSuccess: sendPublicToken
   });
 
   // Present Plaid Link when button is pushed
@@ -215,11 +329,11 @@ function submit() {
 
   function sendPublicToken(public_token, metadata) {
     toggleLinkButton();         // disable link button while sending to server
-    $.post("/api/v1/plaid/auth", {public_token: public_token})
+    $.post("/api/v1/plaid/verify/income", {public_token: public_token})
       .done(function(data) {
         linkButton
           .addClass("disabled")
-          .text("Verified") // TODO:
+          .text("Verified")
           .prepend("<i class='material-icons right'>done</i>");
         linkButtonEnabled = false;
       })
@@ -238,9 +352,9 @@ function submit() {
     linkButton.toggleClass('disabled');
     linkButtonEnabled = !linkButtonEnabled;
   }
-
-
 }
+
+
 
 function installMaterialSelects() {
   // install material design select

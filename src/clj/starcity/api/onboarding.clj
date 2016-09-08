@@ -2,6 +2,11 @@
   (:require [compojure.core :refer [context defroutes GET POST]]
             [starcity.api.common :refer :all]))
 
+;; (defn- verify-microdeposits
+;;   [{:keys [params]}]
+;;   )
+
+;; /api/v1/onboarding/...
 (defroutes routes
-  (GET "/step" [] (fn [req] (ok {:step      "begin"
-                                :community "Gilbert Street"}))))
+  ;; (POST "/security-deposit/verify/microdeposits" [] verify-microdeposits)
+  )

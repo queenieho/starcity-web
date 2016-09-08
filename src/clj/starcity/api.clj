@@ -14,7 +14,7 @@
    :on-error (fn [_ _] {:status 403 :body "You are not authorized."})})
 
 (defroutes routes
-  (POST "/plaid/auth" [] plaid/authenticate!)
+  (POST "/plaid/verify/income" [] plaid/verify-income)
 
   (context "/dashboard" []
            (restrict dashboard/routes (restrictions :account.role/tenant)))

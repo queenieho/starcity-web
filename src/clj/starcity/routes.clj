@@ -7,7 +7,9 @@
             [ring.util.response :as response]
             [starcity.auth :refer [authenticated-user user-isa]]
             [starcity.api :as api]
-            [starcity.api.plaid :as plaid]
+            [starcity.webhooks
+             [plaid :as plaid]
+             [stripe :as stripe]]
             [starcity.controllers
              [account :as account]
              [application :as application]
@@ -20,10 +22,10 @@
              [privacy :as privacy]
              [team :as team]
              [about :as about]
+             [onboarding :as onboarding]
              ;; ELM APPS
              [admin :as admin]
-             [dashboard :as dashboard]
-             [onboarding :as onboarding]]
+             [dashboard :as dashboard]]
             [starcity.controllers.application
              [personal :as personal]
              [logistics :as logistics]
@@ -63,6 +65,8 @@
   (GET  "/login"           [] login/show-login)
   (POST "/login"           [] login/login!)
 
+  (ANY  "/logout"       [] auth/logout!)
+
   (context "/account" []
            (restrict
             (routes
@@ -70,8 +74,6 @@
              (POST "/password" [] account/update-password!))
             {:handler  authenticated-user
              :on-error redirect-by-role}))
-
-  (ANY  "/logout"       [] auth/logout!)
 
   (context "/signup" []
            (GET   "/"         [] signup/show-signup)
@@ -129,8 +131,7 @@
 
   (context "/onboarding" []
            (restrict
-            (routes
-             (GET "/*" [] onboarding/show))
+            onboarding/routes
             {:handler  {:and [authenticated-user (user-isa :account.role/pending)]}
              :on-error redirect-by-role}))
 
@@ -138,7 +139,8 @@
            (restrict api/routes {:handler authenticated-user}))
 
   (context "/webhooks" []
-           (POST "/plaid" [] plaid/hook))
+           (POST "/plaid" [] plaid/hook)
+           (POST "/stripe" [] stripe/hook))
 
   ;; catch-all
   (route/not-found "<p>Not Found</p>"))

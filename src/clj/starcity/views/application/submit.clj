@@ -1,21 +1,7 @@
 (ns starcity.views.application.submit
   (:require [starcity.views.application.common :as common]
+            [starcity.views.components :refer [checkbox validation-group]]
             [starcity.config :refer [config]]))
-
-;; =============================================================================
-;; Helpers
-;; =============================================================================
-
-(defn checkbox
-  [& {:keys [label] :as attrs}]
-  [:p
-   [:input (-> (dissoc attrs :label)
-               (assoc :type "checkbox"))]
-   [:label {:for (:id attrs)} label]])
-
-(defn validation-group
-  [& children]
-  [:div.validation-group children])
 
 ;; =============================================================================
 ;; Sections
