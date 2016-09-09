@@ -111,7 +111,6 @@
 
 (s/def ::acount-id integer?)
 
-
 (s/def ::payment-method
   #{:security-deposit.payment-method/ach
     :security-deposit.payment-method/check})
@@ -222,10 +221,12 @@
 (defn bank-account-verified?
   "Is the stripe customer's bank account verified?"
   [progress]
-  (or (:stripe-customer/bank-account-token progress) ; Only present in DB after
+  (let [[_ secret-key] (stripe/keys-for-approval (:account-id progress))]
+    (or (:stripe-customer/bank-account-token progress) ; Only present in DB after
                                         ; verification
-      (and (stripe-customer-id progress)
-           (stripe/bank-account-verified? (stripe/fetch-customer (stripe-customer-id progress))))))
+        (and (stripe-customer-id progress)
+             (stripe/bank-account-verified?
+              (stripe/fetch-customer secret-key (stripe-customer-id progress)))))))
 
 (defn payment-received?
   "Has payment already been received?"

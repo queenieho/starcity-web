@@ -37,13 +37,13 @@
 (defn- stripe-request
   ([req-config params]
    (stripe-request req-config params nil))
-  ([{:keys [endpoint method]} params cb]
-   (let [{secret-key :secret-key} (:stripe config)
-         req-map                  {:url        (format "%s/%s" base-url endpoint)
-                                   :method     method
-                                   :headers    {"Accept" "application/json"}
-                                   :basic-auth [secret-key ""]}
-         [k params]               (params-for method params)]
+  ([{:keys [endpoint method] :as conf} params cb]
+   (let [secret-key (or (:secret-key conf) (:secret-key (:stripe config)))
+         req-map    {:url        (format "%s/%s" base-url endpoint)
+                     :method     method
+                     :headers    {"Accept" "application/json"}
+                     :basic-auth [secret-key ""]}
+         [k params] (params-for method params)]
      (if cb
        (http/request (assoc req-map k params)
                      (comp cb inject-log-error parse-json-body))
@@ -66,50 +66,49 @@
 
 (defn fetch-customer
   "Retrieve a customer from the Stripe API."
-  [customer-id & {:keys [cb]}]
-  (stripe-request {:endpoint (format "customers/%s" customer-id)
-                   :method   :get}
-                  {}
-                  cb))
-
-(defn fetch-source
-  [customer-id source-id & {:keys [cb]}]
-  (stripe-request {:endpoint (format "customers/%s/sources/%s" customer-id source-id)
-                   :method   :get}
+  [secret-key customer-id & {:keys [cb]}]
+  (stripe-request {:endpoint   (format "customers/%s" customer-id)
+                   :method     :get
+                   :secret-key secret-key}
                   {}
                   cb))
 
 (defn create-customer
   "Create a new Stripe customer."
-  [email source & {:keys [cb description]}]
-  (stripe-request {:endpoint "customers"
-                   :method   :post}
+  [secret-key email source & {:keys [cb description]}]
+  (stripe-request {:endpoint   "customers"
+                   :method     :post
+                   :secret-key secret-key}
                   (assoc-when
-                   {:email       email
-                    :source      source}
+                   {:email  email
+                    :source source}
                    :description description)
                   cb))
 
 (defn verify-source
   "Verify a bank account with microdeposits."
-  [customer-id bank-account-token amount-1 amount-2 & {:keys [cb]}]
-  (stripe-request {:endpoint (format "customers/%s/sources/%s/verify"
-                                     customer-id bank-account-token)
-                   :method :post}
+  [secret-key customer-id bank-account-token amount-1 amount-2 & {:keys [cb]}]
+  (stripe-request {:endpoint   (format "customers/%s/sources/%s/verify"
+                                       customer-id bank-account-token)
+                   :method     :post
+                   :secret-key secret-key}
                   {:amounts [amount-1 amount-2]}
                   cb))
 
 (s/fdef verify-source
-        :args (s/cat :customer-id string?
+        :args (s/cat :secret-key string?
+                     :customer-id string?
                      :bank-account-token string?
                      :amount-1 integer?
                      :amount-2 integer?
                      :opts (s/keys* :opt-un [::cb])))
 
 (defn charge
-  [amount source email & {:keys [cb description customer-id]}]
-  (stripe-request {:endpoint "charges" :method :post}
-                  (-> {:amount   amount
+  [amount source email & {:keys [cb description customer-id secret-key]}]
+  (stripe-request {:endpoint   "charges"
+                   :method     :post
+                   :secret-key secret-key}
+                  (-> {:amount      amount
                        :source      source
                        :currency    "usd"
                        :description description}

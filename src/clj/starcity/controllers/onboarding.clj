@@ -137,8 +137,9 @@
 (defn- verify-bank-account
   [{:keys [params identity] :as req}]
   (letfn [(respond-error []
-            (respond-with-errors req default-error-message
-              view/enter-bank-information))]
+            (let [[public-key _] (stripe/keys-for-approval (:db/id identity))]
+              (respond-with-errors req default-error-message
+               (view/enter-bank-information public-key))))]
     (if-let [token (:stripe-token params)]
       (try
         (let [customer (stripe/create-customer (:db/id identity) token)]
@@ -201,8 +202,9 @@
 (defroutes ach-routes
   (GET "/verify" []
        (with-gate should-enter-bank-information?
-         (fn [req _]
-           (view/enter-bank-information req))))
+         (fn [{:keys [identity] :as req} _]
+           (let [[public-key _] (stripe/keys-for-approval (:db/id identity))]
+             (view/enter-bank-information req public-key)))))
 
   ;; TODO: Gate POST endpoints
   (POST "/verify" [] verify-bank-account)

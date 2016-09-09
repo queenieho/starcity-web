@@ -1,7 +1,6 @@
 (ns starcity.views.onboarding
   (:require [starcity.views.components :refer :all]
-            [starcity.views.common :as common :refer [defpage]]
-            [starcity.config :refer [config]]))
+            [starcity.views.common :as common :refer [defpage]]))
 
 ;; =============================================================================
 ;; Internal
@@ -15,7 +14,8 @@
     [:main#central-card
      [:div.container
       [:div.row {:style "margin-bottom: 0;"}
-       (common/errors req)]
+       [:div.col.s12.m12.l10.offset-l1
+        (common/errors req)]]
       [:div.row.section
        [:div.col.s12.m12.l10.offset-l1.card-panel.grey-text.text-darken-2
         title-bar
@@ -93,7 +93,7 @@
 ;; =====================================
 ;; Verify Bank Account
 
-(defpage enter-bank-information [req]
+(defpage enter-bank-information [req stripe-public-key]
   (title "Verify Bank Account")
   (body
    (container
@@ -154,7 +154,7 @@
                                :required true
                                :options [["USD" "US Dollar"]])]]]
               :back-url "/onboarding/security-deposit/payment-method")]))
-  (json ["stripe" {:key (get-in config [:stripe :public-key])}])
+  (json ["stripe" {:key stripe-public-key}])
   (js "https://js.stripe.com/v2/"))
 
 (defpage verify-microdeposits [req]

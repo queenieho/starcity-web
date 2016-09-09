@@ -6,7 +6,11 @@
              [seed-test-applications-8-4-16 :refer [seed-test-applications]]
              [add-account-role-pending-8-18-16 :refer [add-account-role-pending]]
              [add-security-deposit-schema-8-18-16 :refer [add-security-deposit-schema]]
-             [add-stripe-customer-schema-8-30-16 :refer [add-stripe-customer-schema]]]
+             [add-stripe-customer-schema-8-30-16 :refer [add-stripe-customer-schema]]
+             [onboarding-updates-9-8-16 :refer [add-stripe-credentials-to-property-schema
+                                                seed-stripe-test-credentials]]
+             [add-approval-schema-9-8-16 :refer [add-approval-schema
+                                                 seed-test-approval]]]
             [starcity.datomic.migrations.utils :refer [only-when]]
             [starcity.environment]
             [mount.core :refer [defstate]]))
@@ -19,4 +23,8 @@
    (only-when #{:development} seed-test-applications)
    add-account-role-pending
    add-security-deposit-schema
-   add-stripe-customer-schema))
+   add-stripe-customer-schema
+   add-stripe-credentials-to-property-schema
+   (only-when #{:development :staging} seed-stripe-test-credentials)
+   add-approval-schema
+   (only-when #{:development :staging} seed-test-approval)))
