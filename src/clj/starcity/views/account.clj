@@ -74,10 +74,10 @@
       [:div.row {:style "margin-bottom: 0;"}
        (for [error errors]
          [:div.alert.alert-error.col.s12.l10.offset-l1
-          [:p.alert-text error]])
+          [:div.alert-text error]])
        (for [msg messages]
          [:div.alert.alert-success.col.s12.l10.offset-l1
-          [:p.alert-text msg]])]
+          [:div.alert-text msg]])]
       [:div.row.section
        [:div.col.s12.m12.l10.offset-l1.card-panel.grey-text.text-darken-2
         navbar

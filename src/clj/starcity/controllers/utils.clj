@@ -11,10 +11,21 @@
 
 (def ok (comp html-response response))
 
+(defn- inject-errors
+  [req errors]
+  `(let [errors# (if (sequential? ~errors) ~errors [~errors])]
+     (assoc ~req :starcity/errors errors#)))
+
 (defn malformed [body]
   (-> (response body)
       (html-response)
       (assoc :status 400)))
+
+(defmacro respond-with-errors
+  [req errors view-expr]
+  `(-> ~(inject-errors req errors)
+       ~view-expr
+       (malformed)))
 
 ;; =============================================================================
 ;; Validation

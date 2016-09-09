@@ -16,11 +16,11 @@
 
        (for [error errors]
          [:div.alert.alert-error
-          [:p.alert-text error]])
+          [:div.alert-text error]])
 
        (when reset-password
          [:div.alert.alert-success
-          [:p.alert-text "Password reset! Please check your inbox."]])
+          [:div.alert-text "Password reset! Please check your inbox."]])
 
        [:form {:action "/login" :method "POST"}
         [:input {:type "hidden" :name "next" :value next}]

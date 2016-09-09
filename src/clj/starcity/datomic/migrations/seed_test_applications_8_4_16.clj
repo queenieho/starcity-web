@@ -74,6 +74,7 @@
                                                            :address/city        "San Francisco"
                                                            :address/state       "CA"
                                                            :address/postal-code "94103"}
+                 :member-application/approved             true
                  :member-application/desired-properties   [[:property/internal-name "52gilbert"]]
                  :member-application/desired-license      (:db/id (one (d/db conn) :license/term 12))
                  :member-application/locked               true

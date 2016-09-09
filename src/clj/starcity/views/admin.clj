@@ -11,7 +11,7 @@
     [:link {:href "https://fonts.googleapis.com/icon?family=Material+Icons" :rel "stylesheet"}]
     [:link {:type  "text/css"
             :rel   "stylesheet"
-            :href  "https://code.getmdl.io/1.1.3/material.indigo-pink.min.css"
+            :href  "/assets/css/mdl.css"
             :media "screen,projection"}]
 
     ;; Let browser know whebsite is optimized for mobile

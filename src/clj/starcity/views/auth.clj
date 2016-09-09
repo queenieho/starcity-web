@@ -17,7 +17,7 @@
 
        (for [error errors]
          [:div.alert.alert-error
-          [:p.alert-text error]])
+          [:div.alert-text error]])
 
        [:form {:action "/forgot-password" :method "POST"}
         [:div.row

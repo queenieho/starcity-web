@@ -165,7 +165,6 @@
     (let [files (if (map? file-or-files) [file-or-files] file-or-files)]
       (account/save-income-files! account-id files))))
 
-
 ;; =============================================================================
 ;; Internal Notification
 
