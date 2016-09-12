@@ -27,7 +27,7 @@
                  [org.apache.httpcomponents/httpclient "4.5.2"]
                  [clj-time "0.12.0"]
                  ;; db
-                 [com.datomic/datomic-pro "0.9.5372"]
+                 [com.datomic/datomic-pro "0.9.5372" :exclusions [com.google.guava/guava]]
                  [org.postgresql/postgresql "9.4.1210"]
                  ;; util
                  [prismatic/plumbing "0.5.3"]
