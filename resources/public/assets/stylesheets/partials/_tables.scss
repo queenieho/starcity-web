@@ -1,0 +1,18 @@
+.table thead th {
+  &.is-sortable {
+    color: black;
+    cursor: pointer;
+  }
+
+  &.is-active {
+    color: red;
+  }
+
+  /* &.is-descending:before { */
+  /*   content: 'v' */
+  /* } */
+
+  /* &.is-ascending:before { */
+  /*   content: '^' */
+  /* } */
+}

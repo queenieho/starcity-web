@@ -9,9 +9,9 @@
 ;; =============================================================================
 
 (def ^:private materialize-js "/assets/bower/Materialize/dist/js/materialize.min.js")
-(def ^:private main-css "/assets/css/main.css")
+(def ^:private main-css "/assets/css/materialize.css")
 
-(def ^:private google-analytics
+(def google-analytics
   [:script
    "(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
   (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -21,7 +21,7 @@
   ga('create', 'UA-81813253-1', 'auto');
   ga('send', 'pageview');"])
 
-(def ^:private base-js
+(def base-js
   ["https://code.jquery.com/jquery-2.1.1.min.js"
    materialize-js])
 

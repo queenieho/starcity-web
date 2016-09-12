@@ -19,15 +19,16 @@
    {}
    m))
 
-(defn- snake-keys
-  [m]
-  (reduce
-   (fn [acc [k v]]
-     (assoc acc (keyword (str/replace (name k) "-" "_")) v))
-   {}
-   m))
+(comment
+  (defn- snake-keys
+   [m]
+   (reduce
+    (fn [acc [k v]]
+      (assoc acc (keyword (str/replace (name k) "-" "_")) v))
+    {}
+    m)))
 
-(def ^:private clean-map (comp snake-keys strip-namespaces))
+(def ^:private clean-map strip-namespaces)
 
 (def ^:private list-pattern
   [{:account/_member-application
@@ -97,7 +98,7 @@
 
 (defn- parse-income-file
   [{:keys [:income-file/path :db/id]}]
-  {:name (-> (str/split path #"/") last) :file_id id})
+  {:name (-> (str/split path #"/") last) :file-id id})
 
 (defn- parse-income
   [account]
@@ -115,13 +116,13 @@
     {:id                (:db/id application)
      :name              (full-name account)
      :email             (:account/email account)
-     :phone_number      (:account/phone-number account)
-     :move_in           (:member-application/desired-availability application)
+     :phone-number      (:account/phone-number account)
+     :move-in           (:member-application/desired-availability application)
      :properties        (map :property/name (:member-application/desired-properties application))
      :term              (get-in application [:member-application/desired-license :license/term])
      :completed         (boolean (:member-application/locked application))
-     :completed_at      (:member-application/submitted-at application)
-     :community_fitness (clean-map community-fitness)
+     :completed-at      (:member-application/submitted-at application)
+     :community-fitness (clean-map community-fitness)
      :income            (parse-income account)
      :address           (format-address (:member-application/current-address application))
      :pet               (clean-map (:member-application/pet application))}))
@@ -134,15 +135,15 @@
   [{:keys [params] :as req}]
   (letfn [(-parse-application [{:keys [:account/_member-application] :as application}]
             (let [account (first _member-application)]
-              {:application_id (:db/id application)
+              {:id (:db/id application)
                :name           (full-name account)
                :email          (:account/email account)
-               :phone_number   (:account/phone-number account)
-               :move_in        (:member-application/desired-availability application)
+               :phone-number   (:account/phone-number account)
+               :move-in        (:member-application/desired-availability application)
                :properties     (map :property/name (:member-application/desired-properties application))
                :term           (get-in application [:member-application/desired-license :license/term])
                :completed      (boolean (:member-application/locked application))
-               :completed_at   (:member-application/submitted-at application)}))]
+               :completed-at   (:member-application/submitted-at application)}))]
     (let [ids (map :db/id (find-all-by (d/db conn) :member-application/locked true))]
       (->> (d/pull-many (d/db conn) list-pattern ids)
            (map -parse-application)

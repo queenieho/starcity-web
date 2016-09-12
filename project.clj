@@ -4,13 +4,14 @@
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
 
-  :dependencies [[org.clojure/clojure "1.9.0-alpha7"]
-                 [org.clojure/core.async "0.2.374"]
+  :dependencies [[org.clojure/clojure "1.9.0-alpha12"]
+                 [org.clojure/clojurescript "1.9.229"]
+                 [org.clojure/core.async "0.2.391"]
                  [org.clojure/tools.nrepl "0.2.12"]
                  [org.clojure/test.check "0.9.0"]
                  [org.clojure/tools.cli "0.3.5"]
                  [http-kit "2.2.0"]
-                 [clj-http "3.1.0"]
+                 [clj-http "3.2.0"]
                  [compojure "1.5.1"]
                  [cheshire "5.6.3"]
                  [ring/ring-json "0.4.0"]
@@ -19,24 +20,58 @@
                  [mount "0.1.10"]
                  [me.raynes/fs "1.4.6"]
                  [cpath-clj "0.1.2"]
-                 [com.taoensso/timbre "4.7.3"]
-                 [buddy "1.0.0"]
+                 [com.taoensso/timbre "4.7.4"]
+                 [buddy "1.1.0"]
                  [bouncer "1.0.0"]
                  [nilenso/mailgun "0.2.3"]
                  [org.apache.httpcomponents/httpclient "4.5.2"]
                  [clj-time "0.12.0"]
                  ;; db
                  [com.datomic/datomic-pro "0.9.5372"]
-                 [org.postgresql/postgresql "9.4.1209"]
+                 [org.postgresql/postgresql "9.4.1210"]
                  ;; util
-                 [prismatic/plumbing "0.5.3"]]
+                 [prismatic/plumbing "0.5.3"]
+                 ;; cljs
+                 [reagent "0.6.0-rc"]
+                 [re-frame "0.8.0"]
+                 [secretary "1.2.3"]
+                 [venantius/accountant "0.1.7"]
+                 [day8.re-frame/http-fx "0.0.4"]]
 
-  :profiles {:dev     {:source-paths ["src/dev" "src/clj"]
-                       :jvm-opts     ^:replace ["-XX:MaxPermSize=128m" "-Xms512m" "-Xmx512m" "-server"]}
+  :plugins [[lein-cljsbuild "1.1.4"]]
+
+  :profiles {:dev {:source-paths ["src/dev" "src/clj" "src/cljs"]
+                   :plugins      [[lein-figwheel "0.5.7"]
+                                  [lein-cooper "1.2.2"]]
+                   :dependencies [[figwheel-sidecar "0.5.7"]
+                                  [binaryage/devtools "0.8.1"]]
+                   :jvm-opts     ^:replace ["-XX:MaxPermSize=128m" "-Xms512m" "-Xmx512m" "-server"]}
 
              :uberjar {:aot          [starcity.core]
-                       :source-paths ["src/clj"]}}
+                       :prep-tasks   ["compile" ["cljsbuild" "once"]]
+                       :source-paths ["src/clj" "src/cljs"]
+                       :cljsbuild
+                       {:builds [{:id           "admin"
+                                  :source-paths ["src/cljs"]
+                                  :jar          true
+                                  :compiler     {:main             admin.core
+                                                 :optimizations    :advanced
+                                                 :elide-asserts    true
+                                                 :pretty-print     false
+                                                 :externs          []
+                                                 :asset-path       "/js/cljs/admin/out"
+                                                 :output-dir       "resources/public/js/cljs/admin/out"
+                                                 :output-to        "resources/public/js/cljs/admin.js"
+                                                 :closure-warnings {:externs-validation :off
+                                                                    :non-standard-jsdoc :off}}}]}}}
 
-  :repl-options {:init-ns user}
+  :repl-options {:init-ns          user
+                 :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
+
+  :clean-targets ^{:protect false} ["resources/public/js/cljs"
+                                    :target-path]
+
+  :cooper {"starcity"    ["sass" "--watch" "resources/public/assets/stylesheets/main.scss:resources/public/assets/css/starcity.css"]
+           "materialize" ["sass" "--watch" "resources/public/assets/scss/materialize/main.scss:resources/public/assets/css/materialize.css"]}
 
   :main starcity.core)

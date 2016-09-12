@@ -23,6 +23,9 @@
              [team :as team]
              [about :as about]
              [onboarding :as onboarding]
+             ;; ============
+             [bulma :as bulma]
+             ;; ============
              ;; ELM APPS
              [admin :as admin]
              [dashboard :as dashboard]]
@@ -51,6 +54,10 @@
 (defroutes app-routes
   ;; public
   (GET "/"                 [] landing/show-landing)
+  ;; ===========
+  ;; bulma testing
+  (GET "/bulma" [] bulma/show-bulma)
+  ;; ===========
   (GET "/register"         [] register/register-user!)
   (GET "/communities"      [] communities/show-communities)
   (GET "/faq"              [] faq/show-faq)
@@ -68,6 +75,14 @@
   (ANY  "/logout"       [] auth/logout!)
 
   (context "/account" []
+    (restrict
+        (routes
+         (GET "/"          [] account/show-account-settings)
+         (POST "/password" [] account/update-password!))
+      {:handler  authenticated-user
+       :on-error redirect-by-role}))
+
+  (context "/account" []
            (restrict
             (routes
              (GET "/"          [] account/show-account-settings)
@@ -83,64 +98,64 @@
 
   ;; auth
   (context "/application"         []
-           (restrict
-            (routes
-             (GET "/"             [] application/show-application)
+    (restrict
+        (routes
+         (GET "/"             [] application/show-application)
 
-             (restrict
-              (routes
-               (GET "/logistics"  [] logistics/show-logistics)
-               (POST "/logistics" [] logistics/save!))
-              logistics/restrictions)
+         (restrict
+          (routes
+           (GET "/logistics"  [] logistics/show-logistics)
+           (POST "/logistics" [] logistics/save!))
+          logistics/restrictions)
 
-             (restrict
-              (routes
-               (GET "/personal"   [] personal/show-personal)
-               (POST "/personal"  [] personal/save!))
-              personal/restrictions)
+         (restrict
+          (routes
+           (GET "/personal"   [] personal/show-personal)
+           (POST "/personal"  [] personal/save!))
+          personal/restrictions)
 
-             (restrict
-              (routes
-               (GET "/community"  [] community-fitness/show-community-fitness)
-               (POST "/community" [] community-fitness/save!))
-              community-fitness/restrictions)
+         (restrict
+          (routes
+           (GET "/community"  [] community-fitness/show-community-fitness)
+           (POST "/community" [] community-fitness/save!))
+          community-fitness/restrictions)
 
-             (restrict
-              (routes
-               (GET "/submit"     [] submit/show-submit)
-               (POST "/submit"    [] submit/submit!))
-              submit/restrictions))
+         (restrict
+          (routes
+           (GET "/submit"     [] submit/show-submit)
+           (POST "/submit"    [] submit/submit!))
+          submit/restrictions))
 
-            {:handler  {:and [authenticated-user (user-isa :account.role/applicant)]}
-             :on-error redirect-by-role}))
+      {:handler  {:and [authenticated-user (user-isa :account.role/applicant)]}
+       :on-error redirect-by-role}))
 
   (context "/admin" []
-           (restrict
-            (routes
-             (GET "*" [] admin/show))
-            {:handler  {:and [authenticated-user (user-isa :account.role/admin)]}
-             :on-error redirect-by-role}))
+    (restrict
+        (routes
+         (GET "*" [] admin/show))
+      {:handler  {:and [authenticated-user (user-isa :account.role/admin)]}
+       :on-error redirect-by-role}))
 
   (context "/me" []
-           (restrict
-            (routes
-             (GET "/*" [] dashboard/show))
-            {:handler  {:and [authenticated-user (user-isa :account.role/tenant)]}
-             :on-error redirect-by-role}))
+    (restrict
+        (routes
+         (GET "/*" [] dashboard/show))
+      {:handler  {:and [authenticated-user (user-isa :account.role/tenant)]}
+       :on-error redirect-by-role}))
 
 
   (context "/onboarding" []
-           (restrict
-            onboarding/routes
-            {:handler  {:and [authenticated-user (user-isa :account.role/pending)]}
-             :on-error redirect-by-role}))
+    (restrict
+        onboarding/routes
+      {:handler  {:and [authenticated-user (user-isa :account.role/pending)]}
+       :on-error redirect-by-role}))
 
   (context "/api/v1" []
-           (restrict api/routes {:handler authenticated-user}))
+    (restrict api/routes {:handler authenticated-user}))
 
   (context "/webhooks" []
-           (POST "/plaid" [] plaid/hook)
-           (POST "/stripe" [] stripe/hook))
+    (POST "/plaid" [] plaid/hook)
+    (POST "/stripe" [] stripe/hook))
 
   ;; catch-all
   (route/not-found "<p>Not Found</p>"))

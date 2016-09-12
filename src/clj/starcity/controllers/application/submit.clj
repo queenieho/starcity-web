@@ -40,7 +40,7 @@
 
 (defn- show-submit*
   "Render the submit page given a request."
-  [{:keys [identity] :as req} & {:keys [errors] :or []}]
+  [{:keys [identity] :as req} & {:keys [errors]}]
   (let [current-steps (application/current-steps (:db/id identity))
         plaid-id      (:db/id (plaid/by-account-id (:db/id identity)))]
     (view/submit req

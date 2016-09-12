@@ -15,6 +15,7 @@ pom.xml.asc
 /resources/public/js/elm
 /resources/public/assets/bower
 /resources/public/assets/.sass-cache
+/resources/public/js/cljs
 /resources/public/js/app
 /resources/public/js/bower
 *.log            # TODO: move to /logs

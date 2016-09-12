@@ -1,13 +1,20 @@
 {:server-port 3449
+ :css-dirs    ["resources/public/assets/css"]
  :builds
- [{:id            "main"
-   :source-paths  ["src/cljs" "src/dev"]
-   :figwheel      true
-   :build-options {:main                 starcity.core
-                   :asset-path           "/js/app/out"
-                   :output-to            "resources/public/js/app/main.js"
-                   :output-dir           "resources/public/js/app/out"
-                   :verbose              false
-                   :source-map           true
-                   :optimizations        :none
-                   :source-map-timestamp true}}]}
+ [{:id           "admin"
+   :source-paths ["src/cljs" "src/dev"]
+   :figwheel     {:on-jsload admin.core/run}
+   :compiler     {:main                 admin.core
+                  :preloads             [devtools.preload]
+                  :asset-path           "/js/cljs/admin/out"
+                  :output-to            "resources/public/js/cljs/admin.js"
+                  :output-dir           "resources/public/js/cljs/admin/out"
+                  :verbose              false
+                  :source-map           true
+                  :optimizations        :none
+                  :source-map-timestamp true
+                  :external-config
+                  {:devtools/config
+                   {:features-to-install    [:formatters :hints]
+                    :fn-symbol              "ƒ"
+                    :print-config-overrides true}}}}]}

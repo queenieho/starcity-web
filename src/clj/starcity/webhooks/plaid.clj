@@ -15,7 +15,7 @@
    (log-failure "Plaid failure" account-id params))
   ([message account-id {:keys [status body] :as res}]
    (timbre/warnf "PLAID: %s :: account-id - %s :: status - %s :: code - %s :: plaid message - %s :: resolve - %s"
-          message account-id status (:code body) (:message body) (:resolve body))))
+                 message account-id status (:code body) (:message body) (:resolve body))))
 
 ;; =============================================================================
 ;; API

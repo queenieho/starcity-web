@@ -72,6 +72,8 @@ ach.verify = function() {
   // The microdeposits form uses Materialize selects that need to be initialized
   installMaterialSelects();
 
+  // TODO: This doesn't display, because the .alert-error container is rendered
+  // by server iff there are server-side errors.
   function alert(message) {
     $form.find('.alert-error')
       .fadeIn()
