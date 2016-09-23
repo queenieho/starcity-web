@@ -1,5 +1,6 @@
 (ns starcity.controllers.application
-  (:require [starcity.views.application :as view]
+  (:require [starcity.views.bulma.apply :as apply]
+            [starcity.views.application :as view]
             [starcity.models.application :as application]
             [starcity.controllers.utils :refer :all]
             [ring.util.response :as response]))
@@ -20,3 +21,7 @@
     (if locked
       (ok (view/locked req (:completed params)))
       (response/redirect "/application/logistics"))))
+
+(defn show-apply
+  [{:keys [identity params] :as req}]
+  (ok apply/apply))

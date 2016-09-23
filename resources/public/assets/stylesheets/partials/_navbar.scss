@@ -1,0 +1,18 @@
+.nav {
+  .is-brand {
+    img {
+      max-height: 30px;
+    }
+
+    span {
+      margin-left: 10px;
+      font-family: 'Josefin Sans', sans-serif;
+      font-size: 1.75rem;
+      color: black;;
+
+    }
+  }
+  .is-inverse {
+    color: white !important;
+  }
+}

@@ -23,29 +23,27 @@
     :href  (build-path (name key))}
    title])
 
-(defn- navbar
-  []
+(defn- navbar []
   (let [route (subscribe [:app/current-route])]
     (fn []
       [:nav.nav.has-shadow
        [:div.container
         [:div.nav-left
          [:a.nav-item.is-brand {:href "/admin"}
+          [:img {:src "/assets/img/starcity-logo-black.png"}]
           [:span "Starcity"]]]
         [:div.nav-right
          (doall
           (for [[title key] panels]
             ^{:key key} [nav-item title key (= key @route)]))]]])))
 
-(defn- home
-  []
+(defn- home []
   [:main
    [:section.section
     [:div.container
      [:h1.title.is-1 "Home"]]]])
 
-(defn- main
-  []
+(defn- main []
   (let [route (subscribe [:app/current-route])]
     (fn []
       (case @route

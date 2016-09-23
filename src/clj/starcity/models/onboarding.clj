@@ -129,6 +129,30 @@
 (s/fdef payment-method
         :args (s/cat :progress ::progress))
 
+(defn monthly-rent
+  [progress]
+  (-> (d/q '[:find ?price
+             :in $ ?account
+             :where
+             ;; Get the desired license via account application
+             [?account :account/member-application ?application]
+             [?application :member-application/desired-license ?desired-license]
+             ;; Approval is where we get the property from
+             [?approval :approval/account ?account]
+             [?approval :approval/property ?property]
+             ;; Get the property-license that matches the desired license
+             [?property :property/licenses ?license]
+             [?license :property-license/license ?desired-license]
+             ;; Finally, pull out the prrice
+             [?license :property-license/base-price ?price]]
+           (d/db conn) (:account-id progress))
+      ffirst))
+
+(defn applicant-property
+  [progress]
+  (:approval/property
+   (one (d/db conn) :approval/account (account-id progress))))
+
 ;; =============================================================================
 ;; Transactions
 
@@ -146,30 +170,28 @@
 ;; Firstly, we need to know the correct amount to charge.
 ;; We can determine this by using a map of {#{"full" "partial"} <amt>}
 
-(def ^:private choice-amounts
-  "Security deposit amounts in cents."
-  {"full"    100000
-   "partial" 50000})
 
 (defn- charge-amount
   "Determine the correct amount to charge in cents given "
-  [payment-choice]
+  [progress payment-choice]
   (assert (#{"full" "partial"} payment-choice)
           (format "Payment choice must be one of #{\"full\" \"partial\"}, not %s."
                   payment-choice))
-  (get choice-amounts payment-choice))
+  (if (= "full" payment-choice)
+    (int (* 100 (monthly-rent progress)))
+    50000))
 
 ;; Now that we know how much to charge, we can actually make the charge!
 ;; If it succeeds, we'll want to create/update entities in the DB to reflect the
 ;; success. If not, an error will propogate up from the `stripe' model.
 
 (defn- create-ach-charge
-  [account-id payment-choice customer-id bank-account-token]
-  (stripe/create-charge account-id
-                        (charge-amount payment-choice)
-                        bank-account-token
+  [progress payment-choice]
+  (stripe/create-charge (account-id progress)
+                        (charge-amount progress payment-choice)
+                        (bank-account-token progress)
                         :description (format "'%s' security deposit payment" payment-choice)
-                        :customer-id customer-id))
+                        :customer-id (stripe-customer-id progress)))
 
 ;; Assuming no error, we now need to update the security deposit entity to
 ;; reflect the successful transaction.
@@ -177,10 +199,10 @@
 (defn- record-security-deposit-payment
   "Update the `security-deposit` entity to reflect that the security deposit has
   been paid via a successful ACH payment."
-  [security-deposit-id payment-choice charge-id]
+  [progress payment-choice charge-id]
   (let [payment-type (keyword "security-deposit.payment-type" payment-choice)]
-    @(d/transact conn [{:db/id                            security-deposit-id
-                        :security-deposit/amount-received (charge-amount payment-choice)
+    @(d/transact conn [{:db/id                            (security-deposit-id security-deposit-id)
+                        :security-deposit/amount-received (charge-amount progress payment-choice)
                         :security-deposit/charge          charge-id
                         :security-deposit/payment-type    payment-type}])))
 
@@ -190,13 +212,8 @@
   "Pay the security deposit with ACH given current progress and the choice of
   payment method."
   [progress payment-choice]
-  (let [charge-id (create-ach-charge (account-id progress)
-                                     payment-choice
-                                     (stripe-customer-id progress)
-                                     (bank-account-token progress))]
-    (record-security-deposit-payment (security-deposit-id progress)
-                                     payment-choice
-                                     charge-id)))
+  (let [charge-id (create-ach-charge progress payment-choice)]
+    (record-security-deposit-payment progress payment-choice charge-id)))
 
 (s/fdef pay-ach
         :args (s/cat :progress ::progress

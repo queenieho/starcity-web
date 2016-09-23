@@ -32,6 +32,9 @@
                  ;; util
                  [prismatic/plumbing "0.5.3"]
                  ;; cljs
+                 [cljsjs/flatpickr "2.0.0-rc.7-0"]
+                 [cljsjs/field-kit "2.0.4-0"]
+                 [com.andrewmcveigh/cljs-time "0.5.0-alpha1"]
                  [reagent "0.6.0-rc"]
                  [re-frame "0.8.0"]
                  [secretary "1.2.3"]
@@ -40,36 +43,10 @@
 
   :plugins [[lein-cljsbuild "1.1.4"]]
 
-  :profiles {:dev {:source-paths ["src/dev" "src/clj" "src/cljs"]
-                   :plugins      [[lein-figwheel "0.5.7"]
-                                  [lein-cooper "1.2.2"]]
-                   :dependencies [[figwheel-sidecar "0.5.7"]
-                                  [binaryage/devtools "0.8.1"]]
-                   :jvm-opts     ^:replace ["-XX:MaxPermSize=128m" "-Xms512m" "-Xmx512m" "-server"]}
-
-             :uberjar {:aot          [starcity.core]
-                       :prep-tasks   ["compile" ["cljsbuild" "once"]]
-                       :source-paths ["src/clj" "src/cljs"]
-                       :cljsbuild
-                       {:builds [{:id           "admin"
-                                  :source-paths ["src/cljs"]
-                                  :jar          true
-                                  :compiler     {:main             admin.core
-                                                 :optimizations    :advanced
-                                                 :elide-asserts    true
-                                                 :pretty-print     false
-                                                 :externs          []
-                                                 :asset-path       "/js/cljs/admin/out"
-                                                 :output-dir       "resources/public/js/cljs/admin/out"
-                                                 :output-to        "resources/public/js/cljs/admin.js"
-                                                 :closure-warnings {:externs-validation :off
-                                                                    :non-standard-jsdoc :off}}}]}}}
-
   :repl-options {:init-ns          user
                  :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
 
-  :clean-targets ^{:protect false} ["resources/public/js/cljs"
-                                    :target-path]
+  :clean-targets ^{:protect false} ["resources/public/js/cljs" :target-path]
 
   :cooper {"starcity"    ["sass" "--watch" "resources/public/assets/stylesheets/main.scss:resources/public/assets/css/starcity.css"]
            "materialize" ["sass" "--watch" "resources/public/assets/scss/materialize/main.scss:resources/public/assets/css/materialize.css"]}

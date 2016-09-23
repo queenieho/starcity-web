@@ -21,14 +21,14 @@
 ;; =============================================================================
 ;; Figwheel
 
-(defn- start-figwheel [config]
+(defn- start-figwheel []
   (when-not (ra/figwheel-running?)
     (debug "Starting Figwheel server")
-    (ra/start-figwheel! config)))
+    (ra/start-figwheel!)))
 
 (defstate ^{:on-reload :noop}
   figwheel
-  :start (start-figwheel (fetch-config)))
+  :start (start-figwheel))
 
 ;; =============================================================================
 ;; Reloaded Workflow

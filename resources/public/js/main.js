@@ -41,8 +41,8 @@ ach.verify = function() {
 
       // initiate stripe request
       Stripe.bankAccount.createToken({
-        country: $('#country').val(),
-        currency: $('#currency').val(),
+        country: 'US', //$('#country').val(),
+        currency: 'USD', // $('#currency').val(),
         routing_number: $('#routing-number').val(),
         account_number: $('#account-number').val(),
         account_holder_name: $('#account-holder-name').val(),

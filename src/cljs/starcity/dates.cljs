@@ -21,7 +21,7 @@
 
 (defn format; -date-generic
   "Format a date using either the built-in goog.i18n.DateTimeFormat.Format enum
-or a formatting string like \"dd MMMM yyyy\""
+  or a formatting string like \"dd MMMM yyyy\""
   [date-format date]
   (.format (goog.i18n.DateTimeFormat.
             (or (date-format format-map) date-format))

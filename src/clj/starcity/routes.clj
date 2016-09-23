@@ -23,10 +23,6 @@
              [team :as team]
              [about :as about]
              [onboarding :as onboarding]
-             ;; ============
-             [bulma :as bulma]
-             ;; ============
-             ;; ELM APPS
              [admin :as admin]
              [dashboard :as dashboard]]
             [starcity.controllers.application
@@ -54,10 +50,6 @@
 (defroutes app-routes
   ;; public
   (GET "/"                 [] landing/show-landing)
-  ;; ===========
-  ;; bulma testing
-  (GET "/bulma" [] bulma/show-bulma)
-  ;; ===========
   (GET "/register"         [] register/register-user!)
   (GET "/communities"      [] communities/show-communities)
   (GET "/faq"              [] faq/show-faq)
@@ -74,6 +66,11 @@
 
   (ANY  "/logout"       [] auth/logout!)
 
+  ;; New Application
+  (GET "/apply" [] (restrict application/show-apply
+                             {:handler  {:and [authenticated-user (user-isa :account.role/applicant)]}
+                              :on-error redirect-by-role}))
+
   (context "/account" []
     (restrict
         (routes
@@ -83,18 +80,18 @@
        :on-error redirect-by-role}))
 
   (context "/account" []
-           (restrict
-            (routes
-             (GET "/"          [] account/show-account-settings)
-             (POST "/password" [] account/update-password!))
-            {:handler  authenticated-user
-             :on-error redirect-by-role}))
+    (restrict
+        (routes
+         (GET "/"          [] account/show-account-settings)
+         (POST "/password" [] account/update-password!))
+      {:handler  authenticated-user
+       :on-error redirect-by-role}))
 
   (context "/signup" []
-           (GET   "/"         [] signup/show-signup)
-           (POST  "/"         [] signup/signup!)
-           (GET   "/complete" [] signup/show-complete)
-           (GET   "/activate" [] signup/activate!))
+    (GET   "/"         [] signup/show-signup)
+    (POST  "/"         [] signup/signup!)
+    (GET   "/complete" [] signup/show-complete)
+    (GET   "/activate" [] signup/activate!))
 
   ;; auth
   (context "/application"         []

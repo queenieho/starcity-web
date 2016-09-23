@@ -8,7 +8,8 @@
             [ring.util.codec :refer [url-encode]]
             [compojure.core :refer [context defroutes GET POST]]
             [bouncer.core :as b]
-            [bouncer.validators :as v]))
+            [bouncer.validators :as v]
+            [taoensso.timbre :as timbre]))
 
 ;; =============================================================================
 ;; Helpers
@@ -139,7 +140,7 @@
   (letfn [(respond-error []
             (let [[public-key _] (stripe/keys-for-approval (:db/id identity))]
               (respond-with-errors req default-error-message
-               (view/enter-bank-information public-key))))]
+                (view/enter-bank-information public-key))))]
     (if-let [token (:stripe-token params)]
       (try
         (let [customer (stripe/create-customer (:db/id identity) token)]
@@ -183,16 +184,18 @@
 
   Process the ACH payment."
   [{:keys [params identity] :as req}]
-  (let [payment-choice (:payment-choice params)]
+  (let [payment-choice (:payment-choice params)
+        progress       (onboarding/get-progress (:db/id identity))]
     (if (#{"full" "partial"} payment-choice)
       (try
-        (onboarding/pay-ach (onboarding/get-progress (:db/id identity)) payment-choice)
+        (onboarding/pay-ach progress payment-choice)
         (response/redirect "/onboarding/security-deposit/complete")
         (catch Exception e
+          (timbre/error e "Error encountered while attempting to charge user!")
           (respond-with-errors req default-error-message
-            view/pay-by-ach)))
+            (view/pay-by-ach (onboarding/monthly-rent progress)))))
       (respond-with-errors req "Invalid payment choice. Please try again."
-        view/pay-by-ach))))
+        (view/pay-by-ach (onboarding/monthly-rent progress))))))
 
 
 ;; =============================================================================
@@ -217,8 +220,8 @@
   (POST "/microdeposits" [] verify-microdeposits)
 
   (GET "/pay" [] (with-gate should-pay-security-deposit?
-                   (fn [req _]
-                     (view/pay-by-ach req))))
+                   (fn [req progress]
+                     (view/pay-by-ach req (onboarding/monthly-rent progress)))))
 
   (POST "/pay" [] pay-with-ach))
 
@@ -228,10 +231,7 @@
 
 (defroutes routes
   (GET "/" [] (fn [{:keys [identity context] :as req}]
-                (let [next-uri (current-step (onboarding/get-progress (:db/id identity)))]
-                  (if (= context next-uri)
-                    (view/begin req)
-                    (response/redirect next-uri)))))
+                (view/begin req)))
 
   (context "/security-deposit" []
 
@@ -240,8 +240,9 @@
            (response/redirect (-> identity :db/id onboarding/get-progress current-step))))
 
     (GET "/complete" [] (with-gate security-deposit-finished?
-                          (fn [req _]
-                            (view/security-deposit-complete req))))
+                          (fn [req progress]
+                            (let [property (onboarding/applicant-property progress)]
+                              (view/security-deposit-complete req (:property/name property))))))
 
     (context "/payment-method" []
       (GET "/" []
@@ -252,6 +253,7 @@
       (POST "/" [] update-payment-method)
 
       (GET "/check" [] (with-gate can-make-payment-by-check?
-                         (fn [req _] (view/pay-by-check req))))
+                         (fn [req progress]
+                           (view/pay-by-check req (onboarding/monthly-rent progress)))))
 
       (context "/ach" [] ach-routes))))

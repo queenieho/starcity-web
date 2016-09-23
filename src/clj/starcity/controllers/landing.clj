@@ -1,5 +1,5 @@
 (ns starcity.controllers.landing
-  (:require [starcity.views.landing :as view]
+  (:require [starcity.views.bulma.landing :as view]
             [starcity.controllers.utils :refer :all]))
 
 ;; =============================================================================
@@ -8,4 +8,4 @@
 
 (defn show-landing
   [req]
-  (ok (view/landing)))
+  (ok (view/landing req)))

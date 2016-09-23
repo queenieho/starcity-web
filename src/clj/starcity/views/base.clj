@@ -9,7 +9,7 @@
 ;; =============================================================================
 
 (def ^:private materialize-js "/assets/bower/Materialize/dist/js/materialize.min.js")
-(def ^:private main-css "/assets/css/materialize.css")
+(def ^:private materialize-css "/assets/css/materialize.css")
 
 (def google-analytics
   [:script
@@ -41,7 +41,7 @@
           :sizes size
           :href  (format "/apple-icon-%s.png" size)}])
 
-(defn head [title]
+(defn head [title & [main-css]]
   (let [sizes ["57x57" "60x60" "72x72" "76x76" "114x114" "120x120" "144x144"
                "152x152" "180x180"]]
     [:head
@@ -62,7 +62,8 @@
      [:meta {:name "theme-color" :content "#ffffff"}]
      ;; Icon Font
      [:link {:href "https://fonts.googleapis.com/icon?family=Material+Icons" :rel "stylesheet"}]
-     [:link {:type "text/css" :rel "stylesheet" :href main-css :media "screen,projection"}]
+     [:link {:href "https://fonts.googleapis.com/css?family=Josefin+Sans" :rel "stylesheet"}]
+     [:link {:type "text/css" :rel "stylesheet" :href (or main-css materialize-css) :media "screen,projection"}]
      [:title title]]))
 
 (defn footer []
@@ -112,14 +113,20 @@
      text]]))
 
 (def ^:private unauth-nav-items
-  [(nav-link "Our Communities" "/communities")
+  [(nav-link "Communities" "/communities")
    (nav-link "FAQ" "/faq")
    (nav-button "Apply Now" "/application" "star-orange")])
 
 (def ^:private auth-nav-items
-  [(nav-link "Our Communities" "/communities")
+  [(nav-link "Communities" "/communities")
    (nav-link "FAQ" "/faq")
    (nav-link "Application" "/application")
+   (nav-link "My Account" "/account")])
+
+(def ^:private onboarding-nav-items
+  [(nav-link "Communities" "/communities")
+   (nav-link "FAQ" "/faq")
+   (nav-link "Pay Deposit" "/onboarding")
    (nav-link "My Account" "/account")])
 
 (def ^:private hero-navbar
@@ -138,9 +145,10 @@
 
 (defn- navbar
   [{:keys [identity] :as req}]
-  (let [links (if (nil? identity)
-                unauth-nav-items
-                auth-nav-items)]
+  (let [links (cond
+                (nil? identity)                                    unauth-nav-items
+                (= (:account/role identity) :account.role/pending) onboarding-nav-items
+                :otherwise                                         auth-nav-items)]
     [:header
      (list
       [:nav

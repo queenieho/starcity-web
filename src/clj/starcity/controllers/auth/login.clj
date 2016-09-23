@@ -1,5 +1,5 @@
 (ns starcity.controllers.auth.login
-  (:require [starcity.views.auth.login :as view]
+  (:require [starcity.views.bulma.login :as view]
             [starcity.models.account :as account]
             [buddy.auth :refer [authenticated?]]
             [bouncer.core :as b]
@@ -12,7 +12,11 @@
 ;; Constants
 ;; =============================================================================
 
-(def +redirect-after-login+ "/me")
+(def redirect-after-login "/me")
+
+(def ERRORS
+  {:unactivated "Please click the activation link in your inbox before attempting to log in."
+   :credentials "The credentials you entered are invalid; please try again."})
 
 ;; =============================================================================
 ;; Helpers
@@ -37,13 +41,13 @@
     (not-empty (:next params)) (:next params)
     (account/admin? acct)      "/admin"
     (account/applicant? acct)  "/application"
-    :otherwise                 +redirect-after-login+))
+    :otherwise                 redirect-after-login))
 
-(defn- show-login*
-  "NOTE: Preserves the next url through the POST req by using a hidden input."
-  [{:keys [identity params] :as req} & {:keys [errors email] :or {errors []}}]
-  (let [email (or email (:email params) "")]
-    (view/login errors email params)))
+;; (defn- show-login*
+;;   "NOTE: Preserves the next url through the POST req by using a hidden input."
+;;   [{:keys [identity params] :as req} & {:keys [errors email] :or {errors []}}]
+;;   (let [email (or email (:email params) "")]
+;;     (view/login errors email params)))
 
 ;; =============================================================================
 ;; API
@@ -54,8 +58,9 @@
   [req]
   (if (authenticated? req)
     (response/redirect "/application")
-    (ok (show-login* req))))
+    (ok (view/login req))))
 
+;; TODO: Check that the errors work!
 (defn login!
   "Log a user in."
   [{:keys [params session] :as req}]
@@ -69,17 +74,8 @@
             (-> (response/redirect next-url)
                 (assoc :session session)))
           ;; account not activated
-          (malformed
-           (show-login* req
-                        :errors ["Please click the activation link in your inbox before attempting to log in."]
-                        :email email)))
+          (respond-with-errors req (:unactivated ERRORS) view/login))
         ;; authentication failure
-        (malformed
-         (show-login* req
-                      :errors ["The credentials you entered are invalid; please try again."]
-                      :email email)))
+        (respond-with-errors req (:credentials ERRORS) view/login))
       ;; validation failure
-      (malformed
-       (show-login* req
-                    :errors (errors-from vresult)
-                    :email (:email params))))))
+      (respond-with-errors req (errors-from vresult) view/login))))

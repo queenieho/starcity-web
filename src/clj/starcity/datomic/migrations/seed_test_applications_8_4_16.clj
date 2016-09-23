@@ -88,9 +88,9 @@
                                                            :community-fitness/free-time               "Photography."}
                  :member-application/submitted-at         (c/to-date (t/date-time 2016 8 5))}
                 {:account/member-application application-id2
-                 :db/id                      [:account/email "tenant@test.com"]}
+                 :db/id                      [:account/email "onboarding@test.com"]}
                 {:db/id               (d/tempid (:partition datomic))
-                 :income-file/account [:account/email "tenant@test.com"]
+                 :income-file/account [:account/email "onboarding@test.com"]
                  :income-file/path    "data/income-uploads/285873023222771/starcity-kitchen.png"}]))]
     :requires [:starcity/seed-test-accounts
                :starcity/add-income-files-schema-8-3-16

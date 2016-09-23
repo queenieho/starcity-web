@@ -52,13 +52,21 @@
   (title "Welcome!")
   (body
    (container
-    [:h1 "Welcome to Gilbert Street!"]
-
-    [:p.flow-text-small "We're really excited to have you on board!"]
-    [:p.flow-text-small "In order to hold your room, we need to get a few things out of the way."]
-
-    [:a.btn.btn-large.waves-effect.waves-light.green {:href "/onboarding/security-deposit"}
-     "Get Started"])))
+    "Welcome to Starcity!"
+    req
+    [:div.section
+     [:div.row
+      [:div.col.s10.offset-s1
+       [:p.flow-text "Now that you've been approved for the community, please pay your security deposit to reserve your room."]
+       [:p.flow-text
+        "Your room will be held for "
+        [:strong "one week"]
+        " from the date that you were approved."]
+       [:div.row {:style "margin-top: 30px; margin-bottom: 10px;"}
+        [:div.col.s12
+         [:a.btn.right.waves-effect.waves-light.star-green.lighten-1
+          {:href "/onboarding/security-deposit/payment-method"}
+          "Begin"]]]]]])))
 
 (defpage choose-payment-method
   [req method]
@@ -70,23 +78,27 @@
       req
       [:form {:action "/onboarding/security-deposit/payment-method" :method "POST"}
        (section "How would you like to pay?"
-                "Phasellus neque orci, porta a, aliquet quis, semper a, massa.  Cras placerat accumsan nulla."
+                ""
                 [:div.validation-group
                  (radio-group "payment-method"
-                              ["ach" "Pay now via ACH" {:required true :selected (is-selected? "ach")}]
-                              ["check" "Send a check" {:selected (is-selected? "check")}])]
+                              ["ach" "Electronic payment using your bank (fastest)" {:required true :selected (is-selected? "ach")}]
+                              ["check" "Mail a check" {:selected (is-selected? "check")}])]
                 :back-url "/onboarding")]))))
 
 
-(defpage pay-by-check [req]
+(defpage pay-by-check [req full-payment-amount]
   (title "Pay By Check")
   (body
    (container
     "Security Deposit: Pay by Check"
     req
     (section "You can write your check using the information provided below."
-             "After we receive your check we'll be in touch about what to do next."
-             [:p.flow-text-small "TODO: Check info."]
+             "We will confirm receipt of your payment after we receive your check."
+             [:div
+              [:p "You can pay either " [:b "$500 now"] " (with the remainder due by the end of the first month),"
+               [:i " OR "] "the full security deposit of " [:b (str "$" (int full-payment-amount))] "."]
+              [:p "Make check payable to: " [:b "Starcity Properties, Inc."]]
+              [:p "Mail check to: " [:b "Starcity Properties, Inc., 995 Market St. Floor 2, San Francisco CA, 94103"]]]
              :has-submit? false
              :back-url "/onboarding/security-deposit/payment-method"))))
 
@@ -97,13 +109,13 @@
   (title "Verify Bank Account")
   (body
    (container
-    "Security Deposit: Pay by ACH"
+    "Security Deposit: Pay Electronically"
     req
     [:form
      {:action "/onboarding/security-deposit/payment-method/ach/verify" :method "POST"}
      [:input#stripe-token {:type "hidden" :name "stripe-token"}]
-     (section "In order to accept your payment you'll need to verify your bank account."
-              "Please enter your bank account information below."
+     (section "In order to pay, you'll first need to verify your bank account."
+              ""
               [:div
                ;; Account holder name
                [:div.row
@@ -133,26 +145,28 @@
                  (select-field :name "account-holder-type"
                                :choose-msg "Choose account type"
                                :label "Account Type"
+                               :selected "individual"
                                :required true
                                :options [["individual" "Individual"]
                                          ["company" "Company"]])]]
 
                ;; country, currency selects
-               [:div.row
-                [:div.col.s6
-                 (select-field :name "country"
-                               :choose-msg "Choose country"
-                               :label "Country"
-                               :selected "US"
-                               :required true
-                               :options [["US" "US"]])] ; TODO: Add more countries
-                [:div.col.s6
-                 (select-field :name "currency"
-                               :choose-msg "Choose currency"
-                               :label "Currency"
-                               :selected "USD"
-                               :required true
-                               :options [["USD" "US Dollar"]])]]]
+               ;; [:div.row
+               ;;  [:div.col.s6
+               ;;   (select-field :name "country"
+               ;;                 :choose-msg "Choose country"
+               ;;                 :label "Country"
+               ;;                 :selected "US"
+               ;;                 :required true
+               ;;                 :options [["US" "US"]])] ; TODO: Add more countries
+               ;;  [:div.col.s6
+               ;;   (select-field :name "currency"
+               ;;                 :choose-msg "Choose currency"
+               ;;                 :label "Currency"
+               ;;                 :selected "USD"
+               ;;                 :required true
+               ;;                 :options [["USD" "US Dollar"]])]]
+               ]
               :back-url "/onboarding/security-deposit/payment-method")]))
   (json ["stripe" {:key stripe-public-key}])
   (js "https://js.stripe.com/v2/"))
@@ -161,26 +175,30 @@
   (title "Finish Verification")
   (body
    (container
-    "Security Deposit: Pay by ACH"
+    "Security Deposit: Verify Bank Account"
     req
     [:form
-     {:action "/onboarding/security-deposit/payment-method/ach/microdeposits"
-      :method "POST"}
-     (section "Enter the microdeposit amounts below to verify your account."
-              "Please note that it will take up to two business days before these deposits will be made."
+     {:action "/onboarding/security-deposit/payment-method/ach/microdeposits" :method "POST"}
+     (section "Great! We've initiated the verification process."
+              "Over the next <b>24-48 hours</b>, two small deposits will be made in
+              your account with statement description <b>VERIFICATION</b>
+              &mdash; enter them below to verify that you are the owner of this
+              bank account."
               (let [attrs {:min 1 :step 1}]
                 [:div.row
                  [:div.col.s6
                   (input-field :name "deposit-1"
                                :required true
                                :type "number"
-                               :label "First deposit"
+                               :label "First deposit (cents)"
+                               :placeholder "e.g. 32"
                                :attrs attrs)]
                  [:div.col.s6
                   (input-field :name "deposit-2"
                                :required true
                                :type "number"
-                               :label "Second deposit"
+                               :label "Second deposit (cents)"
+                               :placeholder "e.g. 45"
                                :attrs attrs)]]))])))
 
 ;; =====================================
@@ -204,7 +222,7 @@
 
     [:p.flow-text-small "By pressing the "
      [:b "Pay Now"]
-     " button below I authorize Starcity Properties Inc. to
+     " button below I authorize Starcity Properties, Inc. to
      electronically debit my account and, if necessary, electronically credit my
      account to correct erroneous debits."]]
    [:div.modal-footer
@@ -216,11 +234,11 @@
 
 ;; And here's the complete view.
 
-(defpage pay-by-ach [req]
+(defpage pay-by-ach [req full-payment-amount]
   (title "Pay Security Deposit")
   (body
    (container
-    "Security Deposit: Make Payment"
+    "Security Deposit: Complete Payment"
     req
     [:form
      {:method "POST"
@@ -229,8 +247,8 @@
               "There are two options:"
               [:div.validation-group
                (radio-group "payment-choice"
-                            ["full" "Pay full amount ($1000) now" {:required true}]
-                            ["partial" "Pay $500 now, and the rest at move-in"])]
+                            ["full" (str "Pay full amount ($" (int full-payment-amount) ") now")   {:required true}]
+                            ["partial" "Pay $500 now, and the rest at after your first month"])]
               :next [:button#pay-btn.right.btn.waves-effect.waves-light.star-green.lighten-1.disabled
                      {:type "button" :disabled true}
                      "Pay"])]
@@ -239,13 +257,15 @@
 ;; =====================================
 ;; Security deposit complete
 
+;; TODO: Get property name
 (defpage security-deposit-complete
+  [req property-name]
   (title "Onboarding Complete")
   (body
    (container
-    "Security Deposit: Paid"
+    "Security Deposit: Sucessfully Paid"
     req
-    (section "You're all set!"
-             "We'll be in touch soon with further instructions."
+    (section (format "Thank you! We have reserved your room at %s." property-name)
+             "We'll be in touch soon to coordinate your move-in."
              nil
              :has-submit? false))))
