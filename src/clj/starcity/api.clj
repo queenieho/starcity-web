@@ -1,7 +1,7 @@
 (ns starcity.api
   (:require [compojure.core :refer [context defroutes GET POST]]
             [buddy.auth.accessrules :refer [restrict]]
-            [starcity.auth :refer [user-isa]]
+            [starcity.auth :refer [user-isa authenticated-user]]
             [starcity.api
              [plaid :as plaid]
              [dashboard :as dashboard]
@@ -12,7 +12,7 @@
 
 (defn- restrictions
   [required-role]
-  {:handler  (user-isa required-role)
+  {:handler  {:and [authenticated-user (user-isa required-role)]}
    :on-error (fn [_ _] {:status 403 :body "You are not authorized."})})
 
 (defroutes routes

@@ -10,7 +10,8 @@
              [onboarding-updates-9-8-16 :refer [add-stripe-credentials-to-property-schema
                                                 seed-stripe-test-credentials]]
              [add-approval-schema-9-8-16 :refer [add-approval-schema
-                                                 seed-test-approval]]]
+                                                 seed-test-approval]]
+             [add-community-safety-consent-9-28-16 :refer [add-community-safety-consent]]]
             [starcity.datomic.migrations.utils :refer [only-when]]
             [starcity.environment]
             [mount.core :refer [defstate]]))
@@ -27,4 +28,5 @@
    add-stripe-credentials-to-property-schema
    (only-when #{:development :staging} seed-stripe-test-credentials)
    add-approval-schema
-   (only-when #{:development :staging} seed-test-approval)))
+   (only-when #{:development :staging} seed-test-approval)
+   add-community-safety-consent))

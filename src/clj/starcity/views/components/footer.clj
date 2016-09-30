@@ -7,6 +7,7 @@
 (def footer
   [:footer.footer
    [:div.container
+    ;; TODO: Mobile layout
     [:div.columns.is-mobile
      [:div.column
       [:p

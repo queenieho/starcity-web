@@ -119,15 +119,18 @@
                             :income-file/size         (long size)
                             :db/id                    (tempid)}])
         (timbre/infof "Wrote income file for account-id %s - %s - %s - %d"
-                      account-id filename content-type size)))
+                      account-id filename content-type size)
+        output-path))
+    ;; catch to log, then rethrow
     (catch Exception e
       (timbre/error e "Error encountered while writing income file!"
-                    (format "%s - %s - %s - %d" account-id filename content-type size)))))
+                    (format "%s - %s - %s - %d" account-id filename content-type size))
+      (throw e))))
 
 (defn save-income-files!
   "Save the income files for a given account."
   [account-id files]
-  (dorun (map (partial write-income-file account-id) files)))
+  (doall (map (partial write-income-file account-id) files)))
 
 ;; =============================================================================
 ;; Misc

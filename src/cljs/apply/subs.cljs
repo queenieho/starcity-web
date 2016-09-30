@@ -12,4 +12,4 @@
 (reg-sub
  :app/notifications
  (fn [db _]
-   (get db :notifications [])))
+   (get db :app/notifications)))

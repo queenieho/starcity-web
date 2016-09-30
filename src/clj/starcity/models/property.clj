@@ -18,18 +18,9 @@
 (s/def :property/available-on :starcity.spec/date)
 (s/def :property/cover-image-url string?)
 (s/def :property/description string?)
-;; (s/def :property/address )
 
 ;; =============================================================================
 ;; Queries
-
-;; (defn available-leases
-;;   [property]
-;;   (->> (d/q '[:find ?ls
-;;               :in $ ?p
-;;               :where [?p :property/available-leases ?ls]]
-;;             (d/db conn) (:db/id property))
-;;        (map first)))
 
 (defn available-units
   "Retrieve all units that are currently available.

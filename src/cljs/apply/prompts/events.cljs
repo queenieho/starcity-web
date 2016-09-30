@@ -1,50 +1,24 @@
 (ns apply.prompts.events
   (:require [apply.routes :refer [prompt-uri]]
+            [apply.prompts.models :as prompts]
             [apply.notifications :as n]
             [re-frame.core :refer [reg-event-fx
                                    reg-event-db]]
             [ajax.core :as ajax]
             [day8.re-frame.http-fx]
-            [starcity.log :as l])
-  (:refer-clojure :exclude [next]))
+            [starcity.log :as l]))
 
-;; A mapping of <current-prompt> to <next-prompt> to determine where to go after
-;; the `Next` button has been pressed.
-
-;; NOTE: It would be nice if we could invert the map to use for previous buttons
-;; too, instead of needing to supply this at the view level
-(def ^:private prompts
-  {:logistics/communities  :logistics/term
-   :logistics/term         :logistics/move-in-date
-   :logistics/move-in-date :logistics/pets
-   :logistics/pets         :personal/phone-number
-
-   :personal/phone-number :personal/background
-   :personal/background   :personal/income
-   :personal/income       :community/why-starcity
-
-   :community/why-starcity    :community/about-you
-   :community/about-you       :community/communal-living
-   :community/communal-living :overview/welcome})
-
-(defn- next-uri
+(def ^:private next-uri
   "Produce the uri of the next prompt as defined by `prompts`."
-  [prompt-key]
-  (prompt-uri (get prompts prompt-key)))
+  (comp prompt-uri prompts/next))
 
-(defn- files->form-data [files]
-  (let [form-data (js/FormData.)]
-    (doseq [file-key (.keys js/Object files)]
-      (let [file (aget files file-key)]
-        (.append form-data "files[]" file (.-name file))))
-    form-data))
-
+;; TODO: refactor to multimethod
 (defn- save-request
   "Construct a save request."
   [prompt-key params & [on-success]]
   (let [overrides (when (= prompt-key :personal/income)
                     {:uri  "/api/v1/apply/verify-income"
-                     :body (files->form-data params)})]
+                     :body params})]
     (merge {:method          :post
             :uri             "/api/v1/apply/update"
             :params          {:data params
@@ -60,17 +34,19 @@
 ;; change to the uri of the next prompt.
 (reg-event-fx
  :prompt/next
- (fn [{:keys [db] :as cofx} [_ data]]
-   {:db         (assoc db :prompt/loading true)
-    :http-xhrio (save-request (:prompt/current db) data [:prompt.next/success data])}))
+ (fn [{:keys [db] :as cofx} _]
+   ;; get the local data
+   (let [data (get-in db [(:prompt/current db) :local])]
+     {:db         (assoc db :prompt/loading true)
+      :http-xhrio (save-request (:prompt/current db) data [:prompt.next/success data])})))
 
 (reg-event-fx
  :prompt.next/success
  (fn [{:keys [db]} [_ data result]]
    (let [prompt-key (:prompt/current db)]
-     (l/log result)
-     {:route (next-uri prompt-key)
-      :db    (assoc db prompt-key data :prompt/loading false)})))
+     {:route    (next-uri prompt-key)
+      :dispatch [:app/parse result]
+      :db       (assoc db :prompt/loading false)})))      ; no longer loading
 
 (reg-event-fx
  :prompt/save
@@ -78,11 +54,17 @@
    ;; TODO:
    ))
 
+;; the bouncer errors come in the form [<error key> [<vector of errors>]]
+(defn- parse-error [error]
+  (if (sequential? error)
+    (first (second error))
+    error))
+
 (defn- errors-for [error]
-  (let [default "Whoops! Something went wrong."]
+  (let [default "Whoops! Something went wrong. Please try again."]
     (n/error
      (case (:status error)
-       404 default
+       400 (first (map parse-error (-> error :response :errors)))
        default))))
 
 (reg-event-fx

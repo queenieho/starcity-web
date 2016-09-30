@@ -19,7 +19,7 @@
    {:db         (assoc db :loading true)
     :http-xhrio {:method :get
                  :uri (api/route (str "applications/" id))
-                 :response-format (ajax/json-response-format {:keywords? true?})
+                 :response-format (ajax/json-response-format {:keywords? true})
                  :on-success [:application.fetch/success]
                  :on-failure [:application.fetch/fail]}}))
 

@@ -12,7 +12,7 @@
    :overview/advisor "Community Advisor"
 
    :logistics/communities  "Choose Communities"
-   :logistics/term         "Duration of Stay"
+   :logistics/license         "Duration of Stay"
    :logistics/move-in-date "Move-in Date"
    :logistics/pets         "Pets"
 
@@ -40,7 +40,7 @@
 
 (defn- menu-item* [curr-prompt this-prompt]
   (let [complete-key (keyword (str (namespace this-prompt) "." (name this-prompt)) "complete?")
-        complete?    (if (complete-blacklist this-prompt) (r/atom false) (subscribe [complete-key]))]
+        complete?    (if (complete-blacklist this-prompt) (r/atom false) (subscribe [complete-key :synced]))]
     (fn [curr-prompt this-prompt]
       [:li
        [:a {:class (str (when (= this-prompt curr-prompt) "is-active")
@@ -73,7 +73,7 @@
    (menu-label "Logistics")
    [menu-list
     :logistics/communities
-    :logistics/term
+    :logistics/license
     :logistics/move-in-date
     :logistics/pets]
    (menu-label "Personal Information")

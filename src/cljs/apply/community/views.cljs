@@ -10,8 +10,7 @@
 ;; =============================================================================
 
 (defn why-starcity []
-  (let [saved-answer (subscribe [:community/why-starcity])
-        answer       (r/atom @saved-answer)]
+  (let [answer (subscribe [:community.why-starcity/form-data])]
     (fn []
       (p/prompt
        (p/header "Why are you interested in joining Starcity?")
@@ -24,21 +23,15 @@
           [:div.form-group
            [:label.label "Enter your answer below."]
            [:textarea.textarea
-            {:default-value @answer
-             :on-change     #(reset! answer (dom/val %))}]]]])
-       (p/footer
-        :previous-prompt :personal/income
-        :next [p/next-button
-               :on-click #(dispatch [:prompt/next @answer])
-               :disabled (not (m/answer-long-enough? @answer))])))))
+            {:value     @answer
+             :on-change #(dispatch [:community/why-starcity (dom/val %)])}]]]])))))
 
 ;; =============================================================================
 ;; About You
 ;; =============================================================================
 
 (defn about-you []
-  (let [saved-answers (subscribe [:community/about-you])
-        answer        (r/atom @saved-answers)]
+  (let [answers (subscribe [:community.about-you/form-data])]
     (fn []
       (p/prompt
        (p/header "Tell us a bit about yourself.")
@@ -49,26 +42,20 @@
           [:div.form-group
            [:label.label "What do you like to do in your free time?"]
            [:textarea.textarea
-            {:default-value (:free-time @answer)
-             :on-change     #(swap! answer assoc :free-time (dom/val %))}]]
+            {:value     (:free-time @answers)
+             :on-change #(dispatch [:community/about-you :free-time (dom/val %)])}]]
           [:div.form-group
            [:label.label "Do you have any dealbreakers?"]
            [:textarea.textarea
-            {:default-value (:dealbreakers @answer)
-             :on-change     #(swap! answer assoc :dealbreakers (dom/val %))}]]]])
-       (p/footer
-        :previous-prompt :community/why-starcity
-        :next [p/next-button
-               :on-click #(dispatch [:prompt/next @answer])
-               :disabled (not (m/about-you-complete? @answer))])))))
+            {:value     (:dealbreakers @answers)
+             :on-change #(dispatch [:community/about-you :dealbreakers (dom/val %)])}]]]])))))
 
 ;; =============================================================================
 ;; Communal Living
 ;; =============================================================================
 
 (defn communal-living []
-  (let [saved-answers (subscribe [:community/communal-living])
-        answer        (r/atom @saved-answers)]
+  (let [answers (subscribe [:community.communal-living/form-data])]
     (fn []
       (p/prompt
        (p/header "TODO:")
@@ -79,15 +66,10 @@
           [:div.form-group
            [:label.label "Do you have any experience with communal living?"]
            [:textarea.textarea
-            {:default-value (:prior-experience @answer)
-             :on-change     #(swap! answer assoc :prior-experience (dom/val %))}]]
+            {:value     (:prior-experience @answers)
+             :on-change #(dispatch [:community/communal-living :prior-experience (dom/val %)])}]]
           [:div.form-group
            [:label.label "What will you bring to the community?"]
            [:textarea.textarea
-            {:default-value (:skills @answer)
-             :on-change     #(swap! answer assoc :skills (dom/val %))}]]]])
-       (p/footer
-        :previous-prompt :community/about-you
-        :next [p/next-button
-               :on-click #(dispatch [:prompt/next @answer])
-               :disabled (not (m/communal-living-complete? @answer))])))))
+            {:value     (:skills @answers)
+             :on-change #(dispatch [:community/communal-living :skills (dom/val %)])}]]]])))))

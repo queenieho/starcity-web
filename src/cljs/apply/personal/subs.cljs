@@ -1,28 +1,62 @@
 (ns apply.personal.subs
-  (:require [re-frame.core :refer [reg-sub]]
-            [apply.personal.models :as m]))
+  (:require [apply.prompts.models :as prompts]
+            [re-frame.core :refer [reg-sub]]
+            [bouncer.core :as b]
+            [bouncer.validators :as v]))
 
-(reg-sub
- :personal/background
- (fn [db _]
-   (get db :personal/background {})))
-
-(reg-sub
- :personal.background/complete?
- :<- [:personal/background]
- (fn [info _]
-   (m/background-complete? info)))
+;; =============================================================================
+;; Phone number
 
 (reg-sub
  :personal/phone-number
  (fn [db _]
-   (get db :personal/phone-number "")))
+   (get db :personal/phone-number)))
+
+(reg-sub
+ :personal.phone-number/form-data
+ :<- [:personal/phone-number]
+ (prompts/form-data :phone-number))
+
+(defn- phone-number-complete? [phone-number]
+  (re-matches #"(^1\d{10}$)|(^[^1]\d{9})" phone-number))
 
 (reg-sub
  :personal.phone-number/complete?
  :<- [:personal/phone-number]
- (fn [phone-number _]
-   (m/phone-number-complete? phone-number)))
+ (prompts/complete-when phone-number-complete? :phone-number))
+
+;; =============================================================================
+;; Background
+
+(reg-sub
+ :personal/background
+ (fn [db _]
+   (get db :personal/background)))
+
+(reg-sub
+ :personal.background/form-data
+ :<- [:personal/background]
+ (prompts/form-data))
+
+(defn- background-complete?
+  [background-info]
+  (b/valid?
+   background-info
+   {:dob     v/required
+    :name    {:first v/required
+              :last  v/required}
+    :address {:city  v/required
+              :state v/required
+              :zip   [v/required [v/matches #"^\d{5}(-\d{4})?$"]]}
+    :consent [v/required true?]}))
+
+(reg-sub
+ :personal.background/complete?
+ :<- [:personal/background]
+ (prompts/complete-when background-complete?))
+
+;; =============================================================================
+;; Income
 
 (reg-sub
  :personal/income
@@ -30,7 +64,16 @@
    (get db :personal/income)))
 
 (reg-sub
+ :personal.income/form-data
+ :<- [:personal/income]
+ (prompts/form-data))
+
+(defn- income-complete? [data]
+  (if (map? data)
+    (not-empty (:paths data))
+    (not (nil? data))))
+
+(reg-sub
  :personal.income/complete?
  :<- [:personal/income]
- (fn [files _]
-   (not (nil? files))))
+ (prompts/complete-when income-complete?))

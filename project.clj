@@ -11,7 +11,7 @@
                  [org.clojure/test.check "0.9.0"]
                  [org.clojure/tools.cli "0.3.5"]
                  [http-kit "2.2.0"]
-                 [clj-http "3.2.0"]
+                 [clj-http "3.3.0"]
                  [compojure "1.5.1"]
                  [cheshire "5.6.3"]
                  [ring/ring-json "0.4.0"]
@@ -28,18 +28,22 @@
                  [clj-time "0.12.0"]
                  ;; db
                  [com.datomic/datomic-pro "0.9.5372" :exclusions [com.google.guava/guava]]
-                 [org.postgresql/postgresql "9.4.1210"]
+                 [org.postgresql/postgresql "9.4.1211"]
                  ;; util
                  [prismatic/plumbing "0.5.3"]
                  ;; cljs
                  [cljsjs/flatpickr "2.0.0-rc.7-0"]
-                 [cljsjs/field-kit "2.0.4-0"]
+                 [cljsjs/field-kit "2.0.4-1"]
                  [com.andrewmcveigh/cljs-time "0.5.0-alpha1"]
-                 [reagent "0.6.0-rc"]
+                 [reagent "0.6.0"]
                  [re-frame "0.8.0"]
                  [secretary "1.2.3"]
                  [venantius/accountant "0.1.7"]
                  [day8.re-frame/http-fx "0.0.4"]]
+
+  :repositories [["my.datomic.com" {:url "https://my.datomic.com/repo"
+                                    :username [:env/datomic_username]
+                                    :password [:env/datomic_password]}]]
 
   :plugins [[lein-cljsbuild "1.1.4"]]
 

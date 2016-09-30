@@ -100,7 +100,7 @@
    (d/db conn) account-id))
 
 (s/fdef by-account-id
-        :args (s/cat :account-id integer?))
+        :args (s/cat :account-id :starcity.spec/lookup))
 
 (defn logistics-complete?
   "Returns true if the logistics section of the application can be considered

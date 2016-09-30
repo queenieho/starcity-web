@@ -29,9 +29,7 @@
        "is determined by community members using the responses you provide."]
       ;; Final Steps
       [:li "TODO: Talk about final steps wrt payment, tos, etc."]]])
-
-   (p/footer
-    :next (p/next-link :overview/advisor))))
+   (p/footer :next-link :overview/advisor)))
 
 (defn advisor []
   (p/prompt
@@ -46,6 +44,4 @@
      [:p "On a related note, selection of communities could result in the
      community advisors being shown (or we could just show them there by
      default.)"]])
-   (p/footer
-    :previous-prompt :overview/welcome
-    :next (p/next-link :logistics/communities "Begin"))))
+   (p/footer :next-link :logistics/communities :next-label "Begin")))

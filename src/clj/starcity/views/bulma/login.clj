@@ -14,7 +14,7 @@
 
 (defn- login-form
   [{:keys [next reset-password email]}]
-  (let [focus-email? (= email "")]
+  (let [focus-email? (empty? email)]
     (f/form-to
      [:post "/login"]
      (f/hidden-field "next" next)

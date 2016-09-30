@@ -67,9 +67,12 @@
   (ANY  "/logout"       [] auth/logout!)
 
   ;; New Application
-  (GET "/apply" [] (restrict application/show-apply
-                             {:handler  {:and [authenticated-user (user-isa :account.role/applicant)]}
-                              :on-error redirect-by-role}))
+  (context "/apply" []
+    (restrict
+        (routes
+         (GET "*" [] application/show-apply))
+      {:handler  {:and [authenticated-user (user-isa :account.role/applicant)]}
+       :on-error redirect-by-role}))
 
   (context "/account" []
     (restrict
@@ -147,8 +150,7 @@
       {:handler  {:and [authenticated-user (user-isa :account.role/pending)]}
        :on-error redirect-by-role}))
 
-  (context "/api/v1" []
-    (restrict api/routes {:handler authenticated-user}))
+  (context "/api/v1" [] api/routes)
 
   (context "/webhooks" []
     (POST "/plaid" [] plaid/hook)

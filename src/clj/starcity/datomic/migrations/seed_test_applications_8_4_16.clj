@@ -19,7 +19,6 @@
                                                            :address/postal-code "94611"}
                  :member-application/desired-properties   [[:property/internal-name "52gilbert"]
                                                            [:property/internal-name "229ellis"]
-                                                           [:property/internal-name "361turk"]
                                                            [:property/internal-name "2072mission"]]
                  :member-application/desired-license      (:db/id (one (d/db conn) :license/term 6))
                  :member-application/locked               true
@@ -96,5 +95,4 @@
                :starcity/add-income-files-schema-8-3-16
                :starcity/seed-mission
                :starcity/seed-union-square
-               :starcity/seed-historic-tenderloin
                :starcity/seed-gilbert]}})

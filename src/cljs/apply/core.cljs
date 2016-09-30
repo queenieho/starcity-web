@@ -5,7 +5,8 @@
             [apply.subs]
             [apply.events]
             [re-frame.core :refer [dispatch-sync]]
-            [reagent.core :as reagent]))
+            [reagent.core :as reagent]
+            [clojure.spec.test :as stest]))
 
 ;; =============================================================================
 ;; Config
@@ -17,8 +18,7 @@
 ;; API
 ;; =============================================================================
 
-(defn ^:export run
-  []
+(defn ^:export run []
   (routes/app-routes)
   (dispatch-sync [:app/initialize])
   (reagent/render [app] (.getElementById js/document "apply")))

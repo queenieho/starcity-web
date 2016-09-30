@@ -1,6 +1,5 @@
 (ns apply.personal.views
   (:require [apply.prompts.views :as p]
-            [apply.personal.models :as m]
             [apply.states :as states]
             [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]
@@ -19,17 +18,22 @@
    {:display-name "phone-number-content"
 
     :component-did-mount
-    (fn [_]
+    (fn [this]
       (let [elt   (js/document.getElementById "phone-number")
             field (js/FieldKit.TextField. elt (js/FieldKit.PhoneFormatter.))
-            attrs {:textDidChange #(reset! phone-number (.value %))}]
-        (.setValue field @phone-number)
-        (.setDelegate field (clj->js attrs))))
+            attrs {:textDidChange #(dispatch [:personal.phone-number/change (.value %)])}]
+        (.setValue field (:data phone-number))
+        (.setDelegate field (clj->js attrs))
+        (r/set-state this {:field-kit field})))
+
+    :component-did-update
+    (fn [this _]
+      (.setValue (:field-kit (r/state this)) (:data (r/props this))))
 
     :reagent-render
-    (fn [phone-number]
+    (fn [_]
       [:div.content
-       [:p "TODO: Why do we need your phone number?"]
+       [:p "TODO: Why do we need your phone number? Some reason."]
        [:div.form-container
         [:div.form-group
          [:label.label "Enter your phone number below."]
@@ -42,17 +46,11 @@
 ;; API
 
 (defn phone-number []
-  (let [entered-phone-number (subscribe [:personal/phone-number])
-        phone-number (r/atom @entered-phone-number)]
+  (let [phone-number (subscribe [:personal.phone-number/form-data])]
     (fn []
       (p/prompt
        (p/header "What is the best phone number to reach you at?")
-       (p/content [phone-number-content phone-number])
-       (p/footer
-        :previous-prompt :logistics/pets
-        :next [p/next-button
-               :on-click #(dispatch [:prompt/next @phone-number])
-               :disabled (not (m/phone-number-complete? @phone-number))])))))
+       (p/content [phone-number-content {:data @phone-number}])))))
 
 ;; =============================================================================
 ;; Basic Info
@@ -81,74 +79,82 @@
         [:li [:a {:href "mailto:support@communitysafety.goodhire.com"} "support@communitysafety.goodhire.com"]]]
 
        [:button.button.is-success
-        {:on-click #(do (swap! info assoc :consent true)
+        {:on-click #(do (dispatch [:personal.background/consent true])
                         (reset! showing false))
          :style {:margin-right "10px"}}
         "Agree"]
        [:button.button.is-danger {:on-click #(reset! showing false)} "Disagree"]]]]]
    [:button.modal-close {:on-click #(reset! showing false)}]])
 
-(defn- consent-group [info]
+(defn- consent-group [_]
   (let [showing-modal (r/atom false)]
-    (fn [info]
-      (let [consent-given? (:consent @info)]
-        [:div.form-group
-         [:label.label "First, do we have your consent to perform a background check?"]
-         [:p.control
-          [:label.checkbox
-           [:input.checkbox {:type     "checkbox"
-                             :checked  consent-given?
-                             :on-click (fn [evt]
-                                         (if-not consent-given?
-                                           (do (.preventDefault evt)
-                                               (reset! showing-modal (not @showing-modal)))
-                                           (swap! info assoc :consent false)))}]
-           "Yes, I authorize Starcity to perform a background check on me."]]
+    (fn [{:keys [consent] :as info}]
+      [:div.form-group
+       [:label.label "First, do we have your consent to perform a background check?"]
+       [:p.control
+        [:label.checkbox
+         [:input.checkbox {:type      "checkbox"
+                           :checked   consent
+                           :on-change (fn [evt]
+                                        (if-not consent
+                                          (do (.preventDefault evt)
+                                              (reset! showing-modal (not @showing-modal)))
+                                          (dispatch [:personal.background/consent false])))}]
+         "Yes, I authorize Starcity to perform a background check on me."]]
 
-         [consent-modal info showing-modal]]))))
+       [consent-modal info showing-modal]])))
 
-(defn- dob-group [info]
+(defn- dob-group [_]
   (r/create-class
    {:display-name "dob-group"
 
     :component-did-mount
-    (fn [_]
-      (let [elt (js/document.getElementById "date-picker")]
-        (js/window.Flatpickr. elt (clj->js {:altInput    true
-                                            :altFormat   "F j, Y"
-                                            :defaultDate (:dob @info)
-                                            :onChange    #(swap! info assoc :dob %)}))))
+    (fn [this]
+      (let [elt (js/document.getElementById "date-picker")
+            fp  (js/window.Flatpickr.
+                 elt
+                 (clj->js {:altInput    true
+                           :altFormat   "F j, Y"
+                           :defaultDate (:dob (r/props this))
+                           :onChange    #(dispatch [:personal.background/dob (.toISOString %)])}))]
+        (r/set-state this {:flatpickr fp})))
+
+    :component-did-update
+    (fn [this _]
+      (let [fp       (:flatpickr (r/state this))
+            new-date (:dob (r/props this))]
+        (when new-date
+          (.setDate fp new-date))))
 
     :reagent-render
-    (fn [info]
+    (fn [_]
       [:div.form-group
        [:label.label "Great! We'll need to know your birthday."]
        [:div.date-container
         [:input#date-picker.input {:placeholder "choose a date"}]]])}))
 
-(defn- name-group [info]
+(defn- name-group [{{:keys [first middle last]} :name}]
   (letfn [(-on-change [k]
-            #(swap! info assoc-in [:name k] (dom/val %)))]
-    (let [{:keys [first middle last]} (:name @info)]
-      [:div.form-group
-       [:label.label "Our background check will be the most accurate with your full legal name."]
-       [:div.control.is-grouped
-        ;; First name
-        [:p.control.is-expanded
-         [:input.input {:value first :on-change (-on-change :first)}]]
-        ;; Middle name
-        [:p.control.is-expanded
-         [:input.input {:placeholder "middle name"
-                        :value middle
-                        :on-change (-on-change :middle)}]]
-        ;; Last Name
-        [:p.control.is-expanded
-         [:input.input {:value last :on-change (-on-change :last)}]] ]])))
+            #(dispatch [:personal.background/name k (dom/val %)]))]
+    [:div.form-group
+     [:label.label "Our background check will be the most accurate with your full legal name."]
+     [:div.control.is-grouped
+      ;; First name
+      [:p.control.is-expanded
+       [:input.input {:value first :on-change (-on-change :first)}]]
+      ;; Middle name
+      [:p.control.is-expanded
+       [:input.input {:placeholder "middle name"
+                      :value       middle
+                      :on-change   (-on-change :middle)}]]
+      ;; Last Name
+      [:p.control.is-expanded
+       [:input.input {:value last :on-change (-on-change :last)}]] ]]))
 
-(defn- address-group [info]
+(defn- address-group [{:keys [address] :as info}]
   (letfn [(-on-change [k]
-            #(swap! info assoc-in [:address k] (dom/val %)))]
-    (let [{:keys [zip state city]} (:address @info)]
+            #(dispatch [:personal.background/address k (dom/val %)]))]
+    (let [{:keys [zip state city]} address]
       [:div.form-group
        [:label.label "Finally, we need to know some basic information about where you live."]
        [:div.control.is-grouped
@@ -170,7 +176,7 @@
                         :min         0
                         :on-change   (-on-change :zip)}]]]])))
 
-(defn- background-check-content [info]
+(defn- background-check-content [{:keys [consent] :as info}]
   [:div.content
    [:p "We perform background checks to ensure the safety of our community members. Your background check is "
     [:strong "completely confidential"]
@@ -178,7 +184,7 @@
 
    [:div.form-container
     [consent-group info]
-    (when (:consent @info)
+    (when consent
       [:div
        [dob-group info]
        [name-group info]
@@ -188,25 +194,20 @@
 ;; API
 
 (defn background-check-info []
-  (let [chosen-info (subscribe [:personal/background])
-        info        (r/atom @chosen-info)]
+  (let [info (subscribe [:personal.background/form-data])]
     (fn []
       (p/prompt
        (p/header "We need to know a few more things about you. (TODO:)")
-       (p/content [background-check-content info])
-       (p/footer
-        :previous-prompt :logistics/pets
-        :next [p/next-button
-               :on-click #(dispatch [:prompt/next @info])
-               :disabled (not (m/background-complete? @info))])))))
+       (p/content [background-check-content @info])
+       (p/footer)))))
 
 ;; =============================================================================
 ;; Income Verification
 ;; =============================================================================
 
-(defn- income-verification-content [files]
+(defn- income-verification-content []
   (let [complete? (subscribe [:personal.income/complete?])]
-    (fn [files]
+    (fn []
       [:div.content
        [:p "TODO:"]
        [:div.form-container
@@ -217,7 +218,7 @@
             "Please upload proof of income.")]
          [:input {:type      "file"
                   :multiple  true
-                  :on-change #(reset! files (.. % -currentTarget -files))}]]]])))
+                  :on-change #(dispatch [:personal.income/file-picked (.. % -currentTarget -files)])}]]]])))
 
 (defn- income-verification-complete []
   [:div.content
@@ -227,14 +228,6 @@
 ;; API
 
 (defn income-verification []
-  (let [uploaded-files (subscribe [:personal/income])
-        files          (r/atom nil)]
-    (fn []
-      (p/prompt
-       (p/header "TODO: We need to ensure that you have the income to pay rent.")
-       (p/content [income-verification-content files])
-       (p/footer
-        :previous-prompt :personal/background
-        :next [p/next-button
-               :on-click #(dispatch [:prompt/next @files])
-               :disabled (nil? @files)])))))
+  (p/prompt
+   (p/header "TODO: We need to ensure that you have the income to pay rent.")
+   (p/content [income-verification-content])))

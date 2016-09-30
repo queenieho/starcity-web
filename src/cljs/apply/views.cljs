@@ -22,7 +22,7 @@
         :overview/welcome          [overview/welcome]
         :overview/advisor          [overview/advisor]
         :logistics/communities     [logistics/choose-communities]
-        :logistics/term            [logistics/choose-plan]
+        :logistics/license         [logistics/choose-license]
         :logistics/move-in-date    [logistics/move-in-date]
         :logistics/pets            [logistics/pets]
         :personal/phone-number     [personal/phone-number]
