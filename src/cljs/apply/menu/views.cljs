@@ -1,6 +1,7 @@
 (ns apply.menu.views
-  (:require [re-frame.core :refer [subscribe]]
-            [apply.routes :refer [prompt-uri]]
+  (:require [apply.routes :refer [prompt-uri]]
+            [apply.prompts.models :as prompts]
+            [re-frame.core :refer [subscribe]]
             [reagent.core :as r]))
 
 ;; =============================================================================
@@ -9,10 +10,9 @@
 
 (def ^:private prompt-labels
   {:overview/welcome "Welcome!"
-   :overview/advisor "Community Advisor"
 
-   :logistics/communities  "Choose Communities"
-   :logistics/license         "Duration of Stay"
+   :logistics/communities  "Communities"
+   :logistics/license      "Duration of Stay"
    :logistics/move-in-date "Move-in Date"
    :logistics/pets         "Pets"
 
@@ -23,7 +23,7 @@
    :community/why-starcity    "Why Starcity?"
    :community/about-you       "About You"
    :community/communal-living "Communal Living"
-   })
+   :final/pay                 "Payment"})
 
 (defn- menu-label
   ([text]
@@ -34,30 +34,29 @@
      [:i.fa {:class (name icon)}]]
     text]))
 
-(def ^:private complete-blacklist
-  "Set of all the prompts that shouldn't be checked for completion."
-  #{:overview/welcome :overview/advisor})
-
-(defn- menu-item* [curr-prompt this-prompt]
-  (let [complete-key (keyword (str (namespace this-prompt) "." (name this-prompt)) "complete?")
-        complete?    (if (complete-blacklist this-prompt) (r/atom false) (subscribe [complete-key :synced]))]
-    (fn [curr-prompt this-prompt]
+(defn- menu-item* [curr-prompt this-prompt disabled]
+  (let [complete (subscribe [(prompts/complete-key this-prompt)])]
+    (fn [curr-prompt this-prompt disabled]
       [:li
        [:a {:class (str (when (= this-prompt curr-prompt) "is-active")
-                        ;; (when disabled " is-disabled")
-                        (when @complete? " is-complete"))
+                        (when disabled " is-disabled")
+                        (when (prompts/complete? @complete) " is-complete"))
             :href  (prompt-uri this-prompt)}
         (get prompt-labels this-prompt)
-        (when @complete?
+        (when (prompts/complete? @complete)
           [:span.is-pulled-right.icon.is-small [:i.fa.fa-check]])]])))
 
 (defn- menu-list [& prompts]
-  (let [curr-prompt (subscribe [:prompt/current])]
+  (let [curr-prompt (subscribe [:prompt/current])
+        finished    (subscribe [:prompt/finished?])]
     (fn [& prompts]
       [:ul.menu-list
        (doall
         (for [p prompts]
-          ^{:key (str "menu-list-item-" p)} [menu-item* @curr-prompt p]))])))
+          ^{:key (str "menu-list-item-" p)} [menu-item*
+                                             @curr-prompt
+                                             p
+                                             (and (not @finished) (= p :final/pay))]))])))
 
 
 ;; =============================================================================
@@ -68,8 +67,7 @@
   [:aside.menu.prompt-menu
    (menu-label "Overview")
    [menu-list
-    :overview/welcome
-    :overview/advisor]
+    :overview/welcome]
    (menu-label "Logistics")
    [menu-list
     :logistics/communities
@@ -86,9 +84,6 @@
     :community/why-starcity
     :community/about-you
     :community/communal-living]
-   ;; (menu-label "Finish")
-   ;; [menu-list
-   ;;  {:label "Terms &amp; Privacy" :disabled true}
-   ;;  {:label "Background Check" :disabled true}
-   ;;  {:label "Verify Income" :disabled true}]
-   ])
+   (menu-label "Finish")
+   [menu-list
+    :final/pay]])

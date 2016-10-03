@@ -41,10 +41,10 @@
        (p/header "Which Starcity communities would you like to join?")
        (p/content
         [:div.content
-         [:p "The first thing to do is choose which communities you're interested in living in."]
+         [:p "With communities located throughout San Francisco, we're sure you'll find one that complements your lifestyle."]
 
          [:div.form-container
-          [:label.label "Choose communities. TODO: copy"]
+          [:label.label "Select the communities you're interested in calling home."]
           (doall
            (for [c @communities]
              ^{:key (:internal-name c)} [community c @selections]))]])))))
@@ -118,13 +118,7 @@
   (let [licenses (subscribe [:logistics.license/available-licenses])]
     (fn [selected-license]
       [:div.content
-       [:p "We offer three different membership plans that vary from "
-        [:strong "most affordable "]
-        [:em "(1 year)"]
-        ", to "
-        [:strong "most flexible "]
-        [:em "(month-to-month)"]
-        "."]
+       [:p "We understand that each individual has unique housing needs, which is why we offer three membership plans ranging from " [:strong "most affordable"] " to " [:strong "most flexible"] "."]
 
        [:p "Our rates vary from community to community "
         [:span {:dangerouslySetInnerHTML {:__html "&mdash;"}}]
@@ -141,7 +135,7 @@
   (let [selected-license (subscribe [:logistics.license/form-data])]
     (fn []
       (p/prompt
-       (p/header "How long would you like to stay at Starcity?")
+       (p/header "How long would you like to be part of the Starcity community?")
        (p/content [choose-license-content @selected-license])))))
 
 ;; =============================================================================
@@ -177,7 +171,8 @@
       :reagent-render
       (fn [_]
         [:div.content
-         [:p "TODO: copy"]
+         [:p "We'll be there for you on move-in day to help you get your new room feeling like home."]
+         [:p [:strong "Disclaimer: "] "While we hope to be able to accommodate your preferred move-in date, we cannot guarantee that the date you choose will be the date that you move in."]
          [:div.form-container
           [:label.label "Choose your ideal move-in date."]
           [:div.date-container
@@ -206,74 +201,69 @@
 (defn- to-bool [yes-or-no]
   (= yes-or-no "yes"))
 
-(defn- has-pet [{has-pet? :has-pet?}]
+(defn- has-pet-control [{has-pet :has-pet}]
   [:div.form-group
-   [:label.label "Choose..."]
+   [:label.label "Do you have a pet?"]
    [:p.control
     (doall
      (for [[label value] [["Yes" "yes"] ["No" "no"]]]
        ^{:key label}
        [:label.radio
-        [:input {:type            "radio"
-                 :name            "has-pet"
-                 :default-checked (= has-pet? (to-bool value))
-                 :value           value
-                 :on-change       #(dispatch [:logistics.pets/has-pet (-> % dom/val to-bool)])}]
+        [:input {:type      "radio"
+                 :name      "has-pet"
+                 :checked   (= has-pet (to-bool value))
+                 :value     value
+                 :on-change #(dispatch [:logistics.pets/has-pet (-> % dom/val to-bool)])}]
         label]))]])
 
-(defn- pet-type [{:keys [has-pet? pet-type]}]
-  (when has-pet?
-    [:div.form-group
-     [:label.label "What kind of pet do you have?"]
-     [:p.control
-      (doall
-       (for [[label value] [["Dog" "dog"] ["Cat" "cat"] ["Other" "other"]]]
-         ^{:key label}
-         [:label.radio
-          [:input {:type            "radio"
-                   :name            "pet-type"
-                   :default-checked (= pet-type value)
-                   :value           value
-                   :on-change       #(dispatch [:logistics.pets/choose-type (dom/val %)])}]
-          label]))]]))
-
-(defn- dog-fields [{weight :weight, breed :breed}]
-  (letfn [(-on-change [k]
-            #(dispatch [(keyword "logistics.pets" (name k)) (dom/val %)]))]
-    [:div.form-group
-     [:label.label "Please tell us a bit about your dog."]
-     [:div.control.is-grouped
-      [:p.control.is-expanded
-       [:input.input {:placeholder "What breed?"
-                      :value       breed
-                      :on-change   (-on-change :breed)}]]
-      [:p.control.is-expanded
-       [:input.input {:type        "number"
-                      :placeholder "How much does he/she weigh?"
-                      :value       weight
-                      :on-change   (-on-change :weight)}]]]]))
-
-(defn- other-pet-fields [{other :other}]
+(defn- pet-type-control [{pet-type :pet-type}]
   [:div.form-group
    [:label.label "What kind of pet do you have?"]
-   [:input.input {:placeholder "e.g. iguana"
-                  :value       other
-                  :on-change   #(dispatch [:logistics.pets/other (dom/val %)])}]])
+   [:p.control
+    (doall
+     (for [[label value] [["Dog" "dog"] ["Cat" "cat"]]]
+       ^{:key label}
+       [:label.radio
+        [:input {:type      "radio"
+                 :name      "pet-type"
+                 :checked   (= pet-type value)
+                 :value     value
+                 :on-change #(dispatch [:logistics.pets/choose-type (dom/val %)])}]
+        label]))]])
 
-(defn- pet-specific-fields [{:keys [has-pet? pet-type] :as info}]
-  (when has-pet?
-    (case pet-type
-      "dog"   [dog-fields info]
-      "other" [other-pet-fields info]
-      [:div])))
+(defn- dog-controls [{weight :weight, breed :breed}]
+  (letfn [(-on-change
+            ([k]
+             (-on-change k identity))
+            ([k tf]
+             #(dispatch [(keyword "logistics.pets" (name k)) (tf (dom/val %))])))]
+    [:div.form-group
+     [:label.label "Please tell us a bit about your dog."]
+     [:div.control.columns
+      [:div.column.control
+       [:input.input
+        {:placeholder "What breed?"
+         :value       breed
+         :on-change   (-on-change :breed)}]]
+      [:div.column.control.has-addons
+       [:input.input.is-expanded
+        {:type        "number"
+         :placeholder "How much does he/she weigh?"
+         :value       weight
+         :on-change   (-on-change :weight js/parseInt)}]
+       [:a.button.is-disabled "lbs"]]]]))
 
-(defn- pets-content [pet-info]
-  [:div.content
-   [:p "TODO:"]
-   [:div.form-container
-    [has-pet pet-info]
-    [pet-type pet-info]
-    [pet-specific-fields pet-info]]])
+(defn- pets-content
+  [{:keys [has-pet] :as pet-info}]
+  (let [has-dog? (and has-pet (#{"dog"} (:pet-type pet-info)))]
+    [:div.content
+     [:p "Most of our communities are pet-friendly. Let us know if a pet will be moving with you, and if so what type."]
+     [:div.form-container
+      [has-pet-control pet-info]
+      (when has-pet
+        [pet-type-control pet-info])
+      (when has-dog?
+        [dog-controls pet-info])]]))
 
 ;; =============================================================================
 ;; API
@@ -282,5 +272,5 @@
   (let [pets-info (subscribe [:logistics.pets/form-data])]
     (fn []
       (p/prompt
-       (p/header "Do you have any pets?")
+       (p/header "Do you have a furry friend who will be living with you?")
        (p/content [pets-content @pets-info])))))

@@ -3,6 +3,7 @@
             [apply.logistics.events]
             [apply.personal.events]
             [apply.community.events]
+            [apply.prompts.models :as prompts]
             [apply.db :refer [default-value]]
             [apply.routes :refer [navigate!]]
             [apply.api :as api]
@@ -48,8 +49,10 @@
 
 (reg-event-fx
  :app/parse
- (fn [_ [_ result]]
-   {:dispatch-n [[:logistics/parse result]
+ [re-frame.core/debug]
+ (fn [{db :db} [_ {:keys [complete] :as result}]]
+   {:db         (prompts/complete db complete)
+    :dispatch-n [[:logistics/parse result]
                  [:personal/parse result]
                  [:community/parse result]]}))
 
@@ -85,6 +88,11 @@
  :notification/delete
  (fn [db [_ idx]]
    (assoc db :app/notifications (remove-at (:app/notifications db) idx))))
+
+(reg-event-db
+ :notification/clear-all
+ (fn [db _]
+   (assoc db :app/notifications [])))
 
 ;; Allow route changes to be expressed as events
 (reg-fx

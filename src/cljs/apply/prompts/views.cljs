@@ -3,65 +3,113 @@
             [apply.prompts.models :as prompts]
             [starcity.components.icons :as i]
             [re-frame.core :refer [dispatch subscribe]]
-            [reagent.core :as r])
+            [reagent.core :as r]
+            [starcity.dom :as dom])
   (:refer-clojure :exclude [next]))
 
 ;; =============================================================================
-;; Helpers
+;; Internal Components
 ;; =============================================================================
 
-(defn- next-button [label]
-  (let [curr-prompt (subscribe [:prompt/current])
-        loading?    (subscribe [:prompt/loading])
-        complete?   (subscribe [(prompts/complete-key @curr-prompt) :unsynced])]
-    (fn [label]
-      [:a.next.is-medium.button.is-primary.is-pulled-right
-       {:on-click #(dispatch [:prompt/next])
-        :class    (str (when-not @complete? "is-disabled ")
-                       (when @loading? " is-loading"))}
-       [:span label]
+(defn- next-button [curr-prompt complete]
+  (let [loading (subscribe [:prompt/is-loading])
+        label   (subscribe [:prompt/next-button-label])]
+    (fn [curr-prompt complete]
+      [:button.next.is-medium.button.is-primary
+       {:type  "submit"
+        :class (str (when-not (prompts/locally-complete? complete)
+                      "is-disabled")
+                    (when @loading " is-loading"))}
+       [:span @label]
        (i/angle-right)])))
 
-(defn- next-link*
-  [link-to label]
-  [:a.next.is-medium.button.is-primary.is-pulled-right
-   {:href (prompt-uri link-to)}
-   [:span label]
-   (i/angle-right)])
+(defn- save-button [curr-prompt complete]
+  (let [saving   (subscribe [:prompt/is-saving])
+        can-save (subscribe [:prompt/can-save?])]
+    (fn [curr-prompt complete]
+      [:button.is-medium.button.is-info
+       {:type     "button"
+        :on-click #(dispatch [:prompt/save])
+        :class    (str (when @saving "is-loading")
+                       (when-not @can-save " is-disabled"))}
+       [:span (if @can-save "Save" "Saved")]])))
 
-(defn- previous-button []
-  (let [previous-prompt (subscribe [:prompt/previous])]
+(defn- previous-button [previous-prompt]
+  [:a.button.is-medium.previous {:href (prompt-uri previous-prompt)}
+   (i/angle-left)
+   [:span "Back"]])
+
+(defn- footer []
+  (let [curr-prompt     (subscribe [:prompt/current])
+        complete        (subscribe [(prompts/complete-key @curr-prompt)])
+        previous-prompt (subscribe [:prompt/previous])]
     (fn []
-      [:a.button.is-medium.previous {:href (prompt-uri @previous-prompt)}
-       (i/angle-left)
-       [:span "Previous"]])))
+      [:div.columns.is-mobile.prompt-controls
+       (when @previous-prompt
+         [:div.column.has-text-left [previous-button @previous-prompt]])
+       [:div.column
+        [:div.is-grouped.control
+         {:style {:justify-content "flex-end"}}
+         (when (prompts/complete? @complete)
+           [:p.control [save-button @curr-prompt @complete]])
+         [:p.control [next-button @curr-prompt @complete]]]]])))
+
+(def ^:private mo-image
+  [:img.is-circular
+   {:src "/assets/img/mo.jpg" :alt "community advisor headshot"}])
+
+(defn- contact-modal []
+  (let [question (subscribe [:prompt.help/form-data])
+        showing  (subscribe [:prompt.help/showing?])
+        can-send (subscribe [:prompt.help/can-send?])
+        loading  (subscribe [:prompt.help/loading?])]
+    (fn []
+      [:div.modal {:class (when @showing "is-active")}
+       [:div.modal-background
+        {:on-click #(dispatch [:prompt.help/toggle])}]
+       [:div.modal-content
+        [:div.box
+         [:div.media
+          [:figure.media-left
+           [:p.image.is-96x96 mo-image]]
+          [:div.media-content
+           [:form {:on-submit #(do (.preventDefault %)
+                                   (dispatch [:prompt.help/send]))}
+            [:p.title.is-5 "How can I help?"]
+            [:p.control
+             [:textarea.textarea
+              {:placeholder "Enter your question here."
+               :value       @question
+               :on-change   #(dispatch [:prompt.help/change (dom/val %)])}]]
+            [:p.control
+             [:button.button.is-info
+              {:type  "submit"
+               :class (str (when-not @can-send "is-disabled")
+                           (when @loading " is-loading"))}
+              "Send"]]]]]]]
+       [:button.modal-close {:on-click #(dispatch [:prompt.help/toggle])}]])))
 
 ;; =============================================================================
 ;; API
 ;; =============================================================================
 
 (defn header
-  [title & [subtitle]]
+  [title]
   [:header
-   [:h3.title.is-4 title]
-   (when subtitle
-     [:h4.title.is-5 subtitle])])
+   [:figure.image.is-64x64
+    [:a {:on-click #(dispatch [:prompt.help/toggle])} mo-image]]
+   [:h3.prompt-title.title.is-4 title]
+   [contact-modal]])
 
 (defn content [content]
   [:div.prompt-content
    content])
 
-(defn footer
-  [& {:keys [previous? next-link next-label] :or {previous? true, next-label "Next"}}]
-  [:nav.prompt-controls
-   (when previous?
-     [previous-button])
-   (if next-link
-     (next-link* next-link next-label)
-     [next-button next-label])])
-
-(defn prompt [header content & [foot]]
+(defn prompt [header content]
   [:div.prompt
    header
-   content
-   (or foot (footer))])
+   [:form {:on-submit #(do
+                         (.preventDefault %)
+                         (dispatch [:prompt/next]))}
+    content
+    [footer]]])

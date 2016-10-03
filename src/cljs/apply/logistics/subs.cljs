@@ -125,15 +125,13 @@
  :<- [:logistics/pets]
  (prompts/form-data))
 
-(defn- pets-complete? [{:keys [has-pet? pet-type breed weight other]}]
+(defn- pets-complete? [{:keys [has-pet pet-type breed weight]}]
   (cond
-    (false? has-pet?) true
-    (nil? has-pet?)   false
-    :otherwise        (when pet-type
-                        (case pet-type
-                          "dog"   (and breed weight)
-                          "other" other
-                          true))))
+    (false? has-pet) true
+    (nil? has-pet)   false
+    :otherwise       (if (= pet-type "dog")
+                       (and breed weight)
+                       true)))
 
 ;; The completion logic can also by hooked in by passing pet data as a param
 (reg-sub

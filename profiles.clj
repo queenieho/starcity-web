@@ -16,7 +16,7 @@
                                      :optimizations    :advanced
                                      :elide-asserts    true
                                      :pretty-print     false
-                                     :externs          []
+                                     :parallel-build   true
                                      :asset-path       "/js/cljs/admin/out"
                                      :output-dir       "resources/public/js/cljs/admin/out"
                                      :output-to        "resources/public/js/cljs/admin.js"
@@ -29,7 +29,7 @@
                                      :optimizations    :advanced
                                      :elide-asserts    true
                                      :pretty-print     false
-                                     :externs          []
+                                     :parallel-build   true
                                      :asset-path       "/js/cljs/apply/out"
                                      :output-dir       "resources/public/js/cljs/apply/out"
                                      :output-to        "resources/public/js/cljs/apply.js"

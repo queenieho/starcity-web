@@ -28,8 +28,7 @@
                                                            :community-fitness/skills                  "Emacs. Codez."
                                                            :community-fitness/free-time               "Photography."
                                                            :community-fitness/dealbreakers            "Stupidity."}
-                 :member-application/submitted-at         (c/to-date (t/date-time 2016 8 1))
-                 :member-application/pet                  {:pet/type "cat"}}
+                 :member-application/submitted-at         (c/to-date (t/date-time 2016 8 1))}
                 {:account/member-application application-id
                  :db/id                      [:account/email "test@test.com"]}
                 {:db/id               (d/tempid (:partition datomic))

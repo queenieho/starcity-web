@@ -12,15 +12,18 @@
 ;; =============================================================================
 
 ;; NOTE: Currently assuming they're all errors...
-(defn- notification [idx {:keys [message]}]
-  [n/danger message #(dispatch [:notification/delete idx])])
+(defn- notification [idx {:keys [message type]}]
+  (let [f (case type
+            :success n/success
+            :error   n/danger
+            n/danger)]
+    [f message #(dispatch [:notification/delete idx])]))
 
 (defn- prompt []
   (let [current-prompt (subscribe [:prompt/current])]
     (fn []
       (case @current-prompt
         :overview/welcome          [overview/welcome]
-        :overview/advisor          [overview/advisor]
         :logistics/communities     [logistics/choose-communities]
         :logistics/license         [logistics/choose-license]
         :logistics/move-in-date    [logistics/move-in-date]
@@ -42,7 +45,7 @@
     (fn []
       [:div.container
        [:div.columns
-        [:div.column.is-one-quarter
+        [:div.column.is-one-quarter.is-hidden-mobile
          [menu]]
         [:div.column
          (doall

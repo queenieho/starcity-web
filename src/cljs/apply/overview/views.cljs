@@ -2,14 +2,19 @@
   (:require [apply.prompts.views :as p]
             [apply.routes :refer [prompt-uri]]))
 
-(defn welcome []
-  (p/prompt
-   (p/header "Account Verified!")
-   (p/content
-    [:div.content
-     [:p "Congratulations! You've taken the first step towards joining a Starcity community. We're looking forward to learning more about you."]
+(def ^:private welcome-content
+  [:div.content
+     [:p "My name is Mo Sakrani, and I'm your community advisor.
+     Congratulations! You've taken your first step towards joining a Starcity
+     community. We're looking forward to getting to know you."]
 
-     [:p "Here's a quick overview of our application process to get you comfortable with what's ahead."]
+     [:p "As your community advisor, I'm here to assist you in submitting your
+     application, getting oriented with our communities, and helping you feel at
+     home in our communal living spaces. " [:strong "If you have a question at
+     any time, click on my picture to send me a message."]]
+
+     [:p "Here's a quick overview of our applciation process to get you
+     comfortable with what's ahead."]
 
      [:ul
       ;; Logistics
@@ -28,20 +33,9 @@
        [:strong "Community fitness "]
        "is determined by community members using the responses you provide."]
       ;; Final Steps
-      [:li "TODO: Talk about final steps wrt payment, tos, etc."]]])
-   (p/footer :next-link :overview/advisor)))
+      [:li [:strong "Finish"] " your application by paying our application fee of " [:em "$25."]]]])
 
-(defn advisor []
+(defn welcome []
   (p/prompt
-   (p/header "Hi, I'm your Community Advisor!")
-   (p/content
-    [:div.content
-     ;; NOTE: "My name is Mo. Nice to meet you!"
-     [:p "Here's the idea: Have this be a welcome from the head of community
-    advisors (or whatever), Mo, and mention that you'll see other community
-    advisors specific to the community after making your selection. The
-    introduction of the concept will also come from Mo."]
-     [:p "On a related note, selection of communities could result in the
-     community advisors being shown (or we could just show them there by
-     default.)"]])
-   (p/footer :next-link :logistics/communities :next-label "Begin")))
+   (p/header "Hi. Welcome to Starcity!")
+   (p/content welcome-content)))

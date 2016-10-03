@@ -6,3 +6,4 @@
    content])
 
 (def danger (partial notification "is-danger"))
+(def success (partial notification "is-success"))

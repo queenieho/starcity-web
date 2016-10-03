@@ -63,7 +63,21 @@
   (b/validate
    data
    {:move-in-date [[v/required :message "You must supply a move-in-date."]
-                   [v/datetime]]}))
+                   v/datetime]}))
+
+(defmethod validate :logistics/pets
+  [data _]
+  (let [has-pet? :has-pet
+        has-dog? (comp #{"dog"} :pet-type)]
+    (b/validate
+     data
+     {:has-pet  [[v/required :message "Please let us know whether or not you have a pet."]
+                 v/boolean]
+      :pet-type [[v/required :message "Please let us know what type of pet you have." :pre has-pet?]
+                 [v/member #{"cat" "dog"} :message "Your pet must be either a cat or a dog." :pre has-pet?]]
+      :breed    [[v/required :message "Please let us know what kind of dog you have." :pre has-dog?]]
+      :weight   [[v/required :message "Please let us know how much your dog weights." :pre has-dog?]
+                 [v/integer :message "The weight must be an integer."]]})))
 
 (defmethod validate :personal/phone-number
   [data _]
@@ -148,6 +162,10 @@
           (api/server-error "Something went wrong while uploading your proof of income. Please try again.")))
       (api/malformed {:errors ["You must choose at least one file to upload."]}))))
 
+(defn help-handler
+  [{:keys [params] :as req}]
+  (api/ok {:message "Success!"}))
+
 ;; =============================================================================
 ;; Routes
 ;; =============================================================================
@@ -160,6 +178,8 @@
   (POST "/update" [] update-handler)
 
   (POST "/verify-income" [] income-files-handler)
+
+  (POST "/help" [] help-handler)
   )
 
 (comment

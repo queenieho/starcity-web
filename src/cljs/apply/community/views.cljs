@@ -9,19 +9,48 @@
 ;; Why Starcity
 ;; =============================================================================
 
+(defn- internal-name->name [communities internal-name]
+  (-> (filter #(= internal-name (:internal-name %)) communities)
+      first
+      :name))
+
+(defn- names->phrase [names]
+  (let [num (count names)]
+    (case num
+      0 "our communities"
+      1 (first names)
+      2 (str (first names) " and " (second names))
+      (str (->> (interpose ", " (butlast names)) (apply str))
+           ", and " (last names)))))
+
+(defn- why-starcity-label []
+  (let [selected  (subscribe [:logistics.communities/form-data])
+        available (subscribe [:logistics/available-communities])]
+    (fn []
+      (let [names (map (partial internal-name->name @available) @selected)]
+        [:label.label
+         "Please tell the members of "
+         (names->phrase names)
+         " why you want to join their community."]))))
+
 (defn why-starcity []
   (let [answer (subscribe [:community.why-starcity/form-data])]
     (fn []
       (p/prompt
-       (p/header "Why are you interested in joining Starcity?")
+       (p/header "Why do you want to live in a Starcity community?")
        (p/content
         [:div.content
-         [:p "Tell us a bit about why you want to join one of our communities."]
-         [:p "TODO: Indicate that this information will be available to the
-       residents that are currently living in <communities>."]
+         [:p "We believe that community is best created by the connections
+         formed between individuals through shared values. Here at Starcity we
+         empower our community members to cultivate and shape their communities
+         by enabling members to determine which applicants they'd like to
+         welcome into their homes."]
+         [:p "The responses you provide within the " [:strong "Community Fitness"]
+          " section will be made available to existing community members at the
+          locations you applied to to aid in the selection of future members."]
          [:div.form-container
           [:div.form-group
-           [:label.label "Enter your answer below."]
+           [why-starcity-label]
            [:textarea.textarea
             {:value     @answer
              :on-change #(dispatch [:community/why-starcity (dom/val %)])}]]]])))))
@@ -34,10 +63,11 @@
   (let [answers (subscribe [:community.about-you/form-data])]
     (fn []
       (p/prompt
-       (p/header "Tell us a bit about yourself.")
+       (p/header "We'd like to get to know you better.")
        (p/content
         [:div.content
-         [:p "TODO:"]
+         [:p "Lasting relationships are often built through common interests.
+         Help us get to know you by telling us more about yourself."]
          [:div.form-container
           [:div.form-group
            [:label.label "What do you like to do in your free time?"]
@@ -64,12 +94,12 @@
          [:p "TODO:"]
          [:div.form-container
           [:div.form-group
-           [:label.label "Do you have any experience with communal living?"]
+           [:label.label "Describe your past experience(s) living in shared spaces."]
            [:textarea.textarea
             {:value     (:prior-experience @answers)
              :on-change #(dispatch [:community/communal-living :prior-experience (dom/val %)])}]]
           [:div.form-group
-           [:label.label "What will you bring to the community?"]
+           [:label.label "How will you contribute to the community?"]
            [:textarea.textarea
             {:value     (:skills @answers)
              :on-change #(dispatch [:community/communal-living :skills (dom/val %)])}]]]])))))

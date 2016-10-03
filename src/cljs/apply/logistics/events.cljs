@@ -30,8 +30,8 @@
 
 (reg-event-db
  :logistics.pets/has-pet
- (fn [db [_ has-pet?]]
-   (assoc-in db [:logistics/pets :local :has-pet?] has-pet?)))
+ (fn [db [_ has-pet]]
+   (assoc-in db [:logistics/pets :local :has-pet] has-pet)))
 
 (reg-event-db
  :logistics.pets/choose-type
@@ -48,32 +48,19 @@
  (fn [db [_ breed]]
    (assoc-in db [:logistics/pets :local :breed] breed)))
 
-(reg-event-db
- :logistics.pets/other
- (fn [db [_ other]]
-   (assoc-in db [:logistics/pets :local :other] other)))
-
-
 ;; =============================================================================
 ;; Parsers
 
-;; (s/def ::communities
-;;   (s/and set? (s/* string?)))
-
-;; (defn- communities
-;;   [communities]
-;;   {:communities (set communities)})
-
-;; (s/fdef communities
-;;         :args (s/cat :communities (s/spec (s/+ string?)))
-;;         :ret (s/keys :req-un [::communities]))
-
 (reg-event-db
  :logistics/parse
- (fn [db [_ {:keys [license move-in-date communities] :as data}]]
+ (fn [db [_ {:keys [license move-in-date communities pet] :as data}]]
    (merge
     db
     (prompts/syncify
      {:logistics/communities  {:communities (set communities)}
       :logistics/license      {:license license}
-      :logistics/move-in-date {:move-in-date move-in-date}}))))
+      :logistics/move-in-date {:move-in-date move-in-date}
+      :logistics/pets         {:has-pet  (:has-pet pet)
+                               :pet-type (:pet-type pet)
+                               :breed    (:breed pet)
+                               :weight   (:weight pet)}}))))

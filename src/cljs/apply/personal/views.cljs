@@ -7,7 +7,8 @@
             [cljs-time.core :as t]
             [cljs-time.coerce :as c]
             [cljsjs.flatpickr]
-            [cljsjs.field-kit]))
+            [cljsjs.field-kit]
+            [apply.prompts.models :as prompts]))
 
 ;; =============================================================================
 ;; Phone Number
@@ -33,10 +34,11 @@
     :reagent-render
     (fn [_]
       [:div.content
-       [:p "TODO: Why do we need your phone number? Some reason."]
+       [:p "We promise we'll keep your phone number private and only contact you
+       by phone with prior permission."]
        [:div.form-container
         [:div.form-group
-         [:label.label "Enter your phone number below."]
+         [:label.label "Please enter your phone number below."]
          [:input#phone-number.input
           {:style       {:width "200px"}
            :placeholder "your phone number"
@@ -180,7 +182,7 @@
   [:div.content
    [:p "We perform background checks to ensure the safety of our community members. Your background check is "
     [:strong "completely confidential"]
-    ", and we'll share the results with you if there are any."]
+    ", and we'll share the results (if any) with you."]
 
    [:div.form-container
     [consent-group info]
@@ -197,9 +199,8 @@
   (let [info (subscribe [:personal.background/form-data])]
     (fn []
       (p/prompt
-       (p/header "We need to know a few more things about you. (TODO:)")
-       (p/content [background-check-content @info])
-       (p/footer)))))
+       (p/header "Help us keep our communities safe.")
+       (p/content [background-check-content @info])))))
 
 ;; =============================================================================
 ;; Income Verification
@@ -209,13 +210,16 @@
   (let [complete? (subscribe [:personal.income/complete?])]
     (fn []
       [:div.content
-       [:p "TODO:"]
+       [:p "We want to ensure that individuals interested in joining our
+       communities are able to stay connected to other members without hiccups."]
+       [:p "You can verify your income by providing your most recent pay stub,
+       last year's W2, or your bank statements for the past three months."]
        [:div.form-container
         [:div.form-group
          [:label.label
-          (if @complete?
+          (if (prompts/complete? @complete?)
             "Your income files have been uploaded. Feel free to upload more if you'd like!"
-            "Please upload proof of income.")]
+            "Please upload your proof of income.")]
          [:input {:type      "file"
                   :multiple  true
                   :on-change #(dispatch [:personal.income/file-picked (.. % -currentTarget -files)])}]]]])))
@@ -229,5 +233,5 @@
 
 (defn income-verification []
   (p/prompt
-   (p/header "TODO: We need to ensure that you have the income to pay rent.")
+   (p/header "Please verify your income.")
    (p/content [income-verification-content])))

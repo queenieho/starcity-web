@@ -11,7 +11,9 @@
                                                 seed-stripe-test-credentials]]
              [add-approval-schema-9-8-16 :refer [add-approval-schema
                                                  seed-test-approval]]
-             [add-community-safety-consent-9-28-16 :refer [add-community-safety-consent]]]
+             [add-community-safety-consent-9-28-16 :refer [add-community-safety-consent]]
+             [add-has-pet-attr-10-3-16 :refer [add-has-pet-attr
+                                               seed-has-pet]]]
             [starcity.datomic.migrations.utils :refer [only-when]]
             [starcity.environment]
             [mount.core :refer [defstate]]))
@@ -29,4 +31,6 @@
    (only-when #{:development :staging} seed-stripe-test-credentials)
    add-approval-schema
    (only-when #{:development :staging} seed-test-approval)
-   add-community-safety-consent))
+   add-community-safety-consent
+   add-has-pet-attr
+   seed-has-pet))

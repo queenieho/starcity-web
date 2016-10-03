@@ -1,15 +1,19 @@
 (ns apply.prompts.models
-  (:require [clojure.spec :as s])
+  (:require [clojure.spec :as s]
+            [reagent.core :as r])
   (:refer-clojure :exclude [next]))
 
 ;; =============================================================================
 ;; Constants
 ;; =============================================================================
 
+;; TODO: this is janky
+(def ^:private final-prompt
+  :community/communal-living)
+
 (def ^:private prompts
   "The available prompts "
-  {:overview/welcome :overview/advisor
-   :overview/advisor :logistics/communities
+  {:overview/welcome :logistics/communities
 
    :logistics/communities  :logistics/license
    :logistics/license      :logistics/move-in-date
@@ -22,7 +26,7 @@
 
    :community/why-starcity    :community/about-you
    :community/about-you       :community/communal-living
-   :community/communal-living :overview/welcome})
+   :community/communal-living :final/pay})
 
 (def ^:private prompts-inverted
   (reduce
@@ -32,6 +36,7 @@
    prompts))
 
 (s/def ::prompt (set (keys prompts)))
+
 
 ;; =============================================================================
 ;; API
@@ -45,6 +50,21 @@
      (assoc acc k {:local v :remote v}))
    {}
    m))
+
+(defn final?
+  "Is `prompt` the final prompt?"
+  [prompt]
+  (= prompt final-prompt))
+
+(s/fdef final?
+        :args (s/cat :prompt ::prompt)
+        :ret boolean?)
+
+(defn complete
+  ([db]
+   (get db :prompts-complete))
+  ([db complete?]
+   (assoc db :prompts-complete complete?)))
 
 ;; =============================================================================
 ;; Prompt navigation
@@ -68,7 +88,18 @@
         :ret ::prompt)
 
 ;; =============================================================================
-;; Subscriptions
+;; Subscription Helpers
+
+(defn form-data
+  "TODO: Doc"
+  ([]
+   (form-data identity))
+  ([tf]
+   (fn [{:keys [local remote] :as data} _]
+     (tf (if (not= local remote) local remote)))))
+
+;; =====================================
+;; Completion
 
 (defn complete-key
   "Given `prompt-key`, produce the key that can be subscribed to determine if this
@@ -80,20 +111,19 @@
         :args (s/cat :prompt-key ::prompt)
         :ret keyword?)
 
-(defn form-data
-  "TODO: Doc"
-  ([]
-   (form-data identity))
-  ([tf]
-   (fn [{:keys [local remote] :as data} _]
-     (tf (if (not= local remote) local remote)))))
-
 (defn complete-when
   "TODO: Doc"
   ([validation-fn]
    (complete-when validation-fn identity))
   ([validation-fn tf]
-   (fn [{:keys [local remote]} [_ sync-state]]
-     (-> (if (= sync-state :unsynced) local remote)
-         tf
-         validation-fn))))
+   (fn [{:keys [local remote]} _]
+     (let [f (comp validation-fn tf)]
+       {:local (f local) :remote (f remote)}))))
+
+(defn locally-complete?
+  [completion-result]
+  (:local completion-result))
+
+(defn complete?
+  [completion-result]
+  (:remote completion-result))
