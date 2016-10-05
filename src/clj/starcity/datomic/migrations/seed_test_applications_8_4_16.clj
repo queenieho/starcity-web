@@ -74,7 +74,7 @@
                                                            :address/postal-code "94103"}
                  :member-application/approved             true
                  :member-application/desired-properties   [[:property/internal-name "52gilbert"]]
-                 :member-application/desired-license      (:db/id (one (d/db conn) :license/term 12))
+                 :member-application/desired-license      (:db/id (one (d/db conn) :license/term 1))
                  :member-application/locked               true
                  :member-application/desired-availability (c/to-date (t/date-time 2016 10 15))
                  :member-application/pet                  {:pet/type   "dog"

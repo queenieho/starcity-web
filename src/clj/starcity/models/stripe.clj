@@ -26,26 +26,6 @@
 ;; API
 ;; =============================================================================
 
-(defn keys-for-approval
-  "Given an account-id, find the Stripe public and private keys for the property
-  that this account is approved for. Throws an exception when none are found."
-  [account-id]
-  (let [approval    (one (d/db conn) :approval/account account-id)
-        -lookup-key #(get-in approval [:approval/property %])
-        secret-key  (-lookup-key :property/stripe-secret-key)
-        public-key  (-lookup-key :property/stripe-public-key)
-        data        {:account-id account-id}]
-    (cond
-      (nil? approval)   (throw (ex-info "No approval for this account!" data))
-      (nil? secret-key) (throw (ex-info "No secret key for this account!" data))
-      (nil? public-key) (throw (ex-info "No public key for this account!" data))
-      :otherwise        [public-key secret-key])))
-
-(s/fdef keys-for-approval
-        :args (s/cat :account-id :starcity.spec/lookup)
-        :ret  (s/cat :public-key string?
-                     :secret-key string?))
-
 ;; TODO: Spec a "customer"
 (def fetch-customer
   (comp :body service/fetch-customer))
@@ -66,10 +46,9 @@
   "Create a customer on Stripe with given token and create a corresponding
   entity in our DB."
   [account-id token]
-  (let [email          (:account/email (d/entity (d/db conn) account-id))
-        [_ secret-key] (keys-for-approval account-id)
+  (let [email (:account/email (d/entity (d/db conn) account-id))
         ;; TODO: Include description w/ building?
-        res            (service/create-customer secret-key email token)]
+        res   (service/create-customer email token)]
     (if-let [error (service/error-from res)]
       ;; Error while creating customer!
       (throw (ex-info "Error encountered while trying to create Stripe customer." error))
@@ -86,11 +65,10 @@
   verification results in the `:stripe-customer/bank-account-token` attribute being
   added to the `:stripe-customer` entity."
   [account-id deposit-1 deposit-2]
-  (let [cid            (customer-for-account account-id)
-        [_ secret-key] (keys-for-approval account-id)
-        customer       (fetch-customer secret-key cid)
-        bid            (bank-account-token customer)
-        res            (service/verify-source secret-key cid bid deposit-1 deposit-2)]
+  (let [cid      (customer-for-account account-id)
+        customer (fetch-customer cid)
+        bid      (bank-account-token customer)
+        res      (service/verify-source cid bid deposit-1 deposit-2)]
     (if-let [e (service/error-from res)]
       (throw (ex-info "Error encountered while trying to verify source!" e))
       (do
@@ -101,13 +79,12 @@
 (defn create-charge
   "Attempt to create a Stripe charge for given `account-id`. Successful creation
   results in creation of a corresponding `charge`."
-  [account-id amount source & {:keys [description customer-id]}]
-  (let [email          (:account/email (d/entity (d/db conn) account-id))
-        [_ secret-key] (keys-for-approval account-id)
-        res            (service/charge amount source email
-                                       :description description
-                                       :customer-id customer-id
-                                       :secret-key secret-key)]
+  [account-id amount source & {:keys [description customer-id managed-account]}]
+  (let [email (:account/email (d/entity (d/db conn) account-id))
+        res   (service/charge amount source email
+                              :description description
+                              :customer-id customer-id
+                              :managed-account managed-account)]
     (if-let [e (service/error-from res)]
       (throw (ex-info "Error encountered while trying to create charge!" e))
       (let [payload (service/payload-from res)
@@ -123,7 +100,7 @@
         :args (s/cat :account-id :starcity.spec/lookup
                      :amount pos-int?
                      :source string?
-                     :opts (s/keys* :opt-un [::customer-id ::description]))
+                     :opts (s/keys* :opt-un [::customer-id ::description ::managed-account]))
         :ret integer?)
 
 ;; =============================================================================

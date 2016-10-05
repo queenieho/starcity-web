@@ -1,7 +1,7 @@
 (ns starcity.services.codec
   "Both `http-kit` and `ring.util.codec/form-encode` use an invalid (according
   to some, Stripe included) way of form-encoding arrays. This ns is copy of the
-  aforementioned Ring implementation with a minor modification -- see line
+  aforementioned Ring implementation with a minor modification -- see line(s)
   marked as such below.
 
   see also:
@@ -9,6 +9,28 @@
   (:require [clojure.string :as str])
   (:import java.util.Map
            [java.net URLEncoder]))
+
+(defn- flatten-map [m]
+  (if-not (map? m)
+    [[m]]
+    (reduce
+     (fn [acc [k v]]
+       (let [nested (flatten-map v)]
+         (vec (concat acc (map (comp vec (partial concat [k])) nested)))))
+     []
+     m)))
+
+(defn- parameterize [[p & ps]]
+  (apply str (name p) (map #(str "[" (name %) "]") ps)))
+
+(comment
+
+  (->> (flatten-map {:a {:b :c :d :e}})
+       (map (partial cons :f))
+       ;; (map parameterize)
+       )
+
+  )
 
 (defprotocol ^:no-doc FormEncodeable
   (form-encode* [x encoding]))
@@ -20,16 +42,25 @@
   Map
   (form-encode* [params encoding]
     (letfn [(encode [x] (form-encode* x encoding))
-            ;; MODIFICATION HERE
+            ;; MODIFICATIONS HERE
             (encode-array-param [[k v]] (str (encode (name k)) "[]=" (encode v)))
+            ;; (encode-map-params [[k v]] (let [params (->> (flatten-map v) (map (partial cons k)))]
+            ;;                              (map (fn [param]
+            ;;                                     (let [value (last param)
+            ;;                                           name  (parameterize (butlast param))]
+            ;;                                       (if (sequential? value)
+            ;;                                         (str name "[]=" value)
+            ;;                                         (str name "=" value))))
+            ;;                                   params)))
             ;; ^^^^^^^^^^^^^^^^^^^^^^^^^
             (encode-param [[k v]] (str (encode (name k)) "=" (encode v)))]
       (->> params
            (mapcat
             (fn [[k v]]
-              (if (or (seq? v) (sequential? v) )
-                (map #(encode-array-param [k %]) v) ; AND HERE
-                [(encode-param [k v])])))
+              (cond
+                (or (seq? v) (sequential? v)) (map #(encode-array-param [k %]) v)
+                ;; (map? v)                      (encode-map-params [k v])
+                :otherwise                    [(encode-param [k v])])))
            (str/join "&"))))
   Object
   (form-encode* [x encoding]

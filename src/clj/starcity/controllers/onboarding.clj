@@ -3,6 +3,7 @@
             [starcity.models.stripe :as stripe]
             [starcity.models.onboarding :as onboarding]
             [starcity.controllers.utils :refer :all]
+            [starcity.config.stripe :as config]
             [starcity.util :refer :all]
             [ring.util.response :as response]
             [ring.util.codec :refer [url-encode]]
@@ -138,9 +139,8 @@
 (defn- verify-bank-account
   [{:keys [params identity] :as req}]
   (letfn [(respond-error []
-            (let [[public-key _] (stripe/keys-for-approval (:db/id identity))]
-              (respond-with-errors req default-error-message
-                (view/enter-bank-information public-key))))]
+            (respond-with-errors req default-error-message
+              (view/enter-bank-information config/public-key)))]
     (if-let [token (:stripe-token params)]
       (try
         (let [customer (stripe/create-customer (:db/id identity) token)]
@@ -205,9 +205,8 @@
 (defroutes ach-routes
   (GET "/verify" []
        (with-gate should-enter-bank-information?
-         (fn [{:keys [identity] :as req} _]
-           (let [[public-key _] (stripe/keys-for-approval (:db/id identity))]
-             (view/enter-bank-information req public-key)))))
+         (fn [req _]
+           (view/enter-bank-information req config/public-key))))
 
   ;; TODO: Gate POST endpoints
   (POST "/verify" [] verify-bank-account)

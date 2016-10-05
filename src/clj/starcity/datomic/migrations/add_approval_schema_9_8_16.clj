@@ -35,7 +35,7 @@
    {:txes     [[{:db/id                #db/id[:db.part/starcity]
                  :approval/account     [:account/email "onboarding@test.com"]
                  :approval/approved-by [:account/email "admin@test.com"]
-                 :approval/property    [:property/internal-name "2072mission"]}]]
+                 :approval/property    [:property/internal-name "52gilbert"]}]]
     :requires [:schema/add-approval-schema-9-8-16
                :starcity/seed-test-accounts
                :starcity/seed-mission]}})

@@ -1,6 +1,6 @@
 (ns starcity.models.onboarding
-  (:require [starcity.datomic :refer [conn tempid]]
-            [starcity.models.stripe :as stripe]
+  (:require [starcity.models.stripe :as stripe]
+            [starcity.datomic :refer [conn tempid]]
             [starcity.models.util :refer :all]
             [datomic.api :as d]
             [starcity.spec]
@@ -18,13 +18,6 @@
 ;; =============================================================================
 ;; Internal
 ;; =============================================================================
-
-;; =============================================================================
-;; Constants
-
-(def ^:private full-security-deposit-amount
-  "Represents the amount of the full security deposit in cents."
-  100000)
 
 ;; =============================================================================
 ;; DB Lookups
@@ -80,7 +73,9 @@
   [progress]
   (get-in progress [:stripe-customer :stripe-customer/customer-id]))
 
-(def ^:private account-id :account-id)
+(def ^:private account-id
+  "Retrieve the applicant's account-id from the `progress` map."
+  :account-id)
 
 (defn- bank-account-token
   "Retrieve the bank account token within the `progress` map."
@@ -90,12 +85,15 @@
 ;; =============================================================================
 ;; Transactions
 
+(declare monthly-rent)
+
 (defn- create-security-deposit
-  [account-id payment-method]
-  @(d/transact conn [{:db/id                           (tempid)
-                      :security-deposit/account        account-id
-                      :security-deposit/payment-method payment-method
-                      :security-deposit/amount-required full-security-deposit-amount}]))
+  [progress payment-method]
+  (let [amount-required (int (* 100 (monthly-rent progress)))]
+    @(d/transact conn [{:db/id                            (tempid)
+                        :security-deposit/account         (account-id progress)
+                        :security-deposit/payment-method  payment-method
+                        :security-deposit/amount-required amount-required}])))
 
 (defn- update-payment-method*
   [security-deposit-id payment-method]
@@ -130,6 +128,7 @@
         :args (s/cat :progress ::progress))
 
 (defn monthly-rent
+  "Produce the monthly rent that this applicant has agreed to pay."
   [progress]
   (-> (d/q '[:find ?price
              :in $ ?account
@@ -149,6 +148,7 @@
       ffirst))
 
 (defn applicant-property
+  "The property that this applicant is being onboarded for."
   [progress]
   (:approval/property
    (one (d/db conn) :approval/account (account-id progress))))
@@ -162,7 +162,7 @@
   [progress method]
   (if-let [sid (security-deposit-id progress)]
     (update-payment-method* sid method)
-    (create-security-deposit (account-id progress) method)))
+    (create-security-deposit progress method)))
 
 ;; =====================================
 ;; Perform ACH charge
@@ -191,7 +191,8 @@
                         (charge-amount progress payment-choice)
                         (bank-account-token progress)
                         :description (format "'%s' security deposit payment" payment-choice)
-                        :customer-id (stripe-customer-id progress)))
+                        :customer-id (stripe-customer-id progress)
+                        :managed-account (-> progress applicant-property :property/managed-account-id)))
 
 ;; Assuming no error, we now need to update the security deposit entity to
 ;; reflect the successful transaction.
@@ -201,7 +202,7 @@
   been paid via a successful ACH payment."
   [progress payment-choice charge-id]
   (let [payment-type (keyword "security-deposit.payment-type" payment-choice)]
-    @(d/transact conn [{:db/id                            (security-deposit-id security-deposit-id)
+    @(d/transact conn [{:db/id                            (security-deposit-id progress)
                         :security-deposit/amount-received (charge-amount progress payment-choice)
                         :security-deposit/charge          charge-id
                         :security-deposit/payment-type    payment-type}])))
@@ -238,12 +239,11 @@
 (defn bank-account-verified?
   "Is the stripe customer's bank account verified?"
   [progress]
-  (let [[_ secret-key] (stripe/keys-for-approval (:account-id progress))]
-    (or (:stripe-customer/bank-account-token progress) ; Only present in DB after
+  (or (:stripe-customer/bank-account-token progress) ; Only present in DB after
                                         ; verification
-        (and (stripe-customer-id progress)
-             (stripe/bank-account-verified?
-              (stripe/fetch-customer secret-key (stripe-customer-id progress)))))))
+      (and (stripe-customer-id progress)
+           (stripe/bank-account-verified?
+            (stripe/fetch-customer (stripe-customer-id progress))))))
 
 (defn payment-received?
   "Has payment already been received?"
