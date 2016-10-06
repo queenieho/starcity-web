@@ -1,4 +1,6 @@
-(ns admin.applications.db)
+(ns admin.application.list.db)
+
+(def root-db-key :application/list)
 
 (def ^:private sample-applications
   [{:id           1

@@ -1,8 +1,12 @@
-(ns admin.application.views
+(ns admin.application.entry.views
   (:require [re-frame.core :refer [subscribe dispatch]]
             [starcity.components.layout :as layout]
             [starcity.dates :as dates]
-            [clojure.string :as str]))
+            [clojure.string :as s]
+            [cljs-time.coerce :as c]
+            [cljs-time.core :as t]
+            [reagent.core :as r]
+            [starcity.dom :as dom]))
 
 ;; =============================================================================
 ;; Helpers
@@ -14,7 +18,7 @@
 
 (defn- key->label
   [k]
-  (-> k name (str/replace "-" " ") str/capitalize))
+  (-> k name (s/replace "-" " ") s/capitalize))
 
 (defn- keyspec
   [& specs]
@@ -59,20 +63,17 @@
          [definition-content* (parse-content @content keyspec)] ]))))
 
 (def ^:private basic-info
-  (definition-content [:application/basic-info]
-    (keyspec :email
-             :phone-number
-             [:completed-at (partial dates/format :full-datetime)]
-             :address)))
+  (definition-content [:application.entry/basic-info]
+    (keyspec :email :phone-number :completed-at :address)))
 
 (def ^:private move-in
-  (definition-content [:application/move-in]
-    (keyspec [:move-in "Desired Move-in" (partial dates/format :full-datetime)]
-             [:properties "Desired Properties" (partial str/join ", ")]
-             [:term #(str % " months")])))
+  (definition-content [:application.entry/move-in]
+    (keyspec [:move-in "Desired Move-in"]
+             [:properties "Desired Properties"]
+             :term)))
 
 (def ^:private community
-  (definition-content [:application/community]
+  (definition-content [:application.entry/community]
     (keyspec [:prior-community-housing "Have you ever lived in communal housing?"]
              [:skills "What skills or traits do you hope to share with the community?"]
              [:why-interested "Why are you interested in Starcity?"]
@@ -93,11 +94,13 @@
   (keyspec :type :breed [:weight #(str % "lbs")]))
 
 (defn- pets []
-  (let [pet-data (subscribe [:application/pets])]
+  (let [pet-data (subscribe [:application.entry/pets])]
     (fn []
       [:section.section.is-small
-       [definition-content* (->> (pets-keyspec @pet-data)
-                                 (parse-content @pet-data))]])))
+       (if (empty? @pet-data)
+         [:div.content [:p "No pets."]]
+         [definition-content* (->> (pets-keyspec @pet-data)
+                                   (parse-content @pet-data))])])))
 
 ;; =====================================
 ;; Income
@@ -201,7 +204,7 @@
      [:h3.subtitle "No Income Data..."]]]])
 
 (defn- income []
-  (let [income-data (subscribe [:application/income])]
+  (let [income-data (subscribe [:application.entry/income])]
     (fn []
       [income-content @income-data])))
 
@@ -211,14 +214,15 @@
 (defn- tab-content
   "The content that is displayed based on `:active-tab`."
   []
-  (let [active-tab (subscribe [:application/active-tab])]
+  (let [active-tab (subscribe [:application.entry/active-tab])]
     (fn []
-      (case @active-tab
-        :basic-info [basic-info]
-        :move-in    [move-in]
-        :pets       [pets]
-        :community  [community]
-        :income     [income]))))
+      [:div {:style {:min-height "400px"}}
+       (case @active-tab
+         :basic-info [basic-info]
+         :move-in    [move-in]
+         :pets       [pets]
+         :community  [community]
+         :income     [income])])))
 
 ;; =============================================================================
 ;; Tabs
@@ -227,15 +231,15 @@
   "A single tab."
   [tab-key is-active?]
   [:li {:class (when is-active? "is-active")}
-   [:a {:on-click #(dispatch [:application/view-tab tab-key])}
-    (-> (name tab-key) str/capitalize)]])
+   [:a {:on-click #(dispatch [:application.entry/view-tab tab-key])}
+    (-> (name tab-key) s/capitalize)]])
 
 (defn- tabs
   "The tabs that control which portion of application information is presently
   being viewed."
   []
-  (let [tabs       (subscribe [:application/tabs])
-        active-tab (subscribe [:application/active-tab])]
+  (let [tabs       (subscribe [:application.entry/tabs])
+        active-tab (subscribe [:application.entry/active-tab])]
     (fn []
       [:div.tabs.is-fullwidth
        [:ul
@@ -243,17 +247,88 @@
          (for [tab-key @tabs]
            ^{:key tab-key} [tab tab-key (= tab-key @active-tab)]))]])))
 
+(defn- customize-email [email-content]
+  [:p.control
+   [:label.label "Feel free to customize the HTML content of the email:"]
+   [:textarea.textarea
+    {:value     email-content
+     :on-change #(dispatch [:application.entry.approval.email-content/change (dom/val %)])}]])
+
+(defn- approve-modal [showing]
+  (let [communities (subscribe [:application.entry.approval/communities])
+        selected    (subscribe [:application.entry.approval/selected-community])
+        email-content (subscribe [:application.entry.approval/email-content])]
+    (fn [showing]
+      [:div.modal {:class (when @showing "is-active")}
+       [:div.modal-background]
+       [:div.modal-card
+        [:header.modal-card-head
+         [:p.modal-card-title "Are you sure?"]
+         [:button.delete {:on-click #(swap! showing not)}]]
+        [:div.modal-card-body
+         [:div.content
+          [:p "This cannot be undone!"]
+
+          [:label.label "Approve for which property?"]
+          [:p.control
+           (doall
+            (for [[name value] @communities]
+              ^{:key value}
+              [:label.radio
+               [:input {:type      "radio"
+                        :name      "license"
+                        :value     value
+                        :on-change #(dispatch [:application.entry.approval/select-community (dom/val %)])}]
+               name]))]
+
+          (when @selected [customize-email @email-content])
+
+          (when @selected
+            [:div.control
+             [:label.label "Preview"]
+             [:div.html-email-preview {:dangerouslySetInnerHTML {:__html @email-content}}]])
+          ]]
+
+        [:div.modal-card-foot
+         [:button.button.is-success
+          {:on-click #(do (swap! showing not)
+                          (dispatch [:application.entry/approve @selected]))
+           :class    (when-not @selected "is-disabled")}
+          "Approve"]
+         [:button.button {:on-click #(swap! showing not)}
+          "Cancel"]]]])))
+
+(defn approval-button [approved is-showing]
+  (let [approving (subscribe [:application.entry/approving?])]
+    (fn [approved is-showing]
+      (if approved
+        [:button.button.is-success.is-disabled
+         [:span.icon.is-small {:style {:margin-right "5px"}} [:i.fa.fa-check]]
+         "Approved"]
+        [:button.button.is-primary
+         {:on-click #(swap! is-showing not)
+          :class    (when @approving "is-loading")}
+         "Approve"]))))
+
+(defn- controls []
+  (let [showing-approval (r/atom false)
+        approved         (subscribe [:application.entry/approved?])]
+    (fn []
+      [:div.control.is-grouped
+       [:p.control
+        [approval-button @approved showing-approval]]
+       [approve-modal showing-approval]])))
+
 ;; =============================================================================
 ;; API
 ;; =============================================================================
 
 (defn application []
-  (let [name (subscribe [:application/full-name])]
+  (let [name (subscribe [:application.entry/full-name])]
     (fn []
-      [:main
-       [:section.section
-        [:div.container
-         [:h1.title "Member Application"]
-         [:h2.subtitle @name]
-         [tabs]
-         [tab-content]]]])))
+      [:div.container
+       [:h1.title "Member Application"]
+       [:h2.subtitle @name]
+       [tabs]
+       [tab-content]
+       [controls]])))

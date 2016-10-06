@@ -39,7 +39,8 @@
                  [re-frame "0.8.0"]
                  [secretary "1.2.3"]
                  [venantius/accountant "0.1.7"]
-                 [day8.re-frame/http-fx "0.0.4"]]
+                 [day8.re-frame/http-fx "0.0.4"]
+                 [hiccups "0.3.0"]]
 
   :repositories [["my.datomic.com" {:url "https://my.datomic.com/repo"
                                     :username [:env/datomic_username]

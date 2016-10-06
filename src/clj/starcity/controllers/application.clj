@@ -17,7 +17,7 @@
   "Respond 200 OK with the application page."
   [{:keys [identity params] :as req}]
   (let [sections (application/current-steps (:db/id identity))
-        locked   (application/locked? (:db/id identity))]
+        locked   (application/locked-old? (:db/id identity))]
     (if locked
       (ok (view/locked req (:completed params)))
       (response/redirect "/application/logistics"))))

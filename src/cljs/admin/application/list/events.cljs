@@ -1,5 +1,6 @@
-(ns admin.applications.events
-  (:require [re-frame.core :refer [reg-event-fx
+(ns admin.application.list.events
+  (:require [admin.application.list.db :refer [root-db-key]]
+            [re-frame.core :refer [reg-event-fx
                                    reg-event-db]]
             [day8.re-frame.http-fx]
             [starcity.log :as l]
@@ -9,8 +10,8 @@
 (reg-event-fx
  :nav/applications
  (fn [{:keys [db]} _]
-   {:db       (assoc db :route :applications)
-    :dispatch [:applications/fetch]}))
+   {:db       (assoc db :route :application/list)
+    :dispatch [:application.list/fetch]}))
 
 (def applications-endpoint
   "/api/v1/admin/applications")
@@ -18,23 +19,23 @@
 ;;; Fetch applications
 
 (reg-event-fx
- :applications/fetch
+ :application.list/fetch
  (fn [{:keys [db]} _]
-   {:db         (assoc db :loading true)
+   {:db         (assoc-in db [root-db-key :loading] true)
     :http-xhrio {:method          :get
                  :uri             applications-endpoint
                  :response-format (ajax/json-response-format {:keywords? true})
-                 :on-success      [:applications.fetch/success]
-                 :on-failure      [:applications.fetch/fail]}}))
+                 :on-success      [:application.list.fetch/success]
+                 :on-failure      [:application.list.fetch/fail]}}))
 
 (reg-event-db
- :applications.fetch/success
+ :application.list.fetch/success
  (fn [db [_ result]]
-   (-> (assoc-in db [:applications :list] result)
-       (assoc-in [:applications ::reset] result))))
+   (-> (assoc-in db [root-db-key :list] result)
+       (assoc-in [root-db-key ::reset] result))))
 
 (reg-event-db
- :applications.fetch/fail
+ :application.list.fetch/fail
  (fn [db [_ err]]
    (l/error err)
    db))
@@ -51,15 +52,15 @@
    :desc >})
 
 (reg-event-db
- :applications.list/sort
+ :application.list/sort
  (fn [db [_ sort-key]]
-   (let [sort     (get-in db [:applications :sort])
+   (let [sort     (get-in db [root-db-key :sort])
          next-dir (next-direction (:direction sort))
-         reset    (get-in db [:applications ::reset])
+         reset    (get-in db [root-db-key ::reset])
          sorted   (if (= next-dir :none)
                     reset
-                    (->> (get-in db [:applications :list])
-                         (sort-by sort-key)))]
-     (-> (assoc-in db [:applications :list] sorted)
-         (assoc-in [:applications :sort] {:direction next-dir
+                    (->> (get-in db [root-db-key :list])
+                         (sort-by sort-key (get comp-fns next-dir))))]
+     (-> (assoc-in db [root-db-key :list] sorted)
+         (assoc-in [root-db-key :sort] {:direction next-dir
                                           :key       sort-key})))))

@@ -1,17 +1,17 @@
-(ns admin.applications.views
+(ns admin.application.list.views
   (:require [admin.routes :refer [build-path]]
-            [admin.applications.subs]
             [re-frame.core :refer [subscribe dispatch]]
             [starcity.dates :as d]
             [starcity.log :refer [log]]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [cljs-time.coerce :as c]))
 
 ;; =============================================================================
 ;; Helpers
 ;; =============================================================================
 
 (def ^:private format-date
-  (partial d/format :short-date))
+  (comp (partial d/format :short-date) c/to-local-date))
 
 ;; =============================================================================
 ;; Components
@@ -50,7 +50,7 @@
     (assoc attrs :class (str/join " " classes))))
 
 (defn table-header [keys]
-  (let [sort (subscribe [:applications/sort])]
+  (let [sort (subscribe [:application.list/sort])]
     (fn [keys]
       [:thead
        [:tr
@@ -88,7 +88,7 @@
        ^{:key k} [value-cell k application]))])
 
 (defn- table-body [header-keys]
-  (let [applications (subscribe [:applications/list])]
+  (let [applications (subscribe [:application.list/list])]
     (fn [header-keys]
       [:tbody
        (map-indexed
@@ -97,7 +97,7 @@
         @applications)])))
 
 (defn- table []
-  (let [keys (subscribe [:applications/header-keys])]
+  (let [keys (subscribe [:application.list/header-keys])]
     (fn []
       [:table.table
        [table-header @keys]
@@ -108,8 +108,6 @@
 ;; =============================================================================
 
 (defn applications []
-  [:main
-   [:section.section
-    [:div.container [title]]]
-   [:section.section
-    [:div.container [table]]]])
+  [:div.container
+   [title]
+   [table]])

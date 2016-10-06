@@ -63,8 +63,8 @@
            (n/nav-item "/about" "About")
            (n/nav-item "/blog" "Blog")))
 
-(defn cljs [id & content]
-  [:section.section {:id id} content])
+;; (defn cljs [id & content]
+;;   [:section.section {:id id} content])
 
 ;; for convenience when constructing pages
 (def footer f/footer)

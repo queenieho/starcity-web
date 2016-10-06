@@ -31,7 +31,7 @@
 (defn not-locked
   [{:keys [identity] :as req}]
   (let [account-id (:db/id identity)]
-    (if (application/locked? account-id)
+    (if (application/locked-old? account-id)
       (auth/error ::locked)
       (auth/success))))
 

@@ -1,7 +1,8 @@
 (ns admin.events
   (:require [admin.db :refer [default-value]]
-            [admin.applications.events]
-            [admin.application.events]
+            [admin.application.list.events]
+            [admin.application.entry.events]
+            [admin.notify.events]
             [re-frame.core :refer [reg-event-db
                                    reg-event-fx]]))
 

@@ -9,3 +9,8 @@
 
 (defn guid []
   (.getNextUniqueId (.getInstance IdGenerator)))
+
+(defn remove-at
+  "Remove element at index `i` from vector `v`."
+  [v i]
+  (vec (concat (subvec v 0 i) (subvec v (inc i)))))

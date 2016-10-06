@@ -12,6 +12,7 @@
                                    reg-event-fx
                                    reg-fx]]
             [ajax.core :as ajax]
+            [starcity.utils :refer [remove-at]]
             [starcity.log :as l]
             [apply.notifications :as n]))
 
@@ -80,14 +81,11 @@
 ;; Notifications
 ;; =============================================================================
 
-(defn- remove-at [v i]
-  (vec (concat (subvec v 0 i) (subvec v (inc i)))))
-
 ;; Delete a notification by index
 (reg-event-db
  :notification/delete
  (fn [db [_ idx]]
-   (assoc db :app/notifications (remove-at (:app/notifications db) idx))))
+   (update db :app/notifications remove-at idx)))
 
 (reg-event-db
  :notification/clear-all

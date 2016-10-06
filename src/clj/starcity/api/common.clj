@@ -21,6 +21,11 @@
       (json-response)
       (assoc :status 400)))
 
+(defn unprocessable [body]
+  (-> (response body)
+      (json-response)
+      (assoc :status 422)))
+
 (defn server-error [& errors]
   (let [default-error "Our bad! Something went wrong on our end. Please try again."]
     (-> (response {:errors (if (empty? errors) [default-error] errors)})

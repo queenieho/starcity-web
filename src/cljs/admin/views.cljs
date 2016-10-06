@@ -1,9 +1,11 @@
 (ns admin.views
   (:require [admin.routes :refer [build-path]]
-            [admin.applications.views :refer [applications]]
-            [admin.application.views :refer [application]]
+            [admin.application.list.views :refer [applications]]
+            [admin.application.entry.views :refer [application]]
+            [admin.notify.views :refer [notifications]]
             [re-frame.core :refer [subscribe dispatch]]
-            [starcity.log :refer [log]]))
+            [starcity.log :refer [log]]
+            [starcity.log :as l]))
 
 ;; =============================================================================
 ;; Components
@@ -14,13 +16,16 @@
   (= route tab-key))
 
 (def ^:private panels
-  [["Applications" :applications]])
+  [["Applications" :application/list]])
+
+(def ^:private panel-urls
+  {:application/list "applications"})
 
 (defn- nav-item
   [title key is-active?]
   [:a.nav-item.is-tab
    {:class (when is-active? "is-active")
-    :href  (build-path (name key))}
+    :href  (build-path (get panel-urls key))}
    title])
 
 (defn- navbar []
@@ -41,15 +46,19 @@
   [:main
    [:section.section
     [:div.container
-     [:h1.title.is-1 "Home"]]]])
+     [:h1.title.is-1 "Yo, Bro."]
+     [:h3.subtitle.is-3 "not sure what to put here yet..."]]]])
 
 (defn- main []
   (let [route (subscribe [:app/current-route])]
     (fn []
-      (case @route
-        :applications [applications]
-        :application  [application]
-        [home]))))
+      [:section.section {:style {:min-height "100vh"}}
+       [:div.container
+        [notifications]]
+       (case @route
+         :application/list  [applications]
+         :application/entry [application]
+         [home])])))
 
 ;; =============================================================================
 ;; API

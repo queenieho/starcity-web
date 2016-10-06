@@ -124,11 +124,11 @@
                                                 ]}]
         data    (d/pull (d/db conn) pattern application-id)
         acct    (get-in data [:account/_member-application 0])
-        ;plaid   (get-in acct [:plaid/_account 0])
+                                        ;plaid   (get-in acct [:plaid/_account 0])
         ]
     (not (or (nil? (:member-application/current-address data))
              (nil? (:account/dob acct))
-             ;(nil? plaid)
+                                        ;(nil? plaid)
              ))))
 
 (s/fdef personal-information-complete?
@@ -171,7 +171,7 @@
         :args (s/cat :account-id int?)
         :ret  ::steps)
 
-(defn locked?
+(defn locked-old?
   "Is the application for this user locked?"
   [account-id]
   (let [ent (by-account-id account-id)]
@@ -262,3 +262,22 @@
                      :desired-availability ::desired-availability
                      :opts (s/keys* :opt-un [::pet]))
         :ret  int?)
+
+;; =============================================================================
+;; Predicates
+
+(defn approved?
+  [application-id]
+  (-> (d/q '[:find ?approval
+             :in $ ?application
+             :where
+             [?account :account/member-application ?application]
+             [?approval :approval/account ?account]]
+           (d/db conn) application-id)
+      empty?
+      not))
+
+(defn locked?
+  "Is the application for this user locked?"
+  [application-id]
+  (boolean (:member-application/locked (d/entity (d/db conn) application-id))))

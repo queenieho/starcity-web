@@ -1,11 +1,15 @@
 (ns starcity.api.admin.applications
-  (:require [starcity.api.common :as common :refer [ok malformed]]
+  (:require [starcity.api.common :as api]
             [starcity.models.account :refer [full-name]]
+            [starcity.models
+             [application :as application]
+             [approval :as approval]]
             [starcity.models.util :refer :all]
             [starcity.datomic :refer [conn]]
             [starcity.util :refer [str->int]]
             [clojure.string :as str]
-            [datomic.api :as d]))
+            [datomic.api :as d]
+            [clojure.spec :as s]))
 
 ;; =============================================================================
 ;; Helpers
@@ -36,7 +40,8 @@
      :account/middle-name
      :account/last-name
      :account/phone-number
-     :account/email]}
+     :account/email
+     :approval/_account]}
    {:member-application/desired-properties [:property/name]}
    {:member-application/desired-license [:license/term]}
    :member-application/desired-availability
@@ -52,6 +57,7 @@
      :account/last-name
      :account/phone-number
      :account/email
+     :approval/_account
      {:income-file/_account
       [:db/id :income-file/path]}
      {:plaid/_account
@@ -73,7 +79,7 @@
      :address/postal-code
      :address/state
      :address/lines]}
-   {:member-application/desired-properties [:property/name]}
+   {:member-application/desired-properties [:property/name :property/internal-name]}
    {:member-application/desired-license [:license/term]}
    {:member-application/pet
     [:pet/breed :pet/type :pet/weight]}
@@ -110,6 +116,10 @@
   [{:keys [:address/lines :address/city :address/state :address/postal-code]}]
   (format "%s, %s %s, %s" lines city state postal-code))
 
+(defn- approved?
+  [application]
+  (not (nil? (get-in application [:account/_member-application 0 :approval/_account]))))
+
 (defn- parse-application
   [{:keys [:account/_member-application :member-application/community-fitness] :as application}]
   (let [account (first _member-application)]
@@ -118,52 +128,88 @@
      :email             (:account/email account)
      :phone-number      (:account/phone-number account)
      :move-in           (:member-application/desired-availability application)
-     :properties        (map :property/name (:member-application/desired-properties application))
+     :properties        (:member-application/desired-properties application)
      :term              (get-in application [:member-application/desired-license :license/term])
      :completed         (boolean (:member-application/locked application))
      :completed-at      (:member-application/submitted-at application)
      :community-fitness (clean-map community-fitness)
      :income            (parse-income account)
      :address           (format-address (:member-application/current-address application))
-     :pet               (clean-map (:member-application/pet application))}))
+     :pet               (clean-map (:member-application/pet application))
+     :approved          (approved? application)}))
 
 ;; =============================================================================
 ;; API
 ;; =============================================================================
 
+;; =============================================================================
+;; Queries
+
 (defn fetch-applications
-  [{:keys [params] :as req}]
+  "Fetch the list of applications. This is currently just ALL applications."
+  []
   (letfn [(-parse-application [{:keys [:account/_member-application] :as application}]
             (let [account (first _member-application)]
-              {:id (:db/id application)
-               :name           (full-name account)
-               :email          (:account/email account)
-               :phone-number   (:account/phone-number account)
-               :move-in        (:member-application/desired-availability application)
-               :properties     (map :property/name (:member-application/desired-properties application))
-               :term           (get-in application [:member-application/desired-license :license/term])
-               :completed      (boolean (:member-application/locked application))
-               :completed-at   (:member-application/submitted-at application)}))]
+              {:id           (:db/id application)
+               :name         (full-name account)
+               :email        (:account/email account)
+               :phone-number (:account/phone-number account)
+               :move-in      (:member-application/desired-availability application)
+               :properties   (map :property/name (:member-application/desired-properties application))
+               :term         (get-in application [:member-application/desired-license :license/term])
+               :completed    (boolean (:member-application/locked application))
+               :completed-at (:member-application/submitted-at application)
+               :approved     (approved? application)}))]
     (let [ids (map :db/id (find-all-by (d/db conn) :member-application/locked true))]
       (->> (d/pull-many (d/db conn) list-pattern ids)
            (map -parse-application)
-           (ok)))))
+           (api/ok)))))
 
 (defn fetch-application
-  [{:keys [params] :as req}]
-  (let [application-id (str->int (:application-id params))
-        application    (d/pull (d/db conn) item-pattern application-id)]
-    (ok (parse-application application))))
+  "Fetch a the application identified by `application-id`."
+  [application-id]
+  (let [application (d/pull (d/db conn) item-pattern application-id)]
+    (api/ok (parse-application application))))
+
+(s/fdef fetch-application
+        :args (s/cat :application-id integer?))
+
+;; =============================================================================
+;; Approval
+
+(defn- can-approve?
+  [application-id]
+  (and (not (application/approved? application-id))
+       (application/locked? application-id)))
+
+(defn approve
+  "Approve the application identified by `application-id`."
+  [application-id approver-id internal-name email-content]
+  (cond
+    (not (application/locked? application-id))
+    (api/unprocessable {:error "The application is not yet complete, so cannot approve it."})
+
+    (application/approved? application-id)
+    (api/malformed {:error "This application has already been approved."})
+
+    :otherwise (do
+                 (approval/approve! application-id approver-id internal-name email-content)
+                 (api/ok {:message "Success"}))))
+
+(s/fdef approve
+        :args (s/cat :application-id integer?
+                     :approver-id integer?
+                     :internal-name string?
+                     :email-content string?))
+
+;; =============================================================================
+;; TODO: Move this to its own ns...doesn't belong here.
 
 (defn fetch-income-file
-  [{:keys [params] :as req}]
-  (let [file-id (str->int (:file-id params))
-        file    (d/entity (d/db conn) file-id)]
+  "Fetch an income file by `file-id` ."
+  [file-id]
+  (let [file (d/entity (d/db conn) file-id)]
     (ring.util.response/file-response (:income-file/path file))))
 
-(comment
-
-  (fetch-application {:params {:application-id "285873023223095"}})
-
-
-  )
+(s/fdef fetch-income-file
+        :args (s/cat :file-id integer?))
