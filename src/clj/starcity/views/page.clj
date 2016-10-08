@@ -4,7 +4,8 @@
              [footer :as f]
              [navbar :as n]]
             [hiccup.page :refer [html5 include-css include-js]]
-            [cheshire.core :as json]))
+            [cheshire.core :as json]
+            [clojure.spec :as s]))
 
 ;; =============================================================================
 ;; Constants
@@ -36,6 +37,12 @@
     [:script
      (format "var %s = %s" name (json/encode obj))]))
 
+(defn- scripts? [content]
+  (and (map? content) (:scripts content)))
+
+(defn- json? [content]
+  (and (map? content) (:json content)))
+
 ;; =============================================================================
 ;; API
 ;; =============================================================================
@@ -58,16 +65,22 @@
 
 (def navbar-inverse
   (partial n/navbar-inverse
-           (n/nav-item "/communities" "Communities")
-           (n/nav-item "/faq" "FAQ")
-           (n/nav-item "/about" "About")
-           (n/nav-item "/blog" "Blog")))
+     (n/nav-item "/communities" "Communities")
+     (n/nav-item "/faq" "FAQ")
+     (n/nav-item "/about" "About")
+     (n/nav-item "/blog" "Blog")))
 
 ;; (defn cljs [id & content]
 ;;   [:section.section {:id id} content])
 
 ;; for convenience when constructing pages
 (def footer f/footer)
+
+(defn scripts [& scripts]
+  {:scripts (apply include-js scripts)})
+
+(defn json [& json]
+  {:json (include-json json)})
 
 (defn page
   "Page template with a solid navbar."
@@ -90,10 +103,14 @@
 
 (defn cljs-page
   [app-name title & content]
-  (html5
-   {:lang "en"}
-   (head title base-css)
-   [:body
-    content
-    (include-js (format "/js/cljs/%s.js" app-name))
-    [:script (format "window.onload = function() { %s.core.run(); }" app-name)]]))
+  (let [scripts (->> (filter scripts? content) (map :scripts))
+        json    (->> (filter json? content) (map :json))]
+    (html5
+     {:lang "en"}
+     (head title base-css)
+     [:body
+      (remove #(or (scripts? %) (json? %)) content)
+      json
+      (include-js (format "/js/cljs/%s.js" app-name))
+      scripts
+      [:script (format "window.onload = function() { %s.core.run(); }" app-name)]])))

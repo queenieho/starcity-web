@@ -10,6 +10,7 @@
                  [org.clojure/tools.nrepl "0.2.12"]
                  [org.clojure/test.check "0.9.0"]
                  [org.clojure/tools.cli "0.3.5"]
+                 [potemkin "0.4.3"]
                  [http-kit "2.2.0"]
                  [clj-http "3.3.0"]
                  [compojure "1.5.1"]
@@ -33,7 +34,8 @@
                  [prismatic/plumbing "0.5.3"]
                  ;; cljs
                  [cljsjs/flatpickr "2.0.0-rc.7-0"]
-                 [cljsjs/field-kit "2.0.4-1"]
+                 [cljsjs/field-kit "2.0.4-1"] ; TODO: Remove again
+                 [cljsjs/stripe "2.0-0"]
                  [com.andrewmcveigh/cljs-time "0.5.0-alpha1"]
                  [reagent "0.6.0"]
                  [re-frame "0.8.0"]

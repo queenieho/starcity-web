@@ -41,7 +41,19 @@
     (n/error
      (case (:status error)
        400 (first (map parse-error (-> error :response :errors)))
+       422 (-> error :response :errors first)
        default))))
+
+;; =============================================================================
+;; Navigation
+;; =============================================================================
+
+;; On navigation, update the current prompt and clear any notifications
+(reg-event-fx
+ :prompt/nav
+ (fn [{:keys [db]} [_ prompt-key]]
+   {:db       (assoc db :prompt/current prompt-key)
+    :dispatch [:notification/clear-all]}))
 
 ;; =============================================================================
 ;; Next
@@ -61,29 +73,36 @@
       (prompt-uri :overview/welcome))
     (next-uri prompt)))
 
+(defmulti next-prompt (fn [db _] (:prompt/current db)))
+
+(defmethod next-prompt :finish/pay [db _]
+  {:dispatch [:finish/begin-checkout]})
+
+(defmethod next-prompt :default [db _]
+  (let [curr-prompt            (:prompt/current db)
+        {:keys [local remote]} (get db curr-prompt)]
+    (if (not= local remote)
+      ;; Update data on server since it has change
+      {:db         (assoc db :prompt/loading true)
+       :http-xhrio (save-request curr-prompt local
+                                 [:prompt.next/success]
+                                 [:prompt.next/fail])}
+      ;; just advance, since there's no change
+      {:route (next-prompt-uri curr-prompt (prompts/complete db))})))
+
 ;; Event triggered by "advancing" through the application process.
 ;; First initiate a save request, and then on success initiate a browser url
 ;; change to the uri of the next prompt.
 (reg-event-fx
  :prompt/next
- (fn [{:keys [db] :as cofx} _]
-   ;; get the local data
-   (let [curr-prompt            (:prompt/current db)
-         {:keys [local remote]} (get db curr-prompt)]
-     (if (not= local remote)
-       ;; Update data on server since it has change
-       {:db         (assoc db :prompt/loading true)
-        :http-xhrio (save-request curr-prompt local
-                                  [:prompt.next/success]
-                                  [:prompt.next/fail])}
-       ;; just advance, since there's no change
-       {:route (next-prompt-uri curr-prompt (prompts/complete db))}))))
+ (fn [{:keys [db]} evt]
+   (next-prompt db evt)))
 
 (reg-event-fx
  :prompt.next/success
  (fn [{:keys [db]} [_ result]]
    (let [prompt-key (:prompt/current db)]
-     {:route    (next-prompt-uri prompt-key (:complete result))
+     {:route    (next-prompt-uri prompt-key (:payment-allowed result))
       :dispatch [:app/parse result]
       :db       (assoc db :prompt/loading false)})))      ; no longer loading
 
@@ -169,6 +188,6 @@
  (fn [{:keys [db]} _]
    {:db             (-> (assoc-in db [:prompt/help :question] "")
                         (assoc-in [:prompt/help :loading] false))
-    :dispatch-later [{:ms 2000 :dispatch [:notification/clear-all]}]
+    :dispatch-later [{:ms 4000 :dispatch [:notification/clear-all]}]
     :dispatch-n     [[:app/notify (n/success help-success-msg)]
                      [:prompt.help/toggle]]}))

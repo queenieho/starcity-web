@@ -48,4 +48,3 @@
 ;; API
 
 (defstate config :start (load-config environment))
-(defstate datomic :start (:datomic config))

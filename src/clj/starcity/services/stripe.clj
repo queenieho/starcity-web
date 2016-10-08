@@ -60,10 +60,10 @@
             :method   :post}
            (-> {:amount      amount
                 :source      source
-                :currency    "usd"
-                :description description
-                :destination managed-account}
-               (assoc-when :customer customer-id))
+                :currency    "usd"}
+               (assoc-when :customer customer-id
+                           :description description
+                           :destination managed-account))
            cb))
 
 (comment

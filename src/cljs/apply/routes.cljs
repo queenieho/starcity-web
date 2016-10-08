@@ -53,10 +53,13 @@
 (defn app-routes []
 
   (defroute overview root []
-    (dispatch [:app/nav :overview/welcome]))
+    (dispatch [:prompt/nav :overview/welcome]))
+
+  (defroute complete (prefix "/complete") []
+    (dispatch [:complete/nav]))
 
   (defroute prompt (prefix "/:section/:prompt") [section prompt]
-    (dispatch [:app/nav (keyword section prompt)]))
+    (dispatch [:prompt/nav (keyword section prompt)]))
 
   (defroute (prefix "/*") []
     (accountant/navigate! root))

@@ -26,7 +26,7 @@
 
    :community/why-starcity    :community/about-you
    :community/about-you       :community/communal-living
-   :community/communal-living :final/pay})
+   :community/communal-living :finish/pay})
 
 (def ^:private prompts-inverted
   (reduce
@@ -60,11 +60,13 @@
         :args (s/cat :prompt ::prompt)
         :ret boolean?)
 
+;; TODO: Come up with something better than "complete" -- using this in too many
+;; places
 (defn complete
   ([db]
-   (get db :prompts-complete))
+   (get db :prompt/all-complete))
   ([db complete?]
-   (assoc db :prompts-complete complete?)))
+   (assoc db :prompt/all-complete complete?)))
 
 ;; =============================================================================
 ;; Prompt navigation

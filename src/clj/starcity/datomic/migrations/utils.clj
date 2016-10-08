@@ -1,7 +1,7 @@
 (ns starcity.datomic.migrations.utils
   (:require [starcity.models.util :refer [one]]
             [starcity.environment :as env]
-            [starcity.config :refer [datomic]]
+            [starcity.config.datomic :as config]
             [datomic.api :as d]
             [clojure.spec :as s]))
 
@@ -9,10 +9,10 @@
 ;; Tempids
 
 (defn add-tempids [txes]
-  (map #(assoc % :db/id (d/tempid (:partition datomic))) txes))
+  (map #(assoc % :db/id (d/tempid config/partition)) txes))
 
 (defn tempids [n]
-  (repeatedly n (fn [] (d/tempid (:partition datomic)))))
+  (repeatedly n (fn [] (d/tempid config/partition))))
 
 ;; =============================================================================
 ;; Environment Managment

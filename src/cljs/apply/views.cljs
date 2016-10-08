@@ -4,8 +4,11 @@
             [apply.logistics.views :as logistics]
             [apply.personal.views :as personal]
             [apply.community.views :as community]
+            [apply.complete.views :as complete]
+            [apply.finish.views :as finish]
             [re-frame.core :refer [subscribe dispatch]]
-            [starcity.components.notifications :as n]))
+            [starcity.components.notifications :as n]
+            [starcity.components.loading :as l]))
 
 ;; =============================================================================
 ;; Components
@@ -34,23 +37,33 @@
         :community/why-starcity    [community/why-starcity]
         :community/about-you       [community/about-you]
         :community/communal-living [community/communal-living]
+        :finish/pay                [finish/pay]
         [:div.content (str "TODO: Implement view for " @current-prompt)]))))
+
+(defn- prompts-view []
+  (let [notifications (subscribe [:app/notifications])]
+    (fn []
+      [:div.columns
+       [:div.column.is-one-quarter.is-hidden-mobile
+        [menu]]
+       [:div.column
+        (doall
+         (map-indexed
+          (fn [idx n]
+            ^{:key (str "notification-" idx)} [notification idx n])
+          @notifications))
+        [prompt]]])))
 
 ;; =============================================================================
 ;; API
 ;; =============================================================================
 
 (defn app []
-  (let [notifications (subscribe [:app/notifications])]
+  (let [is-complete     (subscribe [:app/complete?])
+        is-initializing (subscribe [:app/initializing?])]
     (fn []
       [:div.container
-       [:div.columns
-        [:div.column.is-one-quarter.is-hidden-mobile
-         [menu]]
-        [:div.column
-         (doall
-          (map-indexed
-           (fn [idx n]
-             ^{:key (str "notification-" idx)} [notification idx n])
-           @notifications))
-         [prompt]]]])))
+       (case @is-complete
+         true [complete/complete]
+         false [prompts-view]
+         (l/fill-container))])))

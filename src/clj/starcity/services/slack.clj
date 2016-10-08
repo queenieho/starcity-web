@@ -1,8 +1,8 @@
 (ns starcity.services.slack
-  (:require [org.httpkit.client :as http]
-            [starcity.config :refer [config]]
-            [cheshire.core :as json]
+  (:require [starcity.config.slack :as config]
             [starcity.environment :refer [environment]]
+            [org.httpkit.client :as http]
+            [cheshire.core :as json]
             [plumbing.core :refer [assoc-when]]
             [mount.core :as mount :refer [defstate]]))
 
@@ -10,44 +10,48 @@
 ;; Helpers
 ;; =============================================================================
 
+(def ^:private default-channel
+  "#webserver")
+
 (def ^:private usernames
   {:staging     "staging"
    :production  "production"
    :development "debug"})
 
-(defn- webhook-request
-  [webhook-url]
-  (fn [text & {:keys [channel cb opts]
-              :or   {cb identity, opts {}}}]
-    (let [username (get usernames environment)]
-      (http/post webhook-url
-                 {:headers {"Content-Type" "application/json"}
-                  :body    (json/generate-string (-> {:text     text
-                                                      :username username}
-                                                     (assoc-when :channel channel)
-                                                     (merge opts)))}
-                 cb))))
+(defn- assoc-channel-when
+  "Assoc the channel into opts when channel is non-nil.
 
-(defn- rich-webhook-request
-  [webhook-url]
-  (fn [title text & {:keys [channel cb opts]
-                    :or   {cb identity, opts {}}}]
-    (let [username (get usernames environment)
-          opts     (assoc opts :fallback (or (:fallback opts) text))
-          payload  (-> {:username    username
-                        :attachments [(merge {:text text :title title} opts)]}
-                       (assoc-when :channel channel))]
-      (http/post webhook-url
-                 {:headers {"Content-Type" "application/json"}
-                  :body    (json/generate-string payload)}
-                 cb))))
+  If we're in development, override the channel with the `default-channel`."
+  [opts channel]
+  (if channel
+    (if (= environment :development)
+      (assoc opts :channel default-channel)
+      (assoc opts :channel channel))
+    opts))
 
 ;; =============================================================================
 ;; API
 ;; =============================================================================
 
-(defstate send-message
-  :start (webhook-request (get-in config [:slack :webhook])))
+(defn send-message
+  [text & {:keys [channel cb opts] :or {cb identity, opts {}}}]
+  (let [username (get usernames environment)]
+    (http/post config/webhook-url
+               {:headers {"Content-Type" "application/json"}
+                :body    (json/generate-string (-> {:text     text
+                                                    :username username}
+                                                   (assoc-channel-when channel)
+                                                   (merge opts)))}
+               cb)))
 
-(defstate rich-message
-  :start (rich-webhook-request (get-in config [:slack :webhook])))
+(defn rich-message
+  [title text & {:keys [channel cb opts] :or {cb identity, opts {}}}]
+  (let [username (get usernames environment)
+        opts     (assoc opts :fallback (or (:fallback opts) text))
+        payload  (-> {:username    username
+                      :attachments [(merge {:text text :title title} opts)]}
+                     (assoc-channel-when channel))]
+    (http/post config/webhook-url
+               {:headers {"Content-Type" "application/json"}
+                :body    (json/generate-string payload)}
+               cb)))

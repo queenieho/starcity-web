@@ -4,7 +4,7 @@
             [apply.logistics.subs]
             [apply.personal.subs]
             [apply.community.subs]
-            [apply.final.subs]
+            [apply.finish.subs]
             [re-frame.core :refer [reg-sub]]))
 
 ;; =============================================================================
@@ -15,3 +15,13 @@
  :app/notifications
  (fn [db _]
    (get db :app/notifications)))
+
+(reg-sub
+ :app/complete?
+ (fn [db _]
+   (get db :app/complete)))
+
+(reg-sub
+ :app/initializing?
+ (fn [db _]
+   (get db :app/initializing)))

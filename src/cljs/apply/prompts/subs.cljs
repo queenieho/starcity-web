@@ -22,8 +22,8 @@
  :<- [:prompt/current]
  (fn [current-prompt _]
    (case current-prompt
-     :overview/welcome          "Begin"
-     :community/communal-living "Finish"
+     :overview/welcome "Begin"
+     :finish/pay       "Finish & Pay"
      "Next")))
 
 (reg-sub
@@ -56,9 +56,9 @@
 ;; TODO: Not the best name
 ;; consider :prompt/payment-allowed?
 (reg-sub
- :prompt/finished?
+ :prompt/payment-allowed?
  (fn [db _]
-   (get db :prompts-complete)))
+   (get db :prompt/all-complete)))
 
 ;; =============================================================================
 ;; Help

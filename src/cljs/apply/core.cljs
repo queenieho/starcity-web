@@ -4,6 +4,7 @@
             [apply.db]
             [apply.subs]
             [apply.events]
+            [apply.fx]
             [re-frame.core :refer [dispatch-sync]]
             [reagent.core :as reagent]
             [clojure.spec.test :as stest]))

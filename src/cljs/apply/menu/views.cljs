@@ -23,7 +23,7 @@
    :community/why-starcity    "Why Starcity?"
    :community/about-you       "About You"
    :community/communal-living "Communal Living"
-   :final/pay                 "Payment"})
+   :finish/pay                "Payment"})
 
 (defn- menu-label
   ([text]
@@ -47,8 +47,8 @@
           [:span.is-pulled-right.icon.is-small [:i.fa.fa-check]])]])))
 
 (defn- menu-list [& prompts]
-  (let [curr-prompt (subscribe [:prompt/current])
-        finished    (subscribe [:prompt/finished?])]
+  (let [curr-prompt      (subscribe [:prompt/current])
+        payment-allowed? (subscribe [:prompt/payment-allowed?])]
     (fn [& prompts]
       [:ul.menu-list
        (doall
@@ -56,7 +56,7 @@
           ^{:key (str "menu-list-item-" p)} [menu-item*
                                              @curr-prompt
                                              p
-                                             (and (not @finished) (= p :final/pay))]))])))
+                                             (and (not @payment-allowed?) (= p :finish/pay))]))])))
 
 
 ;; =============================================================================
@@ -86,4 +86,4 @@
     :community/communal-living]
    (menu-label "Finish")
    [menu-list
-    :final/pay]])
+    :finish/pay]])

@@ -1,48 +1,31 @@
 (ns apply.personal.views
   (:require [apply.prompts.views :as p]
+            [apply.prompts.models :as prompts]
             [apply.states :as states]
+            [starcity.dom :as dom]
             [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]
-            [starcity.dom :as dom]
             [cljs-time.core :as t]
             [cljs-time.coerce :as c]
-            [cljsjs.flatpickr]
-            [cljsjs.field-kit]
-            [apply.prompts.models :as prompts]))
+            [cljsjs.flatpickr]))
 
 ;; =============================================================================
 ;; Phone Number
 ;; =============================================================================
 
 (defn- phone-number-content [phone-number]
-  (r/create-class
-   {:display-name "phone-number-content"
-
-    :component-did-mount
-    (fn [this]
-      (let [elt   (js/document.getElementById "phone-number")
-            field (js/FieldKit.TextField. elt (js/FieldKit.PhoneFormatter.))
-            attrs {:textDidChange #(dispatch [:personal.phone-number/change (.value %)])}]
-        (.setValue field (:data phone-number))
-        (.setDelegate field (clj->js attrs))
-        (r/set-state this {:field-kit field})))
-
-    :component-did-update
-    (fn [this _]
-      (.setValue (:field-kit (r/state this)) (:data (r/props this))))
-
-    :reagent-render
-    (fn [_]
-      [:div.content
-       [:p "We promise we'll keep your phone number private and only contact you
+  [:div.content
+   [:p "We promise we'll keep your phone number private and only contact you
        by phone with prior permission."]
-       [:div.form-container
-        [:div.form-group
-         [:label.label "Please enter your phone number below."]
-         [:input#phone-number.input
-          {:style       {:width "200px"}
-           :placeholder "your phone number"
-           :type        "tel"}]]]])}))
+   [:div.form-container
+    [:div.form-group
+     [:label.label "Please enter your phone number below."]
+     [:input#phone-number.input
+      {:style       {:width "200px"}
+       :placeholder "your phone number"
+       :value       phone-number
+       :type        "tel"
+       :on-change   #(dispatch [:personal.phone-number/change (dom/val %)])}]]]])
 
 ;; =============================================================================
 ;; API
@@ -52,7 +35,7 @@
     (fn []
       (p/prompt
        (p/header "What is the best phone number to reach you at?")
-       (p/content [phone-number-content {:data @phone-number}])))))
+       (p/content [phone-number-content @phone-number])))))
 
 ;; =============================================================================
 ;; Basic Info
@@ -83,9 +66,11 @@
        [:button.button.is-success
         {:on-click #(do (dispatch [:personal.background/consent true])
                         (reset! showing false))
-         :style {:margin-right "10px"}}
+         :style    {:margin-right "10px"}
+         :type     "button"}
         "Agree"]
-       [:button.button.is-danger {:on-click #(reset! showing false)} "Disagree"]]]]]
+       [:button.button.is-danger {:on-click #(reset! showing false) :type "button"}
+        '"Disagree"]]]]]
    [:button.modal-close {:on-click #(reset! showing false)}]])
 
 (defn- consent-group [_]
@@ -140,43 +125,60 @@
             #(dispatch [:personal.background/name k (dom/val %)]))]
     [:div.form-group
      [:label.label "Our background check will be the most accurate with your full legal name."]
-     [:div.control.is-grouped
+     [:div.control.columns
       ;; First name
-      [:p.control.is-expanded
+      [:div.control.column
        [:input.input {:value first :on-change (-on-change :first)}]]
       ;; Middle name
-      [:p.control.is-expanded
+      [:div.control.column
        [:input.input {:placeholder "middle name"
                       :value       middle
                       :on-change   (-on-change :middle)}]]
       ;; Last Name
-      [:p.control.is-expanded
+      [:div.control.column
        [:input.input {:value last :on-change (-on-change :last)}]] ]]))
+
+(def countries
+  (js->clj (.parse js/JSON js/countries) :keywordize-keys true))
 
 (defn- address-group [{:keys [address] :as info}]
   (letfn [(-on-change [k]
             #(dispatch [:personal.background/address k (dom/val %)]))]
-    (let [{:keys [zip state city]} address]
+    (let [{:keys [postal-code locality region country]} address]
       [:div.form-group
        [:label.label "Finally, we need to know some basic information about where you live."]
-       [:div.control.is-grouped
-        ;; City
-        [:p.control.is-expanded
-         [:input.input {:placeholder "City" :value city :on-change (-on-change :city)}]]
-        ;; State
-        [:p.control.is-expanded
+       [:div.control.columns
+        ;; Country
+        [:div.control.column
          [:span.select.is-fullwidth
-          [:select {:value (or state "") :on-change (-on-change :state)}
-           [:option {:disabled true :value ""} "Choose State"]
-           (for [[abbr s] (sort-by val states/states-map)]
-             ^{:key (str "state-" abbr)} [:option {:value abbr} s])]]]
-        ;; Zipcode
-        [:p.control.is-expanded
+          [:select {:value country :on-change (-on-change :country)}
+           (for [{:keys [name code]} countries]
+             ^{:key (str "country-" code)} [:option {:value code} name])]]]
+
+        ;; City
+        [:div.control.column
+         [:input.input {:placeholder "City" :value locality :on-change (-on-change :locality)}]]
+
+        ;; State
+        [:div.control.column
+         (if (= country "US")
+           ;; US -- pick state from select
+           [:span.select.is-fullwidth
+            [:select {:value (or region "") :on-change (-on-change :region)}
+             [:option {:disabled true :value ""} "Choose State"]
+             (for [[abbr s] (sort-by val states/states-map)]
+               ^{:key (str "state-" abbr)} [:option {:value abbr} s])]]
+
+           ;; Non-US -- write-in
+           [:input.input {:placeholder "State/Province"
+                          :value       region
+                          :on-change   (-on-change :region)}])]
+
+        ;; Postal Code
+        [:div.control.column
          [:input.input {:placeholder "Postal Code"
-                        :value       zip
-                        :type        "number"
-                        :min         0
-                        :on-change   (-on-change :zip)}]]]])))
+                        :value       postal-code
+                        :on-change   (-on-change :postal-code)}]]]])))
 
 (defn- background-check-content [{:keys [consent] :as info}]
   [:div.content

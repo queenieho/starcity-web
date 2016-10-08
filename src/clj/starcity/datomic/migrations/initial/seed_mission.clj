@@ -22,6 +22,7 @@
 
                       :property/units           (map :db/id units)}])))]
     :requires [:starcity/seed-licenses
+               :starcity/add-property-license-schema
                :starcity/add-unit-schema
                :starcity/add-property-schema
                :starcity/add-address-schema]}})

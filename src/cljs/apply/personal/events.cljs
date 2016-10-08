@@ -57,11 +57,14 @@
   (s/keys :req-un [::name ::consent]))
 
 (defn- background
-  [account community-safety {:keys [city state postal-code]}]
+  [account community-safety {:keys [locality region country postal-code]}]
   {:name    (:name account)
    :dob     (:dob account)
    :consent (:consent community-safety)
-   :address {:city city :state state :zip postal-code}})
+   :address {:locality    locality
+             :region      region
+             :country     (or country "US") ; Set to US by default
+             :postal-code postal-code}})
 
 (s/fdef background
         :args (s/cat :account ::account)

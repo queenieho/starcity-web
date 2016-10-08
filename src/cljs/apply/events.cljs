@@ -3,9 +3,11 @@
             [apply.logistics.events]
             [apply.personal.events]
             [apply.community.events]
+            [apply.finish.events]
+            [apply.complete.events]
             [apply.prompts.models :as prompts]
+            [apply.routes :as routes]
             [apply.db :refer [default-value]]
-            [apply.routes :refer [navigate!]]
             [apply.api :as api]
             [day8.re-frame.http-fx]
             [re-frame.core :refer [reg-event-db
@@ -42,7 +44,7 @@
 
 (reg-event-fx
  :app.initialize.fetch/success
- (fn [{:keys [db]} [_ {:keys [properties licenses] :as result}]]
+ (fn [{:keys [db]} [_ {:keys [properties stripe licenses] :as result}]]
    {:db       (merge db {:app/properties   (sort-by :property/available-on properties)
                          :app/licenses     (sort-by :license/term > licenses)
                          :app/initializing false})
@@ -50,24 +52,22 @@
 
 (reg-event-fx
  :app/parse
- [re-frame.core/debug]
- (fn [{db :db} [_ {:keys [complete] :as result}]]
-   {:db         (prompts/complete db complete)
-    :dispatch-n [[:logistics/parse result]
-                 [:personal/parse result]
-                 [:community/parse result]]}))
+ (fn [{db :db} [_ {:keys [payment-allowed complete] :as result}]]
+   (if complete
+     ;; If the complete flag is set, navigate to the completion page
+     {:route (routes/complete)}
+     ;; Otherwise do the normal thing and parse the prompt form data
+     {:db         (-> (prompts/complete db payment-allowed)
+                      (assoc :app/complete false))
+      :dispatch-n [[:logistics/parse result]
+                   [:personal/parse result]
+                   [:community/parse result]]})))
 
 (reg-event-fx
  :app.initialize.fetch/fail
  (fn [{:keys [db]} [_ err]]
    {:dispatch [:app/notify (n/error "Error encountered during initialization!")]
-    :db       (assoc db :app/loading false)}))
-
-;; On navigation, update the current prompt and clear any notifications
-(reg-event-db
- :app/nav
- (fn [db [_ prompt-key]]
-   (assoc db :prompt/current prompt-key :app/notifications [])))
+    :db       (assoc db :app/initializing false)}))
 
 (reg-event-db
  :app/notify
@@ -91,9 +91,3 @@
  :notification/clear-all
  (fn [db _]
    (assoc db :app/notifications [])))
-
-;; Allow route changes to be expressed as events
-(reg-fx
- :route
- (fn [new-route]
-   (navigate! new-route)))

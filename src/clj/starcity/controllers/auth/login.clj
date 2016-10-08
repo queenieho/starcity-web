@@ -43,12 +43,6 @@
     (account/applicant? acct)  "/application"
     :otherwise                 redirect-after-login))
 
-;; (defn- show-login*
-;;   "NOTE: Preserves the next url through the POST req by using a hidden input."
-;;   [{:keys [identity params] :as req} & {:keys [errors email] :or {errors []}}]
-;;   (let [email (or email (:email params) "")]
-;;     (view/login errors email params)))
-
 ;; =============================================================================
 ;; API
 ;; =============================================================================
@@ -57,7 +51,7 @@
   "Respond 200 OK with the login page."
   [req]
   (if (authenticated? req)
-    (response/redirect "/application")
+    (response/redirect "/apply")
     (ok (view/login req))))
 
 ;; TODO: Check that the errors work!

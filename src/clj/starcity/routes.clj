@@ -11,8 +11,8 @@
              [plaid :as plaid]
              [stripe :as stripe]]
             [starcity.controllers
+             [apply :as apply]
              [account :as account]
-             [application :as application]
              [auth :as auth]
              [communities :as communities]
              [faq :as faq]
@@ -25,11 +25,6 @@
              [onboarding :as onboarding]
              [admin :as admin]
              [dashboard :as dashboard]]
-            [starcity.controllers.application
-             [personal :as personal]
-             [logistics :as logistics]
-             [community-fitness :as community-fitness]
-             [submit :as submit]]
             [starcity.controllers.auth
              [login :as login]
              [signup :as signup]]))
@@ -37,7 +32,7 @@
 (defn- redirect-by-role
   [{:keys [identity] :as req} msg]
   (-> (condp = (:account/role identity)
-        :account.role/applicant "/application"
+        :account.role/applicant "/apply"
         :account.role/pending   "/onboarding"
         :account.role/admin     "/admin"
         "/")
@@ -66,11 +61,10 @@
 
   (ANY  "/logout"       [] auth/logout!)
 
-  ;; New Application
   (context "/apply" []
     (restrict
         (routes
-         (GET "*" [] application/show-apply))
+         (GET "*" [] apply/show-apply))
       {:handler  {:and [authenticated-user (user-isa :account.role/applicant)]}
        :on-error redirect-by-role}))
 
@@ -95,39 +89,6 @@
     (POST  "/"         [] signup/signup!)
     (GET   "/complete" [] signup/show-complete)
     (GET   "/activate" [] signup/activate!))
-
-  ;; auth
-  (context "/application"         []
-    (restrict
-        (routes
-         (GET "/"             [] application/show-application)
-
-         (restrict
-          (routes
-           (GET "/logistics"  [] logistics/show-logistics)
-           (POST "/logistics" [] logistics/save!))
-          logistics/restrictions)
-
-         (restrict
-          (routes
-           (GET "/personal"   [] personal/show-personal)
-           (POST "/personal"  [] personal/save!))
-          personal/restrictions)
-
-         (restrict
-          (routes
-           (GET "/community"  [] community-fitness/show-community-fitness)
-           (POST "/community" [] community-fitness/save!))
-          community-fitness/restrictions)
-
-         (restrict
-          (routes
-           (GET "/submit"     [] submit/show-submit)
-           (POST "/submit"    [] submit/submit!))
-          submit/restrictions))
-
-      {:handler  {:and [authenticated-user (user-isa :account.role/applicant)]}
-       :on-error redirect-by-role}))
 
   (context "/admin" []
     (restrict

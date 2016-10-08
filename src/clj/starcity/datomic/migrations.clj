@@ -13,7 +13,8 @@
                                                  seed-test-approval]]
              [add-community-safety-consent-9-28-16 :refer [add-community-safety-consent]]
              [add-has-pet-attr-10-3-16 :refer [add-has-pet-attr
-                                               seed-has-pet]]]
+                                               seed-has-pet]]
+             [alter-address-schema-10-8-16 :refer [alter-address-schema]]]
             [starcity.datomic.migrations.utils :refer [only-when]]
             [starcity.environment]
             [mount.core :refer [defstate]]))
@@ -33,4 +34,5 @@
    (only-when #{:development :staging} seed-test-approval)
    add-community-safety-consent
    add-has-pet-attr
-   seed-has-pet))
+   seed-has-pet
+   alter-address-schema))

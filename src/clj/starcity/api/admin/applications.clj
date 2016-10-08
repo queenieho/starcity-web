@@ -75,10 +75,11 @@
          :bank-account/type
          :bank-account/subtype]}]}]}
    {:member-application/current-address
-    [:address/city
+    [:address/locality
      :address/postal-code
-     :address/state
-     :address/lines]}
+     :address/region
+     :address/lines
+     :address/country]}
    {:member-application/desired-properties [:property/name :property/internal-name]}
    {:member-application/desired-license [:license/term]}
    {:member-application/pet
@@ -113,8 +114,8 @@
     {:type "file" :files (map parse-income-file (:income-file/_account account))}))
 
 (defn- format-address
-  [{:keys [:address/lines :address/city :address/state :address/postal-code]}]
-  (format "%s, %s %s, %s" lines city state postal-code))
+  [{:keys [:address/lines :address/locality :address/region :address/postal-code :address/country]}]
+  (format "%s, %s %s, %s, %s" lines locality region postal-code country))
 
 (defn- approved?
   [application]

@@ -17,8 +17,8 @@
  :<- [:personal/phone-number]
  (prompts/form-data :phone-number))
 
-(defn- phone-number-complete? [phone-number]
-  (re-matches #"(^1\d{10}$)|(^[^1]\d{9})" phone-number))
+(def ^:private phone-number-complete?
+  (comp not empty?))
 
 (reg-sub
  :personal.phone-number/complete?
@@ -45,9 +45,10 @@
    {:dob     v/required
     :name    {:first v/required
               :last  v/required}
-    :address {:city  v/required
-              :state v/required
-              :zip   [v/required [v/matches #"^\d{5}(-\d{4})?$"]]}
+    :address {:locality    v/required
+              :region      v/required
+              :country     v/required
+              :postal-code [v/required [v/matches #"^\d{5}(-\d{4})?$"]]}
     :consent [v/required true?]}))
 
 (reg-sub

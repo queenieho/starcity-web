@@ -6,7 +6,7 @@
              [license :as license]]
             [starcity.api.common :as api]
             [starcity.utils.validation :refer [valid? errors-from]]
-            [starcity.states :as states]
+            [starcity.countries :as countries]
             [compojure.core :refer [context defroutes GET POST]]
             [taoensso.timbre :as timbre]
             [bouncer.core :as b]
@@ -83,8 +83,7 @@
   [data _]
   (b/validate
    data
-   {:phone-number [[v/required :message "You must supply a phone number."]
-                   [v/matches #"^1?\(?\d{3}\)?(\s+)?\d{3}\-?\d{4}$" :message "The supplied phone number is invalid."]]}))
+   {:phone-number [[v/required :message "You must supply a phone number."]]}))
 
 (defvalidator over-eighteen?
   {:default-message-format "You must be at least 18 years old."}
@@ -99,11 +98,11 @@
     :dob     [[v/required :message "Your date-of-birth is required."] v/datetime over-eighteen?]
     :name    {:first [[v/required :message "Your first name is required."]]
               :last  [[v/required :message "Your last name is required."]]}
-    :address {:state [[v/required :message "The state that you presently live in is required."]
-                      [v/member states/abbreviations :message "Please supply a valid state."]]
-              :city  [[v/required :message "The city that you live in is required."]]
-              :zip   [[v/required :message "Your postal code is required."]
-                      [v/matches #"^\d{5}(-\d{4})?$" :message "Please enter a valid US postal code."]]}}))
+    :address {:country     [[v/required :message "The country that you presently live in is required."]
+                            [v/member countries/codes :message "Please supply a valid country."]]
+              :region      [[v/required :message "The state/province that you presently live in is required."]]
+              :locality    [[v/required :message "The city/town that you live in is required."]]
+              :postal-code [[v/required :message "Your postal code is required."]]}}))
 
 (defmethod validate :community/why-starcity
   [data _]
@@ -130,20 +129,25 @@
 (def ^:private path->key
   (partial apply keyword))
 
+(def ^:private locked-msg
+  "Your application has already been submitted, so it cannot be updated.")
+
 (defn update-handler
   "Handle an update of user's application."
   [{:keys [params] :as req}]
   (let [account-id (api/account-id req)
         path       (path->key (:path params))
         vresult    (validate (:data params) path)]
-    (if-not (valid? vresult)
-      (api/malformed {:errors (errors-from vresult)})
-      (try
-        (apply/update (:data params) account-id path)
-        (api/ok (apply/progress account-id))
-        (catch Exception e
-          (error e "Error encountered during update!")
-          (api/server-error))))))
+    (prn "Is valid?" (valid? vresult))
+    (cond
+      (apply/locked? account-id) (api/unprocessable {:errors [locked-msg]})
+      (not (valid? vresult))     (api/malformed {:errors (errors-from vresult)})
+      :otherwise                 (try
+                                   (apply/update (:data params) account-id path)
+                                   (api/ok (apply/progress account-id))
+                                   (catch Exception e
+                                     (error e "Error encountered during update!")
+                                     (api/server-error))))))
 
 (defn- save-files
   [account-id file-or-files]
@@ -162,6 +166,23 @@
           (api/server-error "Something went wrong while uploading your proof of income. Please try again.")))
       (api/malformed {:errors ["You must choose at least one file to upload."]}))))
 
+(defn- can-pay? [account-id token]
+  (and token (apply/is-payment-allowed? (apply/progress account-id))))
+
+(defn payment-handler
+  [{:keys [params] :as req}]
+  (let [token      (:token params)
+        account-id (api/account-id req)]
+    (if (can-pay? account-id token)
+      (try
+        (apply/submit-payment account-id token)
+        (api/ok {})
+        (catch Exception e
+          (error e "Error encountered while attempting to submit payment.")
+          (api/server-error "Whoops! Something went wrong while processing your payment. Please try again.")))
+      (api/malformed {:errors ["You must submit payment."]}))))
+
+;; TODO:
 (defn help-handler
   [{:keys [params] :as req}]
   (api/ok {:message "Success!"}))
@@ -180,25 +201,6 @@
   (POST "/verify-income" [] income-files-handler)
 
   (POST "/help" [] help-handler)
-  )
 
-(comment
-
-  {:account           {:name {:first "Josh" :middle "Adam" :last "Lehman"}}
-   :communities       ["2072mission"]
-   :license           6
-   :move-in-date      nil ; #inst "..."
-   :phone-number      "5103817881"
-   :background-check  {:consent true
-                       :dob     "inst"
-                       :city    "Oakland"
-                       :state   "CA"
-                       :zip     "94611"}
-   :income            {:verified true}
-   :community-fitness {:why-interested          ""
-                       :free-time               ""
-                       :dealbreakers            ""
-                       :prior-community-housing ""
-                       :skills                  ""}}
-
+  (POST "/submit-payment" [] payment-handler)
   )

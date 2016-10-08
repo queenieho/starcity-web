@@ -88,10 +88,10 @@
   (let [answers (subscribe [:community.communal-living/form-data])]
     (fn []
       (p/prompt
-       (p/header "TODO:")
+       (p/header "What excites you about living with others?")
        (p/content
         [:div.content
-         [:p "TODO:"]
+         [:p "Starcity is a safe space for individuals to come together and share their skills, experiences and perspectives. Our members give to one another and to the greater communities in which they live. We hope you’re as excited about sharing and giving back as we are."]
          [:div.form-container
           [:div.form-group
            [:label.label "Describe your past experience(s) living in shared spaces."]
