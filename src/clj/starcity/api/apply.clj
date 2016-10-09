@@ -182,10 +182,14 @@
           (api/server-error "Whoops! Something went wrong while processing your payment. Please try again.")))
       (api/malformed {:errors ["You must submit payment."]}))))
 
-;; TODO:
 (defn help-handler
   [{:keys [params] :as req}]
-  (api/ok {:message "Success!"}))
+  (let [{:keys [question sent-from]} params]
+    (if-not (empty? question)
+      (do
+        (apply/ask-question (api/account-id req) question (path->key sent-from))
+        (api/ok {}))
+      (api/malformed {:errors ["Your question didn't go through. Try again?'"]}))))
 
 ;; =============================================================================
 ;; Routes

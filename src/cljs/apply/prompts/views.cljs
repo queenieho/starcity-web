@@ -54,9 +54,11 @@
            [:p.control [save-button @curr-prompt @complete]])
          [:p.control [next-button @curr-prompt @complete]]]]])))
 
-(def ^:private mo-image
+(defn- mo-image [hover]
   [:img.is-circular
-   {:src "/assets/img/mo.jpg" :alt "community advisor headshot"}])
+   {:src   "/assets/img/mo.jpg"
+    :alt   "community advisor headshot"
+    :class (when hover "community-advisor")}])
 
 (defn- contact-modal []
   (let [question (subscribe [:prompt.help/form-data])
@@ -71,7 +73,7 @@
         [:div.box
          [:div.media
           [:figure.media-left
-           [:p.image.is-96x96 mo-image]]
+           [:p.image.is-96x96 (mo-image false)]]
           [:div.media-content
            [:form {:on-submit #(do (.preventDefault %)
                                    (dispatch [:prompt.help/send]))}
@@ -97,7 +99,7 @@
   [title]
   [:header
    [:figure.image.is-64x64
-    [:a {:on-click #(dispatch [:prompt.help/toggle])} mo-image]]
+    [:a {:on-click #(dispatch [:prompt.help/toggle])} (mo-image true)]]
    [:h3.prompt-title.title.is-4 title]
    [contact-modal]])
 

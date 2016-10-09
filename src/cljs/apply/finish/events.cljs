@@ -27,8 +27,9 @@
 
 (reg-event-fx
  :finish/submit-payment
- (fn [cofx [_ token]]
-   {:http-xhrio {:method          :post
+ (fn [{:keys [db]} [_ token]]
+   {:db         (assoc db :prompt/loading true)
+    :http-xhrio {:method          :post
                  :uri             "/api/v1/apply/submit-payment"
                  :params          {:token (:id token)}
                  :format          (ajax/json-request-format)
@@ -41,14 +42,16 @@
 
 (reg-event-fx
  :finish.submit-payment/failure
- (fn [cofx [_ err]]
+ (fn [{:keys [db]} [_ err]]
    (l/error "Error encountered while submitting payment" err)
-   {:dispatch [:app/notify (n/error payment-error-msg)]}))
+   {:db       (assoc db :prompt/loading false)
+    :dispatch [:app/notify (n/error payment-error-msg)]}))
 
 ;; On success, just transition the URL to the "complete" view
 ;; There's no need for actually doing validation that the application has been
 ;; successfully completed, since the URL is not exposed anywhere.
 (reg-event-fx
  :finish.submit-payment/success
- (fn [_ [_ result]]
-   {:route (routes/complete)}))
+ (fn [{:keys [db]} [_ result]]
+   {:db    (assoc db :prompt/loading false)
+    :route (routes/complete)}))

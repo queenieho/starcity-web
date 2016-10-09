@@ -71,7 +71,7 @@
         "Agree"]
        [:button.button.is-danger {:on-click #(reset! showing false) :type "button"}
         '"Disagree"]]]]]
-   [:button.modal-close {:on-click #(reset! showing false)}]])
+   [:button.modal-close {:on-click #(reset! showing false) :type "button"}]])
 
 (defn- consent-group [_]
   (let [showing-modal (r/atom false)]

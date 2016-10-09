@@ -5,14 +5,8 @@
             [starcity.models.apply.payment]
             [starcity.models.apply.common :as common]
             [potemkin :refer [import-vars]]
-            [clojure.spec :as s]
-            [taoensso.timbre :as timbre]))
+            [clojure.spec :as s]))
 
-(timbre/refer-timbre)
-
-;; =============================================================================
-;; Constants
-;; =============================================================================
 
 ;; =============================================================================
 ;; API
@@ -22,7 +16,8 @@
  [starcity.models.apply.initialize initial-data]
  [starcity.models.apply.progress progress is-payment-allowed?]
  [starcity.models.apply.update update]
- [starcity.models.apply.payment submit-payment application-fee])
+ [starcity.models.apply.payment submit-payment application-fee]
+ [starcity.models.apply.help ask-question])
 
 (defn locked?
   "Given an `account-id`, return `true` if the application associated w/ this

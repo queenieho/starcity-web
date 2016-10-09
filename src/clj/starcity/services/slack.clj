@@ -1,6 +1,6 @@
 (ns starcity.services.slack
   (:require [starcity.config.slack :as config]
-            [starcity.environment :refer [environment]]
+            [starcity.environment :refer [is-development? environment]]
             [org.httpkit.client :as http]
             [cheshire.core :as json]
             [plumbing.core :refer [assoc-when]]
@@ -13,6 +13,7 @@
 (def ^:private default-channel
   "#webserver")
 
+;; TODO: Move to config
 (def ^:private usernames
   {:staging     "staging"
    :production  "production"
@@ -24,7 +25,7 @@
   If we're in development, override the channel with the `default-channel`."
   [opts channel]
   (if channel
-    (if (= environment :development)
+    (if (is-development?)
       (assoc opts :channel default-channel)
       (assoc opts :channel channel))
     opts))
