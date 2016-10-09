@@ -3,6 +3,7 @@
             [starcity.models.apply.progress]
             [starcity.models.apply.update]
             [starcity.models.apply.payment]
+            [starcity.models.apply.help]
             [starcity.models.apply.common :as common]
             [potemkin :refer [import-vars]]
             [clojure.spec :as s]))
