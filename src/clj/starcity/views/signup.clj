@@ -43,7 +43,7 @@
 
    ;; Email
    (control
-    {:class "has-icon"}
+    {:class "is-expanded has-icon"}
     (f/email-field {:required    true
                     :class       "input is-medium"
                     :placeholder "email address"}
@@ -69,22 +69,6 @@
 
    (simple/button "Create Account")))
 
-
-(comment
-  (defn- content [{:keys [params] :as req}]
-   (h/hero
-    {:class "is-fullheight is-primary is-bold"}
-    (h/head (p/navbar-inverse))
-    (h/body
-     [:div.container
-      [:div.columns
-       [:div.column.is-half.is-offset-one-quarter
-        (l/box
-         ;; TODO: SASS
-         [:h3.is-3.title {:style "color: black;"} "Sign up for Starcity"]
-         (for [error (errors-from req)]
-           (n/danger error))
-         (signup-form params))]]]))))
 
 (def ^:private content
   (simple/primary
