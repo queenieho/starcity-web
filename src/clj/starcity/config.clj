@@ -48,3 +48,4 @@
 ;; API
 
 (defstate config :start (load-config environment))
+(defstate hostname :start (:hostname config) :stop :noop)

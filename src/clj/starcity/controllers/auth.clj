@@ -15,10 +15,6 @@
 ;; Helpers
 ;; =============================================================================
 
-(defn- show-error
-  [msg]
-  (malformed (view/forgot-password :errors [msg])))
-
 (defn- send-password-reset-email
   [{:keys [:account/email :account/first-name] :as acct} new-password]
   (send-email email "Password Reset"
@@ -49,12 +45,11 @@
   (-> (response/redirect "/login")
       (assoc :session {})))
 
-(defn show-forgot-password
-  [req]
-  (ok (view/forgot-password)))
+(def show-forgot-password
+  (comp ok view/forgot-password))
 
 (defn forgot-password!
-  [{:keys [params] :as request}]
+  [{:keys [params] :as req}]
   (if-let [email (:email params)]
     (let [cleaned (-> email str/trim str/lower-case)]
       (if-let [acct (account/by-email cleaned)]
@@ -62,6 +57,6 @@
               next         (format "/login?email=%s&reset-password=true" cleaned)]
           (send-password-reset-email acct new-password)
           (response/redirect next))
-        (show-error (format "We do not have an account under '%s'. Please try again, or create an account."
-                            cleaned))))
-    (show-error "Please enter your email.")))
+        (respond-with-errors req (format "We do not have an account under %s. Please try again, or create an account."
+                            cleaned) view/forgot-password)))
+    (respond-with-errors req "Please enter your email." view/forgot-password)))

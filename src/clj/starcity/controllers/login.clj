@@ -1,4 +1,4 @@
-(ns starcity.controllers.auth.login
+(ns starcity.controllers.login
   (:require [starcity.views.bulma.login :as view]
             [starcity.models.account :as account]
             [buddy.auth :refer [authenticated?]]
@@ -40,7 +40,7 @@
   (cond
     (not-empty (:next params)) (:next params)
     (account/admin? acct)      "/admin"
-    (account/applicant? acct)  "/application"
+    (account/applicant? acct)  "/apply"
     :otherwise                 redirect-after-login))
 
 ;; =============================================================================

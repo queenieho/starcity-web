@@ -11,7 +11,8 @@
 (reg-fx
  :stripe-checkout
  (fn [{:keys [on-success]}]
-   (let [conf    {:name            "Starcity"
+   (let [checkout (aget js/window "StripeCheckout")
+         conf    {:name            "Starcity"
                   :description     "Member Application"
                   :amount          (.-amount js/stripe)
                   :key             (.-key js/stripe)
@@ -20,6 +21,5 @@
                   :allowRememberMe true
                   :locale          "auto"
                   :token           (fn [token]
-                                     (dispatch (conj on-success (js->clj token :keywordize-keys true))))}
-         handler (js/StripeCheckout.configure (clj->js conf))]
-     (.open handler))))
+                                     (dispatch (conj on-success (js->clj token :keywordize-keys true))))}]
+     ((aget checkout "open") (clj->js conf)))))

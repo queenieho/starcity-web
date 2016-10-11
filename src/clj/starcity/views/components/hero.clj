@@ -1,16 +1,18 @@
-(ns starcity.views.components.hero)
+(ns starcity.views.components.hero
+  "http://bulma.io/documentation/layout/hero/"
+  (:require [hiccup.def :refer [defelem]]))
 
-(defn hero
-  "Construct a hero."
-  [attrs? & content]
-  (let [attrs (if (map? attrs?) attrs? {})]
-    [:section.hero attrs
-     (when-not (map? attrs?)
-       attrs?)
-     content]))
+;; TODO: Come up with a more expressive API
+(defelem hero
+  "Construct a hero element."
+  [& content]
+  [:section.hero content])
 
-(defn body [& content]
+(defelem body [& content]
   [:div.hero-body content])
 
-(defn head [& content]
+(defelem head [& content]
   [:div.hero-head content])
+
+(defelem foot [& content]
+  [:div.hero-foot content])

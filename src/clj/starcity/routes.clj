@@ -14,20 +14,18 @@
              [apply :as apply]
              [account :as account]
              [auth :as auth]
+             [login :as login]
+             [signup :as signup]
              [communities :as communities]
              [faq :as faq]
              [landing :as landing]
-             [register :as register]
              [terms :as terms]
              [privacy :as privacy]
              [team :as team]
              [about :as about]
              [onboarding :as onboarding]
              [admin :as admin]
-             [dashboard :as dashboard]]
-            [starcity.controllers.auth
-             [login :as login]
-             [signup :as signup]]))
+             [dashboard :as dashboard]]))
 
 (defn- redirect-by-role
   [{:keys [identity] :as req} msg]
@@ -43,9 +41,9 @@
 ;; =============================================================================
 
 (defroutes app-routes
-  ;; public
   (GET "/"                 [] landing/show-landing)
-  (GET "/register"         [] register/register-user!)
+  (POST "/"                [] landing/newsletter-signup)
+
   (GET "/communities"      [] communities/show-communities)
   (GET "/faq"              [] faq/show-faq)
   (GET "/terms"            [] terms/show-terms)
@@ -106,8 +104,7 @@
 
 
   (context "/onboarding" []
-    (restrict
-        onboarding/routes
+    (restrict onboarding/routes
       {:handler  {:and [authenticated-user (user-isa :account.role/pending)]}
        :on-error redirect-by-role}))
 

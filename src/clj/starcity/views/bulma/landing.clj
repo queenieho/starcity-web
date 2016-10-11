@@ -15,16 +15,12 @@
   {:style (format "background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('%s');" url) :class "has-background-image"})
 
 ;; =============================================================================
-;; Components
-;; =============================================================================
-
-;; =============================================================================
 ;; Hero
 
 (defn- auth-item [req]
   (let [role          (get-in req [:identity :account/role])
         [uri content] (case role
-                        :account.role/applicant ["/application" "Resume Application"]
+                        :account.role/applicant ["/apply" "Resume Application"]
                         :account.role/pending   ["/onboarding" "Security Deposit"]
                         :account.role/admin     ["/admin" "Admin"]
                         ["/login" "Log In"])]
@@ -47,8 +43,46 @@
     (hero/hero attrs (hero-head req) hero-body)))
 
 ;; =============================================================================
+;; Newsletter
+
+(def ^:private newsletter-form
+  (html
+   [:form {:action "/" :method "POST"}
+    [:div.control.is-grouped
+     [:div.control.has-icon.is-expanded
+      [:input.input
+       {:required true :placeholder "Email Address" :name "email" :type "email"}]
+      [:i.fa.fa-envelope]]
+     [:div.control
+      [:button.button.is-white.is-outlined {:type "submit"}
+       "Subscribe"]]]]))
+
+(def ^:private subscribe-success)
+
+(defn- newsletter [{:keys [params]}]
+  (let [did-subscribe (= (:newsletter params) "subscribed")]
+    (hero/hero
+     {:class "is-primary"}
+     (hero/body
+      [:div#newsletter.container
+       [:div.columns.is-vcentered
+        [:div.column.is-one-third.is-left
+         [:p.title "Subscribe to our " [:strong "Newsletter"]]
+         [:p.subtitle "Stay up-to-date on our latest buildings and more."]]
+        [:div.column
+         newsletter-form
+         (when did-subscribe
+           [:div.notification.is-success {:style "margin-top: 10px;"}
+            "All set! We'll send you the latest."])]]]))))
+
+;; =============================================================================
 ;; API
 ;; =============================================================================
 
 (def landing
-  (p/page "Starcity" (p/content hero-section)))
+  (p/page
+   "Starcity"
+   (p/content
+    hero-section
+    [:section.section]
+    newsletter)))

@@ -1,5 +1,5 @@
 (ns starcity.views.legal.terms
-  (:require [starcity.views.base :refer [base]]
+  (:require [starcity.views.page :as p]
             [starcity.views.legal.terms.content :as content]))
 
 ;; =============================================================================
@@ -7,23 +7,23 @@
 ;; =============================================================================
 
 (def ^:private content
-  [:main#legal
+  [:section.section
    [:div.container
-    [:div.center
-     [:h3 "Starcity Properties, Inc"]
-     [:h4 "Terms of Service"]]
-    [:div.divider]
-    [:p content/preamble]
-    [:ol content/terms]
-    [:p [:small "Effective Date of Terms of Service: July 14, 2016"]]]])
+    [:h1.title.is-2 "Terms of Service"]
+    [:h2.subtitle.is-4 "Starcity Properties, Inc"]
+    [:hr]
+    [:div.content
+     [:p content/preamble]
+     [:ol content/terms]
+     [:p [:small "Effective Date of Terms of Service: July 14, 2016"]]]]])
 
 ;; =============================================================================
 ;; API
 ;; =============================================================================
 
-(defn terms
-  [req]
-  (base
-   :req req
-   :title "Terms of Service"
-   :content content))
+(def terms
+  (p/page
+   (p/title "Terms of Service")
+   (p/content
+    (p/navbar)
+    content)))

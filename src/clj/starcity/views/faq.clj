@@ -1,5 +1,5 @@
 (ns starcity.views.faq
-  (:require [starcity.views.base :refer [base]]))
+  (:require [starcity.views.page :as p]))
 
 (defn- make-section
   [question answers]
@@ -66,32 +66,33 @@
                  ["Simply give us 30 days notice and we'll work diligently to find a replacement for you. Please refer to your Membership Agreement for complete details on the move-out process."])
    ])
 
+(def ^:private content
+  [:section.section
+   [:div.container
+    [:h1.title.is-2 "Frequently Asked Questions"]
+    [:p.subtitle.is-4 "We put together this FAQ to help you better understand how Starcity works. If you're a current member and have questions about your Membership Agreement, please reach out to us at "
+     [:a {:href "mailto:team@joinstarcity.com."}
+      "team@joinstarcity.com"]
+     "."]
+    [:hr]
+    [:div.content.is-medium
+     (for [{:keys [question answers]} sections]
+       (list
+        [:h2 question]
+        (for [answer answers]
+          (if (vector? answer)
+            [:ul
+             (for [item answer]
+               [:li [:p item]])]
+            [:p answer]))))]]])
 
 ;; =============================================================================
 ;; API
 ;; =============================================================================
 
-(defn faq
-  [req]
-  (base
-   :req req
-   :title "FAQ"
-   :content
-   [:main
-    [:div.container
-     [:h2 "Frequently Asked Questions"]
-     [:p.flow-text "We put together this FAQ to help you better understand how Starcity works. If you're a current member and have questions about your Membership Agreement, please reach out to us at "
-      [:a {:href "mailto:team@joinstarcity.com."}
-       "team@joinstarcity.com"]
-      "."]
-     [:div.card-panel
-      (for [{:keys [question answers]} sections]
-        [:div.half-section
-         [:h4 question]
-         (for [answer answers]
-           (if (vector? answer)
-             [:ul.bullets
-              ;; TODO: Make css class for the list items
-              (for [item answer]
-                [:li.flow-text-small item])]
-             [:p.flow-text-small answer]))])]]]))
+(def faq
+  (p/page
+   (p/title "FAQ")
+   (p/content
+    (p/navbar)
+    content)))

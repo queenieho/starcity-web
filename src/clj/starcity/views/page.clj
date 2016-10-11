@@ -82,6 +82,7 @@
 (defn json [& json]
   {:json (include-json json)})
 
+;; TODO: Convert to cljs-page js/json approach
 (defn page
   "Page template with a solid navbar."
   [title content & {:keys [js json] :or {js [], json []}}]

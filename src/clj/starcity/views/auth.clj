@@ -1,54 +1,51 @@
 (ns starcity.views.auth
-  (:require [starcity.views.base :refer [base]]))
+  (:require [starcity.views.page :as p]
+            [starcity.views.templates.simple :as simple]
+            [starcity.views.components
+             [hero :as h]
+             [layout :as l]
+             [button :as b]
+             [notification :as n]
+             [form :refer [label control]]]
+            [starcity.views.utils :refer [errors-from]]
+            [hiccup.form :as f]))
 
 ;; =============================================================================
-;; Helpers
+;; Components
 ;; =============================================================================
 
-(defn- content
-  [errors]
-  [:main.auth
-   [:div.container
-    [:div.row
-     [:div.col.l6.offset-l3.m8.offset-m2.s12
-      [:div.card-panel
-       [:h3.light "Forgotten Password"]
-       [:p.flow-text-small "Enter your email below, and we'll send you a new password."]
+(def ^:private forgotten-password-form
+  (f/form-to
+   [:post "/forgot-password"]
+   (control
+    {:class "has-icon"}
+    (f/email-field {:class       "input is-medium"
+                    :id          "email"
+                    :required    true
+                    :autofocus   true
+                    :placeholder "email address"}
+                   "email")
+    [:i.fa.fa-envelope])
+   (control
+    {:style "margin-top: 20px;"}
+    [:button.button.is-white.is-outlined.is-large {:type "submit"}
+     "Reset"])))
 
-       (for [error errors]
-         [:div.alert.alert-error
-          [:div.alert-text error]])
-
-       [:form {:action "/forgot-password" :method "POST"}
-        [:div.row
-         [:div.input-field.col.s12
-          [:input#email.validate {:type      "email"
-                                  :name      "email"
-                                  :required  true
-                                  :autofocus true}]
-          [:label {:for "email"} "Email"]]]
-
-        [:div.row
-         [:div.col.s12.center-align
-          [:button.btn.waves-effect.waves-light.btn-large.star-green.lighten-1 {:type "submit"}
-           "Reset Password"
-           [:i.material-icons.right "send"]]]] ]
-
-       [:div.divider]
-
-       [:div.row.panel-footer.valign-wrapper
-        [:div.col.s6
-         [:p "Know your password?"]]
-        [:div.col.s6
-         [:a.right.btn.white.star-orange-text.waves-effect.waves-light
-          {:href "/login"}
-          "Log In"]]]]]]]])
+(def ^:private content
+  (simple/info
+   (simple/body
+    (simple/title "Forgotten password?")
+    (simple/subtitle "Enter your email and we'll send you a new one.")
+    forgotten-password-form)
+   (simple/foot
+    ["/login" "Log In"]
+    ["/signup" "Create an Account"])))
 
 ;; =============================================================================
 ;; API
 ;; =============================================================================
 
-(defn forgot-password
-  [& {:keys [errors] :or {errors []}}]
-  (base :title "Forgotten Password"
-        :content (content errors)))
+(def forgot-password
+  (p/page
+   (p/title "Forgotten Password")
+   (p/content content)))

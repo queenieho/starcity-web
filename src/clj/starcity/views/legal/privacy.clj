@@ -1,5 +1,5 @@
 (ns starcity.views.legal.privacy
-  (:require [starcity.views.base :refer [base]]
+  (:require [starcity.views.page :as p]
             [starcity.views.legal.privacy.content :as content]))
 
 ;; =============================================================================
@@ -7,23 +7,23 @@
 ;; =============================================================================
 
 (def ^:private content
-  [:main#legal
+  [:section.section
    [:div.container
-    [:div.center
-     [:h3 "Starcity Properties, Inc"]
-     [:h4 "Privacy Policy"]]
-    [:div.divider]
-    [:p content/preamble]
-    [:ol content/privacy]
-    [:p [:small "Effective Date of Privacy Policy: July 4, 2016"]]]])
+    [:h1.title.is-2 "Privacy Policy"]
+    [:h2.subtitle.is-4 "Starcity Properties, Inc"]
+    [:hr]
+    [:div.content
+     [:p content/preamble]
+     [:ol content/privacy]
+     [:p [:small "Effective Date of Privacy Policy: July 4, 2016"]]]]])
 
 ;; =============================================================================
 ;; API
 ;; =============================================================================
 
-(defn privacy
-  [req]
-  (base
-   :req req
-   :title "Privacy Policy"
-   :content content))
+(def privacy
+  (p/page
+   (p/title "Privacy Policy")
+   (p/content
+    (p/navbar)
+    content)))
