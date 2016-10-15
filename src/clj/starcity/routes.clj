@@ -44,7 +44,6 @@
   (GET "/"                 [] landing/show-landing)
   (POST "/"                [] landing/newsletter-signup)
 
-  (GET "/communities"      [] communities/show-communities)
   (GET "/faq"              [] faq/show-faq)
   (GET "/terms"            [] terms/show-terms)
   (GET "/privacy"          [] privacy/show-privacy)
@@ -57,7 +56,22 @@
   (GET  "/login"           [] login/show-login)
   (POST "/login"           [] login/login!)
 
-  (ANY  "/logout"       [] auth/logout!)
+  (ANY  "/logout"          [] auth/logout!)
+
+  (context "/communities" []
+    (GET "/" [] communities/show-communities)
+    ;; (GET "/:building" [building]
+    ;;      (fn [_]
+    ;;        (ring.util.response/redirect (format "/communities/%s/space" building))))
+    ;; (GET "/mission/:subsection" [] communities/show-mission)
+    (GET "/mission" [] communities/show-mission)
+    )
+
+  (context "/signup" []
+    (GET   "/"         [] signup/show-signup)
+    (POST  "/"         [] signup/signup!)
+    (GET   "/complete" [] signup/show-complete)
+    (GET   "/activate" [] signup/activate!))
 
   (context "/apply" []
     (restrict
@@ -81,12 +95,6 @@
          (POST "/password" [] account/update-password!))
       {:handler  authenticated-user
        :on-error redirect-by-role}))
-
-  (context "/signup" []
-    (GET   "/"         [] signup/show-signup)
-    (POST  "/"         [] signup/signup!)
-    (GET   "/complete" [] signup/show-complete)
-    (GET   "/activate" [] signup/activate!))
 
   (context "/admin" []
     (restrict

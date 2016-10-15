@@ -1,5 +1,7 @@
 (ns starcity.views.communities
   (:require [starcity.views.base :refer [base]]
+            [starcity.views.communities.mission]
+            [potemkin :refer [import-vars]]
             [clojure.spec :as s]
             [clj-time.format :as f]
             [clj-time.core :as t]
@@ -96,3 +98,6 @@
         :args (s/cat :request map?
                      :properties (s/spec (s/+ ::property)))
         :ret  string?)
+
+(import-vars
+ [starcity.views.communities.mission mission])

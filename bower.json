@@ -20,6 +20,7 @@
     "field-kit": "^2.0.4",
     "Materialize": "materialize#^0.97.7",
     "flatpickr": "flatpickr-calendar#^1.9.1",
-    "SpinKit": "spinkit#^1.2.5"
+    "SpinKit": "spinkit#^1.2.5",
+    "photoswipe": "^4.1.1"
   }
 }

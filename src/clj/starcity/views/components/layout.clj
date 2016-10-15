@@ -6,6 +6,10 @@
   [& content]
   [:div.box content])
 
+(defelem section
+  [& content]
+  [:section.section content])
+
 (defelem container
   [& content]
   [:div.container content])

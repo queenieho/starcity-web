@@ -21,3 +21,6 @@
                                    {:property/licenses [:property-license/base-price
                                                         {:property-license/license [:license/term]}]}])]
     (ok (view/communities req properties))))
+
+(def show-mission
+  (comp ok view/mission))

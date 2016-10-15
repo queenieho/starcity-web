@@ -33,12 +33,12 @@
   (html
    (hero/body
     [:div.container
-     [:h1.title.is-1 "Your new home."]
+     [:h1.title.is-1 "Get <strong>more</strong> from your home"]
      [:h2.subtitle.is-4
       "Comfortable, communal housing in " [:strong "San Francisco"]]])))
 
 (defn- hero-section [req]
-  (let [attrs (merge (gradient-background-image "/assets/img/starcity-kitchen.png")
+  (let [attrs (merge (gradient-background-image "/assets/img/landing-banner.jpg")
                      {:class "has-background-image is-fullheight is-primary"})]
     (hero/hero attrs (hero-head req) hero-body)))
 

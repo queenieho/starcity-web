@@ -97,9 +97,6 @@
       footer
       (include-json json)
       (apply include-js (concat base-js js))
-      ;; (include-js
-      ;;  "/assets/bower/jquery-validation/dist/jquery.validate.js"
-      ;;  "/js/main.js")
       google-analytics])))
 
 (defn cljs-page

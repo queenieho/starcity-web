@@ -11,11 +11,12 @@ main {
 }
 
 // Bower
-// TODO: move bower to vendor director?
 /* @import "../bower/SpinKit/scss/spinners/2-double-bounce"; */
 @import "../bower/SpinKit/css/spinkit.css";
 // NOTE: This path comes from the cljsjs jar
 @import "../../flatpickr/flatpickr.min.css";
+@import "../bower/photoswipe/dist/photoswipe.css";
+@import "../bower/photoswipe/dist/default-skin/default-skin.css";
 
 // Vendor
 @import "vendor/bulma/bulma";
@@ -24,6 +25,7 @@ main {
 @import "modules/apply";
 @import "modules/list";
 @import "modules/modifiers";
+@import "modules/communities";
 
 // Partials
 @import "partials/images";

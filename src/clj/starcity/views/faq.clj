@@ -78,7 +78,7 @@
     [:div.content.is-medium
      (for [{:keys [question answers]} sections]
        (list
-        [:h2 question]
+        [:h2 [:strong question]]
         (for [answer answers]
           (if (vector? answer)
             [:ul
