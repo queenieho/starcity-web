@@ -27,7 +27,7 @@
   (fn [req]
     (h/hero
      {:class (str "is-fullheight is-bold " (type->class type))}
-     (h/head (p/navbar-inverse))
+     (h/head (p/navbar-inverse req))
      (h/body (body req))
      (when foot foot))))
 

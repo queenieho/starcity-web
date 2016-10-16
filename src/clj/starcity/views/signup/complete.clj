@@ -4,10 +4,10 @@
              [hero :as h]
              [layout :as l]]))
 
-(def ^:private content
+(defn- content [req]
   (h/hero
    {:class "is-fullheight is-success is-bold"}
-   (h/head (p/navbar-inverse))
+   (h/head (p/navbar-inverse req))
    (h/body
     (l/container
      [:p.title.is-2

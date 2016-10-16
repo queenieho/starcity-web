@@ -56,22 +56,32 @@
         (c req)
         c))))
 
-(def navbar
-  (partial n/navbar
-     (n/nav-item "/communities" "Communities")
-     (n/nav-item "/faq" "FAQ")
-     (n/nav-item "/about" "About")
-     (n/nav-item "/blog" "Blog")))
+(defn- auth-item [req]
+  (let [role          (get-in req [:identity :account/role])
+        [uri content] (case role
+                        :account.role/applicant ["/apply" "Resume Application"]
+                        :account.role/pending   ["/onboarding" "Security Deposit"]
+                        :account.role/admin     ["/admin" "Admin"]
+                        ["/login" "Log In"])]
+    (n/nav-item uri content :button)))
 
-(def navbar-inverse
-  (partial n/navbar-inverse
-     (n/nav-item "/communities" "Communities")
-     (n/nav-item "/faq" "FAQ")
-     (n/nav-item "/about" "About")
-     (n/nav-item "/blog" "Blog")))
+(defn navbar [req]
+  (n/navbar
+   false
+   (n/nav-item "/communities" "Communities")
+   (n/nav-item "/faq" "FAQ")
+   (n/nav-item "/about" "About")
+   (n/nav-item "/blog" "Blog")
+   (auth-item req)))
 
-;; (defn cljs [id & content]
-;;   [:section.section {:id id} content])
+(defn navbar-inverse [req]
+  (n/navbar
+   true
+   (n/nav-item "/communities" "Communities")
+   (n/nav-item "/faq" "FAQ")
+   (n/nav-item "/about" "About")
+   (n/nav-item "/blog" "Blog")
+   (auth-item req)))
 
 ;; for convenience when constructing pages
 (def footer f/footer)
@@ -97,6 +107,7 @@
       footer
       (include-json json)
       (apply include-js (concat base-js js))
+      (include-js "/js/main.js")
       google-analytics])))
 
 (defn cljs-page

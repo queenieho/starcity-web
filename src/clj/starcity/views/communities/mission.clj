@@ -28,7 +28,7 @@
   (h/background-image
    {:class "is-large is-primary is-fullheight"}
    "/assets/img/mission/banner.jpg"
-   (h/head (p/navbar-inverse))
+   (h/head (p/navbar-inverse req))
    (h/body
     {:style "align-items: flex-end;"}
     (l/container
@@ -240,5 +240,4 @@
     ;; people
     photoswipe/element)
    :js ["/assets/bower/photoswipe/dist/photoswipe.js"
-        "/assets/bower/photoswipe/dist/photoswipe-ui-default.js"
-        "/js/mission.js"]))
+        "/assets/bower/photoswipe/dist/photoswipe-ui-default.js"]))

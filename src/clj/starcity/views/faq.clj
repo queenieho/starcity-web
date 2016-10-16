@@ -94,5 +94,5 @@
   (p/page
    (p/title "FAQ")
    (p/content
-    (p/navbar)
+    p/navbar
     content)))

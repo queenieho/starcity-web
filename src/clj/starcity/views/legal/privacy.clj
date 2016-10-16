@@ -25,5 +25,5 @@
   (p/page
    (p/title "Privacy Policy")
    (p/content
-    (p/navbar)
+    p/navbar
     content)))

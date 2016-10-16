@@ -25,5 +25,5 @@
   (p/page
    (p/title "Terms of Service")
    (p/content
-    (p/navbar)
+    p/navbar
     content)))

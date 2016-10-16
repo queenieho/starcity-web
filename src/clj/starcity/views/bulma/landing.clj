@@ -16,19 +16,10 @@
   {:style (format "background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('%s');" url) :class "has-background-image"})
 
 ;; =============================================================================
-;; Hero
+;; Banner
 
-(defn- auth-item [req]
-  (let [role          (get-in req [:identity :account/role])
-        [uri content] (case role
-                        :account.role/applicant ["/apply" "Resume Application"]
-                        :account.role/pending   ["/onboarding" "Security Deposit"]
-                        :account.role/admin     ["/admin" "Admin"]
-                        ["/login" "Log In"])]
-    (nav-item uri content :button)))
-
-(defn- hero-head [req]
-  (hero/head (p/navbar-inverse (auth-item req))))
+(def ^:private hero-head
+  (comp hero/head p/navbar-inverse))
 
 (def ^:private hero-body
   (html
@@ -36,9 +27,11 @@
     [:div.container
      [:h1.title.is-1 "Get <strong>more</strong> from your home"]
      [:h2.subtitle.is-4
-      "Comfortable, communal housing in " [:strong "San Francisco"]]])))
+      "Comfortable, communal housing in " [:strong "San Francisco"]]
+     [:a.button.is-primary.is-large {:href "/signup"}
+      "Apply Now"]])))
 
-(defn- hero-section [req]
+(defn- banner [req]
   (let [attrs (merge (gradient-background-image "/assets/img/landing-banner.jpg")
                      {:class "has-background-image is-fullheight is-primary"})]
     (hero/hero attrs (hero-head req) hero-body)))
@@ -159,7 +152,7 @@
   (p/page
    "Starcity"
    (p/content
-    hero-section
+    banner
     community
     [:hr.is-marginless]
     comfortable

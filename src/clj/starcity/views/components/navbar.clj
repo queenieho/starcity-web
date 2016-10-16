@@ -1,5 +1,6 @@
 (ns starcity.views.components.navbar
-  (:require [hiccup.element :refer [link-to]]))
+  (:require [hiccup.element :refer [link-to]]
+            [hiccup.def :refer [defelem]]))
 
 (defn- brand [& [inverse?]]
   (let [logo-url (if inverse?
@@ -16,16 +17,11 @@
      (link-to {:class "button is-primary"} uri content)]
     (link-to {:class "nav-item is-tab"} uri content)))
 
-(defn navbar [& nav-items]
-  [:header.nav.has-shadow
-   [:div.container
-    [:div.nav-left (brand)]
-    (for [_ (range 3)] [:span])
-    [:div.nav-right.nav-menu nav-items]]])
-
-(defn navbar-inverse [& nav-items]
+(defn navbar [inverse? & nav-items]
   [:header.nav
+   {:class (when-not inverse? "has-shadow")}
    [:div.container
-    [:div.nav-left (brand :inverse)]
-    (for [_ (range 3)] [:span])
+    [:div.nav-left (brand inverse?)]
+    [:span#nav-toggle.nav-toggle
+     (for [_ (range 3)] [:span])]
     [:div.nav-right.nav-menu nav-items]]])

@@ -1,4 +1,8 @@
 .nav {
+  /* &.is-active { */
+  /*   background-color: $primary; */
+  /* } */
+
   .is-brand {
     img {
       max-height: 30px;
@@ -7,7 +11,7 @@
     span {
       margin-left: 10px;
       font-family: 'Josefin Sans', sans-serif;
-      font-size: 1.75rem;
+      font-size: 1.5rem;
       color: black;;
 
     }
