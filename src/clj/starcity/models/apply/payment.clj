@@ -25,10 +25,10 @@
   (html
    [:body
     [:p (format "Hi %s," first-name)]
-    [:p "Thank you for completing Starcity's membership application. Here's what to expect now:"]
+    [:p "Thank you for completing Starcity's membership application. Next:"]
     [:ol
-     [:li "Over the next couple of business days, we'll process your application (community safety and financial checks) to pre-qualify you for the community."]
-     [:li "We'll notify you as soon as you're pre-qualified, and one of our community members will then reach out to schedule an interview and tour of the home you've applied for."]]
+     [:li "We'll process your application (community safety and financial checks) to pre-qualify you for the community,"]
+     [:li "and then notify you as soon as you're pre-qualified, and one of our community members will then reach out to schedule an interview and tour of the home you've applied for."]]
     [:p "Stay tuned and thanks for your patience!"]
     [:p "Best,"
      [:br]
