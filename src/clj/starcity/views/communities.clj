@@ -1,103 +1,64 @@
 (ns starcity.views.communities
-  (:require [starcity.views.base :refer [base]]
+  (:require [starcity.views.page :as p]
             [starcity.views.communities.mission]
             [potemkin :refer [import-vars]]
             [clojure.spec :as s]
-            [clj-time.format :as f]
-            [clj-time.core :as t]
-            [clj-time.coerce :as c]))
+            [starcity.views.components
+             [layout :as l]
+             [image :as i]]))
 
 ;; =============================================================================
-;; Helpers
+;; Internal
 ;; =============================================================================
 
-(def ^:private month-day-year-formatter (f/formatter "MMMM d, y"))
+(def ^:private content
+  (l/section
+   {:class "is-fullheight"}
+   (l/container
+    {:style "min-width: 70%;"}
+    [:h1.title.is-1 "Explore our <b>communities</b>"]
+    [:p.subtitle.is-4 "Our communities are all located in different
+    neighborhoods of <strong>San Francisco</strong>, and are each uniquely
+    designed with their neighborhood's character in mind."]
+    (l/columns
+     (l/column
+      {:class "is-half"}
+      [:div.card.is-fullwidth
+       [:div.card-image
+        (i/image {:class "is-4by3"} "/assets/img/soma/card-banner.jpg")]
+       [:div.card-content
+        [:p.title.is-4 "West SoMa"]
+        [:p.subtitle.is-6 "Available <b>November 15, 2016</b>"]]
+       [:div.card-footer
+        [:a.card-footer-item
+         {:href "/communities/soma"}
+         "Learn More"]]])
+     (l/column
+      {:class "is-half"}
+      [:div.card.is-fullwidth
+       [:div.card-image
+        (i/image {:class "is-4by3"} "/assets/img/mission/card-banner.jpg")]
+       [:div.card-content
+        [:p.title.is-4 "The Mission"]
+        [:p.subtitle.is-6 "Available <b>January 1, 2017</b>"]]
+       [:div.card-footer
+        [:a.card-footer-item
+         {:href "/communities/mission"}
+         "Learn More"]]]))
 
-;; =============================================================================
-;; Content
-;; =============================================================================
-
-(defn- card-img-gradient
-  [url]
-  (format "background-image: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,0.5)), url('%s');" url))
-
-(defn- membership-rate-text
-  [{:keys [:property-license/base-price :property-license/license]}]
-  (let [term (:license/term license)]
-    (if (> term 1)
-      (format "$%.0f/month for %s months" base-price term)
-      (format "$%.0f/month for month-to-month" base-price))))
-
-(defn- property-card
-  [{:keys [:db/id
-           :property/name
-           :property/description
-           :property/internal-name
-           :property/upcoming
-           :property/available-on
-           :property/cover-image-url
-           :property/licenses]}]
-  (let [starting-price (-> (sort-by :property-license/base-price licenses)
-                           first
-                           :property-license/base-price)]
-    [:div.card.sticky-action
-     [:div.card-image.waves-effect.waves-block.waves-light
-      [:img.gradient.activator {:style (card-img-gradient cover-image-url)}]
-      [:span.card-title.activator name]]
-     [:div.card-content
-      [:i.activator.material-icons.right "more_vert"]
-      (if-not upcoming
-        (list
-         [:p (str "Available " (->> available-on c/from-date (f/unparse month-day-year-formatter)))]
-         [:p.light (format "From $%.0f/month" starting-price)])
-        [:p (str "Coming " upcoming)])]
-     [:div.card-reveal
-      [:span.card-title name
-       [:i.material-icons.right "close"]]
-      [:p description]
-      (when-not upcoming
-        (list
-         [:span.card-subtitle "Membership Rates"]
-         [:ul
-          (->> licenses
-               (sort-by :property-license/base-price <)
-               (map (fn [property-license]
-                      [:li (membership-rate-text property-license)])))]))]]))
-
-(defn- content
-  [properties]
-  [:main
-   [:div.container
-    [:h2 "Our Communities"]
-    [:p.flow-text "Here's a catalog of homes you can apply to live in. Each community has a unique character and layout. Explore them below to determine which appeal to you."]
-    [:div.row
-     (for [p (sort-by :property/available-on properties)]
-       [:div.col.l6.m12.s12
-        (property-card p)])]]])
+    [:div.has-text-centered
+     [:a.button.is-primary.is-large {:href "/signup"} "Apply Now"]])))
 
 ;; =============================================================================
 ;; API
 ;; =============================================================================
 
-(s/def ::property (s/keys :req [:db/id
-                                :property/name
-                                :property/description
-                                :property/available-on
-                                :property/internal-name
-                                :property/cover-image-url
-                                :property/licenses])) ; TODO: Spec these
-
-(defn communities
-  [req properties]
-  (base
-   :req req
-   :title "Communities"
-   :content (content properties)))
-
-(s/fdef communities
-        :args (s/cat :request map?
-                     :properties (s/spec (s/+ ::property)))
-        :ret  string?)
+(def communities
+  (p/page
+   (p/title "Communities")
+   (p/content
+    p/navbar
+    content)))
 
 (import-vars
  [starcity.views.communities.mission mission])

@@ -60,12 +60,7 @@
 
   (context "/communities" []
     (GET "/" [] communities/show-communities)
-    ;; (GET "/:building" [building]
-    ;;      (fn [_]
-    ;;        (ring.util.response/redirect (format "/communities/%s/space" building))))
-    ;; (GET "/mission/:subsection" [] communities/show-mission)
-    (GET "/mission" [] communities/show-mission)
-    )
+    (GET "/mission" [] communities/show-mission))
 
   (context "/signup" []
     (GET   "/"         [] signup/show-signup)

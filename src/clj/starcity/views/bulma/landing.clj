@@ -119,7 +119,7 @@
   (l/section
    {:class "is-fullheight"}
    (l/container
-    {:class "has-text-centered" :style "min-width: 80%;"}
+    {:class "has-text-centered" :style "min-width: 70%;"}
     [:h2.title.is-2
      "Explore our <b>communities</b>"]
     (l/columns
