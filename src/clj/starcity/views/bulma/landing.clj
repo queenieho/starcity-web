@@ -127,7 +127,9 @@
       {:class "is-half"}
       [:div.card.is-fullwidth
        [:div.card-image
-        (i/image {:class "is-4by3"} "/assets/img/soma/card-banner.jpg")]
+        [:div.card-image
+         [:a {:href "/communities/soma"}
+          (i/image {:class "is-4by3"} "/assets/img/soma/card-banner.jpg")]]]
        [:div.card-content
         [:p.title.is-4 "West SoMa"]
         [:p.subtitle.is-6 "Available <b>November 15, 2016</b>"]]
@@ -139,7 +141,8 @@
       {:class "is-half"}
       [:div.card.is-fullwidth
        [:div.card-image
-        (i/image {:class "is-4by3"} "/assets/img/mission/card-banner.jpg")]
+        [:a {:href "/communities/mission"}
+         (i/image {:class "is-4by3"} "/assets/img/mission/card-banner.jpg")]]
        [:div.card-content
         [:p.title.is-4 "The Mission"]
         [:p.subtitle.is-6 "Available <b>January 1, 2017</b>"]]
