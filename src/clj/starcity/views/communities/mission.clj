@@ -74,7 +74,7 @@
    (l/container
     rooms-title
     (l/columns
-     {:class "is-vcentered has-text-centered"}
+     {:class "is-vcentered"}
      (l/column
       (room-image 8))
      (l/column
@@ -83,7 +83,7 @@
      (l/column
       (room-image 18)))
     (l/columns
-     {:class "is-vcentered has-text-centered"}
+     {:class "is-vcentered"}
      (l/column
       (subtitle
        "We have worked hard to create <b>unique designs</b> that fit the character of the Mission."))
@@ -101,19 +101,19 @@
   (l/section
    {:id "communal" :class "is-fullheight"}
    (l/container
-    (title "A place for gathering that " [:strong "feels like home"])
     (l/columns
-     {:class "is-vcentered"}
      (l/column
       {:class "is-half"}
+      (title
+       {:style "margin-bottom: 64px;"}
+       "A place for gathering that <br>" [:strong "feels like home"])
       (subtitle
        "The communal space that we are designing has all the creature comforts of
      a cozy home: living rooms, dining areas, restaurant-grade kitchens and
      media rooms.")
       (subtitle
        "<b>However, it's still under construction!</b> We're expecting construction to be complete by <b>January 1st,
-       2017</b>.")
-      )
+       2017</b>."))
      (l/column
       {:class "is-half"}
       (l/column
