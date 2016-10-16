@@ -2,39 +2,39 @@
   (:require [starcity.views.page :as p]
             [starcity.views.components
              [navbar :refer [navbar nav-item]]
-             [hero :as hero]]
+             [hero :as h]
+             [image :as i]]
             [hiccup.core :refer [html]]
             [hiccup.element :refer [link-to mail-to unordered-list]]
-            [starcity.views.components.layout :as l]))
+            [starcity.views.components.layout :as l]
+            [starcity.views.components.image :as i]))
 
 ;; =============================================================================
 ;; Internal
 ;; =============================================================================
 
-(defn- gradient-background-image
-  [url]
-  {:style (format "background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('%s');" url) :class "has-background-image"})
-
 ;; =============================================================================
 ;; Banner
 
 (def ^:private hero-head
-  (comp hero/head p/navbar-inverse))
+  (comp h/head p/navbar-inverse))
 
 (def ^:private hero-body
   (html
-   (hero/body
-    [:div.container
+   (h/body
+    (l/container
      [:h1.title.is-1 "Get <strong>more</strong> from your home"]
      [:h2.subtitle.is-4
       "Comfortable, communal housing in " [:strong "San Francisco"]]
      [:a.button.is-primary.is-large {:href "/signup"}
-      "Apply Now"]])))
+      "Apply Now"]))))
 
 (defn- banner [req]
-  (let [attrs (merge (gradient-background-image "/assets/img/landing-banner.jpg")
-                     {:class "has-background-image is-fullheight is-primary"})]
-    (hero/hero attrs (hero-head req) hero-body)))
+  (h/background-image
+   {:class "is-fullheight is-primary"}
+   "/assets/img/landing-banner.jpg"
+   (hero-head req)
+   hero-body))
 
 ;; =============================================================================
 ;; Newsletter
@@ -55,9 +55,9 @@
 
 (defn- newsletter [{:keys [params]}]
   (let [did-subscribe (= (:newsletter params) "subscribed")]
-    (hero/hero
+    (h/hero
      {:class "is-primary"}
-     (hero/body
+     (h/body
       [:div#newsletter.container
        [:div.columns.is-vcentered
         [:div.column.is-one-third.is-left
@@ -82,14 +82,10 @@
      {:class "is-vcentered"}
      (l/column
       {:class "is-two-thirds"}
-      [:figure.image
-       [:img {:src "/assets/img/landing-2.jpg"}]])
+      (i/image "/assets/img/landing-2.jpg"))
      (l/column
-      ;; [:p.subtitle.is-5
-      ;;  ]
       [:p.subtitle.is-5
-       "Starcity is about more than the space you live in. It's about the people you share it with."]
-      )))))
+       "Starcity is about more than the space you live in. It's about the people you share it with."])))))
 
 ;; =============================================================================
 ;; Comfortable
@@ -103,46 +99,56 @@
      (l/column
       {:class "is-one-third has-text-left"}
       [:p.subtitle.is-5
-       "While we provide beautiful communal spaces for all of the activites
-         best done in the company of others, we also recognize the need for a
-         space of one's own."]
+       "While we provide beautiful communal spaces for all of the activites best
+         done in the company of others, we also recognize the need for a space
+         of one's own."]
       [:p.subtitle.is-5
        "Spacious <strong>private rooms</strong> come <strong>fully
          furnished</strong> with brand-new mattresses, high-quality textiles and
-         modern furniture."]
-
-      ;; [:div.tile.is-parent.is-vertical
-      ;;  [:article.tile.is-child
-      ;;   [:p.subtitle.is-5
-      ;;    "While we provide beautiful communal spaces for all of the activites
-      ;;    best done in the company of others, we also recognize the need for a
-      ;;    space of one's own."]]
-      ;;  [:article.tile.is-child
-      ;;   [:p.subtitle.is-5
-      ;;    "Spacious <strong>private rooms</strong> come <strong>fully
-      ;;    furnished</strong> with brand-new mattresses, high-quality textiles and
-      ;;    modern furniture."]]
-      ;;  [:article.tile.is-child.has-text-centered
-      ;;   [:p.subtitle.is-4
-      ;;    "All memberships include:"]]
-      ;;  [:article.tile.is-child.has-text-centered
-      ;;   [:p.heading "Weekly Cleaning"]
-      ;;   [:figure.image.is-64x64
-      ;;    {:style "margin-right: auto; margin-left: auto;"}
-      ;;    [:img {:src "/assets/img/clean-icon-192x192.png"}]]]
-      ;;  [:article.tile.is-child.has-text-centered
-      ;;   [:p.heading "On-site Laundry"]
-      ;;   [:figure.image.is-64x64
-      ;;    {:style "margin-right: auto; margin-left: auto;"}
-      ;;    [:img {:src "/assets/img/washing-machine-icon-192x192.png"}]]]]
-      )
+         modern furniture."])
      (l/column
       {:class "is-two-thirds"}
       [:h2.title.is-2.has-text-left
        "<b>Home</b> is <b>comfortable</b>"]
-      [:figure.image
-       [:img {:src "/assets/img/mission/rooms/large/room-1.jpg"}]]
-      )))))
+      (i/image "/assets/img/mission/rooms/large/room-1.jpg"))))))
+
+;; =============================================================================
+;; Communities
+
+(def ^:private communities
+  (l/section
+   {:class "is-fullheight"}
+   (l/container
+    {:class "has-text-centered" :style "min-width: 80%;"}
+    [:h2.title.is-2
+     "Explore our <b>communities</b>"]
+    (l/columns
+     (l/column
+      {:class "is-half"}
+      [:div.card.is-fullwidth
+       [:div.card-image
+        (i/image {:class "is-4by3"} "/assets/img/soma/card-banner.jpg")]
+       [:div.card-content
+        [:p.title.is-4 "West SoMa"]
+        [:p.subtitle.is-6 "Available <b>November 15, 2016</b>"]]
+       [:div.card-footer
+        [:a.card-footer-item
+         {:href "/communities/soma"}
+         "Learn More"]]])
+     (l/column
+      {:class "is-half"}
+      [:div.card.is-fullwidth
+       [:div.card-image
+        (i/image {:class "is-4by3"} "/assets/img/mission/card-banner.jpg")]
+       [:div.card-content
+        [:p.title.is-4 "The Mission"]
+        [:p.subtitle.is-6 "Available <b>January 1, 2017</b>"]]
+       [:div.card-footer
+        [:a.card-footer-item
+         {:href "/communities/mission"}
+         "Learn More"]]]))
+
+    [:a.button.is-primary.is-large {:href "/signup"} "Apply Now"])))
 
 ;; =============================================================================
 ;; API
@@ -156,4 +162,6 @@
     community
     [:hr.is-marginless]
     comfortable
+    [:hr.is-marginless]
+    communities
     newsletter)))

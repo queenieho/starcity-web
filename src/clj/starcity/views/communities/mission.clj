@@ -1,8 +1,10 @@
 (ns starcity.views.communities.mission
   (:require [starcity.views.page :as p]
-            [starcity.views.components.hero :as h]
-            [starcity.views.components.layout :as l]
-            [starcity.views.components.photoswipe :as photoswipe]
+            [starcity.views.components
+             [hero :as h]
+             [layout :as l]
+             [photoswipe :as photoswipe]
+             [image :as i]]
             [hiccup.core :refer [html]]
             [hiccup.def :refer [defelem]]
             [starcity.views.components.form :as f]))
@@ -16,10 +18,6 @@
 
 (defelem title [& content]
   [:h3.title.is-2 content])
-
-(defelem image [src]
-  [:figure.image
-   [:img {:src src}]])
 
 ;; =============================================================================
 ;; Banner
@@ -64,7 +62,7 @@
     "&mdash; just bring yourself.")))
 
 (defn- room-image [num]
-  (image
+  (i/image
    {:class "opens-gallery" :data-room-num num}
    (format "/assets/img/mission/rooms/medium/room-%s.jpg" num)))
 
@@ -117,7 +115,7 @@
      (l/column
       {:class "is-half"}
       (l/column
-       (image "/assets/img/mission/communal/communal-2.jpg"))))
+       (i/image "/assets/img/mission/communal/communal-2.jpg"))))
     ))
   )
 
@@ -126,7 +124,7 @@
 
 (def ^:private neighborhood
   (letfn [(mural-image [filename]
-            (image (format "/assets/img/mission/neighborhood/%s.jpg" filename)))]
+            (i/image (format "/assets/img/mission/neighborhood/%s.jpg" filename)))]
     (l/section
      {:id "neighborhood" :class "is-fullheight"}
 
@@ -182,15 +180,15 @@
        (l/column
         {:class "is-4"}
         (l/box
-         (image "/assets/img/mission/people/rex.png")))
+         (i/image "/assets/img/mission/people/rex.png")))
        (l/column
         {:class "is-4"}
         (l/box
-         (image {:class "is-square"} "/assets/img/mission/people/jacqueline.jpg")))
+         (i/image {:class "is-square"} "/assets/img/mission/people/jacqueline.jpg")))
        (l/column
         {:class "is-4"}
         (l/box
-         (image "/assets/img/mission/people/murilo.png"))))))))
+         (i/image "/assets/img/mission/people/murilo.png"))))))))
 
 ;; =============================================================================
 ;; Features
@@ -212,12 +210,12 @@
        [:i.icon.fa.fa-lightbulb-o.is-large fa-attrs]]
       [:div.level-item.has-text-centered
        [:p.heading "On-site Laundry"]
-       (image
+       (i/image
         {:class "is-64x64" :style "margin-right: auto; margin-left: auto;"}
         "/assets/img/washing-machine-icon-192x192.png")]
       [:div.level-item.has-text-centered
        [:p.heading "Weekly Cleaning"]
-       (image
+       (i/image
         {:class "is-64x64" :style "margin-right: auto; margin-left: auto;"}
         "/assets/img/clean-icon-192x192.png")]]))))
 

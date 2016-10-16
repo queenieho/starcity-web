@@ -45,7 +45,7 @@
 (defn foot [& links]
   (h/foot
    [:nav.tabs.is-medium
-    [:div.container
+    [:div.container.has-content-centered
      [:ul
       (for [[href content] links]
         [:li [:a {:href href} content]])]]]))
@@ -65,9 +65,9 @@
     (l/container
      (l/columns
       ;; TODO: SASS
-      {:style "justify-content: center;"}
+      ;; {:style "justify-content: center;"}
       (l/column
-       {:class "is-5"}
+       {:class "is-half is-offset-one-quarter"}
        (for [error (errors-from req)]
          (n/danger error))
        (for [c content]
