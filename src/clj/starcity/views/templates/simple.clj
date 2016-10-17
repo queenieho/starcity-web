@@ -1,8 +1,8 @@
 (ns starcity.views.templates.simple
   (:require [clojure.spec :as s]
             [starcity.views
-             [page :as p]
-             [utils :refer [errors-from]]]
+             [page :as p]]
+            [starcity.web.messages :as msg]
             [starcity.views.components
              [button :as b]
              [form :as f]
@@ -68,7 +68,7 @@
       ;; {:style "justify-content: center;"}
       (l/column
        {:class "is-half is-offset-one-quarter"}
-       (for [error (errors-from req)]
+       (for [error (msg/errors-from req)]
          (n/danger error))
        (for [c content]
          (if (fn? c)

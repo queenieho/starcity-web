@@ -28,5 +28,5 @@
       (response/redirect url-after-newsletter-signup))
     (response/redirect "/")))
 
-(defn show-landing [req]
-  (ok (view/landing req)))
+(def show-landing
+  (comp ok view/landing))

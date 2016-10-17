@@ -1,6 +1,8 @@
-(ns starcity.controllers.account
-  (:require [starcity.controllers.utils :refer :all]
-            [starcity.views.account :as view]
+(ns starcity.controllers.settings
+  (:require [starcity.controllers.utils :refer [ok errors-from valid?]]
+            [starcity.web.messages :refer [respond-with-errors
+                                           respond-with-success]]
+            [starcity.views.settings :as view]
             [clojure.string :as str]
             [starcity.util :refer :all]
             [bouncer.core :as b]
@@ -39,24 +41,16 @@
 ;; API
 ;; =============================================================================
 
-(defn show-account-settings
-  [{:keys [params] :as req}]
-  (ok
-   (if-let [message (:message params)]
-     (view/account-settings req :messages [message])
-     (view/account-settings req))))
+(def show-account-settings
+  (comp ok view/account-settings))
 
 (defn update-password!
   [{:keys [identity params] :as req}]
-  (letfn [(-malformed [msg]
-            (let [msgs (if (string? msg) [msg] msg)]
-              (malformed (view/account-settings req :errors msgs))))]
-    (if-let [params (-> params scrub-password-params matching-passwords?)]
-      (let [vresult (validate-password-params params (:db/id identity))]
-        (if-let [{:keys [password]} (valid? vresult)]
-          (do
-            (account/change-password! (:db/id identity) password)
-            (response/redirect (format "/account?message=%s"
-                                       (url-encode "Successfully changed your password!"))))
-          (-malformed (errors-from vresult))))
-      (-malformed "Your passwords must match!"))))
+  (if-let [params (-> params scrub-password-params matching-passwords?)]
+    (let [vresult (validate-password-params params (:db/id identity))]
+      (if-let [{:keys [password]} (valid? vresult)]
+        (do
+          (account/change-password! (:db/id identity) password)
+          (respond-with-success req "Successfully changed your password!" view/account-settings))
+        (respond-with-errors req (errors-from vresult) view/account-settings)))
+    (respond-with-errors req "Your passwords must match!" view/account-settings)))

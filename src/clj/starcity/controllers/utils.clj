@@ -38,12 +38,22 @@
   [message]
   [v/required :message message])
 
-;; TODO: Verify whether or not this actually pull the errors out of the error
-;; map in the format that I expect them.
+(defn- extract-errors
+  [errors-map acc]
+  (reduce
+   (fn [acc [k v]]
+     (cond
+       (sequential? v) (concat acc v)
+       (map? v)        (extract-errors v acc)
+       :otherwise      (throw (ex-info (str "Unexpected errors format! Expected sequential or map, got " (type v))
+                                       {:offending-value v :key k}))))
+   acc
+   errors-map))
+
 (defn errors-from
   "Extract errors from a bouncer error map."
   [[errors _]]
-  (reduce (fn [acc [_ es]] (concat acc es)) [] errors))
+  (extract-errors errors []))
 
 (defn valid?
   ([vresult]

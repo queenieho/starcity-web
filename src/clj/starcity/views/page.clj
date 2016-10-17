@@ -2,10 +2,13 @@
   (:require [starcity.views.components
              [head :refer [head]]
              [footer :as f]
-             [navbar :as n]]
+             [navbar :as n]
+             [notification :as nf]
+             [layout :as l]]
             [hiccup.page :refer [html5 include-css include-js]]
             [cheshire.core :as json]
-            [clojure.spec :as s]))
+            [clojure.spec :as s]
+            [starcity.web.messages :as msg]))
 
 ;; =============================================================================
 ;; Constants
@@ -71,7 +74,7 @@
    (n/nav-item "/communities" "Communities")
    (n/nav-item "/faq" "FAQ")
    (n/nav-item "/about" "About")
-   (n/nav-item "/blog" "Blog")
+   (n/nav-item "https://blog.joinstarcity.com" "Blog")
    (auth-item req)))
 
 (defn navbar-inverse [req]
@@ -80,8 +83,17 @@
    (n/nav-item "/communities" "Communities")
    (n/nav-item "/faq" "FAQ")
    (n/nav-item "/about" "About")
-   (n/nav-item "/blog" "Blog")
+   (n/nav-item "https://blog.joinstarcity.com" "Blog")
    (auth-item req)))
+
+(defn messages [req]
+  (let [errors  (msg/errors-from req)
+        success (msg/success-from req)]
+    (l/section
+     {:style (when (empty? (concat errors success)) "display: none;")}
+     (l/container
+      (for [e errors] (nf/danger e))
+      (for [s success] (nf/success s))))))
 
 ;; for convenience when constructing pages
 (def footer f/footer)

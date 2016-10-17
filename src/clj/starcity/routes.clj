@@ -12,7 +12,7 @@
              [stripe :as stripe]]
             [starcity.controllers
              [apply :as apply]
-             [account :as account]
+             [settings :as settings]
              [auth :as auth]
              [login :as login]
              [signup :as signup]
@@ -75,19 +75,13 @@
       {:handler  {:and [authenticated-user (user-isa :account.role/applicant)]}
        :on-error redirect-by-role}))
 
-  (context "/account" []
+  (context "/settings" []
     (restrict
         (routes
-         (GET "/"          [] account/show-account-settings)
-         (POST "/password" [] account/update-password!))
-      {:handler  authenticated-user
-       :on-error redirect-by-role}))
-
-  (context "/account" []
-    (restrict
-        (routes
-         (GET "/"          [] account/show-account-settings)
-         (POST "/password" [] account/update-password!))
+         (GET "/"          []
+              (fn [_] (ring.util.response/redirect "/settings/change-password")))
+         (GET "/change-password"  [] settings/show-account-settings)
+         (POST "/change-password" [] settings/update-password!))
       {:handler  authenticated-user
        :on-error redirect-by-role}))
 
