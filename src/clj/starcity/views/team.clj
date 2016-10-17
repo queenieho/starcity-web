@@ -1,15 +1,20 @@
 (ns starcity.views.team
-  (:require [starcity.views.base :refer [base]]))
+  (:require [starcity.views.page :as p]
+            [starcity.views.components
+             [layout :as l]
+             [image :as i]]
+            [hiccup.element :refer [link-to]]))
 
 (defn- founder
   [{:keys [name title description image]}]
-  [:div.row
-   [:div.col.l3.m4.s12
-    [:img.circle.responsive-img {:src image}]]
-   [:div.col.l9.m8.s12
-    [:h4 name]
-    [:h5.light.grey-text.lighten-4 title]
-    [:p.flow-text-small description]]])
+  (l/column
+   {:class "is-half has-text-centered"}
+   [:div.box
+    {:style "min-height: 360px;"}
+    (i/image {:class "is-128x128 has-content-centered"} image true)
+    [:p.title.is-4 [:strong name]]
+    [:p.subtitle.is-4 title]
+    [:p.has-text-left description]]))
 
 (def ^:private founders
   [{:name        "Jon Dishotsky"
@@ -29,13 +34,22 @@
     :image       "/assets/img/josh.jpg"
     :description "Josh recently lived on a tiny sailboat for several weeks during a race from Port Townsend, Washington to Ketchikan, Alaska. He now lives in Oakland, though he's often found with his camera in Golden Gate Park, taking photos of everyday San Franciscans. At Starcity, Josh builds all of our software and handles smart-home tech integrations for our communal homes."}])
 
-(def ^:private content
-  [:main
-   [:div.container
-    [:h2 "Our Team"]
-    [:div.card-panel
-     (map founder founders)]]])
+(def ^:private banner
+  (l/section
+   (l/container
+    [:h1.title.is-1 "<b>Hello</b>, it's nice to meet you."]
+    [:p.subtitle.is-4 "Feel free to reach out to get in touch with us via email at "
+     (link-to "mailto:team@joinstarcity.com" "team@joinstarcity.com")
+     ", or give us a call at <u>415.496.9706</u>."]
+    (l/columns
+     {:class "is-multiline"
+      :style "margin-top: 30px;"}
+     (map founder founders)))))
 
-(defn team
-  [req]
-  (base :req req :content content :title "Team"))
+(def team
+  (p/page
+   (p/title "Team")
+   (p/content
+    p/navbar
+    banner
+    )))
