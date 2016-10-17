@@ -87,8 +87,6 @@
      [:db/add eid :account/last-name last]
      [:db/add eid :account/dob (c/to-date dob)]]))
 
-;; TODO: New address format
-;; TODO: Country
 (defn- address-tx
   [{{:keys [region locality country postal-code]} :address} application]
   [{:db/id (:db/id application)

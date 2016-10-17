@@ -48,4 +48,4 @@
 (def forgot-password
   (p/page
    (p/title "Forgotten Password")
-   (p/content content)))
+   content))

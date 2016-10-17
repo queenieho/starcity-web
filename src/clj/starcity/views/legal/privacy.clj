@@ -24,6 +24,5 @@
 (def privacy
   (p/page
    (p/title "Privacy Policy")
-   (p/content
-    p/navbar
-    content)))
+   p/navbar
+   content))

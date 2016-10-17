@@ -1,5 +1,5 @@
 (ns starcity.controllers.login
-  (:require [starcity.views.bulma.login :as view]
+  (:require [starcity.views.login :as view]
             [starcity.models.account :as account]
             [buddy.auth :refer [authenticated?]]
             [bouncer.core :as b]

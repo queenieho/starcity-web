@@ -1,5 +1,5 @@
 (ns starcity.controllers.landing
-  (:require [starcity.views.bulma.landing :as view]
+  (:require [starcity.views.landing :as view]
             [starcity.services.mailchimp :as mailchimp]
             [starcity.controllers.utils :refer :all]
             [ring.util.response :as response]

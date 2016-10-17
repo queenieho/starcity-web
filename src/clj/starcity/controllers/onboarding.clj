@@ -1,15 +1,16 @@
 (ns starcity.controllers.onboarding
-  (:require [starcity.views.onboarding :as view]
-            [starcity.models.stripe :as stripe]
-            [starcity.models.onboarding :as onboarding]
-            [starcity.controllers.utils :refer :all]
-            [starcity.config.stripe :as config]
-            [starcity.util :refer :all]
-            [ring.util.response :as response]
-            [ring.util.codec :refer [url-encode]]
+  (:require [bouncer
+             [core :as b]
+             [validators :as v]]
             [compojure.core :refer [context defroutes GET POST]]
-            [bouncer.core :as b]
-            [bouncer.validators :as v]
+            [ring.util.response :as response]
+            [starcity.controllers.utils :refer [errors-from ok valid?]]
+            [starcity.models
+             [onboarding :as onboarding]
+             [stripe :as stripe]]
+            [starcity.util :refer :all]
+            [starcity.views.onboarding :as view]
+            [starcity.web.messages :as msg :refer [respond-with-errors]]
             [taoensso.timbre :as timbre]))
 
 ;; =============================================================================
@@ -30,7 +31,6 @@
 ;; =============================================================================
 ;; Access Rules
 
-;; TODO: Are these really needed?
 (defn- can-choose-payment-method?
   "Can only choose payment method when a payment is not yet received and a
   Stripe customer is not yet created."
@@ -133,27 +133,28 @@
               "check" "/onboarding/security-deposit/payment-method/check"
               "ach"   "/onboarding/security-deposit/payment-method/ach/verify")
             (response/redirect)))
-      (respond-with-errors req "Invalid payment method chosen; please try again."
-        (view/choose-payment-method (onboarding/payment-method progress))))))
+      (respond-with-errors
+        (assoc req :payment-method (onboarding/payment-method progress))
+        "Invalid payment method chosen; please try again."
+        view/payment-method))))
 
 (defn- verify-bank-account
   [{:keys [params identity] :as req}]
-  (letfn [(respond-error []
+  (letfn [(-respond-error []
             (respond-with-errors req default-error-message
-              (view/enter-bank-information config/public-key)))]
+              view/enter-bank-information))]
     (if-let [token (:stripe-token params)]
       (try
         (let [customer (stripe/create-customer (:db/id identity) token)]
           (if (stripe/bank-account-verified? customer)
             (response/redirect "/onboarding/security-deposit/payment-method/ach/pay")
             (response/redirect "/onboarding/security-deposit/payment-method/ach/microdeposits")))
-        (catch Exception e
-          (respond-error)))
-      (respond-error))))
+        (catch Exception e (-respond-error)))
+      (-respond-error))))
 
 (defn- validate-microdeposits
   [params]
-  (let [rules [(required "Both deposits are required.")
+  (let [rules [[v/required :message "Both deposits are required."]
                [v/integer :message "Please enter the deposit amounts in cents (whole numbers only)."]
                [v/in-range [0 100] :message "Please enter numbers between 1 and 100."]]]
     (b/validate
@@ -186,16 +187,21 @@
   [{:keys [params identity] :as req}]
   (let [payment-choice (:payment-choice params)
         progress       (onboarding/get-progress (:db/id identity))]
-    (if (#{"full" "partial"} payment-choice)
-      (try
-        (onboarding/pay-ach progress payment-choice)
-        (response/redirect "/onboarding/security-deposit/complete")
-        (catch Exception e
-          (timbre/error e "Error encountered while attempting to charge user!")
-          (respond-with-errors req default-error-message
-            (view/pay-by-ach (onboarding/monthly-rent progress)))))
-      (respond-with-errors req "Invalid payment choice. Please try again."
-        (view/pay-by-ach (onboarding/monthly-rent progress))))))
+    (letfn [(-respond-error [msg]
+              (let [rent (onboarding/monthly-rent progress)
+                    code (onboarding/property-code progress)]
+                (respond-with-errors
+                  (assoc req :monthly-rent rent :property-code code)
+                  msg
+                  view/pay-by-ach)))]
+      (if (#{"full" "partial"} payment-choice)
+        (try
+          (onboarding/pay-ach progress payment-choice)
+          (response/redirect "/onboarding/security-deposit/complete")
+          (catch Exception e
+            (timbre/error e "Error encountered while attempting to charge user!")
+            (-respond-error default-error-message)))
+        (-respond-error "Invalid payment choice. Please try again.")))))
 
 
 ;; =============================================================================
@@ -206,9 +212,8 @@
   (GET "/verify" []
        (with-gate should-enter-bank-information?
          (fn [req _]
-           (view/enter-bank-information req config/public-key))))
+           (view/enter-bank-information req))))
 
-  ;; TODO: Gate POST endpoints
   (POST "/verify" [] verify-bank-account)
 
   (GET "/microdeposits" []
@@ -220,7 +225,12 @@
 
   (GET "/pay" [] (with-gate should-pay-security-deposit?
                    (fn [req progress]
-                     (view/pay-by-ach req (onboarding/monthly-rent progress)))))
+                     (let [rent (onboarding/monthly-rent progress)
+                           code (onboarding/property-code progress)]
+                       (-> (assoc req
+                                  :monthly-rent rent
+                                  :property-code code)
+                           view/pay-by-ach)))))
 
   (POST "/pay" [] pay-with-ach))
 
@@ -229,8 +239,7 @@
 ;; =============================================================================
 
 (defroutes routes
-  (GET "/" [] (fn [{:keys [identity context] :as req}]
-                (view/begin req)))
+  (GET "/" [] (comp ok view/begin))
 
   (context "/security-deposit" []
 
@@ -241,18 +250,26 @@
     (GET "/complete" [] (with-gate security-deposit-finished?
                           (fn [req progress]
                             (let [property (onboarding/applicant-property progress)]
-                              (view/security-deposit-complete req (:property/name property))))))
+                              (-> (assoc req :property-name (:property/name property))
+                                  (view/security-deposit-complete))))))
 
     (context "/payment-method" []
       (GET "/" []
            (with-gate can-choose-payment-method?
              (fn [req progress]
-               (view/choose-payment-method req (onboarding/payment-method progress)))))
+               (->> (onboarding/payment-method progress)
+                    (assoc req :payment-method)
+                    (view/payment-method)))))
 
       (POST "/" [] update-payment-method)
 
       (GET "/check" [] (with-gate can-make-payment-by-check?
                          (fn [req progress]
-                           (view/pay-by-check req (onboarding/monthly-rent progress)))))
+                           (let [monthly-rent  (onboarding/monthly-rent progress)
+                                 property-code (onboarding/property-code progress)]
+                             (-> (assoc req
+                                        :monthly-rent monthly-rent
+                                        :property-code property-code)
+                                 (view/pay-by-check))))))
 
       (context "/ach" [] ach-routes))))

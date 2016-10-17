@@ -93,6 +93,5 @@
 (def faq
   (p/page
    (p/title "FAQ")
-   (p/content
-    p/navbar
-    content)))
+   p/navbar
+   content))

@@ -196,28 +196,28 @@
 (def ^:private features
   (let [fa-attrs {:style "color: black; font-size: 60px; height: 64px; width: 64px; line-height: 60px;"}]
     (l/section
-    {:class "is-fullheight"}
-    (l/container
-     {:class "has-text-centered"}
-     (title "Starting at <b>$2100/month</b>, which includes:")
-     [:nav.level
-      {:style "margin-top: 60px;"}
-      [:div.level-item.has-text-centered
-       [:p.heading "Enterprise-grade Wifi"]
-       [:i.icon.fa.fa-wifi.is-large fa-attrs]]
-      [:div.level-item.has-text-centered
-       [:p.heading "All Utilities"]
-       [:i.icon.fa.fa-lightbulb-o.is-large fa-attrs]]
-      [:div.level-item.has-text-centered
-       [:p.heading "On-site Laundry"]
-       (i/image
-        {:class "is-64x64" :style "margin-right: auto; margin-left: auto;"}
-        "/assets/img/washing-machine-icon-192x192.png")]
-      [:div.level-item.has-text-centered
-       [:p.heading "Weekly Cleaning"]
-       (i/image
-        {:class "is-64x64" :style "margin-right: auto; margin-left: auto;"}
-        "/assets/img/clean-icon-192x192.png")]]))))
+     {:class "is-fullheight"}
+     (l/container
+      {:class "has-text-centered"}
+      (title "Starting at <b>$2100/month</b>, which includes:")
+      [:nav.level
+       {:style "margin-top: 60px;"}
+       [:div.level-item.has-text-centered
+        [:p.heading "Enterprise-grade Wifi"]
+        [:i.icon.fa.fa-wifi.is-large fa-attrs]]
+       [:div.level-item.has-text-centered
+        [:p.heading "All Utilities"]
+        [:i.icon.fa.fa-lightbulb-o.is-large fa-attrs]]
+       [:div.level-item.has-text-centered
+        [:p.heading "On-site Laundry"]
+        (i/image
+         {:class "is-64x64" :style "margin-right: auto; margin-left: auto;"}
+         "/assets/img/washing-machine-icon-192x192.png")]
+       [:div.level-item.has-text-centered
+        [:p.heading "Weekly Cleaning"]
+        (i/image
+         {:class "is-64x64" :style "margin-right: auto; margin-left: auto;"}
+         "/assets/img/clean-icon-192x192.png")]]))))
 
 ;; =============================================================================
 ;; API
@@ -226,16 +226,15 @@
 (def mission
   (p/page
    (p/title "The Mission")
-   (p/content
-    banner
-    rooms
-    [:hr.is-marginless]
-    communal-space
-    [:hr.is-marginless]
-    neighborhood
-    [:hr.is-marginless]
-    features
-    ;; people
-    photoswipe/element)
-   :js ["/assets/bower/photoswipe/dist/photoswipe.js"
-        "/assets/bower/photoswipe/dist/photoswipe-ui-default.js"]))
+   banner
+   rooms
+   [:hr.is-marginless]
+   communal-space
+   [:hr.is-marginless]
+   neighborhood
+   [:hr.is-marginless]
+   features
+   ;; people
+   photoswipe/element
+   (p/scripts "/assets/bower/photoswipe/dist/photoswipe.js"
+              "/assets/bower/photoswipe/dist/photoswipe-ui-default.js")))

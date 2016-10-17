@@ -46,6 +46,21 @@
 (defn- json? [content]
   (and (map? content) (:json content)))
 
+(defn- onboarding-auth-item [{:keys [context]}]
+  (let [uri-path (clojure.string/split context #"/")]
+    (if (= "onboarding" (second uri-path))
+      ["/settings" "Settings"]
+      ["/onboarding" "Security Deposit"])))
+
+(defn- auth-item [req]
+  (let [role          (get-in req [:identity :account/role])
+        [uri content] (case role
+                        :account.role/applicant ["/apply" "Resume Application"]
+                        :account.role/pending   (onboarding-auth-item req)
+                        :account.role/admin     ["/admin" "Admin"]
+                        ["/login" "Log In"])]
+    (n/nav-item uri content :button)))
+
 ;; =============================================================================
 ;; API
 ;; =============================================================================
@@ -59,22 +74,12 @@
         (c req)
         c))))
 
-(defn- auth-item [req]
-  (let [role          (get-in req [:identity :account/role])
-        [uri content] (case role
-                        :account.role/applicant ["/apply" "Resume Application"]
-                        :account.role/pending   ["/onboarding" "Security Deposit"]
-                        :account.role/admin     ["/admin" "Admin"]
-                        ["/login" "Log In"])]
-    (n/nav-item uri content :button)))
-
 (defn navbar [req]
   (n/navbar
    false
    (n/nav-item "/communities" "Communities")
    (n/nav-item "/faq" "FAQ")
    (n/nav-item "/about" "About")
-   (n/nav-item "https://blog.joinstarcity.com" "Blog")
    (auth-item req)))
 
 (defn navbar-inverse [req]
@@ -83,10 +88,10 @@
    (n/nav-item "/communities" "Communities")
    (n/nav-item "/faq" "FAQ")
    (n/nav-item "/about" "About")
-   (n/nav-item "https://blog.joinstarcity.com" "Blog")
    (auth-item req)))
 
-(defn messages [req]
+(defn messages
+  [req]
   (let [errors  (msg/errors-from req)
         success (msg/success-from req)]
     (l/section
@@ -96,42 +101,53 @@
       (for [s success] (nf/success s))))))
 
 ;; for convenience when constructing pages
-(def footer f/footer)
+(def footer
+  f/footer)
 
-(defn scripts [& scripts]
-  {:scripts (apply include-js scripts)})
+(defn scripts
+  [& scripts]
+  {:scripts scripts})
 
-(defn json [& json]
-  {:json (include-json json)})
+(defn json
+  [& json]
+  {:json json})
 
-;; TODO: Convert to cljs-page js/json approach
+;; =============================================================================
+;; Page Constructors
+
+;; TODO: Remove repetetive bits in the two functions below.
+
 (defn page
   "Page template with a solid navbar."
-  [title content & {:keys [js json] :or {js [], json []}}]
-  (fn [req]
-    (html5
-     {:lang "en"}
-     (head title base-css)
-     [:body
-      (if (fn? content)
-        (content req)
-        content)
-      footer
-      (include-json json)
-      (apply include-js (concat base-js js))
-      (include-js "/js/main.js")
-      google-analytics])))
+  [title & content]
+  (let [scripts (->> (filter scripts? content) (mapcat :scripts))
+        json    (->> (filter json? content) (mapcat :json))
+        content (remove #(or (scripts? %) (json? %)) content)]
+    ;; (println (concat base-js ["/js/main.js"] scripts))
+    (fn [req]
+      (html5
+       {:lang "en"}
+       (head title base-css)
+       [:body
+        (for [c content]
+          (if (fn? c)
+            (c req)
+            c))
+        footer
+        (include-json json)
+        (apply include-js (concat base-js scripts ["/js/main.js"]))
+        google-analytics]))))
 
 (defn cljs-page
   [app-name title & content]
-  (let [scripts (->> (filter scripts? content) (map :scripts))
-        json    (->> (filter json? content) (map :json))]
+  (let [scripts (->> (filter scripts? content) (mapcat :scripts))
+        json    (->> (filter json? content) (mapcat :json))]
     (html5
      {:lang "en"}
      (head title base-css)
      [:body
       (remove #(or (scripts? %) (json? %)) content)
-      json
-      (include-js (format "/js/cljs/%s.js" app-name))
-      scripts
+      (include-json json)
+      (apply include-js (concat scripts
+                                [(format "/js/cljs/%s.js" app-name)]))
       [:script (format "window.onload = function() { %s.core.run(); }" app-name)]])))

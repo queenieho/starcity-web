@@ -153,6 +153,9 @@
   (:approval/property
    (one (d/db conn) :approval/account (account-id progress))))
 
+(def property-code
+  (comp :property/internal-name applicant-property))
+
 ;; =============================================================================
 ;; Transactions
 
@@ -209,12 +212,18 @@
 
 ;; Here's what ties it all together.
 
+(declare payment-received?)
+
+;; TODO: Ensure that there's no payment already created. Don't want the
+;; possibility of multiple payments
 (defn pay-ach
   "Pay the security deposit with ACH given current progress and the choice of
   payment method."
   [progress payment-choice]
-  (let [charge-id (create-ach-charge progress payment-choice)]
-    (record-security-deposit-payment progress payment-choice charge-id)))
+  (if (payment-received? progress)
+    (throw (ex-info "Cannot charge customer for security deposit twice!" progress))
+    (let [charge-id (create-ach-charge progress payment-choice)]
+     (record-security-deposit-payment progress payment-choice charge-id))))
 
 (s/fdef pay-ach
         :args (s/cat :progress ::progress

@@ -58,9 +58,8 @@
 (def communities
   (p/page
    (p/title "Communities")
-   (p/content
-    p/navbar
-    content)))
+   p/navbar
+   content))
 
 (import-vars
  [starcity.views.communities.mission mission])

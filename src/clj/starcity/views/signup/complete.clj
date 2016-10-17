@@ -19,5 +19,4 @@
 (def complete
   (p/page
    (p/title "Signup Complete")
-   (p/content
-    content)))
+   content))

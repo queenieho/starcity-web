@@ -18,5 +18,4 @@
 (def invalid-activation
   (p/page
    (p/title "Whoops!")
-   (p/content
-    content)))
+   content))

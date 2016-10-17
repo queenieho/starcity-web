@@ -69,19 +69,6 @@
 
    (simple/button "Create Account")))
 
-
-(def ^:private content
-  (simple/primary
-   (simple/body
-    (simple/title "Sign Up")
-    (simple/subtitle "To begin your "
-                     [:strong "member application"]
-                     ", you'll first need to create an account.")
-    (comp signup-form :params))
-   (simple/foot
-    ["/login" "Log In"]
-    ["/forgot-password" "Forgotten password?"])))
-
 ;; =============================================================================
 ;; API
 ;; =============================================================================
@@ -95,5 +82,13 @@
 (def signup
   (p/page
    (p/title "Sign Up")
-   (p/content
-    content)))
+   (simple/primary
+    (simple/body
+     (simple/title "Sign Up")
+     (simple/subtitle "To begin your "
+                      [:strong "member application"]
+                      ", you'll first need to create an account.")
+     (comp signup-form :params))
+    (simple/foot
+     ["/login" "Log In"]
+     ["/forgot-password" "Forgotten password?"]))))

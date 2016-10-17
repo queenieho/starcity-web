@@ -34,6 +34,5 @@
 (def about
   (p/page
    (p/title "About Us")
-   (p/content
-    p/navbar
-    content)))
+   p/navbar
+   content))

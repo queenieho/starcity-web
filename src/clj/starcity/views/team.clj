@@ -49,7 +49,5 @@
 (def team
   (p/page
    (p/title "Team")
-   (p/content
-    p/navbar
-    banner
-    )))
+   p/navbar
+   banner))

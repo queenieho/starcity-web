@@ -1,4 +1,4 @@
-(ns starcity.views.bulma.login
+(ns starcity.views.login
   (:require [hiccup.form :as f]
             [starcity.views.components.form :refer [control]]
             [starcity.views.page :as p]
@@ -51,4 +51,4 @@
 ;; =============================================================================
 
 (def login
-  (p/page (p/title "Log In") (p/content content)))
+  (p/page (p/title "Log In") content))

@@ -13,7 +13,8 @@
     [:p.heading "Links"]
     [:ul
      [:li (link-to "/about" "About Us")]
-     [:li (link-to "/team" "Team")]])
+     [:li (link-to "/team" "Team")]
+     [:li (link-to "https://blog.joinstarcity.com" "Blog")]])
    (l/column
     {:class "has-text-centered"}
     [:p {:style "margin-top: 20px;"}
@@ -35,7 +36,9 @@
     [:p
      (link-to "/about" "About Us")
      middot
-     (link-to "/team" "Team")])
+     (link-to "/team" "Team")
+     middot
+     (link-to "https://blog.joinstarcity.com" "Blog")])
    (l/column
     [:p
      (mail-to "team@joinstarcity.com")
@@ -54,14 +57,3 @@
     (l/container
      mobile
      non-mobile)]))
-
-;; [:div.container
-;;     ;; TODO: Mobile layout
-;;     [:div.columns.has-text-centered;.is-mobile
-;;      [:div.column
-;;       ]
-;;      [:div.column.content;.has-text-centered
-;;       ]
-;;      [:div.column;.has-text-right
-;;       ]]
-;;     ]

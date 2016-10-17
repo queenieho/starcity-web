@@ -34,7 +34,6 @@
                  [prismatic/plumbing "0.5.3"]
                  ;; cljs
                  [cljsjs/flatpickr "2.0.0-rc.7-0"]
-                 [cljsjs/field-kit "2.0.4-1"] ; TODO: Remove again
                  [cljsjs/stripe "2.0-0"]
                  [com.andrewmcveigh/cljs-time "0.5.0-alpha1"]
                  [reagent "0.6.0"]
@@ -44,7 +43,7 @@
                  [day8.re-frame/http-fx "0.0.4"]
                  [hiccups "0.3.0"]]
 
-  :repositories [["my.datomic.com" {:url "https://my.datomic.com/repo"
+  :repositories [["my.datomic.com" {:url      "https://my.datomic.com/repo"
                                     :username [:env/datomic_username]
                                     :password [:env/datomic_password]}]]
 
@@ -55,7 +54,6 @@
 
   :clean-targets ^{:protect false} ["resources/public/js/cljs" :target-path]
 
-  :cooper {"starcity"    ["sass" "--watch" "resources/public/assets/stylesheets/main.scss:resources/public/assets/css/starcity.css"]
-           "materialize" ["sass" "--watch" "resources/public/assets/scss/materialize/main.scss:resources/public/assets/css/materialize.css"]}
+  :cooper {"starcity" ["sass" "--watch" "resources/public/assets/stylesheets/main.scss:resources/public/assets/css/starcity.css"]}
 
   :main starcity.core)

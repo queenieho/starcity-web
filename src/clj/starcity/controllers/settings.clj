@@ -1,15 +1,15 @@
 (ns starcity.controllers.settings
-  (:require [starcity.controllers.utils :refer [ok errors-from valid?]]
-            [starcity.web.messages :refer [respond-with-errors
-                                           respond-with-success]]
-            [starcity.views.settings :as view]
+  (:require [bouncer
+             [core :as b]
+             [validators :as v]]
             [clojure.string :as str]
-            [starcity.util :refer :all]
-            [bouncer.core :as b]
-            [bouncer.validators :as v]
+            [starcity.controllers.utils :refer [errors-from ok valid?]]
             [starcity.models.account :as account]
-            [ring.util.response :as response]
-            [ring.util.codec :refer [url-encode]]))
+            [starcity.util :refer :all]
+            [starcity.views.settings :as view]
+            [starcity.web.messages
+             :refer
+             [respond-with-errors respond-with-success]]))
 
 ;; =============================================================================
 ;; Validation

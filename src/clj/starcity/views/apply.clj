@@ -16,7 +16,6 @@
    (n/nav-item "/communities" "Communities")
    (n/nav-item "/faq" "FAQ")
    (n/nav-item "/about" "About")
-   (n/nav-item "https://blog.joinstarcity.com" "Blog")
    (n/nav-item "/settings" "Settings" true)))
 
 (defn apply [email]
