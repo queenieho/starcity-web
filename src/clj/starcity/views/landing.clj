@@ -13,6 +13,9 @@
 ;; Internal
 ;; =============================================================================
 
+(defn- subtitle [& content]
+  [:p.subtitle.is-4 content])
+
 ;; =============================================================================
 ;; Banner
 
@@ -76,7 +79,7 @@
   (l/section
    {:class "is-fullheight"}
    (l/container
-    [:h2.title.is-2.has-text-left
+    [:h2.title.is-1.has-text-left
      "<b>Home</b> is where <b>people</b> are"]
     (l/columns
      {:class "is-vcentered"}
@@ -84,8 +87,10 @@
       {:class "is-two-thirds"}
       (i/image "/assets/img/landing-2.jpg"))
      (l/column
-      [:p.subtitle.is-5
-       "Starcity is about more than the space you live in. It's about the people you share it with."])))))
+      ;; [:p.subtitle.is-4
+      ;;  "Our communities are <b>inclusive</b> and <b>uplifting</b>"]
+      (subtitle "Starcity is about more than the space you live in &mdash; it's about the <b>people you share it with</b>.")
+      (subtitle "Our members come from all walks of life and from all over the world to share their experiences and values."))))))
 
 ;; =============================================================================
 ;; Comfortable
@@ -98,14 +103,16 @@
      {:class "is-vcentered"}
      (l/column
       {:class "is-one-third has-text-left"}
-      [:p.subtitle.is-5
-       "While we provide beautiful communal spaces for all of the activites best
-         done in the company of others, we also recognize the need for a space
-         of one's own."]
-      [:p.subtitle.is-5
-       "Spacious <strong>private rooms</strong> come <strong>fully
-         furnished</strong> with brand-new mattresses, high-quality textiles and
-         modern furniture."])
+      (subtitle
+       "We provide <b>beautiful communal spaces</b> for all of the activites best done
+       in the company of others.")
+      (subtitle
+       "We also respect the need for a <b>private space</b> of one's own.")
+      (subtitle
+       "By distributing space more purposefully, we're able to provide a <b>modern
+       experience</b> at an <b>attainable price</b>.")
+      (subtitle
+       "And no bunk-beds."))
      (l/column
       {:class "is-two-thirds"}
       [:h2.title.is-2.has-text-left
@@ -132,11 +139,7 @@
           (i/image {:class "is-4by3"} "/assets/img/soma/card-banner.jpg")]]]
        [:div.card-content
         [:p.title.is-4 "West SoMa"]
-        [:p.subtitle.is-6 "Available <b>November 15, 2016</b>"]]
-       [:div.card-footer
-        [:a.card-footer-item
-         {:href "/communities/soma"}
-         "Learn More"]]])
+        [:p.subtitle.is-5 "Available <b>November 15, 2016</b>"]]])
      (l/column
       {:class "is-half"}
       [:div.card.is-fullwidth
@@ -145,11 +148,7 @@
          (i/image {:class "is-4by3"} "/assets/img/mission/card-banner.jpg")]]
        [:div.card-content
         [:p.title.is-4 "The Mission"]
-        [:p.subtitle.is-6 "Available <b>January 1, 2017</b>"]]
-       [:div.card-footer
-        [:a.card-footer-item
-         {:href "/communities/mission"}
-         "Learn More"]]]))
+        [:p.subtitle.is-5 "Available <b>January 1, 2017</b>"]]]))
 
     [:a.button.is-primary.is-large {:href "/signup"} "Apply Now"])))
 

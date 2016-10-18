@@ -60,6 +60,7 @@
 
   (context "/communities" []
     (GET "/" [] communities/show-communities)
+    (GET "/soma" [] communities/show-soma)
     (GET "/mission" [] communities/show-mission))
 
   (context "/signup" []

@@ -13,3 +13,6 @@
 
 (def show-mission
   (comp ok view/mission))
+
+(def show-soma
+  (comp ok view/soma))

@@ -1,6 +1,7 @@
 (ns starcity.views.communities
   (:require [starcity.views.page :as p]
             [starcity.views.communities.mission]
+            [starcity.views.communities.soma]
             [potemkin :refer [import-vars]]
             [clojure.spec :as s]
             [starcity.views.components
@@ -28,12 +29,8 @@
         [:a {:href "/communities/soma"}
          (i/image {:class "is-4by3"} "/assets/img/soma/card-banner.jpg")]]
        [:div.card-content
-        [:p.title.is-4 "West SoMa"]
-        [:p.subtitle.is-6 "Available <b>November 15, 2016</b>"]]
-       [:div.card-footer
-        [:a.card-footer-item
-         {:href "/communities/soma"}
-         "Learn More"]]])
+        [:p.title.is-3 "West SoMa"]
+        [:p.subtitle.is-5 "Available <b>November 15, 2016</b>"]]])
      (l/column
       {:class "is-half"}
       [:div.card.is-fullwidth
@@ -41,12 +38,8 @@
         [:a {:href "/communities/mission"}
          (i/image {:class "is-4by3"} "/assets/img/mission/card-banner.jpg")]]
        [:div.card-content
-        [:p.title.is-4 "The Mission"]
-        [:p.subtitle.is-6 "Available <b>January 1, 2017</b>"]]
-       [:div.card-footer
-        [:a.card-footer-item
-         {:href "/communities/mission"}
-         "Learn More"]]]))
+        [:p.title.is-3 "The Mission"]
+        [:p.subtitle.is-5 "Available <b>January 1, 2017</b>"]]]))
 
     [:div.has-text-centered
      [:a.button.is-primary.is-large {:href "/signup"} "Apply Now"]])))
@@ -63,3 +56,6 @@
 
 (import-vars
  [starcity.views.communities.mission mission])
+
+(import-vars
+ [starcity.views.communities.soma soma])

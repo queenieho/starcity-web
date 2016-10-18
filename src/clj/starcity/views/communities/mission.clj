@@ -7,22 +7,16 @@
              [image :as i]]
             [hiccup.core :refer [html]]
             [hiccup.def :refer [defelem]]
-            [starcity.views.components.form :as f]))
+            [starcity.views.communities.common :refer :all]))
 
 ;; =============================================================================
 ;; Components
 ;; =============================================================================
 
-(defelem subtitle [& content]
-  [:p.subtitle.is-5 content])
-
-(defelem title [& content]
-  [:h3.title.is-2 content])
-
 ;; =============================================================================
 ;; Banner
 
-(defn- banner [{:keys [uri params] :as req}]
+(defn- banner [req]
   (h/background-image
    {:class "is-large is-primary is-fullheight"}
    "/assets/img/mission/banner.jpg"
@@ -55,7 +49,6 @@
 (def ^:private rooms-title
   (html
    (title
-    {:style "margin-bottom: 30px;"}
     "Brand new, "
     [:strong "fully-furnished"]
     " rooms"
@@ -201,7 +194,7 @@
       {:class "has-text-centered"}
       (title "Starting at <b>$2100/month</b>, which includes:")
       [:nav.level
-       {:style "margin-top: 60px;"}
+       {:style "margin-top: 60px; margin-bottom: 60px;"}
        [:div.level-item.has-text-centered
         [:p.heading "Enterprise-grade Wifi"]
         [:i.icon.fa.fa-wifi.is-large fa-attrs]]
@@ -217,7 +210,8 @@
         [:p.heading "Weekly Cleaning"]
         (i/image
          {:class "is-64x64" :style "margin-right: auto; margin-left: auto;"}
-         "/assets/img/clean-icon-192x192.png")]]))))
+         "/assets/img/clean-icon-192x192.png")]]
+      [:a.button.is-large.is-primary {:href "/signup"} "Apply Now"]))))
 
 ;; =============================================================================
 ;; API
