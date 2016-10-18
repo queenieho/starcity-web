@@ -122,9 +122,7 @@
      {:id "neighborhood" :class "is-fullheight"}
 
      (l/container
-      ;; {:class "has-text-centered"}
       (title "Live in a neighborhood with a <strong>vibrant cultural history</strong>")
-      ;;(title "Enjoy the <strong>sights, eats, and places</strong> that define the Mission")
       (l/columns
        (l/column
         ;; TOP ROW
@@ -148,15 +146,6 @@
          (l/column
           (mural-image "mural_1")))))))))
 
-(comment
-  (subtitle
-   "The Mission is a vibrant place defined and influenced by the many ethnic
-       groups who have called the district home. From Spanish missionaries, Irish
-       and German migrants to the Latino peoples and Central Americans, the
-       Mission has long been a place where people have flocked to create better
-       lives for themselves.")
-  )
-
 ;; =============================================================================
 ;; The People
 
@@ -168,7 +157,6 @@
      {:id "people" :class "is-fullheight"}
      (l/container
       (title "Learn about the <strong>people</strong> that made this building possible")
-      ;; (subtitle )
       (l/columns
        (l/column
         {:class "is-4"}
