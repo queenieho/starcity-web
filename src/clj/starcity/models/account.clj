@@ -12,7 +12,9 @@
             [starcity.models.util.update :refer [make-update-fn]]
             [clojure.java.io :as io]
             [me.raynes.fs :as fs]
-            [taoensso.timbre :as timbre]))
+            [taoensso.timbre :as timbre]
+            [starcity.spec]
+            [clojure.spec :as s]))
 
 ;; =============================================================================
 ;; Helpers
@@ -29,6 +31,18 @@
 
 (derive :account.role/admin :account.role/applicant)
 (derive :account.role/admin :account.role/tenant)
+(derive :account.role/admin :account.role/pending)
+
+(s/def ::role
+  #{:account.role/admin
+    :account.role/pending
+    :account.role/applicant
+    :account.role/tenant})
+
+(def admin-role :account.role/admin)
+(def onboarding-role :account.role/pending)
+(def applicant-role :account.role/applicant)
+(def member-role :account.role/tenant)
 
 ;; =============================================================================
 ;; Passwords
@@ -118,15 +132,18 @@
                             :income-file/size         (long size)
                             :db/id                    (tempid)}])
         (timbre/infof "Wrote income file for account-id %s - %s - %s - %d"
-                      account-id filename content-type size)))
+                      account-id filename content-type size)
+        output-path))
+    ;; catch to log, then rethrow
     (catch Exception e
       (timbre/error e "Error encountered while writing income file!"
-                    (format "%s - %s - %s - %d" account-id filename content-type size)))))
+                    (format "%s - %s - %s - %d" account-id filename content-type size))
+      (throw e))))
 
 (defn save-income-files!
   "Save the income files for a given account."
   [account-id files]
-  (dorun (map (partial write-income-file account-id) files)))
+  (doall (map (partial write-income-file account-id) files)))
 
 ;; =============================================================================
 ;; Misc
@@ -165,6 +182,15 @@
 (defn admin?
   [account]
   (= (:account/role account) :account.role/admin))
+
+;; (defn change-role
+;;   [account-id role]
+;;   @(d/transact role [{:db/id        account-id
+;;                       :account/role role}]))
+
+;; (s/fdef change-role
+;;         :args (s/cat :account-id :starcity.spec/lookup
+;;                      :role ::role))
 
 (defn full-name
   "Full name of this account."

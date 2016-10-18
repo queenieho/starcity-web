@@ -1,6 +1,6 @@
 (ns starcity.controllers.admin
-  (:require [starcity.views.admin :refer [base]]
+  (:require [starcity.views.admin :as view]
             [starcity.controllers.utils :refer [ok]]))
 
 (defn show [req]
-  (ok (base)))
+  (ok view/admin))

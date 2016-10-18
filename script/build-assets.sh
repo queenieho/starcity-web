@@ -2,7 +2,5 @@
 mkdir resources/public/assets/css
 echo "Installing external JS & CSS dependencies via Bower..."
 bower install
-echo "Compiling Sass..."
-sass resources/public/assets/scss/main.scss:resources/public/assets/css/main.css
-echo "Compiling Elm Admin app..."
-elm-make elm/Admin.elm --yes --output resources/public/js/elm/admin.js
+echo "Compiling SASS..."
+sass resources/public/assets/stylesheets/main.scss:resources/public/assets/css/starcity.css

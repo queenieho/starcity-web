@@ -1,5 +1,6 @@
 (ns starcity.views.error
-  (:require [starcity.views.base :refer [base]]))
+  (:require [starcity.views.page :as p]
+            [starcity.views.templates.simple :as simple]))
 
 ;; =============================================================================
 ;; API
@@ -7,12 +8,11 @@
 
 (defn error
   ([message]
-   (error "Whoops!" message))
+   (error "Whoops! Something bad happened..." message))
   ([title message]
-   (base
-    :content
-    [:main
-     [:div.container
-      [:h1.red-text title]
-      [:div.divider]
-      [:p.red-text.flow-text message]]])))
+   (p/page
+    (p/title "Error")
+    (simple/danger
+     (simple/body
+      (simple/title title)
+      (simple/subtitle message))))))

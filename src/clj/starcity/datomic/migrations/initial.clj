@@ -17,7 +17,6 @@
              [add-starcity-partition :refer [add-starcity-partition]]
              [add-unit-schema :refer [add-unit-schema]]
              [seed-gilbert :refer [seed-gilbert]]
-             [seed-historic-tenderloin :refer [seed-historic-tenderloin]]
              [seed-licenses :refer [seed-licenses]]
              [seed-mission :refer [seed-mission]]
              [seed-test-accounts :refer [seed-test-accounts]]
@@ -42,7 +41,6 @@
    add-unit-schema
    seed-licenses
    seed-gilbert
-   seed-historic-tenderloin
    seed-mission
    (only-when #{:development :staging} seed-test-accounts)
    seed-union-square))

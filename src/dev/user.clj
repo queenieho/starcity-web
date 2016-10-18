@@ -1,8 +1,8 @@
 (ns user
   (:require [clojure.tools.namespace.repl :refer [refresh]]
             [mount.core :as mount :refer [defstate]]
-            ;; [figwheel-sidecar.repl-api :as ra]
-            ;; [figwheel-sidecar.system :refer [fetch-config]]
+            [figwheel-sidecar.repl-api :as ra]
+            [figwheel-sidecar.system :refer [fetch-config]]
             [starcity.log]
             [starcity.server]
             [starcity.datomic :refer [conn]]
@@ -12,23 +12,23 @@
             [starcity.services.mailgun]
             [starcity.services.mailchimp]
             [taoensso.timbre :as timbre]
-            [clojure.spec :as s]))
+            [clojure.spec.test :as stest]))
 
 (timbre/refer-timbre)
 
-(s/instrument-all)
+(stest/instrument)
 
 ;; =============================================================================
 ;; Figwheel
 
-;; (defn- start-figwheel [config]
-;;   (when-not (ra/figwheel-running?)
-;;     (debug "Starting Figwheel server")
-;;     (ra/start-figwheel! config)))
+(defn- start-figwheel []
+  (when-not (ra/figwheel-running?)
+    (debug "Starting Figwheel server")
+    (ra/start-figwheel!)))
 
-;; (defstate ^{:on-reload :noop}
-;;   figwheel
-;;   :start (start-figwheel (fetch-config)))
+(defstate ^{:on-reload :noop}
+  figwheel
+  :start (start-figwheel))
 
 ;; =============================================================================
 ;; Reloaded Workflow
@@ -45,5 +45,5 @@
   (stop)
   (refresh :after 'user/go))
 
-;; (defn cljs-repl []
-;;   (ra/cljs-repl))
+(defn cljs-repl []
+  (ra/cljs-repl))

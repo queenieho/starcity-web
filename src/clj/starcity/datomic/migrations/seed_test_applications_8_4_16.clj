@@ -1,5 +1,5 @@
 (ns starcity.datomic.migrations.seed-test-applications-8-4-16
-  (:require [starcity.config :refer [datomic]]
+  (:require [starcity.config.datomic :as config]
             [starcity.models.util :refer [one]]
             [datomic.api :as d]
             [clj-time.coerce :as c]
@@ -10,8 +10,8 @@
 (def seed-test-applications
   {:starcity/seed-test-applications
    {:txes [(fn [conn]
-             (let [application-id  (d/tempid (:partition datomic))
-                   application-id2 (d/tempid (:partition datomic))]
+             (let [application-id  (d/tempid config/partition)
+                   application-id2 (d/tempid config/partition)]
                [{:db/id                                   application-id
                  :member-application/current-address      {:address/lines       "7255 Wild Currant Way\nLower Floor"
                                                            :address/city        "Oakland"
@@ -19,7 +19,6 @@
                                                            :address/postal-code "94611"}
                  :member-application/desired-properties   [[:property/internal-name "52gilbert"]
                                                            [:property/internal-name "229ellis"]
-                                                           [:property/internal-name "361turk"]
                                                            [:property/internal-name "2072mission"]]
                  :member-application/desired-license      (:db/id (one (d/db conn) :license/term 6))
                  :member-application/locked               true
@@ -29,11 +28,10 @@
                                                            :community-fitness/skills                  "Emacs. Codez."
                                                            :community-fitness/free-time               "Photography."
                                                            :community-fitness/dealbreakers            "Stupidity."}
-                 :member-application/submitted-at         (c/to-date (t/date-time 2016 8 1))
-                 :member-application/pet                  {:pet/type "cat"}}
+                 :member-application/submitted-at         (c/to-date (t/date-time 2016 8 1))}
                 {:account/member-application application-id
                  :db/id                      [:account/email "test@test.com"]}
-                {:db/id               (d/tempid (:partition datomic))
+                {:db/id               (d/tempid config/partition)
                  :plaid/account       [:account/email "test@test.com"]
                  :plaid/income        [{;:plaid-income/last-year         50000
                                         ;:plaid-income/last-year-pre-tax 70000
@@ -74,8 +72,9 @@
                                                            :address/city        "San Francisco"
                                                            :address/state       "CA"
                                                            :address/postal-code "94103"}
+                 :member-application/approved             true
                  :member-application/desired-properties   [[:property/internal-name "52gilbert"]]
-                 :member-application/desired-license      (:db/id (one (d/db conn) :license/term 12))
+                 :member-application/desired-license      (:db/id (one (d/db conn) :license/term 1))
                  :member-application/locked               true
                  :member-application/desired-availability (c/to-date (t/date-time 2016 10 15))
                  :member-application/pet                  {:pet/type   "dog"
@@ -87,13 +86,17 @@
                                                            :community-fitness/free-time               "Photography."}
                  :member-application/submitted-at         (c/to-date (t/date-time 2016 8 5))}
                 {:account/member-application application-id2
-                 :db/id                      [:account/email "tenant@test.com"]}
-                {:db/id               (d/tempid (:partition datomic))
-                 :income-file/account [:account/email "tenant@test.com"]
+                 :db/id                      [:account/email "onboarding@test.com"]}
+                {:db/id               (d/tempid config/partition)
+                 :income-file/account [:account/email "onboarding@test.com"]
                  :income-file/path    "data/income-uploads/285873023222771/starcity-kitchen.png"}]))]
-    :requires [:starcity/seed-test-accounts
+    :requires [:starcity/add-member-application-schema
+               :starcity/add-community-fitness-schema
+               :starcity/add-plaid-schema
+               :starcity/add-pet-schema
+               :starcity/seed-licenses
+               :starcity/seed-test-accounts
                :starcity/add-income-files-schema-8-3-16
                :starcity/seed-mission
                :starcity/seed-union-square
-               :starcity/seed-historic-tenderloin
                :starcity/seed-gilbert]}})

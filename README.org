@@ -1,19 +1,26 @@
 * Starcity Web
 
-This is the main web application for Starcity.
+  This is the main web application for Starcity.
 
 * Usage
 
 ** Prerequisites
 
-+ Clojure
-+ [[http://leiningen.org][leiningen]]
+   + Clojure
+   + [[http://leiningen.org][leiningen]]
 
 ** Install
 
-Clone down the repo.
+*** Datomic
+
+    The datomic peer library needs to have the following environment variables
+    set to properly download and install:
+
+    + ~DATOMIC_USERNAME~: Our username on =my.datomic.com=
+    + ~DATOMIC_PASSWORD~: Our password for =my.datomic.com=. Check company
+      1Password for this.
 
 ** Run
 
-Boot up a Clojure repl within the project, and use the command ~(go)~ to start
-the system; then, navigate to ~localhost:8080~.
+   Boot up a Clojure repl within the project, and use the command ~(go)~ to start
+   the system; then, navigate to ~localhost:8080~.

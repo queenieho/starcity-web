@@ -48,4 +48,4 @@
 ;; API
 
 (defstate config :start (load-config environment))
-(defstate datomic :start (:datomic config))
+(defstate hostname :start (:hostname config) :stop :noop)

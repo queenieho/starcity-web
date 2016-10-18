@@ -1,13 +1,11 @@
 (ns starcity.models.application
-  (:require [clojure.spec :as s]
-            [datomic.api :as d]
-            [plumbing.core :refer [assoc-when]]
-            [starcity
-             [config :refer [datomic] :rename {datomic config}]
-             [datomic :refer [conn]]]
+  (:require [starcity.datomic :refer [conn tempid]]
             [starcity.models.util :refer :all]
             [starcity.models.util.update :refer :all]
-            [starcity.spec]))
+            [starcity.spec]
+            [clojure.spec :as s]
+            [datomic.api :as d]
+            [plumbing.core :refer [assoc-when]]))
 
 ;; =============================================================================
 ;; Helper Specs
@@ -100,7 +98,7 @@
    (d/db conn) account-id))
 
 (s/fdef by-account-id
-        :args (s/cat :account-id integer?))
+        :args (s/cat :account-id :starcity.spec/lookup))
 
 (defn logistics-complete?
   "Returns true if the logistics section of the application can be considered
@@ -124,11 +122,11 @@
                                                 ]}]
         data    (d/pull (d/db conn) pattern application-id)
         acct    (get-in data [:account/_member-application 0])
-        ;plaid   (get-in acct [:plaid/_account 0])
+                                        ;plaid   (get-in acct [:plaid/_account 0])
         ]
     (not (or (nil? (:member-application/current-address data))
              (nil? (:account/dob acct))
-             ;(nil? plaid)
+                                        ;(nil? plaid)
              ))))
 
 (s/fdef personal-information-complete?
@@ -171,7 +169,7 @@
         :args (s/cat :account-id int?)
         :ret  ::steps)
 
-(defn locked?
+(defn locked-old?
   "Is the application for this user locked?"
   [account-id]
   (let [ent (by-account-id account-id)]
@@ -205,7 +203,7 @@
 (defn complete!
   [account-id stripe-id]
   (let [application-id (:db/id (by-account-id account-id))
-        tid            (d/tempid (:partition config))]
+        tid            (tempid)]
     @(d/transact conn [{:db/id                           application-id
                         :member-application/locked       true
                         :member-application/submitted-at (java.util.Date.)}
@@ -244,7 +242,7 @@
 (defn create!
   "Create a new rental application for `account-id'."
   [account-id desired-properties desired-license desired-availability & {:keys [pet]}]
-  (let [tid (d/tempid (:partition config))
+  (let [tid (tempid)
         pet (when pet (ks->nsks :pet pet))
         ent (-> {:db/id                tid
                  :desired-license      desired-license
@@ -262,3 +260,22 @@
                      :desired-availability ::desired-availability
                      :opts (s/keys* :opt-un [::pet]))
         :ret  int?)
+
+;; =============================================================================
+;; Predicates
+
+(defn approved?
+  [application-id]
+  (-> (d/q '[:find ?approval
+             :in $ ?application
+             :where
+             [?account :account/member-application ?application]
+             [?approval :approval/account ?account]]
+           (d/db conn) application-id)
+      empty?
+      not))
+
+(defn locked?
+  "Is the application for this user locked?"
+  [application-id]
+  (boolean (:member-application/locked (d/entity (d/db conn) application-id))))

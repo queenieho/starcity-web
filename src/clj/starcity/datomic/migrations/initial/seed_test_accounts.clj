@@ -27,6 +27,14 @@
               :account/role         :account.role/tenant
               :account/activated    true}
 
+             {:account/email        "onboarding@test.com"
+              :account/password     "bcrypt+blake2b-512$30e1776f40ee533841fcba62a0dbd580$12$2dae523ec1eb9fd91409ebb5ed805fe53e667eaff0333243"
+              :account/first-name   "Jesse"
+              :account/last-name    "Suarez"
+              :account/phone-number "(516) 749-0046"
+              :account/role         :account.role/pending
+              :account/activated    true}
+
              {:account/email      "admin@test.com"
               :account/password   "bcrypt+blake2b-512$30e1776f40ee533841fcba62a0dbd580$12$2dae523ec1eb9fd91409ebb5ed805fe53e667eaff0333243"
               :account/first-name "Josh"
@@ -35,4 +43,5 @@
               :account/activated  true}])]
     :requires [:starcity/add-starcity-partition
                :starcity/add-account-roles
-               :starcity/add-account-schema]}})
+               :starcity/add-account-schema
+               :seed/add-account-role-pending-8-18-16]}})

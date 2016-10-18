@@ -9,4 +9,5 @@
                  :license/term 6}
                 {:db/id        (d/tempid :db.part/starcity)
                  :license/term 12}]]
-    :requires [:starcity/add-starcity-partition]}})
+    :requires [:starcity/add-starcity-partition
+               :starcity/add-license-schema]}})
