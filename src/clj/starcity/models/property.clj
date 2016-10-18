@@ -62,8 +62,6 @@
 ;; =============================================================================
 ;; Managed Stripe Accounts
 
-(s/def ::first-name string?)
-(s/def ::last-name string?)
 (s/def ::dob :starcity.spec/datetime)
 
 ;; TODO: too many params...
@@ -87,7 +85,9 @@
                      :tax-id string?
                      :account-number string?
                      :routing-number string?
-                     :opts (s/keys* :opt-un [::first-name ::last-name ::dob])))
+                     :first-name string?
+                     :last-name string?
+                     :dob ::dob))
 
 (comment
 
