@@ -127,6 +127,8 @@
 (s/fdef payment-method
         :args (s/cat :progress ::progress))
 
+;; NOTE: This is returning nil for onboarding user in staging -- why?
+;; Because there's no test applications seeded!
 (defn monthly-rent
   "Produce the monthly rent that this applicant has agreed to pay."
   [progress]
