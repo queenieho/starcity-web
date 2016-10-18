@@ -136,17 +136,17 @@
             known for the <b>beautiful and often politically-charged murals</b>
             decorating its buildings and alleyways."))
          (l/column
-          (mural-image "mural-5"))
+          (mural-image "mural_5"))
          (l/column
-          (mural-image "mural-3"))
+          (mural-image "mural_3"))
          (l/column
-          (mural-image "mural-6")))
+          (mural-image "mural_6")))
         ;; BOTTOM ROW
         (l/columns
          (l/column
-          (mural-image "mural-7"))
+          (mural-image "mural_7"))
          (l/column
-          (mural-image "mural-1")))))))))
+          (mural-image "mural_1")))))))))
 
 (comment
   (subtitle

@@ -157,7 +157,9 @@
 (s/def ::consent true?)
 (s/def ::community-safety (s/keys :req-un [::consent]))
 ;; address
-(s/def ::country countries/codes)
+;; TODO: This causes a problem. Why is that? Probably because the s/def happens
+;; before the state has mounted
+;; (s/def ::country countries/codes)
 (s/def ::locality :starcity.spec/non-empty-string)
 (s/def ::region :starcity.spec/non-empty-string)
 (s/def ::postal-code :starcity.spec/non-empty-string)
