@@ -3,7 +3,7 @@
   (:require [hiccup
              [def :refer [defelem]]
              [form :as f]]
-            [starcity.config.stripe :as config]
+            [starcity.config :refer [config]]
             [starcity.countries :refer [countries]]
             [starcity.views.components
              [form :refer [control label]]
@@ -277,7 +277,7 @@
 (def enter-bank-information
   (page "Enter Bank Account Information"
         enter-bank-info-content
-        (p/json ["stripe" {:key (str config/public-key)}])
+        (p/json ["stripe" {:key (get-in config [:stripe :public-key])}])
         (p/scripts "https://js.stripe.com/v2/"
                    "/assets/bower/jquery-validation/dist/jquery.validate.min.js"
                    "/js/bank-info.js")))
