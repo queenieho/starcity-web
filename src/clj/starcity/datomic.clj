@@ -2,7 +2,7 @@
   (:require [datomic.api :as d]
             [mount.core :as mount :refer [defstate]]
             [starcity.environment :as env]
-            [starcity.config :as config]
+            [starcity.config.datomic :as config]
             [starcity.datomic.conformity :as c]
             [starcity.datomic.migrations :refer [migration-norms]]
             [taoensso.timbre :as timbre]))
@@ -22,8 +22,8 @@
 
 ;; TODO: Include information about the connection URI, but without the
 ;; username/password included
-(defn- new-connection [{:keys [uri]}]
-  (info "Establishing Datomic Connection!")
+(defn- new-connection [{:keys [uri] :as conf}]
+  (info "Establishing Datomic Connection!" conf)
   (d/create-database uri)
   (let [conn (d/connect uri)]
     (run-migrations conn)
@@ -42,4 +42,4 @@
   :stop  (disconnect config/datomic conn))
 
 (defn tempid []
-  (d/tempid (:partition config/datomic)))
+  (d/tempid config/partition))

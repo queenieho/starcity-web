@@ -63,3 +63,13 @@
               :otherwise (assoc acc k v)))
           {}
           m))
+
+(defn find-by
+  "Return the first element in `coll` matching `pred`; otherwise nil."
+  [pred coll]
+  (loop [x  (first coll)
+         xs (rest coll)]
+    (cond
+      (pred x)    x
+      (empty? xs) nil
+      :otherwise  (recur (first xs) (rest xs)))))

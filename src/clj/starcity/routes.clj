@@ -6,67 +6,62 @@
              [route :as route]]
             [ring.util.response :as response]
             [starcity.auth :refer [authenticated-user user-isa]]
-            [starcity.api.plaid :as plaid]
-            [starcity.api.admin.applications :as api-applications]
+            [starcity.api :as api]
+            [starcity.webhooks
+             [plaid :as plaid]
+             [stripe :as stripe]]
             [starcity.controllers
-             [account :as account]
-             [application :as application]
+             [apply :as apply]
+             [settings :as settings]
              [auth :as auth]
+             [login :as login]
+             [signup :as signup]
              [communities :as communities]
-             [admin :as admin]
              [faq :as faq]
              [landing :as landing]
-             [register :as register]
              [terms :as terms]
              [privacy :as privacy]
              [team :as team]
-             [about :as about]]
-            [starcity.controllers.application
-             [personal :as personal]
-             [logistics :as logistics]
-             [community-fitness :as community-fitness]
-             [submit :as submit]]
-            [starcity.controllers.auth
-             [login :as login]
-             [signup :as signup]]))
+             [about :as about]
+             [onboarding :as onboarding]
+             [admin :as admin]
+             [dashboard :as dashboard]]))
 
-(defn- redirect-on-invalid-authorization
-  [to]
-  (fn [req msg]
-    (if (authenticated? req)
-      (response/redirect to)
-      (response/redirect "/"))))
+(defn- redirect-by-role
+  [{:keys [identity] :as req} msg]
+  (-> (condp = (:account/role identity)
+        :account.role/applicant "/apply"
+        :account.role/pending   "/onboarding"
+        :account.role/admin     "/admin"
+        "/")
+      (response/redirect)))
 
 ;; =============================================================================
 ;; API
 ;; =============================================================================
 
 (defroutes app-routes
-  ;; public
-  (GET "/" [] landing/show-landing)
-  (GET "/register"     [] register/register-user!)
-  (GET "/communities" [] communities/show-communities)
-  (GET "/faq"          [] faq/show-faq)
-  (GET "/terms"         [] terms/show-terms)
-  (GET "/privacy"        [] privacy/show-privacy)
-  (GET "/about" [] about/show-about)
-  (GET "/team" [] team/show-team)
+  (GET "/"                 [] landing/show-landing)
+  (POST "/"                [] landing/newsletter-signup)
 
-  (GET "/forgot-password" [] auth/show-forgot-password)
+  (GET "/faq"              [] faq/show-faq)
+  (GET "/terms"            [] terms/show-terms)
+  (GET "/privacy"          [] privacy/show-privacy)
+  (GET "/about"            [] about/show-about)
+  (GET "/team"             [] team/show-team)
+
+  (GET "/forgot-password"  [] auth/show-forgot-password)
   (POST "/forgot-password" [] auth/forgot-password!)
 
-  (GET  "/login"        [] login/show-login)
-  (POST "/login"        [] login/login!)
+  (GET  "/login"           [] login/show-login)
+  (POST "/login"           [] login/login!)
 
-  (context "/account" []
-    (restrict
-     (routes
-      (GET "/" [] account/show-account-settings)
-      (POST "/password" [] account/update-password!))
-     {:handler  authenticated-user
-      :on-error (redirect-on-invalid-authorization "/")}))
+  (ANY  "/logout"          [] auth/logout!)
 
-  (ANY  "/logout"       [] auth/logout!)
+  (context "/communities" []
+    (GET "/" [] communities/show-communities)
+    (GET "/soma" [] communities/show-soma)
+    (GET "/mission" [] communities/show-mission))
 
   (context "/signup" []
     (GET   "/"         [] signup/show-signup)
@@ -74,68 +69,48 @@
     (GET   "/complete" [] signup/show-complete)
     (GET   "/activate" [] signup/activate!))
 
-  ;; auth
-  (context "/application" []
+  (context "/apply" []
     (restrict
-     (routes
-      (GET "/" [] application/show-application)
+        (routes
+         (GET "*" [] apply/show-apply))
+      {:handler  {:and [authenticated-user (user-isa :account.role/applicant)]}
+       :on-error redirect-by-role}))
 
-      (restrict
-       (routes
-        (GET "/logistics" [] logistics/show-logistics)
-        (POST "/logistics" [] logistics/save!))
-       logistics/restrictions)
-
-      (restrict
-       (routes
-        (GET "/personal" [] personal/show-personal)
-        (POST "/personal" [] personal/save!))
-       personal/restrictions)
-
-      (restrict
-       (routes
-        (GET "/community" [] community-fitness/show-community-fitness)
-        (POST "/community" [] community-fitness/save!))
-       community-fitness/restrictions)
-
-      (restrict
-       (routes
-        (GET "/submit" [] submit/show-submit)
-        (POST "/submit" [] submit/submit!))
-       submit/restrictions))
-
-     {:handler  {:and [authenticated-user (user-isa :account.role/applicant)]}
-      :on-error (redirect-on-invalid-authorization "/me")}))
+  (context "/settings" []
+    (restrict
+        (routes
+         (GET "/"          []
+              (fn [_] (ring.util.response/redirect "/settings/change-password")))
+         (GET "/change-password"  [] settings/show-account-settings)
+         (POST "/change-password" [] settings/update-password!))
+      {:handler  authenticated-user
+       :on-error redirect-by-role}))
 
   (context "/admin" []
     (restrict
-     (routes
-      (GET "*" [] admin/show))
-     {:handler  {:and [authenticated-user (user-isa :account.role/admin)]}
-      :on-error (redirect-on-invalid-authorization "/")}))
+        (routes
+         (GET "*" [] admin/show))
+      {:handler  {:and [authenticated-user (user-isa :account.role/admin)]}
+       :on-error redirect-by-role}))
 
-  ;; (GET "/me" [] (-> dashboard/show-dashboard
-  ;;                   (restrict {:handler  {:and [authenticated-user (user-isa :account.role/tenant)]}
-  ;;                              :on-error (redirect-on-invalid-authorization "/application")})))
-
-  (context "/api/v1" []
+  (context "/me" []
     (restrict
-     (routes
-      (POST "/plaid/auth" [] plaid/authenticate!)
+        (routes
+         (GET "/*" [] dashboard/show))
+      {:handler  {:and [authenticated-user (user-isa :account.role/tenant)]}
+       :on-error redirect-by-role}))
 
-      (context "/admin" []
-        (restrict
-         (routes
-          (GET "/applications" [] api-applications/fetch-applications)
-          (GET "/applications/:application-id" [] api-applications/fetch-application)
 
-          (GET "/income-file/:file-id" [] api-applications/fetch-income-file))
-         {:handler  {:and [(user-isa :account.role/admin)]}
-          :on-error (fn [_ _] {:status 403 :body "You are not authorized."})})))
-     {:handler {:and [authenticated-user]}}))
+  (context "/onboarding" []
+    (restrict onboarding/routes
+      {:handler  {:and [authenticated-user (user-isa :account.role/pending)]}
+       :on-error redirect-by-role}))
+
+  (context "/api/v1" [] api/routes)
 
   (context "/webhooks" []
-    (POST "/plaid" [] plaid/hook))
+    (POST "/plaid" [] plaid/hook)
+    (POST "/stripe" [] stripe/hook))
 
   ;; catch-all
   (route/not-found "<p>Not Found</p>"))

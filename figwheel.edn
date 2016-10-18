@@ -1,13 +1,39 @@
-{:server-port 3449
+{:server-port     3449
+ :css-dirs        ["resources/public/assets/css"]
+ :builds-to-start ["admin" "apply"]
  :builds
- [{:id            "main"
-   :source-paths  ["src/cljs" "src/dev"]
-   :figwheel      true
-   :build-options {:main                 starcity.core
-                   :asset-path           "/js/app/out"
-                   :output-to            "resources/public/js/app/main.js"
-                   :output-dir           "resources/public/js/app/out"
-                   :verbose              false
-                   :source-map           true
-                   :optimizations        :none
-                   :source-map-timestamp true}}]}
+ [{:id           "admin"
+   :source-paths ["src/cljs/admin" "src/cljs/starcity" "src/dev"]
+   :figwheel     {:on-jsload admin.core/run}
+   :compiler     {:main                 admin.core
+                  :preloads             [devtools.preload]
+                  :asset-path           "/js/cljs/admin/out"
+                  :output-to            "resources/public/js/cljs/admin.js"
+                  :output-dir           "resources/public/js/cljs/admin/out"
+                  :verbose              false
+                  :source-map           true
+                  :optimizations        :none
+                  :source-map-timestamp true
+                  :external-config
+                  {:devtools/config
+                   {:features-to-install    [:formatters :hints]
+                    :fn-symbol              "ƒ"
+                    :print-config-overrides true}}}}
+
+  {:id           "apply"
+   :source-paths ["src/cljs/apply" "src/cljs/starcity" "src/dev"]
+   :figwheel     {:on-jsload apply.core/run}
+   :compiler     {:main                 apply.core
+                  :preloads             [devtools.preload]
+                  :asset-path           "/js/cljs/apply/out"
+                  :output-to            "resources/public/js/cljs/apply.js"
+                  :output-dir           "resources/public/js/cljs/apply/out"
+                  :verbose              false
+                  :source-map           true
+                  :optimizations        :none
+                  :source-map-timestamp true
+                  :external-config
+                  {:devtools/config
+                   {:features-to-install    [:formatters :hints]
+                    :fn-symbol              "ƒ"
+                    :print-config-overrides true}}}}]}

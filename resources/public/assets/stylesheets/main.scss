@@ -1,0 +1,46 @@
+@charset "UTF-8";
+
+body {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+main {
+  flex: 1 0 auto;
+}
+
+// Bower
+/* @import "../bower/SpinKit/scss/spinners/2-double-bounce"; */
+@import "../bower/SpinKit/css/spinkit.css";
+// NOTE: This path comes from the cljsjs jar
+@import "../../flatpickr/flatpickr.min.css";
+@import "../bower/photoswipe/dist/photoswipe.css";
+@import "../bower/photoswipe/dist/default-skin/default-skin.css";
+
+@import "variables";
+
+// Vendor
+@import "vendor/bulma/bulma";
+
+// Modules
+@import "modules/apply";
+@import "modules/list";
+@import "modules/modifiers";
+@import "modules/communities";
+
+// Partials
+@import "partials/images";
+@import "partials/tables";
+@import "partials/definition-list";
+@import "partials/section";
+@import "partials/navbar";
+@import "partials/footer";
+@import "partials/flatpickr";
+
+// Overrides
+@import "overrides/spinkit";
+@import "overrides/forms";
+@import "overrides/flatpickr";
+@import "overrides/menu";
+@import "overrides/footer";
