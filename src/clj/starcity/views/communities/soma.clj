@@ -33,7 +33,7 @@
    {:class "is-fullheight" :id "june"}
    (l/container
     {:class "has-text-center"}
-    (title "In <b>June</b> of 2016, we struck a deal")
+    (title "In <b>June</b> of 2016, we <b>struck a deal</b>")
     (l/columns
      {:class "is-vcentered"}
      (l/column

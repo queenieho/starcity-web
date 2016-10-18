@@ -47,9 +47,9 @@
        design with our residents (or <em>members</em> as we call them) in
        mind."]
 
-     [:p "We promise to build what people want instead of building what we
-       <em>think</em> they want. Our members tell us that they value
-       <b>experiences and relationships</b> over ownership and things."]
+     [:p "We promise to build what people want instead of what we <em>think</em>
+       they want. Our members tell us that they value <b>experiences and
+       relationships</b> over ownership and things."]
 
      [:p "We're Starcity: <strong>we build beautiful, comfortable communal
        housing</strong>...and we've only just begun. Join us to help build the future of
