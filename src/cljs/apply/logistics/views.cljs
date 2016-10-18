@@ -20,13 +20,19 @@
   [community-name e]
   (dispatch [:logistics.communities/select community-name (dom/checked e)]))
 
+(def ^:private community-links
+  {"52gilbert"   "/communities/soma"
+   "2072mission" "/communities/mission"})
+
 (defn- community [{:keys [internal-name name num-units available-on]} selections]
   [:p.control
    [:label.checkbox
     [:input {:type            "checkbox"
              :default-checked (selections internal-name)
              :on-click        (partial handle-select-community internal-name)}]
-    [:a {:href "#"} name]
+    (if-let [uri (get community-links internal-name)]
+      [:a {:href uri :target "_blank"} name]
+      [:strong name])
     [:span.num-units (str num-units " units open")]
     [:span.availability (str "available " available-on)]]])
 

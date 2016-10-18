@@ -117,7 +117,7 @@
       {:class "is-two-thirds"}
       [:h2.title.is-2.has-text-left
        "<b>Home</b> is <b>comfortable</b>"]
-      (i/image "/assets/img/mission/rooms/large/room-1.jpg"))))))
+      (i/image "/assets/img/landing-3.jpg"))))))
 
 ;; =============================================================================
 ;; Communities

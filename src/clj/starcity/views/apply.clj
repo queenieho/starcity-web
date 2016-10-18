@@ -28,4 +28,6 @@
                                   :key    public-key
                                   :email  email}]
                        ["countries" countries-json])
-               (p/scripts "https://checkout.stripe.com/checkout.js")))
+               (p/scripts "https://checkout.stripe.com/checkout.js"
+                          "https://code.jquery.com/jquery-2.1.1.min.js"
+                          "/js/main.js")))

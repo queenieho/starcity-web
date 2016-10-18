@@ -25,7 +25,7 @@
       (l/column
        {:class "is-7 is-offset-5 has-text-right"}
        [:h1.title.is-1
-        "Learn about our how we built our <b>first communal house</b> in <b>SoMa</b>"]
+        "Learn about how we built our <b>first communal house</b> in <b>SoMa</b>"]
        [:p.subtitle.is-4 [:em "Available November 15th, 2016"]]))))) )
 
 (def ^:private june
@@ -74,7 +74,7 @@
     (subtitle "Our challenge was to think of a layout that is <b>open</b> and
       <b>inviting</b>, yet <b>space-efficient</b>.")
     (subtitle "We started to see our designs take shape &mdash; framing new,
-      <b>comfortable-sized private rooms</b> and a communal area <b>ideal for gatherings</b>.")
+      <b>comfortably-sized</b> private rooms and a communal area <b>ideal for gatherings</b>.")
     (l/columns
      {:class "is-vcentered"}
      (l/column
@@ -105,29 +105,48 @@
     (title "<b>October</b> is a sprint towards the <b>finish line</b>")
     (l/columns
      (l/column
-      (i/image "/assets/img/soma/october-4.jpg"))
-     (l/column
-      (i/image "/assets/img/soma/october-5.jpg"))
-     (l/column
-      (i/image "/assets/img/soma/october-6.jpg")))
-    (l/columns
-     (l/column
       (i/image "/assets/img/soma/october-1.jpg"))
      (l/column
       (i/image "/assets/img/soma/october-2.jpg"))
      (l/column
-      (i/image "/assets/img/soma/october-3.jpg"))))))
+      (i/image "/assets/img/soma/october-3.jpg")))
+    (l/columns
+     (l/column
+      (i/image "/assets/img/soma/october-4.jpg"))
+     (l/column
+      (i/image "/assets/img/soma/october-5.jpg"))
+     (l/column
+      (i/image "/assets/img/soma/october-6.jpg"))))))
 
 (def ^:private november
-  (l/section
-   {:class "is-fullheight" :id "november"}
-   (l/container
-    {:class "has-text-centered is-vcentered"}
-    (title "<b>November</b> is set for <b>move-in</b>")
-    (subtitle "We'd love to show you more &mdash; "
-              [:a {:href "mailto:team@joinstarcity.com"} "contact us"]
-              " now to schedule a tour!")
-    [:a.button.is-large.is-primary {:href "/signup"} "Apply Now"])))
+  (let [fa-attrs {:style "color: black; font-size: 60px; height: 64px; width: 64px; line-height: 60px;"}]
+    (l/section
+    {:class "is-fullheight" :id "november"}
+    (l/container
+     {:class "has-text-centered is-vcentered"}
+     (title "<b>November</b> is set for <b>move-in</b>, starting at <b>$2100/month</b>")
+     (subtitle "We'd love to show you more &mdash; "
+               [:a {:href "mailto:team@joinstarcity.com"} "contact us"]
+               " now to schedule a tour!")
+     [:nav.level
+      {:style "margin-top: 60px; margin-bottom: 60px;"}
+      [:div.level-item.has-text-centered
+       [:p.heading "Enterprise-grade Wifi"]
+       [:i.icon.fa.fa-wifi.is-large fa-attrs]]
+      [:div.level-item.has-text-centered
+       [:p.heading "All Utilities"]
+       [:i.icon.fa.fa-lightbulb-o.is-large fa-attrs]]
+      [:div.level-item.has-text-centered
+       [:p.heading "On-site Laundry"]
+       (i/image
+        {:class "is-64x64" :style "margin-right: auto; margin-left: auto;"}
+        "/assets/img/washing-machine-icon-192x192.png")]
+      [:div.level-item.has-text-centered
+       [:p.heading "Weekly Cleaning"]
+       (i/image
+        {:class "is-64x64" :style "margin-right: auto; margin-left: auto;"}
+        "/assets/img/clean-icon-192x192.png")]]
+     [:a.button.is-large.is-primary {:href "/signup"} "Apply Now"]))))
 
 ;; =============================================================================
 ;; API
