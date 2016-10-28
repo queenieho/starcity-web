@@ -38,11 +38,10 @@
   ([req-config params]
    (request req-config params nil))
   ([{:keys [endpoint method] :as conf} params cb]
-   ;; TODO: Remove the overridable secret key, as we won't be using this
    (let [req-map    {:url        (format "%s/%s" base-url endpoint)
                      :method     method
                      :headers    {"Accept" "application/json"}
-                     :basic-auth [config/secret-key ""]}
+                     :basic-auth [(config/secret-key) ""]}
          [k params] (params-for method params)]
      (if cb
        (http/request (assoc req-map k params)

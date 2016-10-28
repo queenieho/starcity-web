@@ -25,7 +25,7 @@
                [:section#apply.section l/hero-section]
                p/footer
                (p/json ["stripe" {:amount application-fee
-                                  :key    public-key
+                                  :key    (public-key)
                                   :email  email}]
                        ["countries" countries-json])
                (p/scripts "https://checkout.stripe.com/checkout.js"

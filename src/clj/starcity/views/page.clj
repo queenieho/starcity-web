@@ -90,8 +90,7 @@
    (n/nav-item "/about" "About")
    (auth-item req)))
 
-(defn messages
-  [req]
+(defn messages [req]
   (let [errors  (msg/errors-from req)
         success (msg/success-from req)]
     (l/section
@@ -101,15 +100,12 @@
       (for [s success] (nf/success s))))))
 
 ;; for convenience when constructing pages
-(def footer
-  f/footer)
+(def footer f/footer)
 
-(defn scripts
-  [& scripts]
+(defn scripts [& scripts]
   {:scripts scripts})
 
-(defn json
-  [& json]
+(defn json [& json]
   {:json json})
 
 ;; =============================================================================
@@ -123,7 +119,6 @@
   (let [scripts (->> (filter scripts? content) (mapcat :scripts))
         json    (->> (filter json? content) (mapcat :json))
         content (remove #(or (scripts? %) (json? %)) content)]
-    ;; (println (concat base-js ["/js/main.js"] scripts))
     (fn [req]
       (html5
        {:lang "en"}
