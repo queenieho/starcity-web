@@ -5,7 +5,6 @@
             [compojure.core :refer [context defroutes GET POST]]
             [ring.util.response :as response]
             [starcity.controllers.utils :refer [errors-from ok valid?]]
-            [starcity.config.stripe :refer [public-key]]
             [starcity.models
              [onboarding :as onboarding]
              [stripe :as stripe]]
@@ -143,7 +142,7 @@
   [{:keys [params identity] :as req}]
   (letfn [(-respond-error []
             (respond-with-errors req default-error-message
-                                 (view/enter-bank-information (public-key))))]
+                                 view/enter-bank-information))]
     (if-let [token (:stripe-token params)]
       (try
         (let [customer (stripe/create-customer (:db/id identity) token)]
@@ -213,7 +212,7 @@
   (GET "/verify" []
        (with-gate should-enter-bank-information?
          (fn [req _]
-           ((view/enter-bank-information (public-key)) req))))
+           (view/enter-bank-information req))))
 
   (POST "/verify" [] verify-bank-account)
 

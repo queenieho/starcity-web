@@ -4,6 +4,7 @@
              [def :refer [defelem]]
              [form :as f]]
             [starcity.countries :refer [countries]]
+            [starcity.config.stripe :refer [public-key]]
             [starcity.views.components
              [form :refer [control label]]
              [layout :as l]]
@@ -273,10 +274,10 @@
 (def pay-by-check
   (page "Pay by Check" pay-by-check-content))
 
-(defn enter-bank-information [stripe-public-key]
+(def enter-bank-information
   (page "Enter Bank Account Information"
         enter-bank-info-content
-        (p/json ["stripe" {:key stripe-public-key}])
+        (p/json ["stripe" (fn [] {:key public-key})])
         (p/scripts "https://js.stripe.com/v2/"
                    "/assets/bower/jquery-validation/dist/jquery.validate.min.js"
                    "/js/bank-info.js")))

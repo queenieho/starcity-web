@@ -105,8 +105,18 @@
 (defn scripts [& scripts]
   {:scripts scripts})
 
+(s/def ::json
+  (s/cat :object-name string?
+         :object-or-thunk (s/or :map map? :thunk fn?)))
+
 (defn json [& json]
-  {:json json})
+  {:json (for [[object-name object-or-thunk :as j] json]
+           (if (fn? object-or-thunk)
+             [object-name (object-or-thunk)]
+             j))})
+
+(s/fdef json
+        :args (s/cat :json (s/+ (s/spec ::json))))
 
 ;; =============================================================================
 ;; Page Constructors
