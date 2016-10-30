@@ -47,10 +47,10 @@
   (and (map? content) (:json content)))
 
 (defn- onboarding-auth-item [{:keys [context]}]
-  (let [uri-path (clojure.string/split context #"/")]
-    (if (= "onboarding" (second uri-path))
-      ["/settings" "Settings"]
-      ["/onboarding" "Security Deposit"])))
+  (cond
+    (nil? context)                      ["/onboarding" "Security Deposit"]
+    (re-find #"^/onboarding.*" context) ["/settings" "Account"]
+    :otherwise                          ["/onboarding" "Security Deposit"]))
 
 (defn- auth-item [req]
   (let [role          (get-in req [:identity :account/role])
