@@ -41,7 +41,7 @@
    (let [req-map    {:url        (format "%s/%s" base-url endpoint)
                      :method     method
                      :headers    {"Accept" "application/json"}
-                     :basic-auth [(config/secret-key) ""]}
+                     :basic-auth [config/secret-key ""]}
          [k params] (params-for method params)]
      (if cb
        (http/request (assoc req-map k params)

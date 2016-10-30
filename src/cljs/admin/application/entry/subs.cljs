@@ -1,5 +1,6 @@
 (ns admin.application.entry.subs
   (:require [admin.application.entry.db :refer [root-db-key]]
+            [admin.application.entry.model :as model]
             [re-frame.core :refer [reg-sub]]
             [starcity.dates :as dates]
             [starcity.log :as l]
@@ -115,16 +116,21 @@
    (:selected-community data)))
 
 (reg-sub
- :application.entry.approval/selected-community-name
+ :application.entry.approval/deposit-amount
  :<- [root-db-key]
- (fn [data _]
-   "The Mission"))
+ :<- [:application.entry/current]
+ :<- [:application.entry.approval/selected-community]
+ (fn [[data application selected] _]
+   (if-let [amount (:deposit-amount data)]
+     amount
+     (model/initial-deposit-amount application selected))))
 
 (reg-sub
  :application.entry.approval/communities
  :<- [:application.entry/current]
  (fn [{:keys [properties]} _]
-   (for [p properties] [(:property/name p) (:property/internal-name p)])))
+   (for [p properties]
+     [(:property/name p) (:property/internal-name p)])))
 
 (reg-sub
  :application.entry.approval/email-content

@@ -16,11 +16,11 @@
 
 (defn- wrapper [content]
   (fn [req]
-    (l/section
-     {:style "flex-grow: 1"}
-     (l/container
-      (p/messages req)
-      (content req)))))
+    (list
+     (p/messages req)
+     (l/section
+      {:style "flex-grow: 1"}
+      (l/container (content req))))))
 
 (defn- prompt [& content]
   [:div.prompt content])
@@ -103,15 +103,15 @@
   {"52gilbert"   "52 Gilbert LLC"
    "2072mission" "2072-2074 Mission LLC"})
 
-(defn- pay-by-check-content [{rent :monthly-rent, property-code :property-code}]
+(defn- pay-by-check-content [{full-amount :full-deposit-amount, property-code :property-code}]
   (form
    (title "Here's the information you'll need to write your check.")
    (body
     [:p "There are two payment options available:"]
     [:ul
      [:li (format "You can pay either <b>$500 now</b> and the remainder ($%s) by the end of the first month, or"
-                  (int (- rent 500)))]
-     [:li (format "The full amount of <b>$%s</b> now." (int rent))]]
+                  (- full-amount 500))]
+     [:li (format "The full amount of <b>$%s</b> now." full-amount)]]
     [:p "You'll be able to advance beyond this step after we have received your
     check and have verified that it clears."]
     [:div.form-container
@@ -225,7 +225,7 @@
 
 ;; And here's the complete view.
 
-(defn- pay-by-ach-content [{rent :monthly-rent, code :property-code :as req}]
+(defn- pay-by-ach-content [{full-amount :full-deposit-amount, code :property-code :as req}]
   [:div
    (confirmation-modal code)
    (form
@@ -234,14 +234,14 @@
      [:p "We can now accept your payment. There are two options:"]
      [:ul
       [:li (format "You can pay either <b>$500 now</b> and the remainder ($%s) by the end of the first month, or"
-                   (int (- rent 500)))]
-      [:li (format "The full amount of <b>$%s</b> now." (int rent))]]
+                   (- full-amount 500))]
+      [:li (format "The full amount of <b>$%s</b> now." full-amount)]]
      [:div.form-container
       (label "payment-choice" "Choose the amount that you would like to pay.")
       (control
        [:label.radio
         (f/radio-button {:required true} "payment-choice" false "full")
-        (format "Full amount ($%s)" (int rent))])
+        (format "Full amount ($%s)" full-amount)])
       (control
        [:label.radio
         (f/radio-button {:required true} "payment-choice" false "partial")

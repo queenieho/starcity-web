@@ -46,15 +46,13 @@
   [:main
    [:section.section
     [:div.container
-     [:h1.title.is-1 "Yo, Bro."]
+     [:h1.title.is-1 "Yo"]
      [:h3.subtitle.is-3 "not sure what to put here yet..."]]]])
 
 (defn- main []
   (let [route (subscribe [:app/current-route])]
     (fn []
       [:section.section {:style {:min-height "100vh"}}
-       [:div.container
-        [notifications]]
        (case @route
          :application/list  [applications]
          :application/entry [application]
@@ -68,4 +66,5 @@
   []
   [:div
    [navbar]
+   [notifications]
    [main]])

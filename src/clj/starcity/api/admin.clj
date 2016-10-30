@@ -13,10 +13,11 @@
 
   (POST "/applications/:application-id/approve" [application-id]
         (fn [{:keys [params] :as req}]
-          (let [{:keys [email-content community-id]} params]
+          (let [{:keys [email-content deposit-amount community-id]} params]
             (applications/approve (str->int application-id)
                                   (api/account-id req)
                                   community-id
+                                  (str->int deposit-amount)
                                   email-content))))
 
   (GET "/income-file/:file-id" [file-id]

@@ -12,20 +12,6 @@
 ;; Internal
 ;; =============================================================================
 
-(defn- app-id->acct-id
-  "Find the `account-id` for the given member application id (`application-id`)."
-  [application-id]
-  (:db/id
-   (qe1 '[:find ?acct
-          :in $ ?app
-          :where
-          [?acct :account/member-application ?app]]
-        (d/db conn) application-id)))
-
-(s/fdef app-id->acct-id
-        :args (s/cat :application-id integer?)
-        :ret integer?)
-
 (defn- create-txdata
   "Produce the transaction data to create a new approval entity."
   [account-id approver-id property-id]
@@ -44,12 +30,23 @@
 (defn- update-role-txdata
   "Produce the transaction data required to mark this user's account as approved
   by updating his/her role."
-  [account]
-  [{:db/id        account
+  [account-id]
+  [{:db/id        account-id
     :account/role account/onboarding-role}])
 
 (s/fdef update-role-txdata
         :args (s/cat :account-id :starcity.spec/lookup)
+        :ret vector?)
+
+(defn- create-security-deposit-txdata
+  [account-id deposit-amount]
+  [{:db/id                            (tempid)
+    :security-deposit/account         account-id
+    :security-deposit/amount-required deposit-amount}])
+
+(s/fdef create-security-deposit-txdata
+        :args (s/cat :account-id :starcity.spec/lookup
+                     :deposit-amount integer?)
         :ret vector?)
 
 ;; =============================================================================
@@ -73,17 +70,23 @@
 (def email-subject
   "Starcity: You've been qualified!")
 
+;; NOTE: A weird bug prevented me from calling this function with five arguments
+;; -- I have no clue why. Converting the args to a map seems to have fixed it,
+;; although not sure why. Shrug.
+
 (defn approve!
-  [application-id approver-id internal-name email-content]
-  (let [account-id (app-id->acct-id application-id)
-        email          (:account/email (d/entity (d/db conn) account-id))
-        txdata     (concat
-                    ;; Create approval entity
-                    (create-txdata account-id
-                                   approver-id
-                                   [:property/internal-name internal-name])
-                    ;; Convert account to new role
-                    (update-role-txdata account-id))]
+  [{:keys [application-id approver-id internal-name deposit-amount email-content]}]
+  (let [account (account/by-application (d/entity (d/db conn) application-id))
+        email   (:account/email account)
+        txdata  (concat
+                 ;; Create approval entity
+                 (create-txdata (:db/id account)
+                                approver-id
+                                [:property/internal-name internal-name])
+                 ;; Convert account to new role
+                 (update-role-txdata (:db/id account))
+                 ;; Create security deposit entity
+                 (create-security-deposit-txdata (:db/id account) deposit-amount))]
     (do
       ;; Commit the changes
       @(d/transact conn (vec txdata))
@@ -91,13 +94,9 @@
       (mailgun/send-email email email-subject email-content))))
 
 (s/fdef approve!
-        :args (s/cat :application-id integer?
-                     :approver-id integer?
-                     :internal-name string?
-                     :email-content string?))
-
-(comment
-
-  (email-content 285873023222906 "52gilbert")
-
-  )
+        :args (s/cat :args
+                     (s/keys :req-un [::application-id
+                                      ::approver-id
+                                      ::internal-name
+                                      ::deposit-amount
+                                      ::email-content])))

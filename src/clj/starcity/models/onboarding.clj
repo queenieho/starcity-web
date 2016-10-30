@@ -15,6 +15,8 @@
 ;; notification. You will not receive charge.succeeded or charge.failed
 ;; notification until up to 5 business days later.
 
+;; TODO: Change progress to communicate w/ entities rather than maps or ids
+
 ;; =============================================================================
 ;; Internal
 ;; =============================================================================
@@ -23,14 +25,13 @@
 ;; DB Lookups
 
 (s/def ::security-deposit
-  (s/or
-   :nothing empty?
-   :security-deposit (s/keys :req [:db/id :security-deposit/account]
-                             :opt [:security-deposit/amount-received
-                                   :security-deposit/amount-required
-                                   :security-deposit/payment-method
-                                   :security-deposit/payment-type
-                                   :security-deposit/due-by])))
+  (s/keys :req [:db/id
+                :security-deposit/account
+                :security-deposit/amount-required]
+          :opt [:security-deposit/amount-received
+                :security-deposit/payment-method
+                :security-deposit/payment-type
+                :security-deposit/due-by]))
 
 (defn- security-deposit
   "Retrieve the security deposit entity by account id."
@@ -85,21 +86,6 @@
 ;; =============================================================================
 ;; Transactions
 
-(declare monthly-rent)
-
-(defn- create-security-deposit
-  [progress payment-method]
-  (let [amount-required (int (* 100 (monthly-rent progress)))]
-    @(d/transact conn [{:db/id                            (tempid)
-                        :security-deposit/account         (account-id progress)
-                        :security-deposit/payment-method  payment-method
-                        :security-deposit/amount-required amount-required}])))
-
-(defn- update-payment-method*
-  [security-deposit-id payment-method]
-  @(d/transact conn [{:db/id                           security-deposit-id
-                      :security-deposit/payment-method payment-method}]))
-
 ;; =============================================================================
 ;; API
 ;; =============================================================================
@@ -127,27 +113,10 @@
 (s/fdef payment-method
         :args (s/cat :progress ::progress))
 
-;; NOTE: This is returning nil for onboarding user in staging -- why?
-;; Because there's no test applications seeded!
-(defn monthly-rent
-  "Produce the monthly rent that this applicant has agreed to pay."
+(defn full-deposit-amount
+  "Retrieve the full security deposit amount."
   [progress]
-  (-> (d/q '[:find ?price
-             :in $ ?account
-             :where
-             ;; Get the desired license via account application
-             [?account :account/member-application ?application]
-             [?application :member-application/desired-license ?desired-license]
-             ;; Approval is where we get the property from
-             [?approval :approval/account ?account]
-             [?approval :approval/property ?property]
-             ;; Get the property-license that matches the desired license
-             [?property :property/licenses ?license]
-             [?license :property-license/license ?desired-license]
-             ;; Finally, pull out the prrice
-             [?license :property-license/base-price ?price]]
-           (d/db conn) (:account-id progress))
-      ffirst))
+  (get-in progress [:security-deposit :security-deposit/amount-required]))
 
 (defn applicant-property
   "The property that this applicant is being onboarded for."
@@ -165,9 +134,12 @@
   "Update the payment method. Will create a new security deposit entity if one
   does not already exist, or update the existing one if it does."
   [progress method]
-  (if-let [sid (security-deposit-id progress)]
-    (update-payment-method* sid method)
-    (create-security-deposit progress method)))
+  @(d/transact conn [{:db/id                           (security-deposit-id progress)
+                      :security-deposit/payment-method method}]))
+
+(s/fdef update-payment-method
+        :args (s/cat :progress ::progress
+                     :method   ::payment-method))
 
 ;; =====================================
 ;; Perform ACH charge
@@ -175,15 +147,11 @@
 ;; Firstly, we need to know the correct amount to charge.
 ;; We can determine this by using a map of {#{"full" "partial"} <amt>}
 
-
 (defn- charge-amount
   "Determine the correct amount to charge in cents given "
   [progress payment-choice]
-  (assert (#{"full" "partial"} payment-choice)
-          (format "Payment choice must be one of #{\"full\" \"partial\"}, not %s."
-                  payment-choice))
   (if (= "full" payment-choice)
-    (int (* 100 (monthly-rent progress)))
+    (* (get-in progress [:security-deposit :security-deposit/amount-required]) 100)
     50000))
 
 ;; Now that we know how much to charge, we can actually make the charge!
@@ -208,16 +176,18 @@
   [progress payment-choice charge-id]
   (let [payment-type (keyword "security-deposit.payment-type" payment-choice)]
     @(d/transact conn [{:db/id                            (security-deposit-id progress)
+                        ;; TODO: The amount-received shouldn't be updated until
+                        ;; we get a webhook response from Stripe indicating that
+                        ;; the payment has gone through.
                         :security-deposit/amount-received (charge-amount progress payment-choice)
                         :security-deposit/charge          charge-id
                         :security-deposit/payment-type    payment-type}])))
 
-;; Here's what ties it all together.
 
 (declare payment-received?)
 
-;; TODO: Ensure that there's no payment already created. Don't want the
-;; possibility of multiple payments
+;; Here's what ties it all together.
+
 (defn pay-ach
   "Pay the security deposit with ACH given current progress and the choice of
   payment method."
@@ -225,7 +195,7 @@
   (if (payment-received? progress)
     (throw (ex-info "Cannot charge customer for security deposit twice!" progress))
     (let [charge-id (create-ach-charge progress payment-choice)]
-     (record-security-deposit-payment progress payment-choice charge-id))))
+      (record-security-deposit-payment progress payment-choice charge-id))))
 
 (s/fdef pay-ach
         :args (s/cat :progress ::progress

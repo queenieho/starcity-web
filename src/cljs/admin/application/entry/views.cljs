@@ -247,6 +247,16 @@
          (for [tab-key @tabs]
            ^{:key tab-key} [tab tab-key (= tab-key @active-tab)]))]])))
 
+(defn- deposit-amount []
+  (let [amount (subscribe [:application.entry.approval/deposit-amount])]
+    (fn []
+      [:p.control
+       [:label.label "How much should the security deposit be? Defaults to first month's rent."]
+       [:input.input {:value     @amount
+                      :step      1
+                      :type      "number"
+                      :on-change #(dispatch [:application.entry.approval.deposit/change (dom/val %)])}]])))
+
 (defn- customize-email [email-content]
   [:p.control
    [:label.label "Feel free to customize the HTML content of the email:"]
@@ -255,8 +265,8 @@
      :on-change #(dispatch [:application.entry.approval.email-content/change (dom/val %)])}]])
 
 (defn- approve-modal [showing]
-  (let [communities (subscribe [:application.entry.approval/communities])
-        selected    (subscribe [:application.entry.approval/selected-community])
+  (let [communities   (subscribe [:application.entry.approval/communities])
+        selected      (subscribe [:application.entry.approval/selected-community])
         email-content (subscribe [:application.entry.approval/email-content])]
     (fn [showing]
       [:div.modal {:class (when @showing "is-active")}
@@ -280,6 +290,8 @@
                         :value     value
                         :on-change #(dispatch [:application.entry.approval/select-community (dom/val %)])}]
                name]))]
+
+          (when @selected [deposit-amount])
 
           (when @selected [customize-email @email-content])
 

@@ -14,3 +14,7 @@
   "Remove element at index `i` from vector `v`."
   [v i]
   (vec (concat (subvec v 0 i) (subvec v (inc i)))))
+
+(defn find-by
+  [pred coll]
+  (first (filter pred coll)))
