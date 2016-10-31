@@ -16,7 +16,7 @@
    (n/nav-item "/communities" "Communities")
    (n/nav-item "/faq" "FAQ")
    (n/nav-item "/about" "About")
-   (n/nav-item "/settings" "Settings" true)))
+   (n/nav-button "/settings" "Account")))
 
 (defn apply [email]
   (p/cljs-page "apply"
