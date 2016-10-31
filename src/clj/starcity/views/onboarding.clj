@@ -3,6 +3,7 @@
   (:require [hiccup
              [def :refer [defelem]]
              [form :as f]]
+            [starcity.config :refer [config]]
             [starcity.countries :refer [countries]]
             [starcity.config.stripe :refer [public-key]]
             [starcity.views.components
