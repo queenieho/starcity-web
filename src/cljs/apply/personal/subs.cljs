@@ -48,7 +48,7 @@
     :address {:locality    v/required
               :region      v/required
               :country     v/required
-              :postal-code [v/required [v/matches #"^\d{5}(-\d{4})?$"]]}
+              :postal-code v/required}
     :consent [v/required true?]}))
 
 (reg-sub

@@ -6,7 +6,8 @@
             [starcity.models.apply.help]
             [starcity.models.apply.common :as common]
             [potemkin :refer [import-vars]]
-            [clojure.spec :as s]))
+            [clojure.spec :as s])
+  (:refer-clojure :exclude [update]))
 
 
 ;; =============================================================================

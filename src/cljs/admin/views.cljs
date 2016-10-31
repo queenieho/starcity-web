@@ -31,7 +31,7 @@
 (defn- navbar []
   (let [route (subscribe [:app/current-route])]
     (fn []
-      [:nav.nav.has-shadow
+      [:header.nav.has-shadow
        [:div.container
         [:div.nav-left
          [:a.nav-item.is-brand {:href "/admin"}
@@ -40,21 +40,19 @@
         [:div.nav-right
          (doall
           (for [[title key] panels]
-            ^{:key key} [nav-item title key (= key @route)]))]]])))
+            ^{:key key} [nav-item title key (= key @route)]))
+         [:a.nav-item.is-tab {:href "/logout"} "Log Out"]]]])))
 
 (defn- home []
   [:main
    [:section.section
     [:div.container
-     [:h1.title.is-1 "Yo, Bro."]
-     [:h3.subtitle.is-3 "not sure what to put here yet..."]]]])
+     [:h1.title.is-1 "Welcome, admin!"]]]])
 
 (defn- main []
   (let [route (subscribe [:app/current-route])]
     (fn []
       [:section.section {:style {:min-height "100vh"}}
-       [:div.container
-        [notifications]]
        (case @route
          :application/list  [applications]
          :application/entry [application]
@@ -68,4 +66,5 @@
   []
   [:div
    [navbar]
+   [notifications]
    [main]])

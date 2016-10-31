@@ -13,9 +13,13 @@
   (let [notifications (subscribe [:notify/all])]
     (fn []
       ;; TODO: SASS
-      [:div.notifications {:style {:margin-bottom "20px"}}
-       (doall
-        (map-indexed
-         (fn [idx n]
-           ^{:key (str "notification-" idx)} [notification idx n])
-         @notifications))])))
+      [:section.section
+       {:style (if (empty? @notifications)
+                 {:display "none"}
+                 {:padding-bottom 0})}
+       [:div.container.notifications
+        (doall
+         (map-indexed
+          (fn [idx n]
+            ^{:key (str "notification-" idx)} [notification idx n])
+          @notifications))]])))

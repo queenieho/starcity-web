@@ -98,7 +98,7 @@
   [progress]
   (onboarding/payment-received? progress))
 
-(defn- current-step
+(defn- current-step-url
   [progress]
   ;; NOTE: Order is important here!
   (cond
@@ -119,7 +119,7 @@
     (let [progress (onboarding/get-progress (:db/id identity))]
       (if (should-show progress)
         (ok (wrapper req progress))
-        (response/redirect (current-step progress))))))
+        (response/redirect (current-step-url progress))))))
 
 (defn- update-payment-method
   "Update the payment method if a valid method has been chosen."
@@ -134,22 +134,24 @@
               "ach"   "/onboarding/security-deposit/payment-method/ach/verify")
             (response/redirect)))
       (respond-with-errors
-        (assoc req :payment-method (onboarding/payment-method progress))
-        "Invalid payment method chosen; please try again."
-        view/payment-method))))
+       (assoc req :payment-method (onboarding/payment-method progress))
+       "Invalid payment method chosen; please try again."
+       view/payment-method))))
 
 (defn- verify-bank-account
   [{:keys [params identity] :as req}]
   (letfn [(-respond-error []
             (respond-with-errors req default-error-message
-              view/enter-bank-information))]
+                                 view/enter-bank-information))]
     (if-let [token (:stripe-token params)]
       (try
         (let [customer (stripe/create-customer (:db/id identity) token)]
           (if (stripe/bank-account-verified? customer)
             (response/redirect "/onboarding/security-deposit/payment-method/ach/pay")
             (response/redirect "/onboarding/security-deposit/payment-method/ach/microdeposits")))
-        (catch Exception e (-respond-error)))
+        (catch Exception e
+          (timbre/error e "Error encountered while trying to create Stripe customer!")
+          (-respond-error)))
       (-respond-error))))
 
 (defn- validate-microdeposits
@@ -174,10 +176,10 @@
         (response/redirect "/onboarding/security-deposit/payment-method/ach/pay")
         (catch Exception e
           (respond-with-errors req (stripe/exception-msg e)
-            view/verify-microdeposits)))
+                               view/verify-microdeposits)))
       ;; invalid data
       (respond-with-errors req (errors-from vresult)
-        view/verify-microdeposits))))
+                           view/verify-microdeposits))))
 
 (defn pay-with-ach
   "After the bank account is verified, the user can pay either their full
@@ -188,12 +190,12 @@
   (let [payment-choice (:payment-choice params)
         progress       (onboarding/get-progress (:db/id identity))]
     (letfn [(-respond-error [msg]
-              (let [rent (onboarding/monthly-rent progress)
+              (let [full-amt (onboarding/full-deposit-amount progress)
                     code (onboarding/property-code progress)]
                 (respond-with-errors
-                  (assoc req :monthly-rent rent :property-code code)
-                  msg
-                  view/pay-by-ach)))]
+                 (assoc req :full-deposit-amount full-amt :property-code code)
+                 msg
+                 view/pay-by-ach)))]
       (if (#{"full" "partial"} payment-choice)
         (try
           (onboarding/pay-ach progress payment-choice)
@@ -223,14 +225,15 @@
 
   (POST "/microdeposits" [] verify-microdeposits)
 
-  (GET "/pay" [] (with-gate should-pay-security-deposit?
-                   (fn [req progress]
-                     (let [rent (onboarding/monthly-rent progress)
-                           code (onboarding/property-code progress)]
-                       (-> (assoc req
-                                  :monthly-rent rent
-                                  :property-code code)
-                           view/pay-by-ach)))))
+  (GET "/pay" []
+       (with-gate should-pay-security-deposit?
+         (fn [req progress]
+           (let [full-amt (onboarding/full-deposit-amount progress)
+                 code     (onboarding/property-code progress)]
+             (-> (assoc req
+                        :full-deposit-amount full-amt
+                        :property-code code)
+                 view/pay-by-ach)))))
 
   (POST "/pay" [] pay-with-ach))
 
@@ -239,37 +242,44 @@
 ;; =============================================================================
 
 (defroutes routes
-  (GET "/" [] (comp ok view/begin))
+  (GET "/" [] (fn [{:keys [context identity] :as req}]
+                (let [progress       (onboarding/get-progress (:db/id identity))
+                      ideal-step-url (current-step-url progress)]
+                  (if (= ideal-step-url context)
+                    (ok (view/begin req))
+                    (response/redirect ideal-step-url)))))
 
   (context "/security-deposit" []
 
-    (GET "/" []
-         (fn [{:keys [identity]}]
-           (response/redirect (-> identity :db/id onboarding/get-progress current-step))))
+           (GET "/" []
+                (fn [{:keys [identity]}]
+                  (response/redirect (-> identity :db/id onboarding/get-progress current-step-url))))
 
-    (GET "/complete" [] (with-gate security-deposit-finished?
-                          (fn [req progress]
-                            (let [property (onboarding/applicant-property progress)]
-                              (-> (assoc req :property-name (:property/name property))
-                                  (view/security-deposit-complete))))))
+           (GET "/complete" []
+                (with-gate security-deposit-finished?
+                  (fn [req progress]
+                    (let [property (onboarding/applicant-property progress)]
+                      (-> (assoc req :property-name (:property/name property))
+                          (view/security-deposit-complete))))))
 
-    (context "/payment-method" []
-      (GET "/" []
-           (with-gate can-choose-payment-method?
-             (fn [req progress]
-               (->> (onboarding/payment-method progress)
-                    (assoc req :payment-method)
-                    (view/payment-method)))))
+           (context "/payment-method" []
+                    (GET "/" []
+                         (with-gate can-choose-payment-method?
+                           (fn [req progress]
+                             (->> (onboarding/payment-method progress)
+                                  (assoc req :payment-method)
+                                  (view/payment-method)))))
 
-      (POST "/" [] update-payment-method)
+                    (POST "/" [] update-payment-method)
 
-      (GET "/check" [] (with-gate can-make-payment-by-check?
-                         (fn [req progress]
-                           (let [monthly-rent  (onboarding/monthly-rent progress)
-                                 property-code (onboarding/property-code progress)]
-                             (-> (assoc req
-                                        :monthly-rent monthly-rent
-                                        :property-code property-code)
-                                 (view/pay-by-check))))))
+                    (GET "/check" []
+                         (with-gate can-make-payment-by-check?
+                           (fn [req progress]
+                             (let [full-amt      (onboarding/full-deposit-amount progress)
+                                   property-code (onboarding/property-code progress)]
+                               (-> (assoc req
+                                          :full-deposit-amount full-amt
+                                          :property-code property-code)
+                                   (view/pay-by-check))))))
 
-      (context "/ach" [] ach-routes))))
+                    (context "/ach" [] ach-routes))))

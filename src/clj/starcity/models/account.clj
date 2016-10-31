@@ -80,6 +80,10 @@
   function."
   exists?)
 
+(defn by-application
+  [application]
+  (first (:account/_member-application application)))
+
 ;; =============================================================================
 ;; Transactions
 

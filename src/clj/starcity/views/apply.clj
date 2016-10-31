@@ -16,7 +16,7 @@
    (n/nav-item "/communities" "Communities")
    (n/nav-item "/faq" "FAQ")
    (n/nav-item "/about" "About")
-   (n/nav-item "/settings" "Settings" true)))
+   (n/nav-button "/settings" "Account")))
 
 (defn apply [email]
   (p/cljs-page "apply"
@@ -24,9 +24,9 @@
                navbar
                [:section#apply.section l/hero-section]
                p/footer
-               (p/json ["stripe" {:amount application-fee
-                                  :key    public-key
-                                  :email  email}]
+               (p/json ["stripe" (fn [] {:amount application-fee
+                                        :key    public-key
+                                        :email  email})]
                        ["countries" countries-json])
                (p/scripts "https://checkout.stripe.com/checkout.js"
                           "https://code.jquery.com/jquery-2.1.1.min.js"

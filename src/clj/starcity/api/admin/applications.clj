@@ -9,7 +9,13 @@
             [starcity.util :refer [str->int]]
             [clojure.string :as str]
             [datomic.api :as d]
-            [clojure.spec :as s]))
+            [clojure.spec :as s]
+            [starcity.models.account :as account]))
+
+;; NOTE: The pull api is probably not the right thing here. These patterns are
+;; just too huge and the accompanying parsing logic is grotesque.
+;; TODO: refactor this to work with the entity api and a series of small
+;; functions.
 
 ;; =============================================================================
 ;; Helpers
@@ -22,15 +28,6 @@
      (assoc acc (keyword (name k)) v))
    {}
    m))
-
-(comment
-  (defn- snake-keys
-   [m]
-   (reduce
-    (fn [acc [k v]]
-      (assoc acc (keyword (str/replace (name k) "-" "_")) v))
-    {}
-    m)))
 
 (def ^:private clean-map strip-namespaces)
 
@@ -121,6 +118,31 @@
   [application]
   (not (nil? (get-in application [:account/_member-application 0 :approval/_account]))))
 
+(defn- inject-price
+  "Add a `:base-price` key to all properties based on the application's desired
+  license."
+  [application property]
+  (assoc
+   property
+   :base-price
+   (ffirst
+    (d/q
+     '[:find ?price
+       :in $ ?property ?term
+       :where
+       [?property :property/licenses ?plicense]
+       [?plicense :property-license/license ?license]
+       [?plicense :property-license/base-price ?price]
+       [?license :license/term ?term]]
+     (d/db conn)
+     [:property/internal-name (:property/internal-name property)]
+     (get-in application [:member-application/desired-license :license/term])))))
+
+(defn- parse-properties
+  [application]
+  (let [desired-properties (:member-application/desired-properties application)]
+    (map (partial inject-price application) desired-properties)))
+
 (defn- parse-application
   [{:keys [:account/_member-application :member-application/community-fitness] :as application}]
   (let [account (first _member-application)]
@@ -129,7 +151,7 @@
      :email             (:account/email account)
      :phone-number      (:account/phone-number account)
      :move-in           (:member-application/desired-availability application)
-     :properties        (:member-application/desired-properties application)
+     :properties        (parse-properties application)
      :term              (get-in application [:member-application/desired-license :license/term])
      :completed         (boolean (:member-application/locked application))
      :completed-at      (:member-application/submitted-at application)
@@ -180,27 +202,31 @@
 
 (defn- can-approve?
   [application-id]
-  (and (not (application/approved? application-id))
-       (application/locked? application-id)))
+  (let [application (d/entity (d/db conn) application-id)]
+    (and (not (application/approved? application-id))
+         (application/locked? application-id)
+         (account/applicant? (account/by-application application)))))
+
+(def cannot-approve? (comp not can-approve?))
 
 (defn approve
   "Approve the application identified by `application-id`."
-  [application-id approver-id internal-name email-content]
-  (cond
-    (not (application/locked? application-id))
-    (api/unprocessable {:error "The application is not yet complete, so cannot approve it."})
-
-    (application/approved? application-id)
-    (api/malformed {:error "This application has already been approved."})
-
-    :otherwise (do
-                 (approval/approve! application-id approver-id internal-name email-content)
-                 (api/ok {:message "Success"}))))
+  [application-id approver-id internal-name deposit-amount email-content]
+  (if (cannot-approve? application-id)
+    (api/unprocessable {:error "This application cannot be approved! This could be because the application belongs to a non-applicant, is not yet complete, or is already approved."})
+    (do
+      (approval/approve! {:application-id application-id
+                          :approver-id    approver-id
+                          :internal-name  internal-name
+                          :deposit-amount deposit-amount
+                          :email-content  email-content})
+      (api/ok {}))))
 
 (s/fdef approve
         :args (s/cat :application-id integer?
                      :approver-id integer?
                      :internal-name string?
+                     :deposit-amount integer?
                      :email-content string?))
 
 ;; =============================================================================

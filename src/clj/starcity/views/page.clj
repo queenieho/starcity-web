@@ -47,10 +47,10 @@
   (and (map? content) (:json content)))
 
 (defn- onboarding-auth-item [{:keys [context]}]
-  (let [uri-path (clojure.string/split context #"/")]
-    (if (= "onboarding" (second uri-path))
-      ["/settings" "Settings"]
-      ["/onboarding" "Security Deposit"])))
+  (cond
+    (nil? context)                      ["/onboarding" "Security Deposit"]
+    (re-find #"^/onboarding.*" context) ["/settings" "Account"]
+    :otherwise                          ["/onboarding" "Security Deposit"]))
 
 (defn- auth-item [req]
   (let [role          (get-in req [:identity :account/role])
@@ -90,27 +90,28 @@
    (n/nav-item "/about" "About")
    (auth-item req)))
 
-(defn messages
-  [req]
+(defn messages [req]
   (let [errors  (msg/errors-from req)
         success (msg/success-from req)]
     (l/section
-     {:style (when (empty? (concat errors success)) "display: none;")}
+     {:style (if (empty? (concat errors success))
+               "display: none;"
+               "padding-bottom: 0;")}
      (l/container
       (for [e errors] (nf/danger e))
       (for [s success] (nf/success s))))))
 
 ;; for convenience when constructing pages
-(def footer
-  f/footer)
+(def footer f/footer)
 
-(defn scripts
-  [& scripts]
+(defn scripts [& scripts]
   {:scripts scripts})
 
-(defn json
-  [& json]
-  {:json json})
+(defn json [& json]
+  {:json (for [[object-name object-or-thunk :as j] json]
+           (if (fn? object-or-thunk)
+             [object-name (object-or-thunk)]
+             j))})
 
 ;; =============================================================================
 ;; Page Constructors
@@ -123,7 +124,6 @@
   (let [scripts (->> (filter scripts? content) (mapcat :scripts))
         json    (->> (filter json? content) (mapcat :json))
         content (remove #(or (scripts? %) (json? %)) content)]
-    ;; (println (concat base-js ["/js/main.js"] scripts))
     (fn [req]
       (html5
        {:lang "en"}

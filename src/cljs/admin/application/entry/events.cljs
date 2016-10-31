@@ -1,6 +1,7 @@
 (ns admin.application.entry.events
   (:require-macros [hiccups.core :refer [html]])
   (:require [admin.application.entry.db :refer [root-db-key]]
+            [admin.application.entry.model :as model]
             [hiccups.runtime :as hiccupsrt]
             [re-frame.core :refer [reg-event-fx
                                    reg-event-db]]
@@ -71,11 +72,17 @@
 (defn- reset-email-content [db new-content]
   (assoc-in db [root-db-key :email-content] new-content))
 
+(defn- set-initial-security-deposit-amount [db community]
+  (let [application    (model/application db)
+        amount         (model/initial-deposit-amount application community)]
+    (assoc-in db [root-db-key :deposit-amount] amount)))
+
+(defn- reset-security-deposit-amount [db amount]
+  (assoc-in db [root-db-key :deposit-amount] amount))
+
 (defn- internal-name->name
   [selected communities]
   (-> (filter #(= selected (:property/internal-name %)) communities) first :property/name))
-
-(clojure.string/split "Josh Lehman" #" ")
 
 (defn- email-content [full-name community-name]
   (let [first-name     (first (clojure.string/split full-name #" "))
@@ -109,25 +116,33 @@
  (fn [db [_ community]]
    ;; Select community
    (-> (select-community db community)
-       (update-email-content community))))
+       (update-email-content community)
+       (set-initial-security-deposit-amount community))))
 
 (reg-event-db
  :application.entry.approval.email-content/change
  (fn [db [_ new-content]]
    (reset-email-content db new-content)))
 
+(reg-event-db
+ :application.entry.approval.deposit/change
+ (fn [db [_ deposit-amount]]
+   (reset-security-deposit-amount db deposit-amount)))
+
 (reg-event-fx
  :application.entry/approve
  (fn [{:keys [db]} [_ community-id]]
-   {:db         (toggle-approving db)
-    :http-xhrio {:method          :post
-                 :uri             (api/route (str "applications/" (curr-app-id db) "/approve"))
-                 :params          {:community-id  community-id
-                                   :email-content (get-in db [root-db-key :email-content])}
-                 :format          (ajax/json-request-format)
-                 :response-format (ajax/json-response-format {:keywords? true})
-                 :on-success      [:application.entry.approve/success]
-                 :on-failure      [:application.entry.approve/fail]}}))
+   (let [{:keys [email-content deposit-amount]} (get db root-db-key)]
+     {:db         (toggle-approving db)
+      :http-xhrio {:method          :post
+                   :uri             (api/route (str "applications/" (curr-app-id db) "/approve"))
+                   :params          {:community-id   community-id
+                                     :deposit-amount deposit-amount
+                                     :email-content  email-content}
+                   :format          (ajax/json-request-format)
+                   :response-format (ajax/json-response-format {:keywords? true})
+                   :on-success      [:application.entry.approve/success]
+                   :on-failure      [:application.entry.approve/fail]}})))
 
 (defn- set-approved [db]
   (assoc-in db [root-db-key :applications (curr-app-id db) :approved] true))

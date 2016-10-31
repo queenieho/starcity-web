@@ -17,6 +17,10 @@
      (link-to {:class "button is-primary"} uri content)]
     (link-to {:class "nav-item is-tab"} uri content)))
 
+(defn nav-button
+  [uri content]
+  (nav-item uri content true))
+
 (defn navbar [inverse? & nav-items]
   [:header.nav
    {:class (when-not inverse? "has-shadow")}

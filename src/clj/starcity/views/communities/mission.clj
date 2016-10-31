@@ -70,7 +70,7 @@
       (room-image 8))
      (l/column
       (subtitle "Every private room comes with <b>all of the essentials</b> &mdash; queen or full-sized
-     bed, closet, sink and high ceilngs with plenty of natural light."))
+     bed, closet, sink and high ceilings with plenty of natural light."))
      (l/column
       (room-image 18)))
     (l/columns
