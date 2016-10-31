@@ -94,7 +94,9 @@
   (let [errors  (msg/errors-from req)
         success (msg/success-from req)]
     (l/section
-     {:style (when (empty? (concat errors success)) "display: none;")}
+     {:style (if (empty? (concat errors success))
+               "display: none;"
+               "padding-bottom: 0;")}
      (l/container
       (for [e errors] (nf/danger e))
       (for [s success] (nf/success s))))))

@@ -14,7 +14,9 @@
     (fn []
       ;; TODO: SASS
       [:section.section
-       {:style (when (empty? @notifications) {:display "none"})}
+       {:style (if (empty? @notifications)
+                 {:display "none"}
+                 {:padding-bottom 0})}
        [:div.container.notifications
         (doall
          (map-indexed
