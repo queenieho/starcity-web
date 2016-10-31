@@ -97,7 +97,7 @@
                   :required true
                   :checked  (is-checked? "check")}]
          "Via mail with a check"])])
-     (control (next) (back "/onboarding")))))
+     (control (next)))))
 
 (def ^:private entity-names
   {"52gilbert"   "52 Gilbert LLC"

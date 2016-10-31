@@ -98,7 +98,7 @@
   [progress]
   (onboarding/payment-received? progress))
 
-(defn- current-step
+(defn- current-step-url
   [progress]
   ;; NOTE: Order is important here!
   (cond
@@ -119,7 +119,7 @@
     (let [progress (onboarding/get-progress (:db/id identity))]
       (if (should-show progress)
         (ok (wrapper req progress))
-        (response/redirect (current-step progress))))))
+        (response/redirect (current-step-url progress))))))
 
 (defn- update-payment-method
   "Update the payment method if a valid method has been chosen."
@@ -242,13 +242,18 @@
 ;; =============================================================================
 
 (defroutes routes
-  (GET "/" [] (comp ok view/begin))
+  (GET "/" [] (fn [{:keys [context identity] :as req}]
+                (let [progress       (onboarding/get-progress (:db/id identity))
+                      ideal-step-url (current-step-url progress)]
+                  (if (= ideal-step-url context)
+                    (ok (view/begin req))
+                    (response/redirect ideal-step-url)))))
 
   (context "/security-deposit" []
 
            (GET "/" []
                 (fn [{:keys [identity]}]
-                  (response/redirect (-> identity :db/id onboarding/get-progress current-step))))
+                  (response/redirect (-> identity :db/id onboarding/get-progress current-step-url))))
 
            (GET "/complete" []
                 (with-gate security-deposit-finished?
@@ -270,7 +275,7 @@
                     (GET "/check" []
                          (with-gate can-make-payment-by-check?
                            (fn [req progress]
-                             (let [full-amt  (onboarding/full-deposit-amount progress)
+                             (let [full-amt      (onboarding/full-deposit-amount progress)
                                    property-code (onboarding/property-code progress)]
                                (-> (assoc req
                                           :full-deposit-amount full-amt

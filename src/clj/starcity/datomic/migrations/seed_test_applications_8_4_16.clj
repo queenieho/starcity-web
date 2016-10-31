@@ -89,7 +89,11 @@
                  :db/id                      [:account/email "onboarding@test.com"]}
                 {:db/id               (d/tempid config/partition)
                  :income-file/account [:account/email "onboarding@test.com"]
-                 :income-file/path    "data/income-uploads/285873023222771/starcity-kitchen.png"}]))]
+                 :income-file/path    "data/income-uploads/285873023222771/starcity-kitchen.png"}
+                ;; Security deposit that indicates approval
+                {:db/id                            (d/tempid config/partition)
+                 :security-deposit/account         [:account/email "onboarding@test.com"]
+                 :security-deposit/amount-required 2300}]))]
     :requires [:starcity/add-member-application-schema
                :starcity/add-community-fitness-schema
                :starcity/add-plaid-schema
