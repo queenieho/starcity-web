@@ -24,7 +24,7 @@
    (initial-migration conn)
    update-properties-descriptions
    add-income-files-schema
-   (only-when #{:development} seed-test-applications)
+   (only-when #{:development :staging} seed-test-applications)
    add-account-role-pending
    add-security-deposit-schema
    add-stripe-customer-schema
