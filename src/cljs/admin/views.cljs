@@ -3,6 +3,7 @@
             [admin.application.list.views :refer [applications]]
             [admin.application.entry.views :refer [application]]
             [admin.account.list.views :refer [accounts]]
+            [admin.account.entry.views :refer [account]]
             [admin.notify.views :refer [notifications]]
             [re-frame.core :refer [subscribe dispatch]]
             [starcity.log :refer [log]]
@@ -59,7 +60,8 @@
        (case @route
          :application/list  [applications]
          :application/entry [application]
-         :account/list [accounts]
+         :account/list      [accounts]
+         :account/entry     [account]
          [home])])))
 
 ;; =============================================================================

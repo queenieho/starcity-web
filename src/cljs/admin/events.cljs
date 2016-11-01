@@ -3,6 +3,7 @@
             [admin.application.list.events]
             [admin.application.entry.events]
             [admin.account.list.events]
+            [admin.account.entry.events]
             [admin.notify.events]
             [re-frame.core :refer [reg-event-db
                                    reg-event-fx]]))

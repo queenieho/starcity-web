@@ -20,3 +20,6 @@
 (def check (partial icon "check"))
 (def angle-right (partial icon "angle-right"))
 (def angle-left (partial icon "angle-left"))
+(def phone (partial icon "phone"))
+(def user (partial icon "user"))
+(def email (partial icon "envelope"))

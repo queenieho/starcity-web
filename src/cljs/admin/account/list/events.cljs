@@ -67,7 +67,7 @@
          next-dir  (next-direction direction)]
      {:dispatch [:account.list/fetch limit 0 next-dir sort-key (:view data)]})))
 
-;; figure out how to minimize the repetition here
+;; TODO: figure out how to minimize the repetition here
 (reg-event-fx
  :account.list.view/change
  (fn [{:keys [db]} [_ new-view]]

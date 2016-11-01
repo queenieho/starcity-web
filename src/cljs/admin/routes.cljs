@@ -42,11 +42,14 @@
   (defroute applications (prefix "/applications") []
     (dispatch [:nav/applications]))
 
-  (defroute applications (prefix "/accounts") []
-    (dispatch [:nav/accounts]))
-
   (defroute application (prefix "/applications/:id") [id]
     (dispatch [:nav/application (js/parseInt id)]))
+
+  (defroute accounts (prefix "/accounts") []
+    (dispatch [:nav/accounts]))
+
+  (defroute account (prefix "/accounts/:id") [id]
+    (dispatch [:nav/account (js/parseInt id)]))
 
   (defroute (prefix "/*") []
     (accountant/navigate! root))
