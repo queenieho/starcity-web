@@ -2,6 +2,7 @@
   (:require [admin.db :refer [default-value]]
             [admin.application.list.events]
             [admin.application.entry.events]
+            [admin.account.list.events]
             [admin.notify.events]
             [re-frame.core :refer [reg-event-db
                                    reg-event-fx]]))

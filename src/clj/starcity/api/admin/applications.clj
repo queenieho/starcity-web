@@ -1,16 +1,18 @@
 (ns starcity.api.admin.applications
-  (:require [starcity.api.common :as api]
-            [starcity.models.account :refer [full-name]]
-            [starcity.models
-             [application :as application]
-             [approval :as approval]]
-            [starcity.models.util :refer :all]
-            [starcity.datomic :refer [conn]]
-            [starcity.util :refer [str->int]]
-            [clojure.string :as str]
+  (:require [clojure
+             [spec :as s]
+             [string :as str]]
+            [compojure.core :refer [defroutes GET POST]]
             [datomic.api :as d]
-            [clojure.spec :as s]
-            [starcity.models.account :as account]))
+            [starcity
+             [datomic :refer [conn]]
+             [util :refer [str->int]]]
+            [starcity.api.common :as api]
+            [starcity.models
+             [account :as account :refer [full-name]]
+             [application :as application]
+             [approval :as approval]
+             [util :refer :all]]))
 
 ;; NOTE: The pull api is probably not the right thing here. These patterns are
 ;; just too huge and the accompanying parsing logic is grotesque.
@@ -230,13 +232,20 @@
                      :email-content string?))
 
 ;; =============================================================================
-;; TODO: Move this to its own ns...doesn't belong here.
+;; Routes
 
-(defn fetch-income-file
-  "Fetch an income file by `file-id` ."
-  [file-id]
-  (let [file (d/entity (d/db conn) file-id)]
-    (ring.util.response/file-response (:income-file/path file))))
+(defroutes routes
+  (GET "/" []
+       (fn [_] (fetch-applications)))
 
-(s/fdef fetch-income-file
-        :args (s/cat :file-id integer?))
+  (GET "/:application-id" [application-id]
+       (fn [_] (fetch-application (str->int application-id))))
+
+  (POST "/:application-id/approve" [application-id]
+        (fn [{:keys [params] :as req}]
+          (let [{:keys [email-content deposit-amount community-id]} params]
+            (approve (str->int application-id)
+                     (api/account-id req)
+                     community-id
+                     (str->int deposit-amount)
+                     email-content)))))

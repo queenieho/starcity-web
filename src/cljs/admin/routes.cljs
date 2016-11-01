@@ -42,6 +42,9 @@
   (defroute applications (prefix "/applications") []
     (dispatch [:nav/applications]))
 
+  (defroute applications (prefix "/accounts") []
+    (dispatch [:nav/accounts]))
+
   (defroute application (prefix "/applications/:id") [id]
     (dispatch [:nav/application (js/parseInt id)]))
 
