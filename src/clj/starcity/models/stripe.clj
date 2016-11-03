@@ -30,14 +30,23 @@
 (def fetch-customer
   (comp :body service/fetch-customer))
 
+(defn bank-accounts
+  [customer]
+  (filter #(= "bank_account" (:object %)) (customer-sources customer)))
+
 (defn bank-account
   [customer]
-  (first
-   (filter #(= "bank_account" (:object %)) (customer-sources customer))))
+  (first (bank-accounts customer)))
 
 (defn bank-account-verified?
   [customer]
   (= (:status (bank-account customer)) "verified"))
+
+(defn verification-failed?
+  [customer]
+  (every?
+   (fn [{status :status}] (= status "verification_failed"))
+   (bank-accounts customer)))
 
 (def bank-account-token
   (comp :id bank-account))
@@ -59,6 +68,18 @@
                             :stripe-customer/account     account-id}])
         ;; return the retrieved customer object
         customer))))
+
+(defn delete-customer
+  "Deletes a Stripe customer."
+  [account]
+  (let [stripe-customer (one (d/db conn) :stripe-customer/account (:db/id account))
+        res             (service/delete-customer (:stripe-customer/customer-id stripe-customer))]
+    (if-let [error (service/error-from res)]
+      (throw (ex-info "Error encountered while trying to delete Stripe customer." error))
+      @(d/transact conn [[:db.fn/retractEntity (:db/id stripe-customer)]]))))
+
+(s/fdef delete-customer
+        :args (s/cat :account :starcity.spec/entity))
 
 (defn verify-microdeposits
   "Attempt to verify the microdeposit amounts for given `account-id`. Successful
@@ -92,7 +113,8 @@
             tx      @(d/transact conn [(assoc-when
                                         {:db/id            tid
                                          :charge/stripe-id (:id payload)
-                                         :charge/account   account-id}
+                                         :charge/account   account-id
+                                         :charge/status    :charge.status/pending}
                                         :charge/purpose description)])]
         (d/resolve-tempid (d/db conn) (:tempids tx) tid)))))
 

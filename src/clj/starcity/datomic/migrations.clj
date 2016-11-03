@@ -14,7 +14,10 @@
              [add-community-safety-consent-9-28-16 :refer [add-community-safety-consent]]
              [add-has-pet-attr-10-3-16 :refer [add-has-pet-attr
                                                seed-has-pet]]
-             [alter-address-schema-10-8-16 :refer [alter-address-schema]]]
+             [alter-address-schema-10-8-16 :refer [alter-address-schema]]
+             [add-stripe-event-schema-11-1-16 :refer [add-stripe-event-schema]]
+             [add-charge-status-11-2-16 :refer [add-charge-status]]
+             [alter-security-deposit-schema-11-2-16 :refer [alter-security-deposit-schema]]]
             [starcity.datomic.migrations.utils :refer [only-when]]
             [starcity.environment]
             [mount.core :refer [defstate]]))
@@ -35,4 +38,7 @@
    add-community-safety-consent
    add-has-pet-attr
    seed-has-pet
-   alter-address-schema))
+   alter-address-schema
+   add-stripe-event-schema
+   add-charge-status
+   alter-security-deposit-schema))

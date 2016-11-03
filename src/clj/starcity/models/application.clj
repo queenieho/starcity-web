@@ -210,6 +210,7 @@
                        {:db/id            tid
                         :charge/stripe-id stripe-id
                         :charge/account   account-id
+                        :charge/status    :charge.status/succeeded
                         :charge/purpose   "application fee"}])))
 
 ;; =====================================

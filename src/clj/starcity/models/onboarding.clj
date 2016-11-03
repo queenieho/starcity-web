@@ -1,19 +1,11 @@
 (ns starcity.models.onboarding
   (:require [starcity.models.stripe :as stripe]
+            [starcity.models.charge :as charge]
             [starcity.datomic :refer [conn tempid]]
             [starcity.models.util :refer :all]
             [datomic.api :as d]
             [starcity.spec]
             [clojure.spec :as s]))
-
-;; TODO: If the bank account could not be verified because either of the two small
-;; deposits failed, you will receive a customer.source.updated notification. The
-;; bank account’s status will be set to verification_failed.
-;; https://stripe.com/docs/ach#ach-specific-webhook-notifications
-
-;; TODO: After creating the charge, you will receive a charge.pending
-;; notification. You will not receive charge.succeeded or charge.failed
-;; notification until up to 5 business days later.
 
 ;; TODO: Change progress to communicate w/ entities rather than maps or ids
 
@@ -31,6 +23,7 @@
           :opt [:security-deposit/amount-received
                 :security-deposit/payment-method
                 :security-deposit/payment-type
+                :security-deposit/charges
                 :security-deposit/due-by]))
 
 (defn- security-deposit
@@ -175,13 +168,9 @@
   been paid via a successful ACH payment."
   [progress payment-choice charge-id]
   (let [payment-type (keyword "security-deposit.payment-type" payment-choice)]
-    @(d/transact conn [{:db/id                            (security-deposit-id progress)
-                        ;; TODO: The amount-received shouldn't be updated until
-                        ;; we get a webhook response from Stripe indicating that
-                        ;; the payment has gone through.
-                        :security-deposit/amount-received (charge-amount progress payment-choice)
-                        :security-deposit/charge          charge-id
-                        :security-deposit/payment-type    payment-type}])))
+    @(d/transact conn [{:db/id                         (security-deposit-id progress)
+                        :security-deposit/charges      charge-id
+                        :security-deposit/payment-type payment-type}])))
 
 
 (declare payment-received?)
@@ -217,6 +206,12 @@
   [progress]
   (-> progress :stripe-customer empty? not))
 
+(defn verification-failed?
+  "Has the verification step failed for all of this customer's sources?"
+  [progress]
+  (stripe/verification-failed?
+   (stripe/fetch-customer (stripe-customer-id progress))))
+
 (defn bank-account-verified?
   "Is the stripe customer's bank account verified?"
   [progress]
@@ -227,10 +222,13 @@
             (stripe/fetch-customer (stripe-customer-id progress))))))
 
 (defn payment-received?
-  "Has payment already been received?"
-  [progress]
+  "Payment is received when a payment method is chosen and the associated
+  charge has been marked with the succeeded status."
+  [{security-deposit :security-deposit :as progress}]
   (and (payment-method-chosen? progress)
-       (> (get-in progress [:security-deposit :security-deposit/amount-received] 0) 0)))
+       ;; If there are any pending charges, we'll let them move on.
+       (or (some charge/is-pending? (:security-deposit/charges security-deposit))
+           (> (get security-deposit :security-deposit/amount-received 0) 0))))
 
 ;; =============================================================================
 ;; Get Progress
@@ -244,9 +242,3 @@
 (s/fdef get-progress
         :args (s/cat :lookup :starcity.spec/lookup)
         :ret ::progress)
-
-(comment
-
-  (get-progress [:account/email "onboarding@test.com"])
-
-  )
