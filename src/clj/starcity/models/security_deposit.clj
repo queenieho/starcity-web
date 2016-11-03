@@ -30,8 +30,6 @@
         :ret (s/or :entity :starcity.spec/entity
                    :nothing nil?))
 
-;; TODO: Slack notification. Remember to wrap it in a try-catch since it's not
-;; critical to success of payment
 (defn paid
   "Indicate that the security deposit is successfully paid by updating the
   charge status and setting the amount received."
@@ -39,10 +37,19 @@
   (let [amount-dollars (int (/ amount 100))
         new-amount     (+ (get security-deposit :security-deposit/amount-received 0)
                           amount-dollars)]
-    @(d/transact conn (concat
-                       [{:db/id                            (:db/id security-deposit)
-                         :security-deposit/amount-received amount-dollars}]
-                       (charge/succeeded-tx charge)))))
+    (do
+      @(d/transact conn (concat
+                         [{:db/id                            (:db/id security-deposit)
+                           :security-deposit/amount-received amount-dollars}]
+                         (charge/succeeded-tx charge)))
+      (try
+        (slack/rich-message "Security Deposit Paid!"
+                            (format "%s has paid his/her security deposit!"
+                                    (account/full-name (:security-deposit/account security-deposit)))
+                            :channel "#members"
+                            :opts {:color "#00d1b2"})
+        (catch Exception e
+          (timbre/warn e "Failed to notify after ACH payment success."))))))
 
 (s/fdef paid
         :args (s/cat :security-deposit :starcity.spec/entity
@@ -116,3 +123,6 @@
                         :opts {:color "#f00"})
     (catch Exception e
       (timbre/warn e "Failed while attempting to notify after microdeposit failure."))))
+
+(defn lookup [account-id]
+  (one (d/db conn) :security-deposit/account account-id))
