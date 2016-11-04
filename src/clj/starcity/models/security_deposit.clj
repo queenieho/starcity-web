@@ -58,7 +58,7 @@
 
 (defn is-unpaid?
   [security-deposit]
-  (= 0 (:security-deposit/amount-received security-deposit)))
+  (= 0 (get security-deposit :security-deposit/amount-received 0)))
 
 (defn- send-ach-failure-email [account]
   (let [content (html
