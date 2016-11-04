@@ -30,15 +30,21 @@
   (let [account (current-account db)]
     (:full-name account)))
 
-(defn toggle-account-loading
+(defn account-loading
   "Indicate that the account is being fetched from the server."
-  [db]
-  (update-in db [root-db-key :loading :account] not))
+  ([db]
+   (update-in db [root-db-key :loading :account] not))
+  ([db loading]
+   (assoc-in-db db [:loading :account] loading)))
 
 (defn is-account-loading?
   "Is the account still being fetched from the server?"
   [db]
   (get-in-db db [:loading :account]))
+
+(defn set-active-section
+  [db section]
+  (assoc-in-db db [:menu :active] section))
 
 ;; Simple selectors for extracting portions of the account
 

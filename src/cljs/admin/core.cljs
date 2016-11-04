@@ -3,6 +3,7 @@
             [admin.views :refer [app]]
             [admin.events]
             [admin.subs]
+            [starcity.fx]               ; for `:route`
             [starcity.log :refer [log]]
             [reagent.core :as reagent]
             [re-frame.core :refer [dispatch-sync]]))

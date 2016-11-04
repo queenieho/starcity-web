@@ -1,9 +1,9 @@
 (ns admin.account.entry.views
-  (:require [admin.account.entry.db :refer [root-db-key]]
+  (:require [admin.account.entry.security-deposit.views :as security-deposit]
             [re-frame.core :refer [dispatch subscribe]]
             [starcity.components.loading :as loading]
-            [starcity.components.tabs :as t]
-            [starcity.components.icons :as icon]))
+            [starcity.components.icons :as icon]
+            [clojure.string :refer [replace capitalize]]))
 
 (defn- overview-bar []
   (let [full-name    (subscribe [:account.entry/full-name])
@@ -12,7 +12,7 @@
         email        (subscribe [:account.entry/email])]
     (fn []
       [:nav.level {:style {:margin-top "24px"}}
-       [:div.level-item.has-text-centered
+       [:div.level-item
         [:h1.title.is-1 @full-name]]
        [:div.level-item.has-text-centered
         (icon/user)
@@ -24,18 +24,39 @@
         (icon/email)
         [:p.subtitle [:a {:href (str "mailto:" @email)} @email]]]])))
 
-(defn- security-deposit []
-  [:div "TODO:"])
+(defn- tab-title [tab-key]
+  (-> tab-key name (replace #"-" " ") capitalize))
+
+(defn menu [active-item]
+  (let [items (subscribe [:account.entry.menu/items])]
+    (fn [active-item]
+      [:aside.menu
+       (doall
+        (for [[label tabs] @items]
+          ^{:key (str "label-" label)}
+          [:div.menu-section
+           [:p.menu-label label]
+           [:ul.menu-list
+            (doall
+             (for [tab tabs]
+               ^{:key (str "tab-" tab)}
+               [:li [:a {:on-click #(dispatch [:account.entry.menu/change-tab tab])
+                         :class (when (= tab active-item) "is-active")}
+                     (tab-title tab)]]))]]))])))
 
 (defn account []
-  (let [is-loading (subscribe [:account.entry/loading?])
-        active-tab (t/subscribe-active-tab root-db-key)]
+  (let [is-loading  (subscribe [:account.entry/loading?])
+        active-item (subscribe [:account.entry.menu/active])]
     (fn []
       (if @is-loading
         (loading/fill-container "fetching account data...")
         [:div.container
          [overview-bar]
-         [t/tabs root-db-key]
-         (case @active-tab
-           :security-deposit [security-deposit]
-           [:p [:b "Error!"]])]))))
+         [:hr]
+         [:div.columns
+          [:div.column.is-one-quarter
+           [menu @active-item]]
+          [:div.column
+           (case @active-item
+             :security-deposit [security-deposit/view]
+             [:p [:b (str "No view for " @active-item " yet")]])]]]))))

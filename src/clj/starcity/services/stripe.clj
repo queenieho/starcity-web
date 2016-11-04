@@ -71,6 +71,13 @@
                            :destination managed-account))
            cb))
 
+(defn fetch-charge
+  [charge-id & {:keys [cb]}]
+  (request {:endpoint (format "charges/%s" charge-id)
+            :method   :get}
+           {}
+           cb))
+
 (comment
 
   (create-customer "josh@joinstarcity.com"
@@ -79,5 +86,6 @@
 
   (fetch-customer "cus_96V5gpDRHp4BP9")
 
+  (fetch-charge "py_19BTBqIvRccmW9nOSPAkGWc9")
 
   )

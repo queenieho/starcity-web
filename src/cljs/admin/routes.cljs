@@ -49,7 +49,10 @@
     (dispatch [:nav/accounts]))
 
   (defroute account (prefix "/accounts/:id") [id]
-    (dispatch [:nav/account (js/parseInt id)]))
+    (dispatch [:nav/account (js/parseInt id) :overview]))
+
+  (defroute account-section (prefix "/accounts/:id/:section") [id section]
+    (dispatch [:nav/account (js/parseInt id) (keyword section)]))
 
   (defroute (prefix "/*") []
     (accountant/navigate! root))

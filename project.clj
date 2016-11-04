@@ -35,12 +35,12 @@
                  ;; cljs
                  [cljsjs/flatpickr "2.0.0-rc.7-0"]
                  [cljsjs/stripe "2.0-0"]
-                 [com.andrewmcveigh/cljs-time "0.5.0-alpha1"]
+                 [com.andrewmcveigh/cljs-time "0.4.0"]
                  [reagent "0.6.0"]
                  [re-frame "0.8.0"]
                  [secretary "1.2.3"]
                  [venantius/accountant "0.1.7"]
-                 [day8.re-frame/http-fx "0.0.4"]
+                 [day8.re-frame/http-fx "0.1.2"]
                  [hiccups "0.3.0"]]
 
   :repositories [["my.datomic.com" {:url      "https://my.datomic.com/repo"

@@ -125,6 +125,14 @@
                      :opts (s/keys* :opt-un [::customer-id ::description ::managed-account]))
         :ret integer?)
 
+(defn fetch-charge
+  "Fetch a charge from Stripe's servers."
+  [{:keys [:charge/stripe-id]}]
+  (let [res (service/fetch-charge stripe-id)]
+    (if-let [err (service/error-from res)]
+      (throw (ex-info "Error encountered while fetching charge!" err))
+      (service/payload-from res))))
+
 ;; =============================================================================
 ;; Misc.
 
