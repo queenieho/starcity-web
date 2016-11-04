@@ -6,15 +6,16 @@
             [starcity.log :as l]
             [ajax.core :as ajax]))
 
+(def endpoint
+  "The API endpoint for applications."
+  "/api/v1/admin/applications")
+
 ;; Reached when the applications page is navigated to.
 (reg-event-fx
  :nav/applications
  (fn [{:keys [db]} _]
    {:db       (assoc db :route :application/list)
     :dispatch [:application.list/fetch]}))
-
-(def applications-endpoint
-  "/api/v1/admin/applications")
 
 ;;; Fetch applications
 
@@ -23,7 +24,7 @@
  (fn [{:keys [db]} _]
    {:db         (assoc-in db [root-db-key :loading] true)
     :http-xhrio {:method          :get
-                 :uri             applications-endpoint
+                 :uri             endpoint
                  :response-format (ajax/json-response-format {:keywords? true})
                  :on-success      [:application.list.fetch/success]
                  :on-failure      [:application.list.fetch/fail]}}))
@@ -32,13 +33,14 @@
  :application.list.fetch/success
  (fn [db [_ result]]
    (-> (assoc-in db [root-db-key :list] result)
-       (assoc-in [root-db-key ::reset] result))))
+       (assoc-in [root-db-key ::reset] result)
+       (assoc-in [root-db-key :loading] false))))
 
 (reg-event-db
  :application.list.fetch/fail
  (fn [db [_ err]]
    (l/error err)
-   db))
+   (assoc-in db [root-db-key :loading] false)))
 
 (defn- next-direction
   [curr-direction]
@@ -63,4 +65,4 @@
                          (sort-by sort-key (get comp-fns next-dir))))]
      (-> (assoc-in db [root-db-key :list] sorted)
          (assoc-in [root-db-key :sort] {:direction next-dir
-                                          :key       sort-key})))))
+                                        :key       sort-key})))))

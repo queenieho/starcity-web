@@ -73,17 +73,21 @@
        (not (onboarding/payment-received? progress))))
 
 (defn- should-enter-bank-information?
-  "User should enter bank information iff ach is chosen but no Stripe customer
-  is created yet."
+  "User should enter bank information iff ach is chosen and no Stripe customer
+  is created yet, OR ach is chosen and verification has failed for the existing
+  stripe customer."
   [progress]
   (and (ach? progress)
-       (not (onboarding/customer-created? progress))))
+       (or (not (onboarding/customer-created? progress))
+           (onboarding/verification-failed? progress))))
 
 (defn- should-verify-microdeposits?
   "User should verify bank account iff chosen payment method is ACH and his/her
   bank account is not yet verified."
   [progress]
   (and (ach? progress)
+       (onboarding/customer-created? progress)
+       (not (onboarding/verification-failed? progress))
        (not (onboarding/bank-account-verified? progress))))
 
 (defn- should-pay-security-deposit?

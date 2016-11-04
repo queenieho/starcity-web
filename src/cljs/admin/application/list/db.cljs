@@ -13,13 +13,14 @@
     :completed-at (js/Date.)}])
 
 (def default-value
-  {:header-keys [:number
-                 :name
-                 :email
-                 :phone-number
-                 :properties
-                 :term
-                 :move-in
-                 :completed-at]
-   :list        []
-   :sort        {:direction :none}})
+  {:header {:keys          [:number
+                            :name
+                            :email
+                            :phone-number
+                            :properties
+                            :term
+                            :move-in
+                            :completed-at]
+            :sortable-keys [:term :move-in :completed-at]}
+   :list   []
+   :sort   {:direction :none}})

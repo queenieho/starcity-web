@@ -18,3 +18,11 @@
                             :to      (if (= environment :production) to "josh@joinstarcity.com")
                             :subject subject
                             :html    content}))))
+
+(def default-signature
+  [:p "Best,"
+   [:br]
+   [:br]
+   "Mo"
+   [:br]
+   "Head of Community"])

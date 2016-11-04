@@ -1,5 +1,6 @@
 (ns admin.application.list.views
   (:require [admin.routes :refer [build-path]]
+            [admin.components.table :as tbl]
             [re-frame.core :refer [subscribe dispatch]]
             [starcity.dates :as d]
             [starcity.log :refer [log]]
@@ -20,48 +21,6 @@
 (defn- title []
   [:h1.title.is-1 "Applications"])
 
-(def ^:private headers
-  {:phone-number "phone number"
-   :move-in      "desired move-in"
-   :completed-at "completed at"})
-
-(def ^:private header-attrs
-  (reduce
-   (fn [acc k]
-     (assoc acc k {:on-click #(dispatch [:applications.list/sort k])}))
-   {}
-   [:term :move-in :completed-at]))
-
-;; The below logic seems a little convoluted
-;; One idea: [:term :asc] OR :none
-(defn- inject-sort-classes
-  [{:keys [key direction]} attrs header-key]
-  (let [active? (and (not= :none direction)
-                     (= header-key key))
-        init    (if (contains? header-attrs header-key)
-                  ["is-sortable"]
-                  [])
-        classes (cond-> init
-                  active?                   (conj "is-active")
-                  (and active?
-                       (= :desc direction)) (conj "is-descending")
-                  (and active?
-                       (= :asc direction))  (conj "is-ascending"))]
-    (assoc attrs :class (str/join " " classes))))
-
-(defn table-header [keys]
-  (let [sort (subscribe [:application.list/sort])]
-    (fn [keys]
-      [:thead
-       [:tr
-        (doall
-         (for [k keys]
-           (let [attrs   (get header-attrs k {})
-                 content (get headers k (name k))]
-             ^{:key k} [:th
-                        (inject-sort-classes @sort attrs k)
-                        content])))]])))
-
 (def ^:private transforms
   "Transform value under header by applying these functions."
   {:move-in      format-date
@@ -77,8 +36,7 @@
         content (get application k)]
     [:td [:a {:href link} content]]))
 
-(def ^:private is-link-cell?
-  #{:name})
+(def ^:private is-link-cell? #{:name})
 
 (defn- table-row [header-keys application]
   [:tr
@@ -96,12 +54,17 @@
           ^{:key (:id a)} [table-row header-keys (assoc a :number (inc idx))])
         @applications)])))
 
+(def ^:private header-titles
+  {:phone-number "phone number"
+   :move-in      "desired move-in"
+   :completed-at "completed at"})
+
 (defn- table []
-  (let [keys (subscribe [:application.list/header-keys])]
+  (let [header-data (subscribe [:application.list/header])]
     (fn []
       [:table.table
-       [table-header @keys]
-       [table-body @keys]])))
+       [tbl/header @header-data :application.list/sort header-titles]
+       [table-body (:keys @header-data)]])))
 
 ;; =============================================================================
 ;; API

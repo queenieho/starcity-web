@@ -7,9 +7,6 @@
 ;; API
 ;; =============================================================================
 
-(s/def ::config
-  (s/keys :req-un [::secret-key ::public-key]))
-
 (defn error-from
   "Extract the error message from the response."
   [response]
@@ -22,20 +19,28 @@
 (defn fetch-customer
   "Retrieve a customer from the Stripe API."
   [customer-id & {:keys [cb]}]
-  (request {:endpoint   (format "customers/%s" customer-id)
-            :method     :get}
+  (request {:endpoint (format "customers/%s" customer-id)
+            :method   :get}
            {}
            cb))
 
 (defn create-customer
   "Create a new Stripe customer."
   [email source & {:keys [cb description]}]
-  (request {:endpoint   "customers"
-            :method     :post}
+  (request {:endpoint "customers"
+            :method   :post}
            (assoc-when
             {:email  email
              :source source}
             :description description)
+           cb))
+
+(defn delete-customer
+  "Create a new Stripe customer."
+  [customer-id & {:keys [cb]}]
+  (request {:endpoint (format "customers/%s" customer-id)
+            :method   :delete}
+           {}
            cb))
 
 (defn verify-source
@@ -58,12 +63,19 @@
   [amount source email & {:keys [cb description customer-id managed-account]}]
   (request {:endpoint "charges"
             :method   :post}
-           (-> {:amount      amount
-                :source      source
-                :currency    "usd"}
+           (-> {:amount   amount
+                :source   source
+                :currency "usd"}
                (assoc-when :customer customer-id
                            :description description
                            :destination managed-account))
+           cb))
+
+(defn fetch-charge
+  [charge-id & {:keys [cb]}]
+  (request {:endpoint (format "charges/%s" charge-id)
+            :method   :get}
+           {}
            cb))
 
 (comment
@@ -74,5 +86,6 @@
 
   (fetch-customer "cus_96V5gpDRHp4BP9")
 
+  (fetch-charge "py_19BTBqIvRccmW9nOSPAkGWc9")
 
   )

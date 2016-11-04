@@ -2,6 +2,8 @@
   (:require [admin.routes :refer [build-path]]
             [admin.application.list.views :refer [applications]]
             [admin.application.entry.views :refer [application]]
+            [admin.account.list.views :refer [accounts]]
+            [admin.account.entry.views :refer [account]]
             [admin.notify.views :refer [notifications]]
             [re-frame.core :refer [subscribe dispatch]]
             [starcity.log :refer [log]]
@@ -16,10 +18,12 @@
   (= route tab-key))
 
 (def ^:private panels
-  [["Applications" :application/list]])
+  [["Applications" :application/list]
+   ["Accounts" :account/list]])
 
 (def ^:private panel-urls
-  {:application/list "applications"})
+  {:application/list "applications"
+   :account/list     "accounts"})
 
 (defn- nav-item
   [title key is-active?]
@@ -56,6 +60,8 @@
        (case @route
          :application/list  [applications]
          :application/entry [application]
+         :account/list      [accounts]
+         :account/entry     [account]
          [home])])))
 
 ;; =============================================================================

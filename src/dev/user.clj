@@ -44,6 +44,3 @@
 (defn reset []
   (stop)
   (refresh :after 'user/go))
-
-(defn cljs-repl []
-  (ra/cljs-repl))

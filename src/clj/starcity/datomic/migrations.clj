@@ -14,7 +14,12 @@
              [add-community-safety-consent-9-28-16 :refer [add-community-safety-consent]]
              [add-has-pet-attr-10-3-16 :refer [add-has-pet-attr
                                                seed-has-pet]]
-             [alter-address-schema-10-8-16 :refer [alter-address-schema]]]
+             [alter-address-schema-10-8-16 :refer [alter-address-schema]]
+             [add-stripe-event-schema-11-1-16 :refer [add-stripe-event-schema]]
+             [add-charge-status-11-2-16 :refer [add-charge-status]]
+             [alter-security-deposit-schema-11-2-16 :refer [alter-security-deposit-schema]]
+             [add-check-schema-11-4-16 :refer [add-check-schema
+                                               add-checks-to-security-deposit-schema]]]
             [starcity.datomic.migrations.utils :refer [only-when]]
             [starcity.environment]
             [mount.core :refer [defstate]]))
@@ -24,7 +29,7 @@
    (initial-migration conn)
    update-properties-descriptions
    add-income-files-schema
-   (only-when #{:development} seed-test-applications)
+   (only-when #{:development :staging} seed-test-applications)
    add-account-role-pending
    add-security-deposit-schema
    add-stripe-customer-schema
@@ -35,4 +40,9 @@
    add-community-safety-consent
    add-has-pet-attr
    seed-has-pet
-   alter-address-schema))
+   alter-address-schema
+   add-stripe-event-schema
+   add-charge-status
+   alter-security-deposit-schema
+   add-check-schema
+   add-checks-to-security-deposit-schema))

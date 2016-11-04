@@ -10,11 +10,10 @@
 
 ;; Ordered keys identifying values in application map
 (reg-sub
- :application.list/header-keys
+ :application.list/header
  :<- [root-db-key]
- ;; TODO: Move to init
- (fn [{ks :header-keys} _]
-   ks))
+ (fn [{header :header} _]
+   header))
 
 (reg-sub
  :application.list/list

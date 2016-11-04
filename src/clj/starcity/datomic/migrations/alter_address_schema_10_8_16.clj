@@ -1,7 +1,8 @@
 (ns starcity.datomic.migrations.alter-address-schema-10-8-16
   "This alteration adds support for international addresses."
   (:require [starcity.models.util :refer [find-all-by]]
-            [starcity.environment :refer [is-development?]]
+            [starcity.environment :refer [is-development?
+                                          is-staging?]]
             [datomic.api :as d]))
 
 (def alter-address-schema
@@ -9,7 +10,8 @@
                   :starcity/seed-gilbert
                   :starcity/seed-mission
                   :starcity/seed-union-square]
-        requires (if (is-development?)
+        requires (if (or (is-development?)
+                         (is-staging?))
                    (conj requires :starcity/seed-test-applications)
                    requires)]
     {:schema/alter-address-schema-10-8-16

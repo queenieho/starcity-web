@@ -1,8 +1,8 @@
 {:dev {:source-paths ["src/dev" "src/clj" "src/cljs"]
-       :plugins      [[lein-figwheel "0.5.7"]
+       :plugins      [[lein-figwheel "0.5.8"]
                       [lein-cooper "1.2.2"]]
-       :dependencies [[figwheel-sidecar "0.5.7"]
-                      [binaryage/devtools "0.8.1"]]
+       :dependencies [[figwheel-sidecar "0.5.8"]
+                      [binaryage/devtools "0.8.2"]]
        :jvm-opts     ^:replace ["-XX:MaxPermSize=128m" "-Xms512m" "-Xmx512m" "-server"]}
 
  :uberjar {:aot          [starcity.core]
