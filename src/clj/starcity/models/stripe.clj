@@ -143,22 +143,3 @@
 (defn exception-msg
   [e]
   (-> e ex-data :message))
-
-
-(comment
-
-  (def sample-customer (json/parse-string (slurp (io/resource "sample-customer.json")) true))
-
-  (bank-account-verified? "cus_96V5gpDRHp4BP9")
-
-  (verify-microdeposits [:account/email "onboarding@test.com"] 1 2)
-
-  ;; (:account/email (d/entity (d/db conn) 285873023222776))
-
-  (s/valid? (s/cat :account-id :starcity.spec/lookup
-                   :amount pos-int?
-                   :source string?
-                   :opts (s/keys* :opt-un [::customer-id ::description]))
-            [12345 50000 "abcd" :description "hello"])
-
-  )

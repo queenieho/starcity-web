@@ -4,7 +4,7 @@
             [hiccup.core :refer [html]]
             [starcity spec
              [config :refer [hostname]]
-             [datomic :refer [conn]]]
+             [datomic :refer [conn tempid]]]
             [starcity.models
              [account :as account]
              [charge :as charge]
@@ -13,6 +13,7 @@
             [starcity.services
              [mailgun :as mailgun]
              [slack :as slack]]
+            [plumbing.core :refer [assoc-when]]
             [taoensso.timbre :as timbre]))
 
 (defn is-security-deposit-charge?
@@ -126,3 +127,69 @@
 
 (defn lookup [account-id]
   (one (d/db conn) :security-deposit/account account-id))
+
+;; TODO: Does this belong in the security-deposit ns?
+
+(def check-statuses
+  #{:check.status/deposited
+    :check.status/cleared
+    :check.status/cancelled
+    :check.status/bounced})
+
+;; NOTE: Accepts an id to ensure that we're working with the latest version of
+;; the entity
+(defn- update-amount-received
+  [security-deposit-id]
+  (let [security-deposit (d/entity (d/db conn) security-deposit-id)
+        total-checks     (reduce
+                          (fn [acc check]
+                            (if (= (:check/status check) :check.status/cleared)
+                              (+ acc (:check/amount check))
+                              acc))
+                          0
+                          (:security-deposit/checks security-deposit))
+        total-charges    (->> (map stripe/fetch-charge (:security-deposit/charges security-deposit))
+                              (reduce
+                               (fn [acc {:keys [status amount]}]
+                                 (if (= status "succeeded")
+                                   (+ acc (/ amount 100))
+                                   acc))
+                               0))]
+    (println total-checks total-charges)
+    @(d/transact conn [{:db/id                            (:db/id security-deposit)
+                        :security-deposit/amount-received (int (+ total-checks
+                                                                  total-charges))}])))
+
+(defn create-check [security-deposit {:keys [amount name number status date received-on bank]}]
+  (do
+    @(d/transact conn [{:db/id                   (:db/id security-deposit)
+                        :security-deposit/checks [(assoc-when
+                                                   {:check/amount      amount
+                                                    :check/name        name
+                                                    :check/number      number
+                                                    :check/status      status
+                                                    :check/date        date
+                                                    :check/received-on received-on}
+                                                   :check/bank bank)]}])
+    (update-amount-received (:db/id security-deposit))))
+
+(defn update-check [check {:keys [amount name number status date received-on bank]}]
+  (do
+    @(d/transact conn [(assoc-when
+                        {:db/id (:db/id check)}
+                        :check/amount amount
+                        :check/bank bank
+                        :check/name   name
+                        :check/number number
+                        :check/status status
+                        :check/date date
+                        :check/received-on received-on)])
+    ;; recalculate the amount-received
+    (let [security-deposit-id (:db/id (:security-deposit/_checks check))]
+      (update-amount-received security-deposit-id))))
+
+(comment
+
+  (update-amount-received (:security-deposit/_checks (find-by (d/db conn) :check/name "Jesse Suarez")))
+
+  )

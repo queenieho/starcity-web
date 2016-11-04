@@ -11,7 +11,7 @@
         phone-number (subscribe [:account.entry/phone-number])
         email        (subscribe [:account.entry/email])]
     (fn []
-      [:nav.level {:style {:margin-top "24px"}}
+      [:nav.level.is-mobile {:style {:margin-top "24px"}}
        [:div.level-item
         [:h1.title.is-1 @full-name]]
        [:div.level-item.has-text-centered

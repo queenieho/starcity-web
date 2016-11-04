@@ -8,8 +8,11 @@
 (def ^:private get-in-db (get-in-db* root-db-key))
 
 (def default-value
-  {:loading false
-   :data    {}})
+  {:loading             false
+   :data                {}
+   :check-statuses      ["deposited" "cleared" "bounced" "cancelled"]
+   :showing-check-modal false
+   :check-modal-data    {}})
 
 (defn security-deposit
   [db]
@@ -28,3 +31,25 @@
    (update-in db [root-db-key :loading] not))
   ([db v]
    (assoc-in-db db [:loading] v)))
+
+(defn show-check-modal
+  [db]
+  (assoc-in-db db [:showing-check-modal] true))
+
+(defn hide-check-modal
+  [db]
+  (assoc-in-db db [:showing-check-modal] false))
+
+(defn check-modal-data
+  [db]
+  (get-in-db db [:check-modal-data]))
+
+(defn set-check-modal-data
+  ([db]
+   (set-check-modal-data db {}))
+  ([db data]
+   (assoc-in-db db [:check-modal-data] data)))
+
+(defn update-check-data
+  [db k v]
+  (assoc-in-db db [:check-modal-data k] v))
