@@ -43,7 +43,7 @@
      [:p "Our solution will help address this generational problem by fitting
        more people into buildings without sacrificing quality, comfort or
        privacy. We do this by <b>optimizing the layout of buildings for modern
-       communites</b>. We play by the rules, follow code, and are always sure to
+       communities</b>. We play by the rules, follow code, and are always sure to
        design with our residents (or <em>members</em> as we call them) in
        mind."]
 

@@ -77,15 +77,3 @@
             :method   :get}
            {}
            cb))
-
-(comment
-
-  (create-customer "josh@joinstarcity.com"
-                   "btok_96U3zx8CJVi3Tf"
-                   "test to determine structure of bank account source")
-
-  (fetch-customer "cus_96V5gpDRHp4BP9")
-
-  (fetch-charge "py_19BTBqIvRccmW9nOSPAkGWc9")
-
-  )
