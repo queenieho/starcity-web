@@ -12,6 +12,9 @@
 ;; Internal
 ;; =============================================================================
 
+(def ^:private event-id :id)
+(def ^:private event-type :type)
+
 (defmulti handle-event (fn [event-data _] (:type event-data)))
 
 (defmethod handle-event "charge.succeeded" [event-data event]
@@ -66,9 +69,6 @@
   ;; Mark it as successful
   (event/succeeded entity))
 
-(def ^:private event-id :id)
-(def ^:private event-type :type)
-
 (defn process [{params :params :as req}]
   ;; First, see if there's an event that exists.
   (if-let [e (event/lookup (event-id params))]
@@ -97,13 +97,5 @@
   ;; Handle the event in the background
   ;; see https://stripe.com/docs/webhooks#best-practices
   (future (process req))
-  ;; The strategy is to only issue a 200 response if there's an
-  ;; event entity that we've recorded as successfully processed.
-  (let [e (event/lookup (event-id params))]
-    (if (and e (event/succeeded? e))
-      ;; Success
-      (response/response {})
-      ;; Respond 418 -- "I'm a teapot" for kicks.
-      ;; see https://stripe.com/docs/webhooks#responding-to-a-webhook
-      (-> (response/response {})
-          (response/status 418)))))
+  ;; Acknowledge that we've received the event.
+  (response/response {}))
