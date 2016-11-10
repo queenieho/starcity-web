@@ -10,18 +10,28 @@
   "The API endpoint for fetching accounts."
   "/api/v1/admin/accounts")
 
+(defn- dispatch-fetch
+  [table-data & {:keys [direction sort-key limit offset view query]}]
+  (let [{d :direction k :key} (:sort table-data)
+        {l :limit o :offset}  (:pagination table-data)]
+    [:account.list/fetch
+     (or limit l)
+     (or offset o)
+     (or direction d)
+     (or sort-key k)
+     (or view (:view table-data))
+     (or query (:query table-data))]))
+
 (reg-event-fx
  :nav/accounts
  (fn [{:keys [db]} _]
-   (let [data                    (get db root-db-key)
-         limit                   (get-in data [:pagination :limit])
-         {:keys [direction key]} (:sort data)]
+   (let [data (get db root-db-key)]
      {:db       (assoc db :route :account/list)
-      :dispatch [:account.list/fetch limit 0 direction key (:view data)]})))
+      :dispatch (dispatch-fetch data :offset 0)})))
 
 (reg-event-fx
  :account.list/fetch
- (fn [{:keys [db]} [_ limit offset direction sort-key view]]
+ (fn [{:keys [db]} [_ limit offset direction sort-key view query]]
    {:db         (assoc-in db [root-db-key :loading] true)
     :http-xhrio {:method          :get
                  :uri             endpoint
@@ -29,16 +39,15 @@
                                    :offset    offset
                                    :direction (name direction)
                                    :sort-key  (name sort-key)
-                                   :view      (name view)}
+                                   :view      (name view)
+                                   :q         query}
                  :response-format (ajax/json-response-format {:keywords? true})
-                 :on-success      [:account.list.fetch/success limit offset direction sort-key view]
-                 :on-failure      [:account.list.fetch/failure]}
-    ;; :dispatch [:account.list.fetch/success limit offset direction sort-key view]
-    }))
+                 :on-success      [:account.list.fetch/success limit offset direction sort-key view query]
+                 :on-failure      [:account.list.fetch/failure]}}))
 
 (reg-event-db
  :account.list.fetch/success
- (fn [db [_ limit offset direction sort-key view result]]
+ (fn [db [_ limit offset direction sort-key view query result]]
    (let [new-data {:loading    false
                    :list       (:accounts result)
                    :total      (:total result)
@@ -46,7 +55,8 @@
                                 :offset (+ offset (count result))}
                    :sort       {:direction direction
                                 :key       sort-key}
-                   :view       view}]
+                   :view       view
+                   :query      query}]
      (update db root-db-key merge new-data))))
 
 (reg-event-db
@@ -61,41 +71,48 @@
 (reg-event-fx
  :account.list/sort
  (fn [{:keys [db]} [_ sort-key]]
-   (let [data      (get db root-db-key)
-         direction (get-in data [:sort :direction])
-         limit     (get-in data [:pagination :limit])
-         next-dir  (next-direction direction)]
-     {:dispatch [:account.list/fetch limit 0 next-dir sort-key (:view data)]})))
+   (let [data     (get db root-db-key)
+         next-dir (next-direction (get-in data [:sort :direction]))]
+     {:dispatch (dispatch-fetch data
+                                :offset 0
+                                :sort-key sort-key
+                                :direction next-dir)})))
 
-;; TODO: figure out how to minimize the repetition here
+(reg-event-fx
+ :account.list.query/change
+ (fn [{:keys [db]} [_ new-query]]
+   {:dispatch (dispatch-fetch (get db root-db-key)
+                              :offset 0
+                              :query new-query)}))
+
 (reg-event-fx
  :account.list.view/change
  (fn [{:keys [db]} [_ new-view]]
-   (let [{:keys [key direction]} (get-in db [root-db-key :sort])
-         limit                   (get-in db [root-db-key :pagination :limit])]
-     {:dispatch [:account.list/fetch limit 0 direction key new-view]})))
+   {:dispatch (dispatch-fetch (get db root-db-key)
+                              :offset 0
+                              :view new-view)}))
 
 (reg-event-fx
  :account.list.pagination/next
  (fn [{:keys [db]} _]
-   (let [{:keys [offset limit]}  (get-in db [root-db-key :pagination])
-         {:keys [direction key]} (get-in db [root-db-key :sort])
-         view                    (get-in db [root-db-key :view])]
-     {:dispatch [:account.list/fetch limit (+ offset limit) direction key view]})))
+   (let [data                   (get db root-db-key)
+         {:keys [offset limit]} (:pagination data)]
+     {:dispatch (dispatch-fetch (get db root-db-key)
+                                :offset (+ offset limit))})))
 
 (reg-event-fx
  :account.list.pagination/previous
  (fn [{:keys [db]} _]
-   (let [{:keys [offset limit]}  (get-in db [root-db-key :pagination])
-         {:keys [direction key]} (get-in db [root-db-key :sort])
-         view                    (get-in db [root-db-key :view])]
-     {:dispatch [:account.list/fetch limit (- offset limit) direction key view]})))
+   (let [data                   (get db root-db-key)
+         {:keys [offset limit]} (:pagination data)]
+     {:dispatch (dispatch-fetch data
+                                :offset (- offset limit))})))
 
 
 (reg-event-fx
  :account.list.pagination/goto-page
  (fn [{:keys [db]} [_ page-num]]
-   (let [{:keys [offset limit]}  (get-in db [root-db-key :pagination])
-         {:keys [direction key]} (get-in db [root-db-key :sort])
-         view                    (get-in db [root-db-key :view])]
-     {:dispatch [:account.list/fetch limit (* limit page-num) direction key view]})))
+   (let [data            (get db root-db-key)
+         {:keys [limit]} (:pagination data)]
+     {:dispatch (dispatch-fetch data
+                                :offset (* limit page-num))})))

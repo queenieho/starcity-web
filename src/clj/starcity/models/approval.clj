@@ -12,6 +12,15 @@
 ;; Internal
 ;; =============================================================================
 
+;; =============================================================================
+;; Constants
+
+(def ^:private email-subject
+  "Starcity: You've been qualified!")
+
+;; =============================================================================
+;; Transactions
+
 (defn- create-txdata
   "Produce the transaction data to create a new approval entity."
   [account-id approver-id property-id]
@@ -53,6 +62,9 @@
 ;; API
 ;; =============================================================================
 
+;; =============================================================================
+;; Queries
+
 (defn by-application-id
   "Retrieve the approval entity for a given `application-id`."
   [application-id]
@@ -67,8 +79,8 @@
         :args (s/cat :application-id :starcity.spec/lookup)
         :ret integer?)
 
-(def email-subject
-  "Starcity: You've been qualified!")
+;; =============================================================================
+;; Actions
 
 ;; NOTE: A weird bug prevented me from calling this function with five arguments
 ;; -- I have no clue why. Converting the args to a map seems to have fixed it,

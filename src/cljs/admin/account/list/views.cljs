@@ -5,7 +5,8 @@
             [starcity.dates :as d]
             [cljs-time.coerce :as c]
             [starcity.dom :as dom]
-            [starcity.components.loading :as loading]))
+            [starcity.components.loading :as loading]
+            [reagent.core :as r]))
 
 ;; =============================================================================
 ;; Internal
@@ -87,18 +88,32 @@
 
 (defn title []
   (let [current-view    (subscribe [:account.list.view/current])
-        available-views (subscribe [:account.list.view/available])]
-    (fn []
-      [:div.columns
-       [:div.column
-        [:h1.title.is-1 "Accounts"]]
-       [:div.column
-        [:div.is-pulled-right
-         [:label.label.has-text-right "Currently Viewing"]
-         [:span.select
-          [:select {:value @current-view :on-change #(dispatch [:account.list.view/change (dom/val %)])}
-           (for [view @available-views]
-             ^{:key view} [:option {:value view} (name view)])]]]]])))
+        available-views (subscribe [:account.list.view/available])
+        query           (subscribe [:account.list/query])]
+    (r/create-class
+     {:component-did-mount
+      (fn [_]
+        (.focus (js/document.getElementById "search")))
+      :reagent-render
+      (fn []
+        [:div
+         [:h3.title.is-3 "Accounts"]
+         [:div.columns
+          [:div.column.is-two-thirds
+           [:label.label "Search"]
+           [:p.control.has-icon
+            [:input#search.input {:type        "text"
+                                  :value       @query
+                                  :placeholder "Search by name or email"
+                                  :on-change   #(dispatch [:account.list.query/change (dom/val %)])}]
+            [:i.fa.fa-search]]]
+          [:div.column
+           [:div.is-pulled-right
+            [:label.label.has-text-right "Currently Viewing"]
+            [:span.select
+             [:select {:value @current-view :on-change #(dispatch [:account.list.view/change (dom/val %)])}
+              (for [view @available-views]
+                ^{:key view} [:option {:value view} (name view)])]]]]]])})))
 
 ;; =============================================================================
 ;; API

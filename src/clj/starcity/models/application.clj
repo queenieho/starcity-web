@@ -5,7 +5,8 @@
             [starcity.spec]
             [clojure.spec :as s]
             [datomic.api :as d]
-            [plumbing.core :refer [assoc-when]]))
+            [plumbing.core :refer [assoc-when]]
+            [starcity.models.account :as account]))
 
 ;; =============================================================================
 ;; Helper Specs
@@ -80,10 +81,6 @@
 ;; API
 ;; =============================================================================
 
-(def sections
-  "Sections of the application process"
-  #{:logistics :personal :community})
-
 ;; =============================================================================
 ;; Queries
 
@@ -99,81 +96,6 @@
 
 (s/fdef by-account-id
         :args (s/cat :account-id :starcity.spec/lookup))
-
-(defn logistics-complete?
-  "Returns true if the logistics section of the application can be considered
-  complete."
-  [application-id]
-  (let [ks   [:member-application/desired-license
-              :member-application/desired-availability]
-        data (d/pull (d/db conn) ks application-id)]
-    (every? (comp not nil?) ((apply juxt ks) data))))
-
-(s/fdef logistics-complete?
-        :args (s/cat :application-id int?)
-        :ret  boolean?)
-
-(defn personal-information-complete?
-  "Returns true if the personal information section of the application can be
-  considered complete."
-  [application-id]
-  (let [pattern [:member-application/current-address
-                 {:account/_member-application [:account/dob ;:plaid/_account
-                                                ]}]
-        data    (d/pull (d/db conn) pattern application-id)
-        acct    (get-in data [:account/_member-application 0])
-                                        ;plaid   (get-in acct [:plaid/_account 0])
-        ]
-    (not (or (nil? (:member-application/current-address data))
-             (nil? (:account/dob acct))
-                                        ;(nil? plaid)
-             ))))
-
-(s/fdef personal-information-complete?
-        :args (s/cat :application-id int?)
-        :ret  boolean?)
-
-(defn community-fitness-complete?
-  "Returns true if the community fitness section of the application can be
-  considered complete."
-  [application-id]
-  (let [pattern [{:member-application/community-fitness
-                  [:community-fitness/prior-community-housing
-                   :community-fitness/why-interested
-                   :community-fitness/skills
-                   :community-fitness/free-time]}]
-        data    (:member-application/community-fitness
-                 (d/pull (d/db conn) pattern application-id))]
-    (boolean
-     (and (:community-fitness/prior-community-housing data)
-          (:community-fitness/why-interested data)
-          (:community-fitness/skills data)
-          (:community-fitness/free-time data)))))
-
-
-(s/def ::step #{:logistics :personal :community :submit})
-(s/def ::steps (s/and set? (s/* ::step)))
-
-(defn current-steps
-  "Given an account id, return a set of allowed steps in the application process."
-  [account-id]
-  (let [current #{:logistics}]
-    (if-let [application-id (:db/id (by-account-id account-id))]
-      (cond-> current
-        (logistics-complete? application-id) (conj :personal)
-        (personal-information-complete? application-id) (conj :community)
-        (community-fitness-complete? application-id) (conj :submit))
-      current)))
-
-(s/fdef current-steps
-        :args (s/cat :account-id int?)
-        :ret  ::steps)
-
-(defn locked-old?
-  "Is the application for this user locked?"
-  [account-id]
-  (let [ent (by-account-id account-id)]
-    (boolean (:member-application/locked ent))))
 
 ;; =============================================================================
 ;; Transactions
@@ -266,17 +188,40 @@
 ;; Predicates
 
 (defn approved?
-  [application-id]
+  "Is this application approved?"
+  [application]
   (-> (d/q '[:find ?approval
              :in $ ?application
              :where
              [?account :account/member-application ?application]
              [?approval :approval/account ?account]]
-           (d/db conn) application-id)
+           (d/db conn) (:db/id application))
       empty?
       not))
 
+(s/fdef approved?
+        :args (s/cat :application :starcity.spec/entity)
+        :ret boolean?)
+
 (defn locked?
-  "Is the application for this user locked?"
-  [application-id]
-  (boolean (:member-application/locked (d/entity (d/db conn) application-id))))
+  "Is the application locked?"
+  [application]
+  (get application :member-application/locked false))
+
+(s/fdef locked?
+        :args (s/cat :application :starcity.spec/entity)
+        :ret boolean?)
+
+;; alias for convenience
+(def completed? locked?)
+
+;; =============================================================================
+;; Selectors
+
+(defn desired-term
+  [application]
+  (get-in application [:member-application/desired-license :license/term]))
+
+(def full-name
+  "Get the full name of the applicant that this application belongs to."
+  (comp account/full-name first :account/_member-application))

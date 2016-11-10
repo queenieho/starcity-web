@@ -16,6 +16,7 @@
             [starcity.models.account :as account]
             [starcity.services.mailgun :refer [send-email]]
             [starcity.views.signup :as view]
+            [starcity.web.messages :refer [respond-with-errors]]
             [taoensso.timbre :as timbre]))
 
 (timbre/refer-timbre)

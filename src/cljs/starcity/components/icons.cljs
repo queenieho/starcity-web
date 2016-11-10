@@ -29,3 +29,4 @@
 (def cross (partial icon "times"))
 (def cross-circle (partial icon "times-circle"))
 (def question-circle (partial icon "question-circle"))
+(def search (partial icon "search"))

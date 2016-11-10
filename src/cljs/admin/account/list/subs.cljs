@@ -45,6 +45,12 @@
    (:loading data)))
 
 (reg-sub
+ :account.list/query
+ :<- [root-db-key]
+ (fn [data _]
+   (:query data)))
+
+(reg-sub
  :account.list.pagination/num-pages
  :<- [root-db-key]
  (fn [{:keys [pagination total]} _]

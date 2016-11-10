@@ -2,25 +2,20 @@
 
 (def root-db-key :application/list)
 
-(def ^:private sample-applications
-  [{:id           1
-    :name         "Jocelyn Robancho"
-    :email        "jmrobancho@gmail.com"
-    :phone-number "(510) 418-5737"
-    :properties   "SoMa"
-    :term         6
-    :move-in      (js/Date.)
-    :completed-at (js/Date.)}])
-
 (def default-value
-  {:header {:keys          [:number
-                            :name
-                            :email
-                            :phone-number
-                            :properties
-                            :term
-                            :move-in
-                            :completed-at]
-            :sortable-keys [:term :move-in :completed-at]}
-   :list   []
-   :sort   {:direction :none}})
+  {:header     {:keys     [:number
+                           :name
+                           :email
+                           :phone-number
+                           :properties
+                           :term
+                           :move-in
+                           :completed-at]
+                :sortable [:name :term :move-in :completed-at]}
+   :list       []
+   :total      0
+   :sort       {:direction :desc :key :name}
+   :pagination {:limit 10 :offset 0}
+   :query      ""
+   :view       :all
+   :views      [:all :complete :incomplete]})

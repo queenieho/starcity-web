@@ -12,7 +12,8 @@
              [account :as account :refer [full-name]]
              [application :as application]
              [approval :as approval]
-             [util :refer :all]]))
+             [util :refer :all]]
+            [starcity.api.admin.applications.list :as list]))
 
 ;; NOTE: The pull api is probably not the right thing here. These patterns are
 ;; just too huge and the accompanying parsing logic is grotesque.
@@ -170,26 +171,6 @@
 ;; =============================================================================
 ;; Queries
 
-(defn fetch-applications
-  "Fetch the list of applications. This is currently just ALL applications."
-  []
-  (letfn [(-parse-application [{:keys [:account/_member-application] :as application}]
-            (let [account (first _member-application)]
-              {:id           (:db/id application)
-               :name         (full-name account)
-               :email        (:account/email account)
-               :phone-number (:account/phone-number account)
-               :move-in      (:member-application/desired-availability application)
-               :properties   (map :property/name (:member-application/desired-properties application))
-               :term         (get-in application [:member-application/desired-license :license/term])
-               :completed    (boolean (:member-application/locked application))
-               :completed-at (:member-application/submitted-at application)
-               :approved     (approved? application)}))]
-    (let [ids (map :db/id (find-all-by (d/db conn) :member-application/locked true))]
-      (->> (d/pull-many (d/db conn) list-pattern ids)
-           (map -parse-application)
-           (api/ok)))))
-
 (defn fetch-application
   "Fetch a the application identified by `application-id`."
   [application-id]
@@ -235,8 +216,14 @@
 ;; Routes
 
 (defroutes routes
-  (GET "/" []
-       (fn [_] (fetch-applications)))
+  (GET "/" [limit offset direction sort-key view q]
+       (fn [_]
+         (list/fetch (str->int limit)
+                     (str->int offset)
+                     (keyword direction)
+                     (keyword sort-key)
+                     (keyword view)
+                     q)))
 
   (GET "/:application-id" [application-id]
        (fn [_] (fetch-application (str->int application-id))))

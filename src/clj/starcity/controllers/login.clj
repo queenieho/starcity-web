@@ -6,6 +6,7 @@
             [bouncer.validators :as v]
             [clojure.string :refer [trim lower-case]]
             [starcity.controllers.utils :refer :all]
+            [starcity.web.messages :refer [respond-with-errors]]
             [ring.util.response :as response]))
 
 ;; =============================================================================
@@ -54,7 +55,6 @@
     (response/redirect "/apply")
     (ok (view/login req))))
 
-;; TODO: Check that the errors work!
 (defn login!
   "Log a user in."
   [{:keys [params session] :as req}]

@@ -7,12 +7,13 @@
             [starcity.util :refer [str->int]]))
 
 (defroutes routes
-  (GET "/" [limit offset direction sort-key view]
+  (GET "/" [limit offset direction sort-key view q]
        (fn [_] (list/fetch (str->int limit)
                           (str->int offset)
                           (keyword direction)
                           (keyword sort-key)
-                          (keyword view))))
+                          (keyword view)
+                          q)))
 
   (context "/:account-id" [account-id]
            (GET "/" [] (fn [_] (entry/fetch (str->int account-id))))

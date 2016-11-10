@@ -2,6 +2,7 @@
   &.is-sortable {
     color: black;
     cursor: pointer;
+    white-space: nowrap;
   }
 
   &.is-active {
