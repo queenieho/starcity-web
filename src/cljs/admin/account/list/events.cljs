@@ -47,7 +47,7 @@
 
 (reg-event-db
  :account.list.fetch/success
- (fn [db [_ limit offset direction sort-key view query result]]
+ (fn [db [_ limit offset direction sort-key view _ result]]
    (let [new-data {:loading    false
                    :list       (:accounts result)
                    :total      (:total result)
@@ -55,8 +55,7 @@
                                 :offset (+ offset (count result))}
                    :sort       {:direction direction
                                 :key       sort-key}
-                   :view       view
-                   :query      query}]
+                   :view       view}]
      (update db root-db-key merge new-data))))
 
 (reg-event-db
@@ -81,9 +80,13 @@
 (reg-event-fx
  :account.list.query/change
  (fn [{:keys [db]} [_ new-query]]
-   {:dispatch (dispatch-fetch (get db root-db-key)
-                              :offset 0
-                              :query new-query)}))
+   {:db                (assoc-in db [root-db-key :query] new-query)
+    :dispatch-throttle {:id              :account.list.query/change
+                        :window-duration 250
+                        :leading?        true
+                        :dispatch        (dispatch-fetch (get db root-db-key)
+                                                         :offset 0
+                                                         :query new-query)}}))
 
 (reg-event-fx
  :account.list.view/change
