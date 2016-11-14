@@ -4,5 +4,20 @@
 
 (def default-value
   {:applications {}
-   :active-tab   :basic-info
-   :approving    false})
+   :approving    false
+   :menu         {:active :move-in
+                  :tabs   [{:label    "Move-in"
+                            :group    :information
+                            :key      :move-in
+                            :complete false}
+                           {:label    "Community Fitness"
+                            :group    :information
+                            :key      :community-fitness
+                            :complete false}
+                           {:label    "Eligibility"
+                            :group    :information
+                            :key      :eligibility
+                            :complete false}
+                           {:label "Approve"
+                            :group :actions
+                            :key   :approve}]}})

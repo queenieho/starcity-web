@@ -22,6 +22,7 @@
                                                            [:property/internal-name "2072mission"]]
                  :member-application/desired-license      (:db/id (one (d/db conn) :license/term 6))
                  :member-application/locked               true
+                 :member-application/has-pet              false
                  :member-application/desired-availability (c/to-date (t/date-time 2016 9 1))
                  :member-application/community-fitness    {:community-fitness/why-interested          "Because."
                                                            :community-fitness/prior-community-housing "Dorms."
@@ -80,6 +81,7 @@
                  :member-application/pet                  {:pet/type   "dog"
                                                            :pet/breed  "Corgi"
                                                            :pet/weight 25}
+                 :member-application/has-pet              true
                  :member-application/community-fitness    {:community-fitness/why-interested          "Because."
                                                            :community-fitness/prior-community-housing "Dorms."
                                                            :community-fitness/skills                  "Emacs. Codez."

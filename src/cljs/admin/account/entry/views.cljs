@@ -5,15 +5,15 @@
             [starcity.components.icons :as icon]
             [clojure.string :refer [replace capitalize]]))
 
-(defn- overview-bar []
+(defn- title-bar []
   (let [full-name    (subscribe [:account.entry/full-name])
         role         (subscribe [:account.entry/role])
         phone-number (subscribe [:account.entry/phone-number])
         email        (subscribe [:account.entry/email])]
     (fn []
-      [:nav.level.is-mobile {:style {:margin-top "24px"}}
-       [:div.level-item
-        [:h1.title.is-1 @full-name]]
+      [:div
+       [:h2.title.is-2 "Account Data for " [:b @full-name]]
+       [:nav.level.is-mobile {:style {:margin-top "24px"}}
        [:div.level-item.has-text-centered
         (icon/user)
         [:p.subtitle @role]]
@@ -22,7 +22,7 @@
         [:p.subtitle @phone-number]]
        [:div.level-item.has-text-centered
         (icon/email)
-        [:p.subtitle [:a {:href (str "mailto:" @email)} @email]]]])))
+        [:p.subtitle [:a {:href (str "mailto:" @email)} @email]]]]])))
 
 (defn- tab-title [tab-key]
   (-> tab-key name (replace #"-" " ") capitalize))
@@ -51,7 +51,7 @@
       (if @is-loading
         (loading/fill-container "fetching account data...")
         [:div.container
-         [overview-bar]
+         [title-bar]
          [:hr]
          [:div.columns
           [:div.column.is-one-quarter

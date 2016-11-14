@@ -93,6 +93,7 @@
    :member-application/locked
    :member-application/submitted-at
    :member-application/desired-availability
+   :member-application/has-pet
    :db/id])
 
 (defn- parse-plaid-income
@@ -115,7 +116,7 @@
 
 (defn- format-address
   [{:keys [:address/lines :address/locality :address/region :address/postal-code :address/country]}]
-  (format "%s, %s %s, %s, %s" lines locality region postal-code country))
+  (format "%s, %s %s, %s, %s" lines locality region postal-code (or country "US")))
 
 (defn- approved?
   [application]
@@ -150,6 +151,7 @@
   [{:keys [:account/_member-application :member-application/community-fitness] :as application}]
   (let [account (first _member-application)]
     {:id                (:db/id application)
+     :account-id        (:db/id account)
      :name              (full-name account)
      :email             (:account/email account)
      :phone-number      (:account/phone-number account)
@@ -161,7 +163,8 @@
      :community-fitness (clean-map community-fitness)
      :income            (parse-income account)
      :address           (format-address (:member-application/current-address application))
-     :pet               (clean-map (:member-application/pet application))
+     :pet               (assoc (clean-map (:member-application/pet application))
+                               :has-pet (:member-application/has-pet application))
      :approved          (approved? application)}))
 
 ;; =============================================================================
@@ -186,8 +189,8 @@
 (defn- can-approve?
   [application-id]
   (let [application (d/entity (d/db conn) application-id)]
-    (and (not (application/approved? application-id))
-         (application/locked? application-id)
+    (and (not (application/approved? application))
+         (application/locked? application)
          (account/applicant? (account/by-application application)))))
 
 (def cannot-approve? (comp not can-approve?))

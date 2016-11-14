@@ -5,11 +5,11 @@
             [starcity.dates :as dates]
             [starcity.log :as l]
             [clojure.string :as s]
-            [cljs-time.coerce :as c]))
+            [cljs-time.coerce :as c]
+            [cljs-time.format :as f]))
 
 ;; =============================================================================
-;; Subscriptions
-;; =============================================================================
+;; Internal
 
 (reg-sub
  root-db-key
@@ -24,66 +24,78 @@
  (fn [{id :current-id, applications :applications} _]
    (get applications id)))
 
-;; Applicant's full name
+;; =============================================================================
+;; Helpers
+
+(def ^:private date-formatter
+  (f/formatter "M/d/yyyy"))
+
+(def ^:private format-date
+  (comp (partial f/unparse date-formatter) c/to-local-date-time))
+
+;; =============================================================================
+;; UI
+
+(reg-sub
+ :application.entry/loading?
+ :<- [root-db-key]
+ (fn [db _]
+   (:loading db)))
+
+;; =============================================================================
+;; Application
+
+(reg-sub
+ :application.entry/account-id
+ :<- [:application.entry/current]
+ (fn [data _]
+   (:account-id data)))
+
 (reg-sub
  :application.entry/full-name
  :<- [:application.entry/current]
  (fn [{name :name} _]
    name))
 
-;; =============================================================================
-;; Tabs
-
-;; The available tabs for the current application. This *may* change depending
-;; on the data available for a specific application.
 (reg-sub
- :application.entry/tabs
+ :application.entry/complete?
  :<- [:application.entry/current]
- (fn [app _]
-   ;; NOTE: Hardcoded for now
-   (cond-> [:basic-info
-            :move-in
-            :community
-            :income]
-     (not-empty (:pet app)) (conj :pets))))
-
-;; The tab that is currently being viewed in the application
-(reg-sub
- :application.entry/active-tab
- :<-  [root-db-key]
  (fn [data _]
-   (get data :active-tab)))
-
-;; =====================================
-;; Tab Content
-
-(def ^:private format-date
-  (comp (partial dates/format :medium-datetime) c/to-local-date-time))
+   (:completed data)))
 
 (reg-sub
- :application.entry/basic-info
+ :application.entry/approved?
  :<- [:application.entry/current]
- (fn [app _]
-   (-> (select-keys app [:email :phone-number :completed-at :address])
-       (update :completed-at format-date))))
+ (fn [data _]
+   (:approved data)))
 
 (reg-sub
- :application.entry/move-in
+ :application.entry/term
  :<- [:application.entry/current]
- (fn [app _]
-   (-> (select-keys app [:move-in :properties :term])
-       (update :move-in format-date)
-       (update :properties #(->> % (map :property/name) (s/join ", ")))
-       (update :term str " months"))))
+ (fn [data _]
+   (:term data)))
 
 (reg-sub
- :application.entry/pets
+ :application.entry/desired-move-in
+ :<- [:application.entry/current]
+ (fn [data _]
+   (when-let [move-in (:move-in data)]
+     (format-date move-in))))
+
+(reg-sub
+ :application.entry/communities
+ :<- [:application.entry/current]
+ (fn [data _]
+   (map :property/name (:properties data))))
+
+(reg-sub
+ :application.entry/pet
  :<- [:application.entry/current]
  (fn [{:keys [pet]}]
    pet))
 
 (reg-sub
- :application.entry/community
+ :application.entry/community-fitness
  :<- [:application.entry/current]
  (fn [{:keys [community-fitness]}]
    community-fitness))
@@ -94,6 +106,33 @@
  (fn [{:keys [income]} _]
    income))
 
+(reg-sub
+ :application.entry/address
+ :<- [:application.entry/current]
+ (fn [{address :address} _]
+   address))
+
+;; =============================================================================
+;; Menu
+
+(reg-sub
+ :application.entry.menu/info-tabs
+ :<- [root-db-key]
+ (fn [db _]
+   (filter model/info-tab? (model/tabs db))))
+
+(reg-sub
+ :application.entry.menu/action-tabs
+ :<- [root-db-key]
+ (fn [db _]
+   (filter model/action-tab? (model/tabs db))))
+
+(reg-sub
+ :application.entry.menu/active
+ :<- [root-db-key]
+ (fn [db _]
+   (model/active-tab db)))
+
 ;; =====================================
 ;; Approval
 
@@ -102,12 +141,6 @@
  :<- [root-db-key]
  (fn [data _]
    (:approving data)))
-
-(reg-sub
- :application.entry/approved?
- :<- [:application.entry/current]
- (fn [{:keys [approved]} _]
-   (boolean approved)))
 
 (reg-sub
  :application.entry.approval/selected-community
@@ -123,7 +156,7 @@
  (fn [[data application selected] _]
    (if-let [amount (:deposit-amount data)]
      amount
-     (model/initial-deposit-amount application selected))))
+     (model/base-rent application selected))))
 
 (reg-sub
  :application.entry.approval/communities
