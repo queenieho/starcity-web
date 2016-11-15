@@ -170,3 +170,9 @@
  :<- [root-db-key]
  (fn [data _]
    (:email-content data)))
+
+(reg-sub
+ :application.entry.approval/email-subject
+ :<- [root-db-key]
+ (fn [data _]
+   (:email-subject data)))

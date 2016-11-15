@@ -13,12 +13,6 @@
 ;; =============================================================================
 
 ;; =============================================================================
-;; Constants
-
-(def ^:private email-subject
-  "Starcity: You've been qualified!")
-
-;; =============================================================================
 ;; Transactions
 
 (defn- create-txdata
@@ -87,7 +81,7 @@
 ;; although not sure why. Shrug.
 
 (defn approve!
-  [{:keys [application-id approver-id internal-name deposit-amount email-content]}]
+  [{:keys [application-id approver-id internal-name deposit-amount email-content email-subject]}]
   (let [account (account/by-application (d/entity (d/db conn) application-id))
         email   (:account/email account)
         txdata  (concat

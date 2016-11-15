@@ -34,7 +34,7 @@
 
 (defn approve
   "Approve the application identified by `application-id`."
-  [application-id approver-id internal-name deposit-amount email-content]
+  [application-id approver-id internal-name deposit-amount email-content email-subject]
   (if (cannot-approve? application-id)
     (api/unprocessable {:error "This application cannot be approved! This could be because the application belongs to a non-applicant, is not yet complete, or is already approved."})
     (do
@@ -42,7 +42,8 @@
                           :approver-id    approver-id
                           :internal-name  internal-name
                           :deposit-amount deposit-amount
-                          :email-content  email-content})
+                          :email-content  email-content
+                          :email-subject  email-subject})
       (api/ok {}))))
 
 (s/fdef approve
@@ -50,7 +51,8 @@
                      :approver-id integer?
                      :internal-name string?
                      :deposit-amount integer?
-                     :email-content string?))
+                     :email-content string?
+                     :email-subject string?))
 
 ;; =============================================================================
 ;; Routes
@@ -70,9 +72,10 @@
 
   (POST "/:application-id/approve" [application-id]
         (fn [{:keys [params] :as req}]
-          (let [{:keys [email-content deposit-amount community-id]} params]
+          (let [{:keys [email-content deposit-amount community-id email-subject]} params]
             (approve (str->int application-id)
                      (api/account-id req)
                      community-id
                      (str->int deposit-amount)
-                     email-content)))))
+                     email-content
+                     email-subject)))))

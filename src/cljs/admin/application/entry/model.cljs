@@ -132,6 +132,11 @@
   [db]
   (assoc-in-db db [:applications (current-id db) :approved] true))
 
+(defn email-subject
+  "Replace the email content with `new-content`."
+  [db new-content]
+  (assoc-in-db db [:email-subject] new-content))
+
 (defn email-content
   "Replace the email content with `new-content`."
   [db new-content]

@@ -29,7 +29,6 @@
 (reg-event-fx
  :application.entry.fetch/success
  (fn [{:keys [db]} [_ result]]
-   (l/log result)
    {:db (-> (model/application db result)
             model/toggle-loading)
     :dispatch [:application.entry.menu/determine-completeness]}))
@@ -71,6 +70,11 @@
    (model/email-content db new-content)))
 
 (reg-event-db
+ :application.entry.approval.email-subject/change
+ (fn [db [_ new-content]]
+   (model/email-subject db new-content)))
+
+(reg-event-db
  :application.entry.approval.deposit/change
  (fn [db [_ new-amount]]
    (model/security-deposit-amount db new-amount)))
@@ -78,13 +82,14 @@
 (reg-event-fx
  :application.entry/approve
  (fn [{:keys [db]} [_ community-id]]
-   (let [{:keys [email-content deposit-amount]} (get db root-db-key)]
+   (let [{:keys [email-subject email-content deposit-amount]} (get db root-db-key)]
      {:db         (model/toggle-approving db)
       :http-xhrio {:method          :post
                    :uri             (api/route (str "applications/" (model/current-id db) "/approve"))
                    :params          {:community-id   community-id
                                      :deposit-amount deposit-amount
-                                     :email-content  email-content}
+                                     :email-content  email-content
+                                     :email-subject  email-subject}
                    :format          (ajax/json-request-format)
                    :response-format (ajax/json-response-format {:keywords? true})
                    :on-success      [:application.entry.approve/success]

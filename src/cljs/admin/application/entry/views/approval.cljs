@@ -20,6 +20,13 @@
     {:value     email-content
      :on-change #(dispatch [:application.entry.approval.email-content/change (dom/val %)])}]])
 
+(defn customize-subject [email-subject]
+  [:p.control
+   [:label.label "The subject of the email:"]
+   [:input.input {:value     email-subject
+                  :type      "text"
+                  :on-change #(dispatch [:application.entry.approval.email-subject/change (dom/val %)])}]])
+
 (defn- confirmation-modal [showing selected]
   [:div.modal {:class (when @showing "is-active")}
    [:div.modal-background {:on-click #(reset! showing false)}]
@@ -37,6 +44,7 @@
   (let [communities          (subscribe [:application.entry.approval/communities])
         selected             (subscribe [:application.entry.approval/selected-community])
         email-content        (subscribe [:application.entry.approval/email-content])
+        email-subject        (subscribe [:application.entry.approval/email-subject])
         showing-confirmation (r/atom false)]
     (fn []
       [:div
@@ -56,6 +64,8 @@
              name]))]
 
         (when @selected [deposit-amount])
+
+        (when @selected [customize-subject @email-subject])
 
         (when @selected [customize-email @email-content])
 
