@@ -13,7 +13,10 @@
 (reg-fx
  :route
  (fn [new-route]
-   (accountant/navigate! new-route)))
+   (if (vector? new-route)
+     (let [[route query] new-route]
+       (accountant/navigate! route query))
+     (accountant/navigate! new-route))))
 
 ;; =============================================================================
 ;; Search Throttling

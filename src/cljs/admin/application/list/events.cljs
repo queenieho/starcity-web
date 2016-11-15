@@ -1,5 +1,6 @@
 (ns admin.application.list.events
   (:require [admin.application.list.db :refer [root-db-key]]
+            [admin.routes :as routes]
             [re-frame.core :refer [reg-event-fx
                                    reg-event-db]]
             [day8.re-frame.http-fx]
@@ -22,13 +23,34 @@
      (or view (:view table-data))
      (or query (:query table-data))]))
 
+(defn- next-url
+  [table-data & {:keys [limit offset view sort-key direction query]}]
+  (let [name*                 (fn [k] (if (keyword? k) (name k) k))
+        {d :direction k :key} (:sort table-data)
+        {l :limit o :offset}  (:pagination table-data)
+        v                     (:view table-data)
+        q                     (:query table-data)]
+    (routes/applications
+     {:query-params {:limit     (or limit l)
+                     :offset    (or offset o)
+                     :direction (name* (or direction d))
+                     :sort-key  (name* (or sort-key k))
+                     :view      (name* (or view v))
+                     :q         (or query q)}})))
+
 ;; Reached when the applications page is navigated to.
 (reg-event-fx
  :nav/applications
- (fn [{:keys [db]} _]
+ (fn [{:keys [db]} [_ {:keys [limit offset q view sort-key direction]}]]
    (let [data (get db root-db-key)]
      {:db       (assoc db :route :application/list)
-      :dispatch (dispatch-fetch data :offset 0)})))
+      :dispatch (dispatch-fetch data
+                                :offset offset
+                                :limit limit
+                                :view view
+                                :sort-key sort-key
+                                :direction direction
+                                :query q)})))
 
 ;;; Fetch applications
 
@@ -75,44 +97,50 @@
  (fn [{:keys [db]} [_ sort-key]]
    (let [data     (get db root-db-key)
          next-dir (next-direction (get-in data [:sort :direction]))]
-     {:dispatch (dispatch-fetch data
-                                :offset 0
-                                :sort-key sort-key
-                                :direction next-dir)})))
+     {:route (next-url data
+                       :offset 0
+                       :sort-key sort-key
+                       :direction next-dir)})))
 
 (reg-event-fx
  :application.list.query/change
  (fn [{:keys [db]} [_ new-query]]
    {:db                (assoc-in db [root-db-key :query] new-query)
     :dispatch-throttle {:id              :application.list.query/change
-                        :window-duration 250
-                        :leading?        true
-                        :dispatch        (dispatch-fetch (get db root-db-key)
-                                                         :offset 0
-                                                         :query new-query)}}))
+                        :window-duration 400
+                        :trailing?       true
+                        :leading?        false
+                        :dispatch        [:application.list.query/change* new-query]}}))
+
+(reg-event-fx
+ :application.list.query/change*
+ (fn [{:keys [db]} [_ new-query]]
+   {:route (next-url (get db root-db-key)
+                     :offset 0
+                     :query new-query)}))
 
 (reg-event-fx
  :application.list.view/change
  (fn [{:keys [db]} [_ new-view]]
-   {:dispatch (dispatch-fetch (get db root-db-key)
-                              :offset 0
-                              :view new-view)}))
+   {:route (next-url (get db root-db-key)
+                     :offset 0
+                     :view new-view)}))
 
 (reg-event-fx
  :application.list.pagination/next
  (fn [{:keys [db]} _]
    (let [data                   (get db root-db-key)
          {:keys [offset limit]} (:pagination data)]
-     {:dispatch (dispatch-fetch (get db root-db-key)
-                                :offset (+ offset limit))})))
+     {:route (next-url (get db root-db-key)
+                       :offset (+ offset limit))})))
 
 (reg-event-fx
  :application.list.pagination/previous
  (fn [{:keys [db]} _]
    (let [data                   (get db root-db-key)
          {:keys [offset limit]} (:pagination data)]
-     {:dispatch (dispatch-fetch data
-                                :offset (- offset limit))})))
+     {:route (next-url data
+                       :offset (- offset limit))})))
 
 
 (reg-event-fx
@@ -120,5 +148,5 @@
  (fn [{:keys [db]} [_ page-num]]
    (let [data            (get db root-db-key)
          {:keys [limit]} (:pagination data)]
-     {:dispatch (dispatch-fetch data
-                                :offset (* limit page-num))})))
+     {:route (next-url data
+                       :offset (* limit page-num))})))

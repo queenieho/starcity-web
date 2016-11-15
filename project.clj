@@ -1,4 +1,4 @@
-(defproject starcity "1.1.2"
+(defproject starcity "1.1.3"
   :description "The web app for https://joinstarcity.com"
   :url "https://joinstarcity.com"
   :license {:name "Eclipse Public License"
@@ -39,13 +39,13 @@
                  [reagent "0.6.0"]
                  [re-frame "0.8.0"]
                  [secretary "1.2.3"]
-                 [venantius/accountant "0.1.7"]
+                 [jalehman/accountant "0.1.8"]
                  [day8.re-frame/http-fx "0.1.2"]
                  [hiccups "0.3.0"]]
 
-  :repositories [["my.datomic.com" {:url      "https://my.datomic.com/repo"
-                                    :username [:env/datomic_username]
-                                    :password [:env/datomic_password]}]]
+  :repositories {"my.datomic.com" {:url   "https://my.datomic.com/repo"
+                                   :username [:env/datomic_username]
+                                   :password [:env/datomic_password]}}
 
   :plugins [[lein-cljsbuild "1.1.4"]]
 

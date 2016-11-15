@@ -1,7 +1,9 @@
 (ns admin.routes
   (:require [accountant.core :as accountant]
             [re-frame.core :refer [dispatch]]
-            [secretary.core :as secretary])
+            [secretary.core :as secretary]
+            [starcity.utils :refer [transform-when-key-exists]]
+            [starcity.log :as l])
   (:require-macros [secretary.core :refer [defroute]]))
 
 ;; NOTE: See https://gist.github.com/city41/aab464ae6c112acecfe1
@@ -25,7 +27,6 @@
   ([] root)
   ([uri] (prefix (str "/" uri))))
 
-;; TODO: Ensure it's from the app root URI
 (defn navigate! [route]
   (accountant/navigate! route))
 
@@ -34,19 +35,27 @@
    {:nav-handler  #(secretary/dispatch! %)
     :path-exists? #(secretary/locate-route %)}))
 
+(defn- transform-table-query-params [params]
+  (transform-when-key-exists params
+    {:limit     js/parseInt
+     :offset    js/parseInt
+     :sort-key  keyword
+     :direction keyword
+     :view      keyword}))
+
 (defn app-routes []
 
   (defroute home root []
     (dispatch [:nav/home]))
 
-  (defroute applications (prefix "/applications") []
-    (dispatch [:nav/applications]))
+  (defroute applications (prefix "/applications") [query-params]
+    (dispatch [:nav/applications (transform-table-query-params query-params)]))
 
   (defroute application (prefix "/applications/:id") [id]
     (dispatch [:nav/application (js/parseInt id)]))
 
-  (defroute accounts (prefix "/accounts") []
-    (dispatch [:nav/accounts]))
+  (defroute accounts (prefix "/accounts") [query-params]
+    (dispatch [:nav/accounts (transform-table-query-params query-params)]))
 
   (defroute account (prefix "/accounts/:id") [id]
     (dispatch [:nav/account (js/parseInt id) :overview]))
