@@ -6,7 +6,8 @@
             [datomic.api :as d]
             [starcity.spec]
             [clojure.spec :as s]
-            [clj-time.core :as t]))
+            [clj-time.core :as t])
+  (:refer-clojure :exclude [name]))
 
 ;; =============================================================================
 ;; API
@@ -89,14 +90,25 @@
                      :last-name string?
                      :dob ::dob))
 
-(comment
+;; =============================================================================
+;; Selectors
 
-  (create-managed-account! [:property/internal-name "52gilbert"]
-                           "52 Gilbert LLC"
-                           "61-1799315"
-                           "000111111116"
-                           "110000000")
+(def name :property/name)
+(def internal-name :property/internal-name)
 
-  (:property/managed-account-id (d/entity (d/db conn) [:property/internal-name "52gilbert"]))
+(defn base-rent
+  "Determine the base rent at `property` for the given `license`."
+  [property license]
+  (ffirst
+   (d/q '[:find ?price
+          :in $ ?property ?license
+          :where
+          [?property :property/licenses ?plicense]
+          [?plicense :property-license/license ?license]
+          [?plicense :property-license/base-price ?price]]
+        (d/db conn) (:db/id property) (:db/id license))))
 
-  )
+(s/fdef base-rent
+        :args (s/cat :property :starcity.spec/entity
+                     :license :starcity.spec/entity)
+        :ret float?)

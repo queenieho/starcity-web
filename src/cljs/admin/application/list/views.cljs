@@ -26,7 +26,7 @@
   "Transform value under header by applying these functions."
   {:move-in      format-date
    :completed-at format-date
-   :properties   (partial str/join ", ")})
+   :communities   (partial str/join ", ")})
 
 (defn- value-cell [k application]
   (let [tf (get transforms k identity)]

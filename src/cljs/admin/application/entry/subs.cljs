@@ -86,7 +86,7 @@
  :application.entry/communities
  :<- [:application.entry/current]
  (fn [data _]
-   (map :property/name (:properties data))))
+   (map :name (:communities data))))
 
 (reg-sub
  :application.entry/pet
@@ -161,9 +161,9 @@
 (reg-sub
  :application.entry.approval/communities
  :<- [:application.entry/current]
- (fn [{:keys [properties]} _]
-   (for [p properties]
-     [(:property/name p) (:property/internal-name p)])))
+ (fn [{:keys [communities]} _]
+   (for [c communities]
+     [(:name c) (:internal-name c)])))
 
 (reg-sub
  :application.entry.approval/email-content

@@ -218,10 +218,22 @@
 ;; =============================================================================
 ;; Selectors
 
-(defn desired-term
+(defn license
   [application]
-  (get-in application [:member-application/desired-license :license/term]))
+  (get-in application [:member-application/desired-license]))
+
+(defn term
+  [application]
+  (:license/term (license application)))
 
 (def full-name
   "Get the full name of the applicant that this application belongs to."
   (comp account/full-name first :account/_member-application))
+
+(def move-in-date :member-application/desired-availability)
+(def communities :member-application/desired-properties)
+(def community-fitness :member-application/community-fitness)
+(def address :member-application/current-address)
+(def has-pet? :member-application/has-pet)
+(def pet :member-application/pet)
+(def completed-at :member-application/submitted-at)

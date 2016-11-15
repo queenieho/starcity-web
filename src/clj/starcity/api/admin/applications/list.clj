@@ -8,7 +8,8 @@
              [application :as application]
              [util :refer :all]]
             [starcity.api.common :as api]
-            [clj-time.coerce :as c]))
+            [clj-time.coerce :as c]
+            [starcity.models.property :as property]))
 
 ;; =============================================================================
 ;; Internal
@@ -19,7 +20,7 @@
 
 (def ^:private keyfns
   {:name         application/full-name
-   :term         application/desired-term
+   :term         application/term
    :move-in      (comp c/to-long :member-application/desired-availability)
    :completed-at (comp c/to-long :member-application/submitted-at)})
 
@@ -30,10 +31,10 @@
      :name         (application/full-name application)
      :email        (:account/email account)
      :phone-number (:account/phone-number account)
-     :properties   (->> (:member-application/desired-properties application)
-                        (map :property/name))
-     :term         (application/desired-term application)
-     :move-in      (:member-application/desired-availability application)
+     :communities  (->> (application/communities application)
+                        (map property/name))
+     :term         (application/term application)
+     :move-in      (application/move-in-date application)
      :completed    (application/completed? application)
      :completed-at (:member-application/submitted-at application)
      :approved     (application/approved? application)}))

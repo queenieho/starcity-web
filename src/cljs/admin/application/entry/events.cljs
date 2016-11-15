@@ -12,6 +12,7 @@
  :nav/application
  (fn [{:keys [db]} [_ id]]
    {:db       (-> (assoc db :route :application/entry)
+                  (model/active-tab :move-in)
                   (model/current-id id))
     :dispatch [:application.entry/fetch id]}))
 
@@ -28,6 +29,7 @@
 (reg-event-fx
  :application.entry.fetch/success
  (fn [{:keys [db]} [_ result]]
+   (l/log result)
    {:db (-> (model/application db result)
             model/toggle-loading)
     :dispatch [:application.entry.menu/determine-completeness]}))

@@ -7,7 +7,7 @@
                            :name
                            :email
                            :phone-number
-                           :properties
+                           :communities
                            :term
                            :move-in
                            :completed-at]

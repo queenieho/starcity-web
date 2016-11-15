@@ -73,3 +73,12 @@
       (pred x)    x
       (empty? xs) nil
       :otherwise  (recur (first xs) (rest xs)))))
+
+(defn strip-namespaces
+  "Remove all namespaces from keyword keys."
+  [m]
+  (reduce
+   (fn [acc [k v]]
+     (assoc acc (keyword (name k)) v))
+   {}
+   m))

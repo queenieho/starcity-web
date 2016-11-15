@@ -54,6 +54,8 @@
   (hashers/check password hash))
 
 (defn generate-random-password
+  "With no args, produces a random string of 8 characters. `n` can optionally be
+  specified."
   ([]
    (generate-random-password 8))
   ([n]
@@ -64,16 +66,43 @@
          password (take n (repeatedly #(rand-nth chars)))]
      (reduce str password))))
 
-;; =============================================================================
-;; API
+(defn change-password!
+  [account-id new-password]
+  @(d/transact conn [{:db/id account-id :account/password (hash-password new-password)}]))
+
+(defn reset-password!
+  [account-id]
+  (let [new-password (generate-random-password)]
+    (change-password! account-id new-password)
+    new-password))
 
 ;; =============================================================================
-;; Queries
+;; API
+;; =============================================================================
+
+;; =============================================================================
+;; Predicates
 
 (defn exists?
   "Returns an account iff one exists under this username, and nil otherwise."
   [email]
   (one (d/db conn) :account/email email))
+
+(defn applicant?
+  [account]
+  (= (:account/role account) :account.role/applicant))
+
+(defn admin?
+  [account]
+  (= (:account/role account) :account.role/admin))
+
+(defn is-password?
+  [account-id password]
+  (let [hash (:account/password (d/entity (d/db conn) account-id))]
+    (check-password password hash)))
+
+;; =============================================================================
+;; Lookups
 
 (def by-email
   "More semantic way to search for an user by email than using the `exists?'
@@ -81,6 +110,7 @@
   exists?)
 
 (defn by-application
+  "Given a member application entity, produce the associated account."
   [application]
   (first (:account/_member-application application)))
 
@@ -169,24 +199,6 @@
     (when (check-password password (:account/password acct))
       (session-data acct))))
 
-(defn change-password!
-  [account-id new-password]
-  @(d/transact conn [{:db/id account-id :account/password (hash-password new-password)}]))
-
-(defn reset-password!
-  [account-id]
-  (let [new-password (generate-random-password)]
-    (change-password! account-id new-password)
-    new-password))
-
-(defn applicant?
-  [account]
-  (= (:account/role account) :account.role/applicant))
-
-(defn admin?
-  [account]
-  (= (:account/role account) :account.role/admin))
-
 ;; (defn change-role
 ;;   [account-id role]
 ;;   @(d/transact role [{:db/id        account-id
@@ -196,6 +208,9 @@
 ;;         :args (s/cat :account-id :starcity.spec/lookup
 ;;                      :role ::role))
 
+;; =============================================================================
+;; Selectors
+
 (defn full-name
   "Full name of this account."
   [{:keys [:account/first-name :account/last-name :account/middle-name]}]
@@ -203,7 +218,4 @@
     (format "%s %s %s" first-name middle-name last-name)
     (format "%s %s" first-name last-name)))
 
-(defn is-password?
-  [account-id password]
-  (let [hash (:account/password (d/entity (d/db conn) account-id))]
-    (check-password password hash)))
+(def income-files :income-file/_account)

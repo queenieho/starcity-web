@@ -56,8 +56,8 @@
 
 (def ^:private completeness-preds
   (let [ne? (comp not empty?)]
-    {:move-in           (fn [{:keys [properties term move-in pet]}]
-                          (and (ne? properties)
+    {:move-in           (fn [{:keys [communities term move-in pet]}]
+                          (and (ne? communities)
                                term
                                move-in
                                (-> pet :has-pet boolean?)))
@@ -97,8 +97,8 @@
   "Given an `application` and `community`, determine the base rent for that
   community."
   [application community]
-  (->> (:properties application)
-       (find-by (comp #{community} :property/internal-name))
+  (->> (:communities application)
+       (find-by (comp #{community} :internal-name))
        :base-price))
 
 (defn toggle-approving
@@ -125,7 +125,7 @@
 
 (defn internal-name->name
   [selected communities]
-  (-> (filter #(= selected (:property/internal-name %)) communities) first :property/name))
+  (-> (filter #(= selected (:internal-name %)) communities) first :name))
 
 (defn approved
   "Mark the current application as approved."
@@ -160,6 +160,6 @@
 (defn reset-email-content
   "Reset the email content to its base state upon new community selection."
   [db selected-community]
-  (let [{:keys [properties name]} (application db)
-        community-name            (internal-name->name selected-community properties)]
+  (let [{:keys [communities name]} (application db)
+        community-name            (internal-name->name selected-community communities)]
     (email-content db (base-email-content name community-name))))
