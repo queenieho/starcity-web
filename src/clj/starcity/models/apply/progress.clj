@@ -4,12 +4,14 @@
             [datomic.api :as d]
             [plumbing.core :refer [assoc-when]]
             [clojure.spec :as s]
-            [starcity.spec]))
+            [starcity.spec]
+            [starcity.models.application :as application]))
 
 ;; =============================================================================
 ;; Internal
 ;; =============================================================================
 
+;; TODO: Use Entity API
 (defn- fetch
   [account-id]
   (d/pull (d/db conn)
@@ -37,7 +39,8 @@
                :community-fitness/dealbreakers
                :community-fitness/skills
                :community-fitness/prior-community-housing]}
-             :member-application/locked]}]
+             :member-application/status
+             :db/id]}]
           account-id))
 
 ;; =====================================
@@ -82,6 +85,7 @@
 ;; =====================================
 ;; Pet
 
+;; TODO: Why not use `:member-application/has-pet`?
 (defn- parse-pet [data]
   (let [{:keys [:pet/type :pet/breed :pet/weight] :as pet}
         (get-in data [:account/member-application
@@ -132,8 +136,10 @@
 ;; Completion
 
 (defn- parse-completion [data]
-  {:complete (boolean (get-in data [:account/member-application
-                                    :member-application/locked]))})
+  (let [application (d/entity (d/db conn)
+                              (get-in data [:account/member-application :db/id]))]
+    {:complete (and application
+                    (not (application/in-progress? application)))}))
 
 ;; =====================================
 ;; Completeness

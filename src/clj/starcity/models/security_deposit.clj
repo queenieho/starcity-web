@@ -155,7 +155,6 @@
                                    (+ acc (/ amount 100))
                                    acc))
                                0))]
-    (println total-checks total-charges)
     @(d/transact conn [{:db/id                            (:db/id security-deposit)
                         :security-deposit/amount-received (int (+ total-checks
                                                                   total-charges))}])))
@@ -187,9 +186,3 @@
     ;; recalculate the amount-received
     (let [security-deposit-id (:db/id (:security-deposit/_checks check))]
       (update-amount-received security-deposit-id))))
-
-(comment
-
-  (update-amount-received (:security-deposit/_checks (find-by (d/db conn) :check/name "Jesse Suarez")))
-
-  )

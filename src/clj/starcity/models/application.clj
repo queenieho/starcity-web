@@ -9,75 +9,6 @@
             [starcity.models.account :as account]))
 
 ;; =============================================================================
-;; Helper Specs
-;; =============================================================================
-
-;; =====================================
-;; Pets
-
-(s/def ::type #{:dog :cat})
-(s/def ::breed string?)
-(s/def ::weight pos-int?)
-(s/def ::id int?)
-
-(defmulti pet-type :type)
-(defmethod pet-type :dog [_] (s/keys :req-un [::type ::breed ::weight] :opt-un [::id]))
-(defmethod pet-type :cat [_] (s/keys :req-un [::type] :opt-un [::id]))
-(defmethod pet-type nil [_] nil?)
-
-(s/def ::pet (s/multi-spec pet-type :type))
-
-;; =====================================
-;; Application
-
-(s/def ::desired-license int?)
-(s/def ::desired-availability :starcity.spec/date)
-(s/def ::desired-properties (s/spec (s/+ int?)))
-
-;; =============================================================================
-;; Helpers
-;; =============================================================================
-
-;; =====================================
-;; update!
-
-(defn- desired-availability-update-tx
-  [application {availability :desired-availability}]
-  [[:db/add (:db/id application) :member-application/desired-availability availability]])
-
-(defn- desired-properties-update-tx
-  [application {properties :desired-properties}]
-  (replace-unique conn (:db/id application) :member-application/desired-properties properties))
-
-(defn- desired-license-update-tx
-  [application {license :desired-license}]
-  (when license
-    [[:db/add (:db/id application) :member-application/desired-license license]]))
-
-(defn- pet-update-tx
-  [application {pet :pet}]
-  (let [curr (:member-application/pet application)]
-    (cond
-      ;; No more pet!
-      (and (nil? pet) curr) [[:db.fn/retractEntity (:db/id curr)]]
-      ;; If the pet has an id, it already exists
-      (:id pet)             [(merge {:db/id (:id pet)}
-                                    (->> (dissoc pet :id)
-                                         (ks->nsks :pet)))]
-      ;; if there's no id for the pet, but there is a pet, it's a new one
-      pet                   [{:db/id                  (:db/id application)
-                              :member-application/pet (ks->nsks :pet pet)}])))
-
-(defn- address-update-tx
-  [application {address :address}]
-  (let [curr         (:member-application/current-address application)
-        address-data (ks->nsks :address address)]
-    (if (nil? curr)
-      [{:db/id                              (:db/id application)
-        :member-application/current-address address-data}]
-      [(merge {:db/id (:db/id curr)} address-data)])))
-
-;; =============================================================================
 ;; API
 ;; =============================================================================
 
@@ -98,122 +29,39 @@
         :args (s/cat :account-id :starcity.spec/lookup))
 
 ;; =============================================================================
-;; Transactions
-
-;; =====================================
-;; update!
-
-(def update!
-  (make-update-fn
-   {:desired-license      desired-license-update-tx
-    :desired-availability desired-availability-update-tx
-    :desired-properties   desired-properties-update-tx
-    :pet                  pet-update-tx
-    :address              address-update-tx}))
-
-(s/fdef update!
-        :args (s/cat :application-id int?
-                     :attributes (s/keys :opt-un [::desired-license
-                                                  ::desired-availability
-                                                  ::desired-properties
-                                                  ::pet]))
-        :ret  int?)
-
-;; =====================================
-;; complete!
-
-(defn complete!
-  [account-id stripe-id]
-  (let [application-id (:db/id (by-account-id account-id))
-        tid            (tempid)]
-    @(d/transact conn [{:db/id                           application-id
-                        :member-application/locked       true
-                        :member-application/submitted-at (java.util.Date.)}
-                       {:db/id            tid
-                        :charge/stripe-id stripe-id
-                        :charge/account   account-id
-                        :charge/status    :charge.status/succeeded
-                        :charge/purpose   "application fee"}])))
-
-;; =====================================
-;; update-community-fitness!
-
-(s/def ::prior-community-housing string?)
-(s/def ::skills string?)
-(s/def ::why-interested string?)
-
-(defn update-community-fitness!
-  [application-id params]
-  (let [application (d/entity (d/db conn) application-id)
-        ent         (ks->nsks :community-fitness params)]
-    (if-let [cf-id (-> application :member-application/community-fitness :db/id)]
-      @(d/transact conn [(assoc ent :db/id cf-id)])
-      @(d/transact conn [{:db/id application-id
-                          :member-application/community-fitness ent}]))))
-
-(s/fdef update-community-fitness!
-        :args (s/cat :application-id int?
-                     :attributes (s/keys :opt-un [::prior-community-housing
-                                                  ::skills
-                                                  ::why-interested
-                                                  ::dealbreakers
-                                                  ::free-time])))
-
-;; =====================================
-;; create!
-
-(defn create!
-  "Create a new rental application for `account-id'."
-  [account-id desired-properties desired-license desired-availability & {:keys [pet]}]
-  (let [tid (tempid)
-        pet (when pet (ks->nsks :pet pet))
-        ent (-> {:db/id                tid
-                 :desired-license      desired-license
-                 :desired-availability desired-availability
-                 :desired-properties   desired-properties}
-                (assoc-when :pet pet)
-                (assoc :account/_member-application account-id))
-        tx  @(d/transact conn [(ks->nsks :member-application ent)])]
-    (d/resolve-tempid (d/db conn) (:tempids tx) tid)))
-
-(s/fdef create!
-        :args (s/cat :account-id int?
-                     :desired-properties ::desired-properties
-                     :desired-license ::desired-license
-                     :desired-availability ::desired-availability
-                     :opts (s/keys* :opt-un [::pet]))
-        :ret  int?)
-
-;; =============================================================================
 ;; Predicates
+
+(declare status)
+
+(defn in-progress?
+  "Has this application been submitted?"
+  [application]
+  (= :member-application.status/in-progress (status application)))
+
+(s/fdef in-progress?
+        :args (s/cat :application :starcity.spec/entity)
+        :ret boolean?)
+
+(defn submitted?
+  "Has this application been submitted?"
+  [application]
+  (= :member-application.status/submitted (status application)))
+
+(s/fdef submitted?
+        :args (s/cat :application :starcity.spec/entity)
+        :ret boolean?)
 
 (defn approved?
   "Is this application approved?"
   [application]
-  (-> (d/q '[:find ?approval
-             :in $ ?application
-             :where
-             [?account :account/member-application ?application]
-             [?approval :approval/account ?account]]
-           (d/db conn) (:db/id application))
-      empty?
-      not))
+  (= :member-application.status/approved (status application)))
 
 (s/fdef approved?
         :args (s/cat :application :starcity.spec/entity)
         :ret boolean?)
 
-(defn locked?
-  "Is the application locked?"
-  [application]
-  (get application :member-application/locked false))
-
-(s/fdef locked?
-        :args (s/cat :application :starcity.spec/entity)
-        :ret boolean?)
-
 ;; alias for convenience
-(def completed? locked?)
+(def completed? submitted?)
 
 ;; =============================================================================
 ;; Selectors
@@ -237,3 +85,4 @@
 (def has-pet? :member-application/has-pet)
 (def pet :member-application/pet)
 (def completed-at :member-application/submitted-at)
+(def status :member-application/status)

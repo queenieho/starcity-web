@@ -65,11 +65,17 @@
 (defmethod query-applications :all [_ q]
   (query* q))
 
-(defmethod query-applications :complete [_ q]
-  (query* q '[?app :member-application/locked true]))
+(defmethod query-applications :in-progress [_ q]
+  (query* q '[?app :member-application/status :member-application.status/in-progress]))
 
-(defmethod query-applications :incomplete [_ q]
-  (query* q '[?app :member-application/locked false]))
+(defmethod query-applications :submitted [_ q]
+  (query* q '[?app :member-application/status :member-application.status/submitted]))
+
+(defmethod query-applications :approved [_ q]
+  (query* q '[?app :member-application/status :member-application.status/approved]))
+
+(defmethod query-applications :rejected [_ q]
+  (query* q '[?app :member-application/status :member-application.status/rejected]))
 
 (defn- applications [limit offset direction sort-key view query]
   (->> (query-applications view query)
@@ -98,11 +104,17 @@
 
 (defmethod total :all [_ q] (total* q))
 
-(defmethod total :complete [_ q]
-  (total* q '[?app :member-application/locked true]))
+(defmethod total :in-progress [_ q]
+  (total* q '[?app :member-application/status :member-application.status/in-progress]))
 
-(defmethod total :incomplete [_ q]
-  (total* q '[?app :member-application/locked false]))
+(defmethod total :submitted [_ q]
+  (total* q '[?app :member-application/status :member-application.status/submitted]))
+
+(defmethod total :approved [_ q]
+  (total* q '[?app :member-application/status :member-application.status/approved]))
+
+(defmethod total :rejected [_ q]
+  (total* q '[?app :member-application/status :member-application.status/rejected]))
 
 ;; =============================================================================
 ;; API
@@ -111,7 +123,7 @@
 (s/def ::applications sequential?)
 (s/def ::total integer?)
 (s/def ::sort-key #{:name :term :move-in :completed-at})
-(s/def ::view #{:all :complete :incomplete})
+(s/def ::view #{:all :in-progress :submitted :approved :rejected})
 
 (defn fetch
   "Fetch `limit` accounts, offset by `offset` and sorted by `sort-key` in either

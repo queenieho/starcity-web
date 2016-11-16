@@ -18,4 +18,4 @@
    :pagination {:limit 10 :offset 0}
    :query      ""
    :view       :all
-   :views      [:all :complete :incomplete]})
+   :views      [:all :in-progress :submitted :approved :rejected]})

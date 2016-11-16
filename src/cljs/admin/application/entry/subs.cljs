@@ -70,6 +70,19 @@
    (:approved data)))
 
 (reg-sub
+ :application.entry/status
+ :<- [:application.entry/current]
+ (fn [data _]
+   (keyword (:status data))))
+
+(reg-sub
+ :application.entry/completed-at
+ :<- [:application.entry/current]
+ (fn [data _]
+   (when-let [d (:completed-at data)]
+     (format-date d))))
+
+(reg-sub
  :application.entry/term
  :<- [:application.entry/current]
  (fn [data _]

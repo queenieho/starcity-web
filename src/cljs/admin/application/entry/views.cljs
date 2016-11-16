@@ -24,23 +24,22 @@
       [:a {:href (str "/admin/accounts/" @account-id)} [:b name]])))
 
 (defn- title-bar []
-  (let [full-name   (subscribe [:application.entry/full-name])
-        is-complete (subscribe [:application.entry/complete?])
-        is-approved (subscribe [:application.entry/approved?])
-        move-in     (subscribe [:application.entry/desired-move-in])
-        term        (subscribe [:application.entry/term])]
+  (let [full-name    (subscribe [:application.entry/full-name])
+        completed-at (subscribe [:application.entry/completed-at])
+        status       (subscribe [:application.entry/status])
+        move-in      (subscribe [:application.entry/desired-move-in])
+        term         (subscribe [:application.entry/term])]
     (fn []
       [:div
        [:h2.title.is-2 "Member Application for " [name-link @full-name]]
        [:nav.level.is-mobile {:style {:margin-top "24px"}}
-        (when-not @is-approved
+        [:div.level-item.has-text-centered
+         [:p.heading "Status"]
+         [:p.title [:b (name @status)]]]
+        (when @completed-at
           [:div.level-item.has-text-centered
-           [:p.heading "Complete"]
-           [:p.title (if @is-complete "Yes" "No")]])
-        (when @is-approved
-          [:div.level-item.has-text-centered
-           [:p.heading "Approved"]
-           [:p.title (if @is-complete "Yes" "No")]])
+          [:p.heading "Completed At"]
+          [:p.title @completed-at]])
         (when @move-in
           [:div.level-item.has-text-centered
            [:p.heading "Desired Move-in"]

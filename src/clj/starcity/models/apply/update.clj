@@ -1,8 +1,6 @@
 (ns starcity.models.apply.update
   (:require [starcity.models.apply.common :as common]
-            ;; TODO: replace-unique2 -> replace-unique
-            ;; NOTE: Do this after deleting the old application code
-            [starcity.models.util.update :refer [replace-unique2]]
+            [starcity.models.util.update :refer [replace-unique]]
             [starcity.datomic :refer [conn tempid]]
             [datomic.api :as d]
             [clj-time.core :as t]
@@ -20,9 +18,11 @@
 (defn- create-application-if-needed
   [account-id]
   (when-not (common/by-account-id account-id)
-    @(d/transact conn [{:db/id                       (tempid)
-                        :member-application/approved false
-                        :account/_member-application account-id}])))
+    @(d/transact
+      conn
+      [{:db/id                       (tempid)
+        :member-application/status   :member-application.status/in-progress
+        :account/_member-application account-id}])))
 
 (defmulti ^:private update-tx (fn [_ _ key] key))
 
@@ -31,10 +31,10 @@
 
 (defmethod update-tx :logistics/communities
   [{communities :communities} application _]
-  (replace-unique2 conn
-                   (:db/id application)
-                   :member-application/desired-properties
-                   (communities->lookups communities)))
+  (replace-unique conn
+                  (:db/id application)
+                  :member-application/desired-properties
+                  (communities->lookups communities)))
 
 (defmethod update-tx :logistics/license
   [{license :license} application _]

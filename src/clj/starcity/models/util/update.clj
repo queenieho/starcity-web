@@ -46,19 +46,6 @@
   [conn entity-id attribute new-values]
   (let [ent        (one (d/db conn) entity-id)
         old-values (ents->ids (get ent attribute))
-        to-remove  (set/difference old-values (set new-values))]
-    (vec
-     (concat
-      (map (fn [v] [:db/retract entity-id attribute v]) to-remove)
-      (map (fn [v] [:db/add entity-id attribute v]) new-values)))))
-
-(defn replace-unique2
-  "Given an entity-id, cardinality many attribute and new values, generate a
-  transact to remove all values that are not present in `new-values' and add
-  any values that were not already present."
-  [conn entity-id attribute new-values]
-  (let [ent        (one (d/db conn) entity-id)
-        old-values (ents->ids (get ent attribute))
         to-remove  (set/difference old-values (->> new-values
                                                    (map (comp :db/id (partial d/entity (d/db conn))))
                                                    set))]

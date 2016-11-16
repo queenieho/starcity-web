@@ -97,13 +97,18 @@
 ;; =============================================================================
 ;; Lock Application
 
-(defn- lock-application [application-id]
-  @(d/transact conn [[:db/add application-id :member-application/locked true]]))
+(defn- submit-application [application-id]
+  @(d/transact
+    conn
+    [{:db/id                           application-id
+      :member-application/status       :member-application.status/submitted
+      :member-application/submitted-at (java.util.Date.)}]))
 
 ;; =============================================================================
 ;; API
 ;; =============================================================================
 
+;; NOTE: Seems failure-prone.
 (defn submit-payment
   "Submit payment and lock the member's application."
   [account-id stripe-token]
@@ -115,4 +120,4 @@
       (community-safety-check account-id)
       (send-submission-email account-id)
       (notify-us account-id)
-      (lock-application application-id))))
+      (submit-application application-id))))

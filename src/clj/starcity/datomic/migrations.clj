@@ -19,7 +19,9 @@
              [add-charge-status-11-2-16 :refer [add-charge-status]]
              [alter-security-deposit-schema-11-2-16 :refer [alter-security-deposit-schema]]
              [add-check-schema-11-4-16 :refer [add-check-schema
-                                               add-checks-to-security-deposit-schema]]]
+                                               add-checks-to-security-deposit-schema]]
+             [add-member-application-status-11-15-16 :refer [add-member-application-status
+                                                             seed-member-application-statuses]]]
             [starcity.datomic.migrations.utils :refer [only-when]]
             [starcity.environment]
             [mount.core :refer [defstate]]))
@@ -45,4 +47,6 @@
    add-charge-status
    alter-security-deposit-schema
    add-check-schema
-   add-checks-to-security-deposit-schema))
+   add-checks-to-security-deposit-schema
+   add-member-application-status
+   seed-member-application-statuses))

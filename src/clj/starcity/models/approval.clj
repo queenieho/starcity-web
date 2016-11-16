@@ -52,6 +52,9 @@
                      :deposit-amount integer?)
         :ret vector?)
 
+(defn- application-txdata [application-id]
+  [[:db/add application-id :member-application/status :member-application.status/approved]])
+
 ;; =============================================================================
 ;; API
 ;; =============================================================================
@@ -89,6 +92,7 @@
                  (create-txdata (:db/id account)
                                 approver-id
                                 [:property/internal-name internal-name])
+                 (application-txdata application-id)
                  ;; Convert account to new role
                  (update-role-txdata (:db/id account))
                  ;; Create security deposit entity

@@ -26,8 +26,7 @@
 (defn- can-approve?
   [application-id]
   (let [application (d/entity (d/db conn) application-id)]
-    (and (not (application/approved? application))
-         (application/locked? application)
+    (and (application/submitted? application)
          (account/applicant? (account/by-application application)))))
 
 (def cannot-approve? (comp not can-approve?))

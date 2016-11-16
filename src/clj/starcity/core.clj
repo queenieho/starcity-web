@@ -20,7 +20,6 @@
     :validate [#{:production :development :staging} "Must be one of #{production, staging, development}"]]])
 
 (defn- exit [status msg]
-  (println msg)
   (System/exit status))
 
 (defn -main [& args]

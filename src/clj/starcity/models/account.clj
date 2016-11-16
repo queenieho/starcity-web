@@ -199,15 +199,6 @@
     (when (check-password password (:account/password acct))
       (session-data acct))))
 
-;; (defn change-role
-;;   [account-id role]
-;;   @(d/transact role [{:db/id        account-id
-;;                       :account/role role}]))
-
-;; (s/fdef change-role
-;;         :args (s/cat :account-id :starcity.spec/lookup
-;;                      :role ::role))
-
 ;; =============================================================================
 ;; Selectors
 
@@ -218,4 +209,11 @@
     (format "%s %s %s" first-name middle-name last-name)
     (format "%s %s" first-name last-name)))
 
-(def income-files :income-file/_account)
+(defn income-files
+  "Fetch the income files for this account."
+  [account]
+  (qes '[:find ?e
+         :in $ ?a
+         :where
+         [?e :income-file/account ?a]]
+       (d/db conn) (:db/id account)))

@@ -12,7 +12,8 @@
             [bouncer.core :as b]
             [bouncer.validators :as v :refer [defvalidator]]
             [clj-time.core :as t]
-            [clj-time.coerce :as c]))
+            [clj-time.coerce :as c]
+            [starcity.models.application :as application]))
 
 (timbre/refer-timbre)
 
@@ -129,25 +130,27 @@
 (def ^:private path->key
   (partial apply keyword))
 
-(def ^:private locked-msg
+(def ^:private submitted-msg
   "Your application has already been submitted, so it cannot be updated.")
 
 (defn update-handler
   "Handle an update of user's application."
   [{:keys [params] :as req}]
   (let [account-id (api/account-id req)
+        app        (application/by-account-id account-id)
         path       (path->key (:path params))
         vresult    (validate (:data params) path)]
-    (prn "Is valid?" (valid? vresult))
     (cond
-      (apply/locked? account-id) (api/unprocessable {:errors [locked-msg]})
-      (not (valid? vresult))     (api/malformed {:errors (errors-from vresult)})
-      :otherwise                 (try
-                                   (apply/update (:data params) account-id path)
-                                   (api/ok (apply/progress account-id))
-                                   (catch Exception e
-                                     (error e "Error encountered during update!")
-                                     (api/server-error))))))
+      ;; there's an application, and it's not in-progress
+      (and app
+           (not (application/in-progress? app))) (api/unprocessable {:errors [submitted-msg]})
+      (not (valid? vresult))                     (api/malformed {:errors (errors-from vresult)})
+      :otherwise                                 (try
+                                                   (apply/update (:data params) account-id path)
+                                                   (api/ok (apply/progress account-id))
+                                                   (catch Exception e
+                                                     (error e "Error encountered during update!")
+                                                     (api/server-error))))))
 
 (defn- save-files
   [account-id file-or-files]
