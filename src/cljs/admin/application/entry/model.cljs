@@ -127,10 +127,14 @@
   [selected communities]
   (-> (filter #(= selected (:internal-name %)) communities) first :name))
 
+(defn status
+  [db status]
+  (assoc-in-db db [:applications (current-id db) :status] status))
+
 (defn approved
   "Mark the current application as approved."
   [db]
-  (assoc-in-db db [:applications (current-id db) :approved] true))
+  (status db :approved))
 
 (defn email-subject
   "Replace the email content with `new-content`."
@@ -168,3 +172,10 @@
   (let [{:keys [communities name]} (application db)
         community-name            (internal-name->name selected-community communities)]
     (email-content db (base-email-content name community-name))))
+
+;; =============================================================================
+;; Rejection
+;; =============================================================================
+
+(defn toggle-rejecting [db]
+  (update-in db [root-db-key :rejecting] not))

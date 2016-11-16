@@ -12,6 +12,26 @@
 ;; API
 ;; =============================================================================
 
+(declare status rejected?)
+
+;; =============================================================================
+;; Transactions
+
+(s/def ::status
+  #{:member-application.status/in-progress
+    :member-application.status/submitted
+    :member-application.status/approved
+    :member-application.status/rejected})
+
+(defn change-status
+  "Change the status of this application."
+  [{e :db/id} new-status]
+  @(d/transact conn [[:db/add e :member-application/status new-status]]))
+
+(s/fdef change-status
+        :args (s/cat :application :starcity.spec/entity
+                     :status ::status))
+
 ;; =============================================================================
 ;; Queries
 
@@ -30,8 +50,6 @@
 
 ;; =============================================================================
 ;; Predicates
-
-(declare status)
 
 (defn in-progress?
   "Has this application been submitted?"
@@ -57,6 +75,15 @@
   (= :member-application.status/approved (status application)))
 
 (s/fdef approved?
+        :args (s/cat :application :starcity.spec/entity)
+        :ret boolean?)
+
+(defn rejected?
+  "Is this application rejected?"
+  [application]
+  (= :member-application.status/rejected (status application)))
+
+(s/fdef rejected?
         :args (s/cat :application :starcity.spec/entity)
         :ret boolean?)
 

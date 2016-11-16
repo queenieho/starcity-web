@@ -58,6 +58,7 @@
 ;; API
 ;; =============================================================================
 
+;; TODO: Use status, switch on the status
 (defn app []
   (let [is-complete     (subscribe [:app/complete?])
         is-initializing (subscribe [:app/initializing?])]

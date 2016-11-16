@@ -5,6 +5,7 @@
 (def default-value
   {:applications  {}
    :approving     false
+   :rejecting     false
    :email-subject "Starcity: You've been qualified!"
    :menu          {:active :move-in
                    :tabs   [{:label    "Move-in"
@@ -21,4 +22,7 @@
                              :complete false}
                             {:label "Approve"
                              :group :actions
-                             :key   :approve}]}})
+                             :key   :approve}
+                            {:label "Reject"
+                             :group :actions
+                             :key   :reject}]}})

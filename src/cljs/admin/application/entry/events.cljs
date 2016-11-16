@@ -110,3 +110,32 @@
      (l/error "Error encountered while attempting approval." err) ; debug
      {:db       (model/toggle-approving db)
       :dispatch [:notify/error err-msg]})))
+
+;; =====================================
+;; Rejection
+
+(reg-event-fx
+ :application.entry/reject
+ (fn [{:keys [db]} _]
+   {:db         (model/toggle-rejecting db)
+    :http-xhrio {:method          :post
+                 :uri             (api/route (str "applications/" (model/current-id db) "/reject"))
+                 :format          (ajax/json-request-format)
+                 :response-format (ajax/json-response-format)
+                 :on-success [:application.entry.reject/success]
+                 :on-failure [:application.entry.reject/failure]}}))
+
+(reg-event-fx
+ :application.entry.reject/success
+ (fn [{:keys [db]} _]
+   {:db       (model/toggle-rejecting db)
+    ;; refresh the application to reset the status
+    :dispatch [:application.entry/fetch (model/current-id db)]}))
+
+(reg-event-fx
+ :application.entry.reject/failure
+ (fn [{:keys [db]} [_ {:keys [response] :as err}]]
+   (let [err-msg (or (:error response) "Failed to reject. Please try again.")]
+     (l/error "Error encountered while attempting rejection." err)
+     {:db       (model/toggle-rejecting db)
+      :dispatch [:notify/error err-msg]})))

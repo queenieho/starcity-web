@@ -64,16 +64,16 @@
    (:completed data)))
 
 (reg-sub
- :application.entry/approved?
- :<- [:application.entry/current]
- (fn [data _]
-   (:approved data)))
-
-(reg-sub
  :application.entry/status
  :<- [:application.entry/current]
  (fn [data _]
    (keyword (:status data))))
+
+(reg-sub
+ :application.entry/approved?
+ :<- [:application.entry/status]
+ (fn [status _]
+   (= status :approved)))
 
 (reg-sub
  :application.entry/completed-at
@@ -189,3 +189,18 @@
  :<- [root-db-key]
  (fn [data _]
    (:email-subject data)))
+
+;; =====================================
+;; Rejection
+
+(reg-sub
+ :application.entry/rejected?
+ :<- [:application.entry/status]
+ (fn [status _]
+   (= status :rejected)))
+
+(reg-sub
+ :application.entry/rejecting?
+ :<- [root-db-key]
+ (fn [db _]
+   (:rejecting db)))

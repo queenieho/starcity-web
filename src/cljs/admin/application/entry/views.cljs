@@ -33,13 +33,14 @@
       [:div
        [:h2.title.is-2 "Member Application for " [name-link @full-name]]
        [:nav.level.is-mobile {:style {:margin-top "24px"}}
-        [:div.level-item.has-text-centered
-         [:p.heading "Status"]
-         [:p.title [:b (name @status)]]]
+        (when @status
+          [:div.level-item.has-text-centered
+           [:p.heading "Status"]
+           [:p.title [:b (name @status)]]])
         (when @completed-at
           [:div.level-item.has-text-centered
-          [:p.heading "Completed At"]
-          [:p.title @completed-at]])
+           [:p.heading "Completed At"]
+           [:p.title @completed-at]])
         (when @move-in
           [:div.level-item.has-text-centered
            [:p.heading "Desired Move-in"]
@@ -61,10 +62,26 @@
           (when complete
             [:span.is-pulled-right.icon.is-small [:i.fa.fa-check]])]]))
 
+(defmulti menu-action-disabled?
+  "Returns true if this menu action should be disabled."
+  (fn [item-key _] item-key))
+
+(defmethod menu-action-disabled? :approve
+  [_ status]
+  (#{:in-progress :approved :rejected} status))
+
+(defmethod menu-action-disabled? :reject
+  [_ status]
+  (#{:approved :in-progress} status))
+
+(defmethod menu-action-disabled? :default [_ _]
+  false)
+
 (defn menu []
   (let [info-tabs   (subscribe [:application.entry.menu/info-tabs])
         action-tabs (subscribe [:application.entry.menu/action-tabs])
         active-tab  (subscribe [:application.entry.menu/active])
+        status      (subscribe [:application.entry/status])
         is-approved (subscribe [:application.entry/approved?])
         is-complete (subscribe [:application.entry/complete?])]
     (fn []
@@ -81,7 +98,7 @@
         (doall
          (for [{:keys [key label]} @action-tabs]
            ^{:key key} [menu-item @active-tab key
-                        :disabled (or @is-approved (not @is-complete))
+                        :disabled (menu-action-disabled? key @status)
                         :label label]))]])))
 
 ;; =============================================================================
@@ -156,6 +173,27 @@
          [:p (or @curr-address "N/A")]]))))
 
 ;; =============================================================================
+;; Reject
+
+(defn- reject []
+  (let [is-rejected  (subscribe [:application.entry/rejected?])
+        is-rejecting (subscribe [:application.entry/rejecting?])]
+    (fn []
+      [:div.content
+       [:h3.title.is-3 "Would you like to reject this application?"]
+       [:p "Rejecting an application does not result in any auto-generated
+       email. That's up to you."]
+       [:p [:b "However, "] "should the user log in to Starcity, he/she will be
+       told that his/her application has been rejected and to contact us for details."]
+       [:p "You " [:b "can"] " un-reject an application."]
+       [:button.button.is-danger
+        {:class    (when @is-rejecting "is-loading")
+         :on-click #(dispatch [:application.entry/reject])}
+        (if @is-rejected
+          "Un-reject this Application"
+          "Reject this Application")]])))
+
+;; =============================================================================
 ;; API
 ;; =============================================================================
 
@@ -177,4 +215,5 @@
              :community-fitness [community-fitness]
              :eligibility       [eligibility]
              :approve           [approval]
+             :reject            [reject]
              [:p [:b (str "Error: No view for " @active-tab)]])]]]))))

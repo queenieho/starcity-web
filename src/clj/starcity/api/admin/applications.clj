@@ -53,6 +53,20 @@
                      :email-content string?
                      :email-subject string?))
 
+(defn toggle-reject
+  "Cycle the application state between rejected/submitted iff it is currently in
+  the `submitted/rejected` state."
+  [application-id]
+  (let [application (d/entity (d/db conn) application-id)
+        error       (api/unprocessable {:error "This application cannot be rejected/unrejected."})]
+    (letfn [(-success [status]
+             (application/change-status application status)
+              (api/ok {}))]
+     (cond
+       (application/submitted? application) (-success :member-application.status/rejected)
+       (application/rejected? application)  (-success :member-application.status/submitted)
+       :otherwise                           error))))
+
 ;; =============================================================================
 ;; Routes
 
@@ -77,4 +91,6 @@
                      community-id
                      (str->int deposit-amount)
                      email-content
-                     email-subject)))))
+                     email-subject))))
+  (POST "/:application-id/reject" [application-id]
+        (fn [_] (toggle-reject (str->int application-id)))))
