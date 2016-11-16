@@ -42,16 +42,19 @@
 
 (reg-event-fx
  :nav/accounts
- (fn [{:keys [db]} [_ {:keys [limit offset q view sort-key direction]}]]
-   (let [data (get db root-db-key)]
-     {:db       (assoc db :route :account/list)
-      :dispatch (dispatch-fetch data
-                                :offset offset
-                                :limit limit
-                                :view view
-                                :sort-key sort-key
-                                :direction direction
-                                :query q)})))
+ (fn [{:keys [db]} [_ {:keys [limit offset q view sort-key direction] :as params}]]
+   (let [data (get db root-db-key)
+         fx   {:db (assoc db :route :account/list)}]
+     (->> (if (empty? params)
+            {:route (next-url data :offset 0)}
+            {:dispatch (dispatch-fetch data
+                                       :offset offset
+                                       :limit limit
+                                       :view view
+                                       :sort-key sort-key
+                                       :direction direction
+                                       :query q)})
+          (merge fx)))))
 
 ;;; Fetch accounts
 
