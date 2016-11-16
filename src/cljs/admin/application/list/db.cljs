@@ -6,11 +6,11 @@
   {:header     {:keys     [:number
                            :name
                            :email
-                           :phone-number
                            :communities
                            :term
                            :move-in
-                           :completed-at]
+                           :completed-at
+                           :status]
                 :sortable [:name :term :move-in :completed-at]}
    :list       []
    :total      0

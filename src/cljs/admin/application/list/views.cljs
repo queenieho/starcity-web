@@ -119,7 +119,7 @@
             [:i.fa.fa-search]]]
           [:div.column
            [:div.is-pulled-right
-            [:label.label.has-text-right "Currently Viewing"]
+            [:label.label "Status"]
             [:span.select
              [:select {:value @current-view :on-change #(dispatch [:application.list.view/change (dom/val %)])}
               (for [view @available-views]

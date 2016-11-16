@@ -30,14 +30,12 @@
      :number       (+ index offset)
      :name         (application/full-name application)
      :email        (:account/email account)
-     :phone-number (:account/phone-number account)
      :communities  (->> (application/communities application)
                         (map property/name))
      :term         (application/term application)
      :move-in      (application/move-in-date application)
-     :completed    (application/completed? application)
      :completed-at (:member-application/submitted-at application)
-     :approved     (application/approved? application)}))
+     :status       (name (application/status application))}))
 
 (def ^:private search-rules
   '[[(search ?account ?query) [(fulltext $ :account/first-name ?query) [[?account]]]]
