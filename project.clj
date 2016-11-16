@@ -39,7 +39,7 @@
                  [reagent "0.6.0"]
                  [re-frame "0.8.0"]
                  [secretary "1.2.3"]
-                 [jalehman/accountant "0.1.8"]
+                 [jalehman/accountant "0.1.8-2"]
                  [day8.re-frame/http-fx "0.1.2"]
                  [hiccups "0.3.0"]]
 
