@@ -15,8 +15,10 @@
 ;; Helpers
 ;; =============================================================================
 
-(def ^:private format-date
-  (comp (partial d/format :short-date) c/to-local-date))
+(defn- format-date [date]
+  (if date
+    (d/format :short-date (c/to-local-date date))
+    "N/A"))
 
 ;; =============================================================================
 ;; Components
@@ -26,7 +28,7 @@
   "Transform value under header by applying these functions."
   {:move-in      format-date
    :completed-at format-date
-   :communities   (partial str/join ", ")})
+   :communities  (partial str/join ", ")})
 
 (defn- value-cell [k application]
   (let [tf (get transforms k identity)]
