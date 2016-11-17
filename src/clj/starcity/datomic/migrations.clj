@@ -21,7 +21,8 @@
              [add-check-schema-11-4-16 :refer [add-check-schema
                                                add-checks-to-security-deposit-schema]]
              [add-member-application-status-11-15-16 :refer [add-member-application-status
-                                                             seed-member-application-statuses]]]
+                                                             seed-member-application-statuses
+                                                             seed-member-application-statuses-dev]]]
             [starcity.datomic.migrations.utils :refer [only-when]]
             [starcity.environment]
             [mount.core :refer [defstate]]))
@@ -49,4 +50,5 @@
    add-check-schema
    add-checks-to-security-deposit-schema
    add-member-application-status
-   seed-member-application-statuses))
+   (only-when #{:development :staging} seed-member-application-statuses-dev)
+   (only-when #{:production} seed-member-application-statuses)))

@@ -54,7 +54,7 @@
             (d/db conn))
        (map first)))
 
-(def seed-member-application-statuses
+(def seed-member-application-statuses-dev
   {:seed/seed-member-application-statuses-11-15-16
    {:txes     [(fn [conn]
                  (vec
@@ -64,4 +64,15 @@
                    (map (fn [e] [:db/add e :member-application/status :member-application.status/approved]) (approved conn)))))]
     :requires [:schema/add-member-application-status-11-15-16
                :starcity/seed-test-applications
+               :starcity/add-member-application-schema]}})
+
+(def seed-member-application-statuses
+  {:seed/seed-member-application-statuses-11-15-16
+   {:txes     [(fn [conn]
+                 (vec
+                  (concat
+                   (map (fn [e] [:db/add e :member-application/status :member-application.status/in-progress]) (in-progress conn))
+                   (map (fn [e] [:db/add e :member-application/status :member-application.status/submitted]) (submitted conn))
+                   (map (fn [e] [:db/add e :member-application/status :member-application.status/approved]) (approved conn)))))]
+    :requires [:schema/add-member-application-status-11-15-16
                :starcity/add-member-application-schema]}})
