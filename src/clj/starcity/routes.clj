@@ -1,38 +1,39 @@
 (ns starcity.routes
-  (:require [buddy.auth :refer [authenticated?]]
-            [buddy.auth.accessrules :refer [restrict]]
+  (:require [buddy.auth.accessrules :refer [restrict]]
             [compojure
              [core :refer [ANY context defroutes GET POST routes]]
              [route :as route]]
             [ring.util.response :as response]
-            [starcity.auth :refer [authenticated-user user-isa]]
-            [starcity.api :as api]
-            [starcity.webhooks
-             [plaid :as plaid]
-             [stripe :as stripe]]
+            [starcity
+             [api :as api]
+             [auth :refer [authenticated-user user-isa]]]
             [starcity.controllers
+             [about :as about]
+             [admin :as admin]
              [apply :as apply]
-             [settings :as settings]
              [auth :as auth]
-             [login :as login]
-             [signup :as signup]
              [communities :as communities]
+             [dashboard :as dashboard]
              [faq :as faq]
              [landing :as landing]
-             [terms :as terms]
-             [privacy :as privacy]
-             [team :as team]
-             [about :as about]
+             [login :as login]
              [onboarding :as onboarding]
-             [admin :as admin]
-             [dashboard :as dashboard]]))
+             [privacy :as privacy]
+             [settings :as settings]
+             [signup :as signup]
+             [team :as team]
+             [terms :as terms]]
+            [starcity.webhooks
+             [plaid :as plaid]
+             [stripe :as stripe]]))
 
 (defn- redirect-by-role
   [{:keys [identity] :as req} msg]
-  (-> (condp = (:account/role identity)
+  (-> (case (:account/role identity)
         :account.role/applicant "/apply"
         :account.role/pending   "/onboarding"
         :account.role/admin     "/admin"
+        :account.role/tenant    "/me"
         "/")
       (response/redirect)))
 
@@ -51,66 +52,66 @@
   (GET "/team"             [] team/show-team)
 
   (GET "/forgot-password"  [] auth/show-forgot-password)
-  (POST "/forgot-password" [] auth/forgot-password!)
+  (POST "/forgot-password" [] auth/forgot-password)
 
   (GET  "/login"           [] login/show-login)
-  (POST "/login"           [] login/login!)
+  (POST "/login"           [] login/login)
 
-  (ANY  "/logout"          [] auth/logout!)
+  (ANY  "/logout"          [] auth/logout)
 
   (context "/communities" []
-    (GET "/" [] communities/show-communities)
-    (GET "/soma" [] communities/show-soma)
-    (GET "/mission" [] communities/show-mission))
+           (GET "/" [] communities/show-communities)
+           (GET "/soma" [] communities/show-soma)
+           (GET "/mission" [] communities/show-mission))
 
   (context "/signup" []
-    (GET   "/"         [] signup/show-signup)
-    (POST  "/"         [] signup/signup!)
-    (GET   "/complete" [] signup/show-complete)
-    (GET   "/activate" [] signup/activate!))
+           (GET   "/"         [] signup/show-signup)
+           (POST  "/"         [] signup/signup)
+           (GET   "/complete" [] signup/show-complete)
+           (GET   "/activate" [] signup/activate))
 
   (context "/apply" []
-    (restrict
-        (routes
-         (GET "*" [] apply/show-apply))
-      {:handler  {:and [authenticated-user (user-isa :account.role/applicant)]}
-       :on-error redirect-by-role}))
+           (restrict
+            (routes
+             (GET "*" [] apply/show-apply))
+            {:handler  {:and [authenticated-user (user-isa :account.role/applicant)]}
+             :on-error redirect-by-role}))
 
   (context "/settings" []
-    (restrict
-        (routes
-         (GET "/"          []
-              (fn [_] (ring.util.response/redirect "/settings/change-password")))
-         (GET "/change-password"  [] settings/show-account-settings)
-         (POST "/change-password" [] settings/update-password!))
-      {:handler  authenticated-user
-       :on-error redirect-by-role}))
+           (restrict
+            (routes
+             (GET "/"          []
+                  (fn [_] (ring.util.response/redirect "/settings/change-password")))
+             (GET "/change-password"  [] settings/show-account-settings)
+             (POST "/change-password" [] settings/update-password))
+            {:handler  authenticated-user
+             :on-error redirect-by-role}))
 
   (context "/admin" []
-    (restrict
-        (routes
-         (GET "*" [] admin/show))
-      {:handler  {:and [authenticated-user (user-isa :account.role/admin)]}
-       :on-error redirect-by-role}))
+           (restrict
+            (routes
+             (GET "*" [] admin/show))
+            {:handler  {:and [authenticated-user (user-isa :account.role/admin)]}
+             :on-error redirect-by-role}))
 
   (context "/me" []
-    (restrict
-        (routes
-         (GET "/*" [] dashboard/show))
-      {:handler  {:and [authenticated-user (user-isa :account.role/tenant)]}
-       :on-error redirect-by-role}))
+           (restrict
+            (routes
+             (GET "/*" [] dashboard/show))
+            {:handler  {:and [authenticated-user (user-isa :account.role/tenant)]}
+             :on-error redirect-by-role}))
 
 
   (context "/onboarding" []
-    (restrict onboarding/routes
-      {:handler  {:and [authenticated-user (user-isa :account.role/pending)]}
-       :on-error redirect-by-role}))
+           (restrict onboarding/routes
+                     {:handler  {:and [authenticated-user (user-isa :account.role/pending)]}
+                      :on-error redirect-by-role}))
 
   (context "/api/v1" [] api/routes)
 
   (context "/webhooks" []
-    (POST "/plaid" [] plaid/hook)
-    (POST "/stripe" [] stripe/hook))
+           (POST "/plaid" [] plaid/hook)
+           (POST "/stripe" [] stripe/hook))
 
   ;; catch-all
   (route/not-found "<p>Not Found</p>"))

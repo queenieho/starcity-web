@@ -1,16 +1,16 @@
 (ns starcity.controllers.auth
-  (:require [starcity.views.auth :as view]
+  (:require [clojure.string :as str]
             [hiccup.core :refer [html]]
-            [ring.util.response :as response]
-            [ring.util.codec :refer [url-encode]]
-            [starcity.controllers.utils :refer :all]
-            [starcity.web.messages :refer [respond-with-errors]]
-            [starcity.datomic :refer [conn]]
+            [ring.util
+             [codec :refer [url-encode]]
+             [response :as response]]
             [starcity.config :refer [hostname]]
+            [starcity.controllers.utils :refer :all]
+            [starcity.models.account :as account]
             [starcity.services.mailgun :as mailgun]
-            [clojure.string :as str]
-            [datomic.api :as d]
-            [starcity.models.account :as account]))
+            [starcity.views.auth :as view]
+            [starcity.web.messages :refer [respond-with-errors]]
+            [starcity.auth :as auth]))
 
 ;; =============================================================================
 ;; Helpers
@@ -37,19 +37,21 @@
 ;; API
 ;; =============================================================================
 
-(defn logout! [_]
+(defn logout
+  "Log the user out by clearing the session."
+  [_]
   (-> (response/redirect "/login")
       (assoc :session {})))
 
 (def show-forgot-password
   (comp ok view/forgot-password))
 
-(defn forgot-password!
+(defn forgot-password
   [{:keys [params] :as req}]
   (if-let [email (:email params)]
     (let [cleaned (-> email str/trim str/lower-case)]
       (if-let [acct (account/by-email cleaned)]
-        (let [new-password (account/reset-password! (:db/id acct))
+        (let [new-password (account/reset-password (auth/requester req))
               next         (format "/login?email=%s&reset-password=true" cleaned)]
           (send-password-reset-email acct new-password)
           (response/redirect next))

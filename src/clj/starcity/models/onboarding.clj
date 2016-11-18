@@ -57,12 +57,12 @@
 ;; =============================================================================
 ;; Selectors
 
-(defn- security-deposit-id
+(defn security-deposit-id
   "Retrieve the entity id of the security deposit entity within the `progress` map."
   [progress]
   (get-in progress [:security-deposit :db/id]))
 
-(defn- stripe-customer-id
+(defn stripe-customer-id
   "Retrieve the Stripe customer id within the `progress` map."
   [progress]
   (get-in progress [:stripe-customer :stripe-customer/customer-id]))
@@ -153,12 +153,12 @@
 
 (defn- create-ach-charge
   [progress payment-choice]
-  (stripe/create-charge (account-id progress)
-                        (charge-amount progress payment-choice)
-                        (bank-account-token progress)
-                        :description (format "'%s' security deposit payment" payment-choice)
-                        :customer-id (stripe-customer-id progress)
-                        :managed-account (-> progress applicant-property :property/managed-account-id)))
+  (stripe/create-charge! (account-id progress)
+                         (charge-amount progress payment-choice)
+                         (bank-account-token progress)
+                         :description (format "'%s' security deposit payment" payment-choice)
+                         :customer-id (stripe-customer-id progress)
+                         :managed-account (-> progress applicant-property :property/managed-account-id)))
 
 ;; Assuming no error, we now need to update the security deposit entity to
 ;; reflect the successful transaction.
@@ -182,7 +182,8 @@
   payment method."
   [progress payment-choice]
   (if (payment-received? progress)
-    (throw (ex-info "Cannot charge customer for security deposit twice!" progress))
+    (throw (ex-info "Cannot charge customer for security deposit twice!"
+                    {:customer-id (stripe-customer-id progress)}))
     (let [charge-id (create-ach-charge progress payment-choice)]
       (record-security-deposit-payment progress payment-choice charge-id))))
 

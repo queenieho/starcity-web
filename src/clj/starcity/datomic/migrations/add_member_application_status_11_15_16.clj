@@ -63,6 +63,7 @@
                    (map (fn [e] [:db/add e :member-application/status :member-application.status/submitted]) (submitted conn))
                    (map (fn [e] [:db/add e :member-application/status :member-application.status/approved]) (approved conn)))))]
     :requires [:schema/add-member-application-status-11-15-16
+               :starcity/add-account-schema
                :starcity/seed-test-applications
                :starcity/add-member-application-schema]}})
 
@@ -75,4 +76,5 @@
                    (map (fn [e] [:db/add e :member-application/status :member-application.status/submitted]) (submitted conn))
                    (map (fn [e] [:db/add e :member-application/status :member-application.status/approved]) (approved conn)))))]
     :requires [:schema/add-member-application-status-11-15-16
+               :starcity/add-account-schema
                :starcity/add-member-application-schema]}})

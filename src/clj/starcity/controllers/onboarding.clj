@@ -4,14 +4,17 @@
              [validators :as v]]
             [compojure.core :refer [context defroutes GET POST]]
             [ring.util.response :as response]
+            [starcity
+             [auth :as auth]
+             [log :as log]
+             [util :refer :all]]
             [starcity.controllers.utils :refer [errors-from ok valid?]]
             [starcity.models
+             [account :as account]
              [onboarding :as onboarding]
              [stripe :as stripe]]
-            [starcity.util :refer :all]
             [starcity.views.onboarding :as view]
-            [starcity.web.messages :as msg :refer [respond-with-errors]]
-            [taoensso.timbre :as timbre]))
+            [starcity.web.messages :as msg :refer [respond-with-errors]]))
 
 ;; =============================================================================
 ;; Helpers
@@ -143,20 +146,24 @@
        view/payment-method))))
 
 (defn- verify-bank-account
-  [{:keys [params identity] :as req}]
-  (letfn [(-respond-error []
-            (respond-with-errors req default-error-message
-                                 view/enter-bank-information))]
+  [{:keys [params] :as req}]
+  (let [account (auth/requester req)
+        err-res (respond-with-errors req default-error-message view/enter-bank-information)]
     (if-let [token (:stripe-token params)]
       (try
-        (let [customer (stripe/create-customer (:db/id identity) token)]
+        (let [{:keys [customer entity]} (stripe/create-customer! account token)]
+          (log/info ::create-customer {:token       token
+                                       :user        (account/email account)
+                                       :customer-id (:id customer)
+                                       :entity-id   (:db/id entity)})
           (if (stripe/bank-account-verified? customer)
             (response/redirect "/onboarding/security-deposit/payment-method/ach/pay")
             (response/redirect "/onboarding/security-deposit/payment-method/ach/microdeposits")))
         (catch Exception e
-          (timbre/error e "Error encountered while trying to create Stripe customer!")
-          (-respond-error)))
-      (-respond-error))))
+          (log/exception e ::create-customer {:token token
+                                              :user  (account/email account)})
+          err-res))
+      err-res)))
 
 (defn- validate-microdeposits
   [params]
@@ -170,15 +177,19 @@
 
 (defn verify-microdeposits
   "Verify the microdeposit amounts that were deposited to user's bank account."
-  [{:keys [params identity] :as req}]
-  (let [params' (transform-when-key-exists params
+  [{:keys [params] :as req}]
+  (let [account (auth/requester req)
+        params' (transform-when-key-exists params
                   {:deposit-1 str->int :deposit-2 str->int})
         vresult (validate-microdeposits params')]
     (if-let [{:keys [deposit-1 deposit-2]} (valid? vresult)]
       (try
-        (stripe/verify-microdeposits (:db/id identity) deposit-1 deposit-2)
+        (let [res (stripe/verify-microdeposits account deposit-1 deposit-2)]
+          (log/info ::verify-microdeposits {:user        (account/email account)
+                                            :customer-id (:customer res)}))
         (response/redirect "/onboarding/security-deposit/payment-method/ach/pay")
         (catch Exception e
+          (log/exception e ::verify-microdeposits {:user (account/email account)})
           (respond-with-errors req (stripe/exception-msg e)
                                view/verify-microdeposits)))
       ;; invalid data
@@ -190,12 +201,13 @@
   deposit or part of it now and the rest at move-in.
 
   Process the ACH payment."
-  [{:keys [params identity] :as req}]
-  (let [payment-choice (:payment-choice params)
-        progress       (onboarding/get-progress (:db/id identity))]
+  [{:keys [params] :as req}]
+  (let [account        (auth/requester req)
+        payment-choice (:payment-choice params)
+        progress       (onboarding/get-progress (:db/id account))]
     (letfn [(-respond-error [msg]
               (let [full-amt (onboarding/full-deposit-amount progress)
-                    code (onboarding/property-code progress)]
+                    code     (onboarding/property-code progress)]
                 (respond-with-errors
                  (assoc req :full-deposit-amount full-amt :property-code code)
                  msg
@@ -203,9 +215,16 @@
       (if (#{"full" "partial"} payment-choice)
         (try
           (onboarding/pay-ach progress payment-choice)
+          (log/info ::ach-payment {:customer-id         (onboarding/stripe-customer-id progress)
+                                   :user                (account/email account)
+                                   :payment-choice      payment-choice
+                                   :security-deposit-id (onboarding/security-deposit-id progress)})
           (response/redirect "/onboarding/security-deposit/complete")
           (catch Exception e
-            (timbre/error e "Error encountered while attempting to charge user!")
+            (log/exception e ::ach-payment {:customer-id         (onboarding/stripe-customer-id progress)
+                                            :user                (account/email account)
+                                            :payment-choice      payment-choice
+                                            :security-deposit-id (onboarding/security-deposit-id progress)})
             (-respond-error default-error-message)))
         (-respond-error "Invalid payment choice. Please try again.")))))
 

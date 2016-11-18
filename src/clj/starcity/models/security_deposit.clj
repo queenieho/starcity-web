@@ -2,9 +2,11 @@
   (:require [clojure.spec :as s]
             [datomic.api :as d]
             [hiccup.core :refer [html]]
+            [plumbing.core :refer [assoc-when]]
             [starcity spec
              [config :refer [hostname]]
-             [datomic :refer [conn tempid]]]
+             [datomic :refer [conn]]
+             [log :as log]]
             [starcity.models
              [account :as account]
              [charge :as charge]
@@ -12,9 +14,7 @@
              [util :refer :all]]
             [starcity.services
              [mailgun :as mailgun]
-             [slack :as slack]]
-            [plumbing.core :refer [assoc-when]]
-            [taoensso.timbre :as timbre]))
+             [slack :as slack]]))
 
 (defn is-security-deposit-charge?
   "Given a `charge` entity, produce the security deposit entity if there is
@@ -50,7 +50,9 @@
                             :channel "#members"
                             :opts {:color "#00d1b2"})
         (catch Exception e
-          (timbre/warn e "Failed to notify after ACH payment success."))))))
+          (log/exception e ::notify.paid {:security-deposit (:db/id security-deposit)
+                                          :charge           (:db/id charge)
+                                          :amount           amount-dollars}))))))
 
 (s/fdef paid
         :args (s/cat :security-deposit :starcity.spec/entity
@@ -94,7 +96,7 @@
                           :opts {:pretext failure-message
                                  :color   "#f00"})
       (catch Exception e
-        (timbre/warn e "Failed while attempting to notify after ACH charge failure.")))))
+        (log/exception e ::notify.charge-failed {:user (account/email account)})))))
 
 (defn- send-microdeposits-failure-email [account]
   (let [content (html
@@ -112,7 +114,10 @@
 ;; NOTE: Notifying logic wrapped in try-catch to avoid sending duplicitous
 ;; messages over one channel and not the failing one.
 (defn microdeposit-verification-failed
-  [{:keys [:db/id :stripe-customer/bank-account-token :stripe-customer/account]}]
+  [{:keys [:db/id
+           :stripe-customer/customer-id
+           :stripe-customer/bank-account-token
+           :stripe-customer/account]}]
   (try
     ;; notify the user that he/she needs to retry
     (send-microdeposits-failure-email account)
@@ -123,7 +128,8 @@
                         :channel "#members"
                         :opts {:color "#f00"})
     (catch Exception e
-      (timbre/warn e "Failed while attempting to notify after microdeposit failure."))))
+      (log/exception e ::notify.verification-failed {:customer-id customer-id
+                                                     :user        (account/email account)}))))
 
 (defn lookup [account-id]
   (one (d/db conn) :security-deposit/account account-id))

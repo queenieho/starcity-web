@@ -32,6 +32,15 @@
         :args (s/cat :application :starcity.spec/entity
                      :status ::status))
 
+(defn submit
+  "Indicate that this application is submitted."
+  [application]
+  @(d/transact
+    conn
+    [{:db/id                           (:db/id application)
+      :member-application/status       :member-application.status/submitted
+      :member-application/submitted-at (java.util.Date.)}]))
+
 ;; =============================================================================
 ;; Queries
 

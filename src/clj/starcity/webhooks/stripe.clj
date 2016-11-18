@@ -1,12 +1,14 @@
 (ns starcity.webhooks.stripe
   (:require [datomic.api :as d]
             [ring.util.response :as response]
-            [starcity.datomic :refer [conn]]
+            [starcity
+             [datomic :refer [conn]]
+             [log :as log]]
             [starcity.models
+             [account :as account]
              [charge :as charge]
              [security-deposit :as deposit]]
-            [starcity.models.stripe.event :as event]
-            [taoensso.timbre :as timbre]))
+            [starcity.models.stripe.event :as event]))
 
 ;; =============================================================================
 ;; Internal
@@ -20,13 +22,17 @@
 (defmethod handle-event "charge.succeeded" [event-data event]
   ;; Get the charge id and retrieve the charge from db
   (let [{charge-id :id amount :amount} (get-in event-data [:data :object])
-        charge-ent                     (charge/lookup charge-id)]
+        ent                            (charge/lookup charge-id)]
+    (log/info :charge/succeeded {:charge-id     charge-id
+                                 :charge-entity (:db/id ent)
+                                 :amount        amount
+                                 :user          (account/email (charge/account ent))})
     ;; Determine whether it's a security deposit charge
-    (when-let [security-deposit (deposit/is-security-deposit-charge? charge-ent)]
+    (when-let [security-deposit (deposit/is-security-deposit-charge? ent)]
       ;; If so, we want to indicate that the security deposit is successfully paid.
-      (deposit/paid security-deposit charge-ent amount))
+      (deposit/paid security-deposit ent amount))
     ;; Regardless, mark the charge as succeeded
-    (charge/succeeded charge-ent)
+    (charge/succeeded ent)
     ;; Finally, indicate that the event was successfully processed
     (event/succeeded event)))
 
@@ -35,8 +41,10 @@
         failure-msg (get-in event-data [:data :object :failure_message])
         charge-ent  (charge/lookup charge-id)
         acct        (:charge/account charge-ent)]
-    (timbre/infof "[STRIPE WEBHOOK] ACH Charge failed for: charge-id - %s, account: %s"
-                  charge-id (:account/email acct))
+    (log/info :charge/failed {:charge-id     charge-id
+                              :message       failure-msg
+                              :charge-entity (:db/id charge-ent)
+                              :user          (account/email acct)})
     ;; When this charge is attached to a security deposit...
     (when-let [security-deposit (deposit/is-security-deposit-charge? charge-ent)]
       ;; And the deposit is completely unpaid...
@@ -56,8 +64,9 @@
         customer-id (get-in event-data [:data :object :customer])]
     (when (= status "verification_failed")
       (let [customer (d/entity (d/db conn) [:stripe-customer/customer-id customer-id])]
-        (timbre/infof "[STRIPE WEBHOOK] Microdeposit verification failed for %s"
-                      (-> customer :stripe-customer/account :account/email))
+        (log/info ::bank-verification.failed {:customer-id customer-id
+                                              :customer-entity  (:db/id customer)
+                                              :user             (account/email (:stripe-customer/account customer))})
         (deposit/microdeposit-verification-failed customer)))
     ;; Indicate that the event was handled successfully
     (event/succeeded event)))
@@ -65,7 +74,7 @@
 ;; An event that we don't have any specific logic to handle.
 (defmethod handle-event :default [event-data entity]
   ;; Log it
-  (timbre/info "[STRIPE WEBHOOK] Received unhandled event." event-data)
+  (log/trace ::ignore-event event-data)
   ;; Mark it as successful
   (event/succeeded entity))
 
@@ -84,8 +93,9 @@
         (let [event-data (event/fetch (event-id params))]
           (handle-event event-data event-entity))
         (catch Exception e
-          (timbre/errorf e "[STRIPE WEBHOOK] Error occurred while processing event with: id - '%s', type - '%s'"
-                         (event-id params) (event-type params))
+          (log/exception e ::process {:event-id        (event-id params)
+                                      :event-entity-id (:db/id event-entity)
+                                      :type            (event-type params)})
           (event/failed event-entity))))))
 
 ;; =============================================================================

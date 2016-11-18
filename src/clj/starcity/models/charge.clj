@@ -4,6 +4,9 @@
             [starcity.spec]
             [clojure.spec :as s]))
 
+;; =============================================================================
+;; Transactions
+
 (defn- status-tx [status charge]
   [{:db/id         (:db/id charge)
     :charge/status status}])
@@ -26,10 +29,16 @@
   [charge]
   (d/transact conn (failed-tx charge)))
 
+;; =============================================================================
+;; Lookup
+
 (defn lookup
   "Look up a charge by the external `charge-id`."
   [charge-id]
   (d/entity (d/db conn) [:charge/stripe-id charge-id]))
+
+;; =============================================================================
+;; Predicates
 
 (defn- is-status? [status charge]
   (= (:charge/status charge) status))
@@ -37,3 +46,8 @@
 (def is-succeeded? (partial is-status? :charge.status/succeeded))
 (def is-failed? (partial is-status? :charge.status/failed))
 (def is-pending? (partial is-status? :charge.status/pending))
+
+;; =============================================================================
+;; Selectors
+
+(def account :charge/account)

@@ -1,9 +1,9 @@
 (ns starcity.services.stripe.request
-  (:require [org.httpkit.client :as http]
+  (:require [cheshire.core :as json]
+            [org.httpkit.client :as http]
             [starcity.config.stripe :as config]
-            [starcity.services.codec :refer [form-encode]]
-            [cheshire.core :as json]
-            [taoensso.timbre :refer [warnf warn]]))
+            [starcity.log :as log]
+            [starcity.services.codec :refer [form-encode]]))
 
 ;; =============================================================================
 ;; Internal
@@ -21,7 +21,7 @@
   [res]
   (do
     (when-let [{:keys [type message param]} (get-in res [:body :error])]
-      (warnf "[STRIPE] %s - type: %s - param: %s" message type param))
+      (log/warn ::request-error {:type type :message message :param param}))
     res))
 
 (defn- params-for

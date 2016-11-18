@@ -49,3 +49,4 @@
 
 (defstate config :start (load-config environment))
 (defstate hostname :start (:hostname config) :stop :noop)
+(defstate data-dir :start (:data-dir config) :stop :noop)

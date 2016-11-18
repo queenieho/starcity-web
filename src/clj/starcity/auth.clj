@@ -3,7 +3,9 @@
             [ring.util.response :as response]
             [buddy.auth :refer [authenticated? throw-unauthorized]]
             [buddy.auth.backends.session :refer [session-backend]]
-            [buddy.auth.accessrules :refer [success error]]))
+            [buddy.auth.accessrules :refer [success error]]
+            [datomic.api :as d]
+            [starcity.datomic :refer [conn]]))
 
 ;; =============================================================================
 ;; Constants
@@ -40,6 +42,12 @@
 
 (def auth-backend
   (session-backend {:unauthorized-handler unauthorized-handler}))
+
+(defn requester
+  "Produces the entity of the user that made the request."
+  [req]
+  (let [account-id (get-in req [:identity :db/id])]
+    (d/entity (d/db conn) account-id)))
 
 ;; =============================================================================
 ;; Access Rules

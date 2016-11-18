@@ -34,4 +34,17 @@
                                      :output-dir       "resources/public/js/cljs/apply/out"
                                      :output-to        "resources/public/js/cljs/apply.js"
                                      :closure-warnings {:externs-validation :off
+                                                        :non-standard-jsdoc :off}}}
+                     {:id           "mars"
+                      :source-paths ["src/cljs/mars" "src/cljs/starcity"]
+                      :jar          true
+                      :compiler     {:main             mars.core
+                                     :optimizations    :advanced
+                                     :elide-asserts    true
+                                     :pretty-print     false
+                                     :parallel-build   true
+                                     :asset-path       "/js/cljs/mars/out"
+                                     :output-dir       "resources/public/js/cljs/mars/out"
+                                     :output-to        "resources/public/js/cljs/mars.js"
+                                     :closure-warnings {:externs-validation :off
                                                         :non-standard-jsdoc :off}}}]}}}

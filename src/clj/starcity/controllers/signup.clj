@@ -4,22 +4,18 @@
              [validators :as v]]
             [buddy.auth :refer [authenticated?]]
             [clojure.string :refer [capitalize lower-case trim]]
-            [datomic.api :as d]
             [hiccup.core :refer [html]]
             [ring.util
              [codec :refer [url-encode]]
              [response :as response]]
             [starcity
              [config :as config]
-             [datomic :refer [conn]]]
+             [log :as log]]
             [starcity.controllers.utils :refer :all]
             [starcity.models.account :as account]
             [starcity.services.mailgun :refer [send-email]]
             [starcity.views.signup :as view]
-            [starcity.web.messages :refer [respond-with-errors]]
-            [taoensso.timbre :as timbre]))
-
-(timbre/refer-timbre)
+            [starcity.web.messages :refer [respond-with-errors]]))
 
 ;; =============================================================================
 ;; Constants
@@ -67,19 +63,15 @@
   [req]
   (ok (view/invalid-activation req)))
 
-(defn- log-activation [email]
-  (infof "EMAIL - [ACTIVATION] - sending activation email to '%s'" email))
-
-(defn- activation-email-content
-  [{:keys [:account/email :account/first-name :account/activation-hash]}]
+(defn- activation-email-content [account]
   (html
    [:body
-    [:p (format "Hi %s," first-name)]
+    [:p (format "Hi %s," (account/first-name account))]
     [:p "Thank you for signing up! "
      [:a {:href (format "%s/signup/activate?email=%s&hash=%s"
                         config/hostname
-                        (url-encode email)
-                        activation-hash)}
+                        (url-encode (account/email account))
+                        (account/activation-hash account))}
       "Click here to activate your account"]
      " and apply for a home."]
     [:p "Best," [:br] [:br] "Mo" [:br] "Head of Community"]]))
@@ -87,14 +79,12 @@
 (def ^:private activation-email-subject
   "Activate Your Account")
 
-(defn- send-activation-email
-  [account-id]
-  (let [acct  (d/entity (d/db conn) account-id)
-        email (:account/email acct)]
-    (log-activation email)
+(defn- send-activation-email [account]
+  (let [email (account/email account)]
+    (log/info ::send-activation-email {:user email})
     (send-email email
                 activation-email-subject
-                (activation-email-content acct))))
+                (activation-email-content account))))
 
 ;; =============================================================================
 ;; API
@@ -115,15 +105,18 @@
     (response/redirect "/apply")
     (ok (view/signup req))))
 
-(defn signup! [{:keys [params] :as req}]
+(defn signup [{:keys [params] :as req}]
   (if-let [params (matching-passwords? params)]
     (let [vresult (-> params clean-params validate)]
       (if-let [{:keys [email password first-name last-name]} (valid? vresult)]
         (if-not (account/exists? email)
           ;; SUCCESS
-          (let [uid (account/create! email password first-name last-name)]
+          (let [account (account/create email password first-name last-name)]
             (do
-              (send-activation-email uid)
+              (log/info :account/created {:user       email
+                                          :first-name first-name
+                                          :last-name  last-name})
+              (send-activation-email account)
               (response/redirect redirect-after-signup)))
           ;; account already exists for email
           (respond-with-errors req (format "An account is already registered for %s." email) view/signup))
@@ -135,15 +128,17 @@
 ;; =============================================================================
 ;; Activation
 
-(defn activate! [{:keys [params session] :as req}]
+(defn activate [{:keys [params session] :as req}]
   (let [{:keys [email hash]} params]
     (if (or (nil? email) (nil? hash))
       (show-invalid-activation req)
       (let [acct (account/by-email email)]
-        (if (= hash (:account/activation-hash acct))
+        (if (= hash (account/activation-hash acct))
           (let [session (assoc session :identity (account/session-data acct))]
-            (account/activate! acct)
-            (-> (response/redirect redirect-after-activation)
-                (assoc :session session)))
+            (do
+              (account/activate acct)
+              (log/info :account/activated {:user email})
+              (-> (response/redirect redirect-after-activation)
+                  (assoc :session session))))
           ;; hashes don't match
           (show-invalid-activation req))))))

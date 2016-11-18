@@ -1,13 +1,13 @@
 (ns starcity.models.stripe
-  (:require [starcity.services.stripe :as service]
-            [starcity.datomic :refer [conn tempid]]
-            [starcity.models.util :refer :all]
+  (:require [clojure.spec :as s]
             [datomic.api :as d]
-            [clojure.spec :as s]
-            [starcity.spec]
-            [clojure.java.io :as io]
             [plumbing.core :refer [assoc-when]]
-            [cheshire.core :as json]))
+            [starcity spec
+             [datomic :refer [conn tempid]]]
+            [starcity.models
+             [account :as account]
+             [util :refer :all]]
+            [starcity.services.stripe :as service]))
 
 ;; =============================================================================
 ;; Helpers
@@ -18,29 +18,59 @@
   (get-in customer [:sources :data]))
 
 (defn- customer-for-account
-  [account-id]
+  [account]
   (:stripe-customer/customer-id
-   (one (d/db conn) :stripe-customer/account account-id)))
+   (one (d/db conn) :stripe-customer/account (:db/id account))))
 
 ;; =============================================================================
 ;; API
 ;; =============================================================================
 
-;; TODO: Spec a "customer"
+(s/def ::id string?)
+(s/def ::object #{"customer"})
+(s/def ::customer
+  (s/keys :req-un [::id ::object]))
+
+;; =============================================================================
+;; Selectors
+
 (def fetch-customer
   (comp :body service/fetch-customer))
+
+(s/fdef fetch-customer
+        :args (s/cat :customer-id string?)
+        :ret ::customer)
 
 (defn bank-accounts
   [customer]
   (filter #(= "bank_account" (:object %)) (customer-sources customer)))
 
+(s/fdef bank-accounts
+        :args (s/cat :customer ::customer))
+
 (defn bank-account
   [customer]
   (first (bank-accounts customer)))
 
+(s/fdef bank-account
+        :args (s/cat :customer ::customer))
+
+(def bank-account-token
+  (comp :id bank-account))
+
+(s/fdef bank-account-token
+        :args (s/cat :customer ::customer))
+
+;; =============================================================================
+;; Predicates
+
 (defn bank-account-verified?
   [customer]
   (= (:status (bank-account customer)) "verified"))
+
+(s/fdef bank-account-verified?
+        :args (s/cat :customer ::customer)
+        :ret boolean?)
 
 (defn verification-failed?
   [customer]
@@ -48,26 +78,35 @@
    (fn [{status :status}] (= status "verification_failed"))
    (bank-accounts customer)))
 
-(def bank-account-token
-  (comp :id bank-account))
+(s/fdef verification-failed?
+        :args (s/cat :customer ::customer)
+        :ret boolean?)
 
-(defn create-customer
+;; =============================================================================
+;; Actions
+
+(defn create-customer!
   "Create a customer on Stripe with given token and create a corresponding
   entity in our DB."
-  [account-id token]
-  (let [email (:account/email (d/entity (d/db conn) account-id))
-        ;; TODO: Include description w/ building?
-        res   (service/create-customer email token)]
+  [account token]
+  (let [res (service/create-customer (account/email account) token)]
     (if-let [error (service/error-from res)]
       ;; Error while creating customer!
       (throw (ex-info "Error encountered while trying to create Stripe customer." error))
       ;; Successful creation of customer
-      (let [customer (service/payload-from res)]
-        @(d/transact conn [{:db/id                       (tempid)
-                            :stripe-customer/customer-id (:id customer)
-                            :stripe-customer/account     account-id}])
-        ;; return the retrieved customer object
-        customer))))
+      (let [customer (service/payload-from res)
+            tid      (tempid)
+            tx       @(d/transact conn [{:db/id                       tid
+                                         :stripe-customer/customer-id (:id customer)
+                                         :stripe-customer/account     (:db/id account)}])]
+        {:entity   (d/entity (d/db conn) (d/resolve-tempid (d/db conn) (:tempids tx) tid))
+         :customer customer}))))
+
+(s/def ::entity :starcity.spec/entity)
+(s/fdef create-customer!
+        :args (s/cat :account :starcity.spec/entity
+                     :token string?)
+        :ret (s/keys :req-un [::customer ::entity]))
 
 (defn delete-customer
   "Deletes a Stripe customer."
@@ -85,8 +124,8 @@
   "Attempt to verify the microdeposit amounts for given `account-id`. Successful
   verification results in the `:stripe-customer/bank-account-token` attribute being
   added to the `:stripe-customer` entity."
-  [account-id deposit-1 deposit-2]
-  (let [cid      (customer-for-account account-id)
+  [account deposit-1 deposit-2]
+  (let [cid      (customer-for-account account)
         customer (fetch-customer cid)
         bid      (bank-account-token customer)
         res      (service/verify-source cid bid deposit-1 deposit-2)]
@@ -97,9 +136,9 @@
                             :db/id                              [:stripe-customer/customer-id cid]}])
         (service/payload-from res)))))
 
-(defn create-charge
+(defn create-charge!
   "Attempt to create a Stripe charge for given `account-id`. Successful creation
-  results in creation of a corresponding `charge`."
+  results in creation of a corresponding `charge`, otherwise an exception is thrown."
   [account-id amount source & {:keys [description customer-id managed-account]}]
   (let [email (:account/email (d/entity (d/db conn) account-id))
         res   (service/charge amount source email
@@ -108,17 +147,18 @@
                               :managed-account managed-account)]
     (if-let [e (service/error-from res)]
       (throw (ex-info "Error encountered while trying to create charge!" e))
-      (let [payload (service/payload-from res)
-            tid     (tempid)
-            tx      @(d/transact conn [(assoc-when
-                                        {:db/id            tid
-                                         :charge/stripe-id (:id payload)
-                                         :charge/account   account-id
-                                         :charge/status    :charge.status/pending}
-                                        :charge/purpose description)])]
-        (d/resolve-tempid (d/db conn) (:tempids tx) tid)))))
+      (let [payload   (service/payload-from res)
+            tid       (tempid)
+            tx        @(d/transact conn [(assoc-when
+                                          {:db/id            tid
+                                           :charge/stripe-id (:id payload)
+                                           :charge/account   account-id
+                                           :charge/status    :charge.status/pending}
+                                          :charge/purpose description)])
+            charge-id (d/resolve-tempid (d/db conn) (:tempids tx) tid)]
+        charge-id))))
 
-(s/fdef create-charge
+(s/fdef create-charge!
         :args (s/cat :account-id :starcity.spec/lookup
                      :amount pos-int?
                      :source string?

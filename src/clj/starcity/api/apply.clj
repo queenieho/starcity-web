@@ -1,21 +1,24 @@
 (ns starcity.api.apply
-  (:require [starcity.models
-             [account :as account]
-             [apply :as apply]
-             [property :as property]
-             [license :as license]]
+  (:require [bouncer
+             [core :as b]
+             [validators :as v :refer [defvalidator]]]
+            [clj-time
+             [coerce :as c]
+             [core :as t]]
+            [compojure.core :refer [defroutes GET POST]]
+            [starcity
+             [auth :as auth]
+             [countries :as countries]
+             [log :as log]]
             [starcity.api.common :as api]
-            [starcity.utils.validation :refer [valid? errors-from]]
-            [starcity.countries :as countries]
-            [compojure.core :refer [context defroutes GET POST]]
-            [taoensso.timbre :as timbre]
-            [bouncer.core :as b]
-            [bouncer.validators :as v :refer [defvalidator]]
-            [clj-time.core :as t]
-            [clj-time.coerce :as c]
-            [starcity.models.application :as application]))
-
-(timbre/refer-timbre)
+            [starcity.models
+             [account :as account]
+             [application :as application]
+             [apply :as apply]
+             [income-file :as income-file]
+             [license :as license]
+             [property :as property]]
+            [starcity.utils.validation :refer [errors-from valid?]]))
 
 ;; =============================================================================
 ;; Initialize
@@ -137,6 +140,7 @@
   "Handle an update of user's application."
   [{:keys [params] :as req}]
   (let [account-id (api/account-id req)
+        account    (auth/requester req)
         app        (application/by-account-id account-id)
         path       (path->key (:path params))
         vresult    (validate (:data params) path)]
@@ -149,23 +153,22 @@
                                                    (apply/update (:data params) account-id path)
                                                    (api/ok (apply/progress account-id))
                                                    (catch Exception e
-                                                     (error e "Error encountered during update!")
+                                                     (log/exception e ::update {:user   (account/email account)
+                                                                                :path   path
+                                                                                :params params})
                                                      (api/server-error))))))
-
-(defn- save-files
-  [account-id file-or-files]
-  (let [files (if (map? file-or-files) [file-or-files] file-or-files)]
-    (account/save-income-files! account-id files)))
 
 (defn income-files-handler
   [{:keys [params] :as req}]
-  (let [account-id (api/account-id req)]
+  (let [account    (auth/requester req)
+        account-id (api/account-id req)]
     (if-let [file-or-files (:files params)]
       (try
         (let [files (if (map? file-or-files) [file-or-files] file-or-files)
-              paths (account/save-income-files! account-id files)]
+              paths (income-file/create account files)]
           (api/ok (apply/progress account-id)))
         (catch Exception e
+          (log/exception e ::income-upload {:user (account/email account)})
           (api/server-error "Something went wrong while uploading your proof of income. Please try again.")))
       (api/malformed {:errors ["You must choose at least one file to upload."]}))))
 
@@ -175,17 +178,20 @@
 (defn payment-handler
   [{:keys [params] :as req}]
   (let [token      (:token params)
-        account-id (api/account-id req)]
+        account    (auth/requester req)
+        account-id (:db/id account)]
     (if (can-pay? account-id token)
       (try
-        (apply/submit-payment account-id token)
+        (apply/submit! account token)
+        (log/info :application/submit {:user (account/email account)})
         (api/ok {})
         (catch Exception e
-          (error e "Error encountered while attempting to submit payment.")
+          (log/exception e :application/submit {:user (account/email account)})
           (api/server-error "Whoops! Something went wrong while processing your payment. Please try again.")))
       (api/malformed {:errors ["You must submit payment."]}))))
 
 (defn help-handler
+  "Handles requests for help from the community advisor."
   [{:keys [params] :as req}]
   (let [{:keys [question sent-from]} params]
     (if-not (empty? question)
@@ -199,8 +205,8 @@
 ;; =============================================================================
 
 ;; /api/v1/apply/...
-(defroutes routes
 
+(defroutes routes
   (GET "/" [] initialize-handler)
 
   (POST "/update" [] update-handler)
@@ -209,5 +215,4 @@
 
   (POST "/help" [] help-handler)
 
-  (POST "/submit-payment" [] payment-handler)
-  )
+  (POST "/submit-payment" [] payment-handler))

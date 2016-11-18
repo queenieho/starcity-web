@@ -1,9 +1,9 @@
 (ns starcity.controllers.landing
-  (:require [starcity.views.landing :as view]
-            [starcity.services.mailchimp :as mailchimp]
+  (:require [ring.util.response :as response]
             [starcity.controllers.utils :refer :all]
-            [ring.util.response :as response]
-            [taoensso.timbre :refer [infof]]))
+            [starcity.log :as log]
+            [starcity.services.mailchimp :as mailchimp]
+            [starcity.views.landing :as view]))
 
 ;; =============================================================================
 ;; Helpers
@@ -11,8 +11,8 @@
 
 (defn- log-subscriber-request
   [email {:keys [status body]}]
-  (infof "MAILCHIMP :: add subscriber :: email - %s :: status - %s :: body - %s"
-         email status body))
+  (log/info :mailchimp/new-subscriber {:email  email
+                                       :status status}))
 
 (def ^:private url-after-newsletter-signup
   "/?newsletter=subscribed#newsletter")

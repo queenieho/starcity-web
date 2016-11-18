@@ -10,9 +10,6 @@
              [datomic :refer [conn tempid]]]
             [starcity.models.util :refer :all]
             [starcity.models.util.update :refer [make-update-fn]]
-            [clojure.java.io :as io]
-            [me.raynes.fs :as fs]
-            [taoensso.timbre :as timbre]
             [starcity.spec]
             [clojure.spec :as s]))
 
@@ -45,6 +42,24 @@
 (def member-role :account.role/tenant)
 
 ;; =============================================================================
+;; Selectors
+
+(def email :account/email)
+(def first-name :account/first-name)
+(def middle-name :account/middle-name)
+(def last-name :account/last-name)
+(def dob :account/dob)
+(def activation-hash :account/activation-hash)
+(def member-application :account/member-application)
+
+(defn full-name
+  "Full name of this account."
+  [{:keys [:account/first-name :account/last-name :account/middle-name]}]
+  (if (not-empty middle-name)
+    (format "%s %s %s" first-name middle-name last-name)
+    (format "%s %s" first-name last-name)))
+
+;; =============================================================================
 ;; Passwords
 
 (defn- hash-password [password]
@@ -66,19 +81,23 @@
          password (take n (repeatedly #(rand-nth chars)))]
      (reduce str password))))
 
-(defn change-password!
-  [account-id new-password]
-  @(d/transact conn [{:db/id account-id :account/password (hash-password new-password)}]))
+(defn change-password
+  "Change the password for `account` to `new-password`. `new-password` will be
+  hashed before it is saved to db."
+  [account new-password]
+  @(d/transact conn [{:db/id (:db/id account) :account/password (hash-password new-password)}]))
 
-(defn reset-password!
-  [account-id]
+(s/fdef change-password
+        :args (s/cat :account :starcity.spec/entity
+                     :new-password string?))
+
+(defn reset-password
+  "Reset the password for `account` by generating a random password. Return the
+  generated password."
+  [account]
   (let [new-password (generate-random-password)]
-    (change-password! account-id new-password)
+    (change-password account new-password)
     new-password))
-
-;; =============================================================================
-;; API
-;; =============================================================================
 
 ;; =============================================================================
 ;; Predicates
@@ -86,7 +105,7 @@
 (defn exists?
   "Returns an account iff one exists under this username, and nil otherwise."
   [email]
-  (one (d/db conn) :account/email email))
+  (d/entity (d/db conn) [:account/email email]))
 
 (defn applicant?
   [account]
@@ -96,9 +115,13 @@
   [account]
   (= (:account/role account) :account.role/admin))
 
+(defn tenant?
+  [account]
+  (= (:account/role account) :account.role/tenant))
+
 (defn is-password?
-  [account-id password]
-  (let [hash (:account/password (d/entity (d/db conn) account-id))]
+  [account password]
+  (let [hash (:account/password account)]
     (check-password password hash)))
 
 ;; =============================================================================
@@ -117,7 +140,7 @@
 ;; =============================================================================
 ;; Transactions
 
-(defn create!
+(defn create
   "Create a new user record in the database, and return the user's id upon
   successful creation."
   [email password first-name last-name]
@@ -131,65 +154,26 @@
                         :role            :account.role/applicant})
         tid  (tempid)
         tx   @(d/transact conn [(assoc acct :db/id tid)])]
-    (d/resolve-tempid (d/db conn) (:tempids tx) tid)))
+    (d/entity (d/db conn) (d/resolve-tempid (d/db conn) (:tempids tx) tid))))
 
-(defn activate!
+(defn activate
+  "Activate the account by setting the `:account/activated` flag to true."
   [account]
   (let [ent {:db/id (:db/id account) :account/activated true}]
     @(d/transact conn [ent])))
 
-(def update!
-  (make-update-fn
-   {:dob          (fn [{id :db/id} {dob :dob}]
-                    [[:db/add id :account/dob dob]])
-    :name         (fn [{id :db/id} {{:keys [first middle last]} :name}]
-                    (map-form->list-form id {:account/first-name  first
-                                             :account/last-name   last
-                                             :account/middle-name middle}))
-    :phone-number (fn [{id :db/id} {phone-number :phone-number}]
-                    [[:db/add id :account/phone-number phone-number]])}))
-
-(defn- write-income-file
-  "Write a an income file to the filesystem and add an entity that points to the
-  account and file path."
-  [account-id {:keys [filename content-type tempfile size]}]
-  (try
-    (let [output-dir  (format "%s/income-uploads/%s" (:data-dir config/config) account-id)
-          output-path (str output-dir "/" filename)]
-      (do
-        (when-not (fs/exists? output-dir)
-          (fs/mkdirs output-dir))
-        (io/copy tempfile (java.io.File. output-path))
-        @(d/transact conn [{:income-file/account     account-id
-                            :income-file/content-type content-type
-                            :income-file/path         output-path
-                            :income-file/size         (long size)
-                            :db/id                    (tempid)}])
-        (timbre/infof "Wrote income file for account-id %s - %s - %s - %d"
-                      account-id filename content-type size)
-        output-path))
-    ;; catch to log, then rethrow
-    (catch Exception e
-      (timbre/error e "Error encountered while writing income file!"
-                    (format "%s - %s - %s - %d" account-id filename content-type size))
-      (throw e))))
-
-(defn save-income-files!
-  "Save the income files for a given account."
-  [account-id files]
-  (doall (map (partial write-income-file account-id) files)))
-
 ;; =============================================================================
-;; Misc
+;; Authentication
 
 (defn session-data
-  [ent]
-  {:account/email      (:account/email ent)
-   :account/role       (:account/role ent)
-   :account/activated  (:account/activated ent)
-   :account/first-name (:account/first-name ent)
-   :account/last-name  (:account/last-name ent)
-   :db/id              (:db/id ent)})
+  "Produce the data that should be stored in the session for `account`."
+  [account]
+  {:account/email      (:account/email account)
+   :account/role       (:account/role account)
+   :account/activated  (:account/activated account)
+   :account/first-name (:account/first-name account)
+   :account/last-name  (:account/last-name account)
+   :db/id              (:db/id account)})
 
 (defn authenticate
   "Return the user record found under `username' iff a user record exists for
@@ -199,21 +183,59 @@
     (when (check-password password (:account/password acct))
       (session-data acct))))
 
-;; =============================================================================
-;; Selectors
 
-(defn full-name
-  "Full name of this account."
-  [{:keys [:account/first-name :account/last-name :account/middle-name]}]
-  (if (not-empty middle-name)
-    (format "%s %s %s" first-name middle-name last-name)
-    (format "%s %s" first-name last-name)))
 
-(defn income-files
-  "Fetch the income files for this account."
-  [account]
-  (qes '[:find ?e
-         :in $ ?a
-         :where
-         [?e :income-file/account ?a]]
-       (d/db conn) (:db/id account)))
+(comment
+
+  (require '[clj-time.core :as t])
+
+  (require '[clj-time.coerce :as c])
+
+  (defn- in-september? [t]
+    (t/within? (t/interval (t/date-time 2016 9 1) (t/date-time 2016 9 30)) t))
+
+  (defn- in-october? [t]
+    (t/within? (t/interval (t/date-time 2016 10 1) (t/date-time 2016 10 31)) t))
+
+  (defn- in-november? [t]
+    (t/within? (t/interval (t/date-time 2016 11 1) (t/date-time 2016 11 30)) t))
+
+  (defn- accounts-created []
+    (->> (d/q '[:find ?tx-time
+                :where
+                [?e :account/email _ ?tx]
+                [?tx :db/txInstant ?tx-time]]
+              (d/db conn))
+         (map (comp c/from-date first))))
+
+  (defn- applications-created []
+    (->> (d/q '[:find ?tx-time
+                :where
+                [?e :member-application/desired-availability _ ?tx]
+                [?tx :db/txInstant ?tx-time]]
+              (d/db conn))
+         (map (comp c/from-date first))))
+
+  {:accounts
+   {:september (->> (accounts-created)
+                    (filter in-september?)
+                    (count))
+    :october   (->> (accounts-created)
+                    (filter in-october?)
+                    (count))
+    :november  (->> (accounts-created)
+                    (filter in-november?)
+                    (count))}
+   :applications
+   {:september (->> (applications-created)
+                    (filter in-september?)
+                    (count))
+    :october   (->> (applications-created)
+                    (filter in-october?)
+                    (count))
+    :november  (->> (applications-created)
+                    (filter in-november?)
+                    (count))}}
+
+
+  )

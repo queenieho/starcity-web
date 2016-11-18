@@ -1,14 +1,17 @@
 (ns starcity.api.admin.applications.entry
-  (:require [datomic.api :as d]
-            [starcity.util :refer :all]
-            [clojure.spec :as s]
-            [clojure.string :refer [split]]
-            [starcity.datomic :refer [conn]]
+  (:require [clojure
+             [spec :as s]
+             [string :refer [split]]]
+            [datomic.api :as d]
+            [starcity
+             [datomic :refer [conn]]
+             [util :refer :all]]
             [starcity.api.common :as api]
-            [starcity.models.account :as account]
-            [starcity.models.application :as application]
-            [starcity.models.property :as property]
-            [starcity.models.approval :as approval]))
+            [starcity.models
+             [account :as account]
+             [application :as application]
+             [income-file :as income-file]
+             [property :as property]]))
 
 ;; =============================================================================
 ;; Internal
@@ -21,13 +24,13 @@
    :base-price    (property/base-rent property license)})
 
 (defn- income-type [account]
-  (if (empty? (account/income-files account)) "other" "file"))
+  (if (empty? (income-file/by-account account)) "other" "file"))
 
 (defn- parse-income [account]
   (letfn [(-parse-income-file [{:keys [:income-file/path :db/id]}]
             {:name (-> (split path #"/") last) :file-id id})]
     {:type  (income-type account)
-     :files (map -parse-income-file (account/income-files account))}))
+     :files (map -parse-income-file (income-file/by-account account))}))
 
 (defn- parse-address
   [{:keys [:address/lines

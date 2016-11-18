@@ -2,23 +2,23 @@
   (:require [bouncer
              [core :as b]
              [validators :as v]]
+            [starcity.auth :as auth]
             [clojure.string :as str]
             [starcity.controllers.utils :refer [errors-from ok valid?]]
             [starcity.models.account :as account]
             [starcity.util :refer :all]
             [starcity.views.settings :as view]
-            [starcity.web.messages
-             :refer
-             [respond-with-errors respond-with-success]]))
+            [starcity.web.messages :refer [respond-with-errors
+                                           respond-with-success]]))
 
 ;; =============================================================================
 ;; Validation
 ;; =============================================================================
 
 (defn- validate-password-params
-  [params account-id]
+  [params account]
   (letfn [(matching-password? [password]
-            (account/is-password? account-id password))]
+            (account/is-password? account password))]
     (b/validate
      params
      {:current-password [[v/required :message "You must enter your current password."]
@@ -44,13 +44,14 @@
 (def show-account-settings
   (comp ok view/account-settings))
 
-(defn update-password!
-  [{:keys [identity params] :as req}]
+(defn update-password
+  [{:keys [params] :as req}]
   (if-let [params (-> params scrub-password-params matching-passwords?)]
-    (let [vresult (validate-password-params params (:db/id identity))]
+    (let [account (auth/requester req)
+          vresult (validate-password-params params account)]
       (if-let [{:keys [password]} (valid? vresult)]
         (do
-          (account/change-password! (:db/id identity) password)
+          (account/change-password account password)
           (respond-with-success req "Successfully changed your password!" view/account-settings))
         (respond-with-errors req (errors-from vresult) view/account-settings)))
     (respond-with-errors req "Your passwords must match!" view/account-settings)))
