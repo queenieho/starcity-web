@@ -121,10 +121,10 @@
 (def ^:private november
   (let [fa-attrs {:style "color: black; font-size: 60px; height: 64px; width: 64px; line-height: 60px;"}]
     (l/section
-    {:class "is-fullheight" :id "november"}
+     {:class "is-fullheight" :id "november"}
     (l/container
      {:class "has-text-centered is-vcentered"}
-     (title "<b>November</b> is set for <b>move-in</b>, starting at <b>$2100/month</b>")
+     (title "<b>November</b> is set for <b>move-in</b>, starting at <b>$2000/month</b>")
      (subtitle "We'd love to show you more &mdash; "
                [:a {:href "mailto:team@joinstarcity.com"} "contact us"]
                " now to schedule a tour!")
