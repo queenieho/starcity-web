@@ -1,4 +1,4 @@
-(defproject starcity "1.1.3"
+(defproject starcity "1.1.4"
   :description "The web app for https://joinstarcity.com"
   :url "https://joinstarcity.com"
   :license {:name "Eclipse Public License"
@@ -30,6 +30,7 @@
                  ;; db
                  [com.datomic/datomic-pro "0.9.5372" :exclusions [com.google.guava/guava]]
                  [org.postgresql/postgresql "9.4.1211"]
+                 [datomic-schema "1.3.0"]
                  ;; util
                  [prismatic/plumbing "0.5.3"]
                  ;; cljs

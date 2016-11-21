@@ -176,10 +176,7 @@
 ;; =============================================================================
 ;; Misc.
 
-;; NOTE: A way to create a unified "message" passing interface would be to
-;; create a protocol (e.g. IHasMessage - ha) that could be extended to strings,
-;; maps, Exceptions, more?
-
+;; TODO: Janky? Possible to remove? Only used in one place...
 (defn exception-msg
   [e]
   (-> e ex-data :message))

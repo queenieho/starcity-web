@@ -27,16 +27,15 @@
 (defn available-units
   "Retrieve all units that are currently available.
 
-  A property is considered *available* iff it has a value under
-  its :unit/available-on attribute."
-  [property-id]
-  (->> (d/q '[:find ?units
-              :in $ ?property
-              :where
-              [?property :property/units ?units]
-              [?units :unit/available-on _]]
-            (d/db conn) property-id)
-       (map first)))
+  A property is considered *available* iff no :account/unit references it."
+  [property]
+  (qes '[:find ?u
+         :in $ ?p
+         :where
+         [?p :property/units ?u]
+         [?a :account/email _]
+         (not [?a :account/unit ?u])]
+       (d/db conn) (:db/id property)))
 
 (defn many
   [pattern]

@@ -102,7 +102,7 @@
                                    :stripe-token token
                                    :amount       application-fee}))
     (catch Exception e
-      (log/exception e ::application-fee {:user     (account/email account)
+      (log/exception e ::application-fee {:user         (account/email account)
                                           :stripe-token token
                                           :amount       application-fee})
       (throw e))))

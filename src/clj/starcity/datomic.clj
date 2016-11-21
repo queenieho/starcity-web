@@ -4,33 +4,27 @@
             [starcity.environment :as env]
             [starcity.config.datomic :as config]
             [starcity.datomic.conformity :as c]
-            [starcity.datomic.migrations :refer [migration-norms]]
-            [taoensso.timbre :as timbre]))
-
-(timbre/refer-timbre)
+            [starcity.datomic
+             [schema :as schema]
+             [migrata :as migrata]
+             [seed :as seed]]
+            [starcity.log :as log]))
 
 ;; =============================================================================
 ;; Helpers
 ;; =============================================================================
 
-(defn- run-migrations
-  "Given a database connection, run database migrations."
-  [conn]
-  (let [norms (migration-norms conn)]
-    (info "Ensuring the following conforms: " (keys norms))
-    (c/ensure-conforms conn norms)))
-
-;; TODO: Include information about the connection URI, but without the
-;; username/password included
 (defn- new-connection [{:keys [uri] :as conf}]
-  (info "Establishing Datomic Connection!" conf)
+  (log/info ::connecting {:uri uri})
   (d/create-database uri)
   (let [conn (d/connect uri)]
-    (run-migrations conn)
+    (schema/install conn)
+    (migrata/migrate conn)
+    (when-not (env/is-production?) (seed/seed conn))
     conn))
 
 (defn- disconnect [{:keys [uri]} conn]
-  (info "Releasing Datomic connection!")
+  (log/info ::disconnecting {:uri uri})
   (.release conn))
 
 ;; =============================================================================
