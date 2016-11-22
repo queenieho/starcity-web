@@ -22,6 +22,8 @@
                  [me.raynes/fs "1.4.6"]
                  [cpath-clj "0.1.2"]
                  [com.taoensso/timbre "4.7.4"]
+                 [datomic-sesison-store "0.1.2"]
+                 [com.taoensso/nippy "2.12.2"]
                  [buddy "1.1.0"]
                  [bouncer "1.0.0"]
                  [nilenso/mailgun "0.2.3"]
@@ -44,7 +46,7 @@
                  [day8.re-frame/http-fx "0.1.2"]
                  [hiccups "0.3.0"]]
 
-  :repositories {"my.datomic.com" {:url   "https://my.datomic.com/repo"
+  :repositories {"my.datomic.com" {:url      "https://my.datomic.com/repo"
                                    :username [:env/datomic_username]
                                    :password [:env/datomic_password]}}
 

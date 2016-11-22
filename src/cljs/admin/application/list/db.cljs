@@ -14,8 +14,8 @@
                 :sortable [:name :term :move-in :completed-at]}
    :list       []
    :total      0
-   :sort       {:direction :desc :key :name}
+   :sort       {:direction :asc :key :completed-at}
    :pagination {:limit 10 :offset 0}
    :query      ""
-   :view       :all
+   :view       :submitted
    :views      [:all :in-progress :submitted :approved :rejected]})

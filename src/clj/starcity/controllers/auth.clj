@@ -41,7 +41,11 @@
   "Log the user out by clearing the session."
   [_]
   (-> (response/redirect "/login")
-      (assoc :session {})))
+      ;; NOTE: Must assoc `nil` into the session for this to work. Seems weird
+      ;; to have different behavior when a key has a value of `nil` than for
+      ;; when a key is not present. Given what `nil` means, these should be the
+      ;; same? Perhaps submit a PR?
+      (assoc :session nil)))
 
 (def show-forgot-password
   (comp ok view/forgot-password))

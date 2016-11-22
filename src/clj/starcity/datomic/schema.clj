@@ -14,6 +14,7 @@
              [property :as property]
              [income-file :as income-file]
              [security-deposit :as security-deposit]
+             [session :as session]
              [stripe-customer :as stripe-customer]
              [stripe-event :as stripe-event]]
             [starcity.log :as log]))
@@ -32,6 +33,7 @@
          property/norms
          income-file/norms
          security-deposit/norms
+         session/norms
          stripe-customer/norms
          stripe-event/norms))
 

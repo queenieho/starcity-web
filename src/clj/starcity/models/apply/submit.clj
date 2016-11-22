@@ -72,10 +72,9 @@
     (->> phrases count rand-int (get phrases))))
 
 (defn notify-us
-  [account-id]
-  (let [acct  (d/entity (d/db conn) account-id)
-        title (format "%s's application" (account/full-name acct))
-        link  (format "%s/admin/applications/%s" config/hostname account-id)]
+  [account]
+  (let [title (format "%s's application" (account/full-name account))
+        link  (format "%s/admin/applications/%s" config/hostname (:db/id (:account/member-application account)))]
     (slack/rich-message title "View it here on the admin dashboard."
                         :channel "#members"
                         :opts {:pretext    (format "%s! Someone signed up! :partyparrot:"
@@ -127,5 +126,5 @@
       ;; Again, not critical. We can catch this in the logs, and this is only a
       ;; confirmation.
       (send-submission-email! account)
-      (notify-us (:db/id account))
+      (notify-us account)
       (application/submit application))))

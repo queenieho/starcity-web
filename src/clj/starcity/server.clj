@@ -12,8 +12,10 @@
              [params :refer [wrap-params]]
              [resource :refer [wrap-resource]]
              [session :refer [wrap-session]]]
-            [ring.middleware.session.cookie :refer [cookie-store]]
+            ;; [ring.middleware.session.cookie :refer [cookie-store]]
+            [ring.middleware.session.datomic :refer [datomic-store]]
             [starcity
+             [datomic :refer [conn]]
              [auth :refer [auth-backend]]
              [config :refer [config]]
              [log :as log]
@@ -47,7 +49,13 @@
                                       :user (:account/email identity))))
     (handler req)))
 
-(def app-handler
+(defn- datomic-session-store [conn]
+  (letfn [(session->entity [value]
+            {:session/value   value
+             :session/account (-> value :identity :db/id)})]
+    (datomic-store conn :session->entity session->entity)))
+
+(defn app-handler [conn]
   (-> app-routes
       (wrap-logging)
       (wrap-authorization auth-backend)
@@ -59,7 +67,7 @@
       (wrap-params)
       (wrap-multipart-params)
       (wrap-resource "public")
-      (wrap-session {:store (cookie-store {:key (get-in config [:session :key])})})
+      (wrap-session {:store (datomic-session-store conn)})
       (wrap-exception-handling)
       (wrap-content-type)))
 
@@ -69,7 +77,7 @@
 (defn- start-server
   [{:keys [port] :as conf}]
   (log/debug ::start {:port port})
-  (run-server app-handler {:port port :max-body (* 20 1024 1024)}))
+  (run-server (app-handler conn) {:port port :max-body (* 20 1024 1024)}))
 
 (defn- stop-server
   [server]
