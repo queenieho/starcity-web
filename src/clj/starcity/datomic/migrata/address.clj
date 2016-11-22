@@ -12,7 +12,7 @@
               [?a :address/locality _]
               [(missing? $ ?a :address/country)]]
             (d/db conn))
-       (mapv #([:db/add % :address/country "US"]))))
+       (mapv (fn [e] [:db/add e :address/country "US"]))))
 
 (defn norms [conn]
   {:seed/add-countries-to-addresses-10-8-16

@@ -21,8 +21,8 @@
                      (d/db conn))]
     (vec
      (concat
-      (map #([:db/add % :member-application/has-pet true]) with)
-      (map #([:db/add % :member-application/has-pet false]) without)))))
+      (map (fn [e] [:db/add e :member-application/has-pet true]) with)
+      (map (fn [e] [:db/add e :member-application/has-pet false]) without)))))
 
 ;; =============================================================================
 ;; :member-application/status
@@ -62,9 +62,9 @@
   {:added "1.1.3"}
   [conn]
   (concat
-   (map #([:db/add % :member-application/status :member-application.status/in-progress]) (in-progress conn))
-   (map #([:db/add % :member-application/status :member-application.status/submitted]) (submitted conn))
-   (map #([:db/add % :member-application/status :member-application.status/approved]) (approved conn))))
+   (map (fn [e] [:db/add e :member-application/status :member-application.status/in-progress]) (in-progress conn))
+   (map (fn [e] [:db/add e :member-application/status :member-application.status/submitted]) (submitted conn))
+   (map (fn [e] [:db/add e :member-application/status :member-application.status/approved]) (approved conn))))
 
 ;; =============================================================================
 ;; Norms
