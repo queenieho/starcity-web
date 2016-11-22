@@ -6,26 +6,29 @@
             [starcity.datomic :refer [conn]]
             [starcity.models
              [account :as account]
-             [util :refer :all]]))
+             [util :refer :all]]
+            [clj-time.coerce :as c]))
 
 ;; =============================================================================
 ;; Internal
 ;; =============================================================================
 
 (def ^:private view->role
-  {:members    :account.role/tenant
+  {:members    :account.role/member
    :applicants :account.role/applicant
-   :pending    :account.role/pending})
+   :pending    :account.role/onboarding})
 
-(def ^:private keyfn
-  {:name #(str (:account/first-name %) (:account/last-name %))})
+(def ^:private key->sortfn
+  {:name       #(str (:account/first-name %) (:account/last-name %))
+   :created-at (comp c/to-long :account/created-at)})
 
 (defn- parse [offset index account]
   {:id           (:db/id account)
    :number       (+ index offset)
    :name         (account/full-name account)
    :email        (:account/email account)
-   :phone-number (:account/phone-number account)})
+   :phone-number (:account/phone-number account)
+   :created-at   (account/created-at account)})
 
 (def ^:private search-rules
   '[[(search ?account ?query) [(fulltext $ :account/first-name ?query) [[?account]]]]
@@ -56,7 +59,7 @@
 
 (defn- accounts [limit offset direction sort-key view q]
   (->> (query-accounts view q)
-       (sort-by (get keyfn sort-key))
+       (sort-by (get key->sortfn sort-key))
        (order-by direction)
        (drop offset)
        (take limit)
@@ -105,6 +108,6 @@
         :args (s/cat :limit integer?
                      :offset (s/and integer? #(>= % 0))
                      :direction #{:asc :desc}
-                     :sort-key #{:name}
+                     :sort-key #{:name :created-at}
                      :view #{:all :members :applicants :pending}
                      :query string?))

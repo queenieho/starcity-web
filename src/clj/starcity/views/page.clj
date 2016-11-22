@@ -55,9 +55,9 @@
 (defn- auth-item [req]
   (let [role          (get-in req [:identity :account/role])
         [uri content] (case role
-                        :account.role/applicant ["/apply" "Resume Application"]
-                        :account.role/pending   (onboarding-auth-item req)
-                        :account.role/admin     ["/admin" "Admin"]
+                        :account.role/applicant  ["/apply" "Resume Application"]
+                        :account.role/onboarding (onboarding-auth-item req)
+                        :account.role/admin      ["/admin" "Admin"]
                         ["/login" "Log In"])]
     (n/nav-item uri content :button)))
 

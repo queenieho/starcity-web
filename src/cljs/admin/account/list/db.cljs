@@ -6,11 +6,12 @@
   {:header     {:keys     [:number
                            :name
                            :email
-                           :phone-number]
-                :sortable [:name]}
+                           :phone-number
+                           :created-at]
+                :sortable [:name :created-at]}
    :list       []
    :total      0
-   :sort       {:direction :desc :key :name}
+   :sort       {:direction :asc :key :created-at}
    :pagination {:limit 10 :offset 0}
    :query      ""
    :view       :all

@@ -27,19 +27,25 @@
 ;; Roles
 
 (derive :account.role/admin :account.role/applicant)
+(derive :account.role/admin :account.role/member)
+(derive :account.role/admin :account.role/onboarding)
+;; deprecated
 (derive :account.role/admin :account.role/tenant)
 (derive :account.role/admin :account.role/pending)
 
 (s/def ::role
   #{:account.role/admin
-    :account.role/pending
+    :account.role/member
+    :account.role/onboarding
     :account.role/applicant
+    ;; deprecated
+    :account.role/pending
     :account.role/tenant})
 
 (def admin-role :account.role/admin)
-(def onboarding-role :account.role/pending)
+(def onboarding-role :account.role/onboarding)
 (def applicant-role :account.role/applicant)
-(def member-role :account.role/tenant)
+(def member-role :account.role/member)
 
 ;; =============================================================================
 ;; Selectors
@@ -58,6 +64,21 @@
   (if (not-empty middle-name)
     (format "%s %s %s" first-name middle-name last-name)
     (format "%s %s" first-name last-name)))
+
+(defn created-at
+  "Find the time that this account was created at.
+
+  This is accomplished by looking at `db/txInstant` of the first transaction
+  associated with `:account/email`."
+  [account]
+  (-> (d/q '[:find [?tx-time ...]
+             :in $ ?e
+             :where
+             [?e :account/email _ ?t]
+             [?t :db/txInstant ?tx-time]]
+           (d/db conn) (:db/id account))
+      (sort)
+      (first)))
 
 ;; =============================================================================
 ;; Passwords
@@ -115,9 +136,9 @@
   [account]
   (= (:account/role account) :account.role/admin))
 
-(defn tenant?
+(defn member?
   [account]
-  (= (:account/role account) :account.role/tenant))
+  (= (:account/role account) :account.role/member))
 
 (defn is-password?
   [account password]

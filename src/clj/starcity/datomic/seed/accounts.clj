@@ -18,8 +18,8 @@
 
 (def tx-data
   [(account "test@test.com" "Applicant" "User" "5103817881" :account.role/applicant)
-   (account "member@test.com" "Member" "User" "5103817881" :account.role/tenant)
-   (account "onboarding@test.com" "Onboarding" "User" "5103817881" :account.role/pending)
+   (account "member@test.com" "Member" "User" "5103817881" :account.role/member)
+   (account "onboarding@test.com" "Onboarding" "User" "5103817881" :account.role/onboarding)
    (account "admin@test.com" "Admin" "User" "5103817881" :account.role/admin)])
 
 (defn seed [conn]

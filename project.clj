@@ -1,4 +1,4 @@
-(defproject starcity "1.1.4"
+(defproject starcity "1.1.5"
   :description "The web app for https://joinstarcity.com"
   :url "https://joinstarcity.com"
   :license {:name "Eclipse Public License"
@@ -22,7 +22,6 @@
                  [me.raynes/fs "1.4.6"]
                  [cpath-clj "0.1.2"]
                  [com.taoensso/timbre "4.7.4"]
-                 [datomic-sesison-store "0.1.2"]
                  [com.taoensso/nippy "2.12.2"]
                  [buddy "1.1.0"]
                  [bouncer "1.0.0"]

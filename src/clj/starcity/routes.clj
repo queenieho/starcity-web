@@ -30,10 +30,10 @@
 (defn- redirect-by-role
   [{:keys [identity] :as req} msg]
   (-> (case (:account/role identity)
-        :account.role/applicant "/apply"
-        :account.role/pending   "/onboarding"
-        :account.role/admin     "/admin"
-        :account.role/tenant    "/me"
+        :account.role/applicant  "/apply"
+        :account.role/onboarding "/onboarding"
+        :account.role/admin      "/admin"
+        :account.role/member     "/me"
         "/")
       (response/redirect)))
 
@@ -98,13 +98,13 @@
            (restrict
             (routes
              (GET "/*" [] dashboard/show))
-            {:handler  {:and [authenticated-user (user-isa :account.role/tenant)]}
+            {:handler  {:and [authenticated-user (user-isa :account.role/member)]}
              :on-error redirect-by-role}))
 
 
   (context "/onboarding" []
            (restrict onboarding/routes
-                     {:handler  {:and [authenticated-user (user-isa :account.role/pending)]}
+                     {:handler  {:and [authenticated-user (user-isa :account.role/onboarding)]}
                       :on-error redirect-by-role}))
 
   (context "/api/v1" [] api/routes)

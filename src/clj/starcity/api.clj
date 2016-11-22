@@ -22,10 +22,10 @@
     (restrict apply/routes (restrictions :account.role/applicant)))
 
   (context "/dashboard" []
-    (restrict dashboard/routes (restrictions :account.role/tenant)))
+    (restrict dashboard/routes (restrictions :account.role/member)))
 
   (context "/admin" []
     (restrict admin/routes (restrictions :account.role/admin)))
 
   (context "/onboarding" []
-    (restrict onboarding/routes (restrictions :account.role/pending))))
+    (restrict onboarding/routes (restrictions :account.role/onboarding))))
