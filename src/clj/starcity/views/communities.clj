@@ -30,7 +30,7 @@
          (i/image {:class "is-4by3"} "/assets/img/soma/card-banner.jpg")]]
        [:div.card-content
         [:p.title.is-3 "West SoMa"]
-        [:p.subtitle.is-5 "Available <b>November 15, 2016</b>"]]])
+        [:p.subtitle.is-5 "Available <b>Now</b>"]]])
      (l/column
       {:class "is-half"}
       [:div.card.is-fullwidth
@@ -39,7 +39,7 @@
          (i/image {:class "is-4by3"} "/assets/img/mission/card-banner.jpg")]]
        [:div.card-content
         [:p.title.is-3 "The Mission"]
-        [:p.subtitle.is-5 "Available <b>January 1, 2017</b>"]]]))
+        [:p.subtitle.is-5 "Available <b>February 15, 2017</b>"]]]))
 
     [:div.has-text-centered
      [:a.button.is-primary.is-large {:href "/signup"} "Apply Now"]])))

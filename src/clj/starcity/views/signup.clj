@@ -82,7 +82,7 @@
 (def signup
   (p/page
    (p/title "Sign Up")
-   (simple/primary
+   (simple/success
     (simple/body
      (simple/title "Sign Up")
      (simple/subtitle "To begin your "
