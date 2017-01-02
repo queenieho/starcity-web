@@ -13,6 +13,9 @@
 ;; Components
 ;; =============================================================================
 
+(def ^:private completion-date
+  "February 15, 2017")
+
 ;; =============================================================================
 ;; Banner
 
@@ -41,7 +44,7 @@
         ;; [:b [:a {:href "#people"} "people"]]
         ;; " that made it possible."
         ]
-       [:p.subtitle.is-4 [:i "Coming January 1, 2017"]]))))))
+       [:p.subtitle.is-4 [:i "Coming " completion-date]]))))))
 
 ;; =============================================================================
 ;; Rooms
@@ -52,7 +55,7 @@
     "Brand new, "
     [:strong "fully-furnished"]
     " rooms"
-    "&mdash; just bring yourself.")))
+    "&mdash; just bring yourself")))
 
 (defn- room-image [num]
   (i/image
@@ -103,8 +106,7 @@
      a cozy home: living rooms, dining areas, restaurant-grade kitchens and
      media rooms.")
       (subtitle
-       "<b>However, it's still under construction!</b> We're expecting construction to be complete by <b>January 1st,
-       2017</b>."))
+       "<b>However, it's still under construction!</b> We're expecting construction to be complete by " [:b completion-date] "."))
      (l/column
       {:class "is-half"}
       (l/column
@@ -187,7 +189,7 @@
         [:p.heading "Enterprise-grade Wifi"]
         [:i.icon.fa.fa-wifi.is-large fa-attrs]]
        [:div.level-item.has-text-centered
-        [:p.heading "All Utilities"]
+        [:p.heading "All Utilities Included"]
         [:i.icon.fa.fa-lightbulb-o.is-large fa-attrs]]
        [:div.level-item.has-text-centered
         [:p.heading "On-site Laundry"]
@@ -216,6 +218,7 @@
    neighborhood
    [:hr.is-marginless]
    features
+   [:hr.is-marginless]
    ;; people
    photoswipe/element
    (p/scripts "/assets/bower/photoswipe/dist/photoswipe.js"

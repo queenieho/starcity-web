@@ -11,7 +11,7 @@
      "We're a small team tackling a <b>big problem</b>."]
     [:p.subtitle.is-4
      {:style "margin-bottom: 60px;"}
-     "Starcity is focused on solving the housing affordability crisis in cities,
+     "Starcity is focused on solving the housing crisis in cities,
      starting with <b>San Francisco</b>."]
     (l/columns
      (l/column
@@ -23,7 +23,7 @@
         of luxury high-rises going up &mdash; but what about everyone in between?"]
 
        [:p
-        "Building housing for those that make a normal income is <b>really,
+        "Building homes for those that make a normal income is <b>really,
         really difficult</b>; it involves navigating physical, capital,
         political and emotional pressures that are usually in conflict. As a
         result, not many people are working on this problem."]
@@ -52,8 +52,8 @@
        relationships</b> over ownership and things."]
 
      [:p "We're Starcity: <strong>we build beautiful, comfortable communal
-       housing</strong>...and we've only just begun. Join us to help build the future of
-       housing!"]])))
+       homes</strong>...and we've only just begun. Join us to help build the
+       future living in cities!"]])))
 
 (def about
   (p/page

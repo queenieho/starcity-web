@@ -76,12 +76,12 @@
 
 (defn- start-server
   [{:keys [port] :as conf}]
-  (log/debug ::start {:port port})
+  (log/info ::start {:port port})
   (run-server (app-handler conn) {:port port :max-body (* 20 1024 1024)}))
 
 (defn- stop-server
   [server]
-  (log/debug ::stop)
+  (log/info ::stop)
   (server))
 
 (defstate web-server

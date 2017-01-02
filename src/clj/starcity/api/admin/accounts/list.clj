@@ -20,7 +20,7 @@
 
 (def ^:private key->sortfn
   {:name       #(str (:account/first-name %) (:account/last-name %))
-   :created-at (comp c/to-long :account/created-at)})
+   :created-at (comp c/to-long account/created-at)})
 
 (defn- parse [offset index account]
   {:id           (:db/id account)

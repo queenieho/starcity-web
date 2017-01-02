@@ -8,8 +8,8 @@
      :answers  answers}))
 
 (def sections
-  [(make-section "What is communal housing?"
-                 ["Communal housing, sometimes referred to as co-living, is a new way of living inspired by the old, with community and collective experiences at its core."
+  [(make-section "What is a communal home?"
+                 ["A communal home is a new way of living inspired by the old, with community and collective experiences at its core."
                   "Starcity in particular offers welcoming, furnished spaces such as lounges, kitchens, dining areas, movie rooms, and laundry-rooms for our members to share. In these comfortable spaces, our community members come together to collaborate and exchange ideas and experiences."])
    (make-section "What about private spaces?"
                  ["Every Starcity member has a secure private room for rest and relaxation. Within our first two communities in San Francisco, each private room offers a full or queen-sized bed with fresh linens and modern furnishings."
