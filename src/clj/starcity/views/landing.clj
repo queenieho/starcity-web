@@ -148,7 +148,7 @@
          (i/image {:class "is-4by3"} "/assets/img/mission/card-banner.jpg")]]
        [:div.card-content
         [:p.title.is-4 "The Mission"]
-        [:p.subtitle.is-5 "Available <b>February 1, 2017</b>"]]]))
+        [:p.subtitle.is-5 "Available <b>February 15, 2017</b>"]]]))
 
     [:a.button.is-primary.is-large {:href "/signup"} "Apply Now"])))
 
