@@ -1,9 +1,13 @@
 (ns starcity.models.license
-  (:require [starcity.datomic :refer [conn]]
-            [starcity.models.util :refer :all]
+  (:require [starcity.models.util :refer :all]
             [datomic.api :as d]))
 
-(defn licenses []
-  (->> (find-all-by (d/db conn) :license/term)
-       (entids)
-       (d/pull-many (d/db conn) [:db/id :license/term])))
+(defn licenses [conn]
+  (let [db (d/db conn)]
+    (->> (d/q '[:find [?e ...]
+                :where
+                [?e :license/term _]
+                (or [?e :license/available true]
+                    [(missing? $ ?e :license/available)])]
+              db)
+         (map (partial d/entity db)))))
