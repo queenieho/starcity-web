@@ -38,11 +38,11 @@
                                  "52gilbert"
                                  #inst "2016-12-01T00:00:00.000-00:00"
                                  (address "52 Gilbert St.")
-                                 (licenses [1 2300.0] [6 2100.0] [12 2000.0])
+                                 (licenses [3 2300.0] [6 2100.0] [12 2000.0])
                                  (units 6))
                        (property "The Mission"
                                  "2072mission"
                                  #inst "2017-01-01T00:00:00.000-00:00"
                                  (address "2072 Mission St.")
-                                 (licenses [1 2400.0] [6 2200.0] [12 2100.0])
+                                 (licenses [3 2400.0] [6 2200.0] [12 2100.0])
                                  (units 16))])))

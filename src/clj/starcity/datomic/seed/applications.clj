@@ -32,6 +32,6 @@
 (defn seed [conn]
   @(d/transact conn (concat
                      (application [:account/email "test@test.com"]
-                                  :license (license conn 1))
+                                  :license (license conn 3))
                      (application [:account/email "onboarding@test.com"]
                                   :license (license conn 6)))))
