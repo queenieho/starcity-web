@@ -11,6 +11,7 @@
              [countries :as countries]
              [log :as log]]
             [starcity.api.common :as api]
+            [starcity.datomic :refer [conn]]
             [starcity.models
              [account :as account]
              [application :as application]
@@ -29,7 +30,7 @@
   [req]
   (let [account-id (api/account-id req)]
     (api/ok (merge (apply/progress account-id)
-                   (apply/initial-data)))))
+                   (apply/initial-data conn)))))
 
 ;; =============================================================================
 ;; Update
@@ -56,7 +57,7 @@
 
 (defmethod validate :logistics/license
   [data _]
-  (let [valid-ids (->> (license/licenses) (map :db/id))]
+  (let [valid-ids (->> (license/licenses conn) (map :db/id))]
     (b/validate
      data
      {:license [[v/required :message "You must choose a license."]
