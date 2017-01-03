@@ -32,7 +32,7 @@
                  ["Our memberships are all-inclusive &mdash; we couple rent with all of the extras described above to make your life simple. The amount you pay depends on the community you join and the term of your Membership Agreemeent. Typically:"
                   ["12-months: $2,000 per month"
                    "6-months: $2,100 per month"
-                   "Month-to-month: $2,300 per month"]])
+                   "3-months: $2,300 per month"]])
    (make-section "I want to move in. How do I secure my place in the community?"
                  ["In order to secure your spot in the community, <a href='/signup'>apply here</a>. Starcity takes care of pre-qualifying you for membership (i.e., conducting community safety and financial checks) and our community members that live in your desired home make the ultimate decision on who will join their community."])
    (make-section "What are the fees to move in?"
@@ -51,7 +51,7 @@
    (make-section "Are the community spaces cleaned?"
                  ["Yes! All the community spaces are cleaned regularly by a professional cleaning service. Room cleans are available upon request as part of a premium package. We get a great rate since we'll have onsite cleaning staff each week."])
    (make-section "What is the length of a member's stay?"
-                 ["We offer flexible month-to-month memberships as well as 6-month and 12-month memberships. The amount you pay is calculated based on the time you plan to stay. A longer stay means a lower monthly cost."])
+                 ["We offer flexible 3-month memberships as well as 6-month and 12-month memberships. The amount you pay is calculated based on the time you plan to stay. A longer stay means a lower monthly cost."])
    (make-section "Are there rooms available for couples and families?"
                  ["Our current rooms are ideal for individuals. We are working hard to bring larger-sized units to San Francisco that will enable couples and families to live in Starcity. We hope to launch units for couples and families in 2017."])
    (make-section "Can I have friends / significant others visit and stay?"
