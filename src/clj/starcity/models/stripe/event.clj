@@ -21,11 +21,12 @@
   (= (:stripe-event/status event) :stripe-event.status/succeeded))
 
 (defn status
-  "[blocking] Set the event's status to `new-status`."
+  "Set the event's status to `new-status`."
   [new-status event]
-  @(d/transact conn [{:db/id               (:db/id event)
-                      :stripe-event/status new-status}]))
+  (d/transact conn [{:db/id               (:db/id event)
+                     :stripe-event/status new-status}]))
 
+;; TODO: rename to `set-status`?
 (s/fdef status
         :args (s/cat :new-status ::status
                      :event :starcity.spec/entity))
@@ -45,7 +46,7 @@
   (d/entity (d/db conn) [:stripe-event/event-id event-id]))
 
 (defn create
-  "[blocking] Create a new Stripe event with status `processing`."
+  "Create a new Stripe event with status `processing`."
   [event-id event-type]
   (let [tid (tempid)
         tx  @(d/transact conn [{:db/id                 tid

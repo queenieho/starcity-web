@@ -1,11 +1,12 @@
 (ns starcity.services.stripe.connect
-  (:require [starcity.config :refer [config]]
-            [starcity.services.stripe.request :refer [request]]
-            [plumbing.core :refer [assoc-when]]
-            [starcity.spec]
+  (:require [clj-time
+             [coerce :as c]
+             [core :as t]]
             [clojure.spec :as s]
-            [clj-time.core :as t]
-            [clj-time.coerce :as c]))
+            [starcity spec
+             [config :refer [config]]]
+            [starcity.services.stripe.request :refer [request]]
+            [datomic.api :as d]))
 
 ;; =============================================================================
 ;; API
@@ -79,6 +80,19 @@
             owner
             business
             account)))
+
+;; =============================================================================
+;; Create a Customer on the managed account
+
+(defn create-token
+  "Create a bank account token that can be attached to a managed account
+  customer."
+  [customer-id bank-token managed-account-id]
+  (request {:endpoint        "tokens"
+            :method          :post
+            :managed-account managed-account-id}
+           {:customer     customer-id
+            :bank_account bank-token}))
 
 ;; =============================================================================
 ;; Fetch Accounts

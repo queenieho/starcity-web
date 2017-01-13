@@ -1,9 +1,8 @@
 {:dev {:source-paths ["src/dev" "src/clj" "src/cljs"]
-       :plugins      [[lein-figwheel "0.5.8"]
-                      [lein-cooper "1.2.2"]]
+       :plugins      [[lein-figwheel "0.5.8" :exclusions [org.clojure/clojure org.clojure/core.async]]
+                      [lein-cooper "1.2.2" :exclusions [org.clojure/clojure]]]
        :dependencies [[figwheel-sidecar "0.5.8"]
-                      [binaryage/devtools "0.8.2"]]
-       :jvm-opts     ^:replace ["-XX:MaxPermSize=128m" "-Xms512m" "-Xmx512m" "-server"]}
+                      [binaryage/devtools "0.8.2"]]}
 
  :uberjar {:aot          [starcity.core]
            :prep-tasks   ["compile" ["cljsbuild" "once"]]

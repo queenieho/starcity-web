@@ -1,5 +1,6 @@
 (ns starcity.models.onboarding
   (:require [starcity.models.stripe :as stripe]
+            [starcity.models.stripe.customer :as customer]
             [starcity.models.charge :as charge]
             [starcity.datomic :refer [conn tempid]]
             [starcity.models.util :refer :all]
@@ -86,7 +87,7 @@
 ;; =============================================================================
 ;; Specs
 
-(s/def ::acount-id integer?)
+(s/def ::account-id integer?)
 
 (s/def ::payment-method
   #{:security-deposit.payment-method/ach
@@ -210,8 +211,8 @@
 (defn verification-failed?
   "Has the verification step failed for all of this customer's sources?"
   [progress]
-  (stripe/verification-failed?
-   (stripe/fetch-customer (stripe-customer-id progress))))
+  (customer/verification-failed?
+   (customer/fetch (stripe-customer-id progress))))
 
 (defn bank-account-verified?
   "Is the stripe customer's bank account verified?"
@@ -219,8 +220,8 @@
   (or (:stripe-customer/bank-account-token progress) ; Only present in DB after
                                         ; verification
       (and (stripe-customer-id progress)
-           (stripe/bank-account-verified?
-            (stripe/fetch-customer (stripe-customer-id progress))))))
+           (customer/has-verified-bank-account?
+            (customer/fetch (stripe-customer-id progress))))))
 
 (defn payment-received?
   "Payment is received when a payment method is chosen and the associated

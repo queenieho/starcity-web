@@ -14,6 +14,7 @@
 ;; =============================================================================
 ;; Dates
 
+(s/def ::instant date?)
 (s/def ::date date?)
 (s/def ::datetime datetime?)
 (s/def ::basic-date (partial re-matches #"^\d{8}$"))
@@ -27,6 +28,7 @@
         :lookup-ref (s/and vector?
                            (s/cat :attr keyword?
                                   :val  (fn [x] (not (nil? x)))))))
+
 ;; =============================================================================
 ;; Misc
 

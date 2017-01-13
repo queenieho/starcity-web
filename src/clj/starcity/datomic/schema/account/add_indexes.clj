@@ -1,7 +1,7 @@
 (ns starcity.datomic.schema.account.add-indexes
   "Add indexes to attribues that do not have them.")
 
-(def ^{:addeed "1.1.4"} schema
+(def ^{:added "1.1.4"} schema
   [{:db/id               :account/first-name
     :db/index            true
     :db.alter/_attribute :db.part/db}

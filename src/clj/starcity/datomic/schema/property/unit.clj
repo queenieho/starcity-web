@@ -28,3 +28,8 @@
        "Width of unit in feet."]
       [length :float
        "Length/depth of unit in feet."]))]))
+
+(def ^{:added "1.2.0"} unit-improvements
+  [{:db/id               :unit/name
+    :db/unique           :db.unique/identity
+    :db.alter/_attribute :db.part/db}])

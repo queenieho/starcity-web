@@ -46,7 +46,7 @@
          :has-pet (application/has-pet? application)))
 
 (defn- parse [application]
-  (let [account (account/by-application application)]
+  (let [account (first (:account/_member-application application))]
     {:id                (:db/id application)
      :account-id        (:db/id account)
      :name              (account/full-name account)

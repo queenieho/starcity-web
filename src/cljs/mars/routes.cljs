@@ -32,13 +32,17 @@
    {:nav-handler  #(secretary/dispatch! %)
     :path-exists? #(secretary/locate-route %)}))
 
+(defroute activity root []
+  (dispatch [:nav/activity]))
+
+(defroute account (prefix "/account/:subsection") [subsection]
+  (dispatch [:nav/account subsection]))
+
+(defroute (prefix "/*") []
+  (accountant/navigate! root))
+
+
 (defn app-routes []
-
-  (defroute home root []
-    (dispatch [:nav/home]))
-
-  (defroute (prefix "/*") []
-    (accountant/navigate! root))
 
   ;; --------------------
 

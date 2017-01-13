@@ -4,7 +4,8 @@
              [property-license :as property-license]
              [unit :as unit]
              [add-stripe-credentials :as add-stripe-credentials]
-             [improvements :as improvements]]))
+             [improvements :as improvements]
+             [add-ops-fee :as add-ops-fee]]))
 
 (def ^{:added "1.0.0"} schema
   (s/generate-schema
@@ -47,4 +48,11 @@
 
    :schema/improvements-11-20-16
    {:txes     [improvements/schema]
-    :requires [:starcity/add-property-schema]}})
+    :requires [:starcity/add-property-schema]}
+
+   :schema.property/add-ops-fee-12-14-16
+   {:txes [add-ops-fee/schema]}
+
+   :schema.property.unit/unit-improvements-1-13-17
+   {:txes     [unit/unit-improvements]
+    :requires [:starcity/add-unit-schema]}})

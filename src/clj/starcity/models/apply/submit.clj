@@ -2,8 +2,7 @@
   (:require [datomic.api :as d]
             [hiccup.core :refer [html]]
             [starcity
-             [datomic :refer [conn]]
-             [log :as log]]
+             [datomic :refer [conn]]]
             [starcity.models
              [account :as account]
              [application :as application]
@@ -11,7 +10,8 @@
              [stripe :as stripe]]
             [starcity.services.mailgun :as mailgun]
             [starcity.config :as config]
-            [starcity.services.slack :as slack]))
+            [starcity.services.slack :as slack]
+            [taoensso.timbre :as t]))
 
 ;; =============================================================================
 ;; Internal
@@ -44,9 +44,9 @@
     (mailgun/send-email (account/email account)
                         submission-email-subject
                         (submission-email-content (account/first-name account)))
-    (log/info ::email {:user (account/email account)})
+    (t/info ::email {:user (account/email account)})
     (catch Exception e
-      (log/exception e ::email {:user (account/email account)}))))
+      (t/error e ::email {:user (account/email account)}))))
 
 ;; =============================================================================
 ;; Community Safety
@@ -56,11 +56,11 @@
   [account]
   (try
     (let [ent (d/entity (d/db conn) (community-safety/check! account))]
-      (log/info ::community-safety {:report-url          (community-safety/report ent)
-                                    :community-safety-id (:db/id ent)
-                                    :user                (account/email account)}))
+      (t/info ::community-safety {:report-url          (community-safety/report ent)
+                                  :community-safety-id (:db/id ent)
+                                  :user                (account/email account)}))
     (catch Exception e
-      (log/exception e ::community-safety {:user (account/email account)}))))
+      (t/error e ::community-safety {:user (account/email account)}))))
 
 ;; ;; =============================================================================
 ;; ;; Slack Notification
@@ -76,7 +76,7 @@
   (let [title (format "%s's application" (account/full-name account))
         link  (format "%s/admin/applications/%s" config/hostname (:db/id (:account/member-application account)))]
     (slack/rich-message title "View it here on the admin dashboard."
-                        :channel "#members"
+                        :channel "#community"
                         :opts {:pretext    (format "%s! Someone signed up! :partyparrot:"
                                                    (rand-doge))
                                :title_link link
@@ -96,14 +96,14 @@
   (try
     (let [charge-id (stripe/create-charge! (:db/id account) application-fee token
                                            :description "member application fee")]
-      (log/info ::application-fee {:charge-id    charge-id
-                                   :user         (account/email account)
-                                   :stripe-token token
-                                   :amount       application-fee}))
+      (t/info ::application-fee {:charge-id    charge-id
+                                 :user         (account/email account)
+                                 :stripe-token token
+                                 :amount       application-fee}))
     (catch Exception e
-      (log/exception e ::application-fee {:user         (account/email account)
-                                          :stripe-token token
-                                          :amount       application-fee})
+      (t/error e ::application-fee {:user         (account/email account)
+                                    :stripe-token token
+                                    :amount       application-fee})
       (throw e))))
 
 ;; =============================================================================

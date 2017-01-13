@@ -33,9 +33,6 @@
                                  (response/redirect "/signup")
                                  (response/redirect (format "/login?next=%s" current-url))))))
 
-(defn- get-role [req]
-  (get-in req [:identity :account/role]))
-
 ;; =============================================================================
 ;; API
 ;; =============================================================================
@@ -51,6 +48,10 @@
 
 ;; =============================================================================
 ;; Access Rules
+
+(defn- get-role [req]
+  (let [account (requester req)]
+    (:account/role account)))
 
 (defn authenticated-user [req]
   (if (authenticated? req)

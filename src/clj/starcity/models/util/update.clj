@@ -1,8 +1,9 @@
 (ns starcity.models.util.update
-  (:require [starcity.models.util :refer [one entity?]]
+  (:require [starcity.models.util :refer [one]]
             [starcity.datomic :refer [conn]]
             [clojure.set :as set]
-            [datomic.api :as d]))
+            [datomic.api :as d]
+            [starcity.util :refer :all]))
 
 ;; =============================================================================
 ;; Helpers

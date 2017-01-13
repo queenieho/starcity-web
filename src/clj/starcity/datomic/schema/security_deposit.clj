@@ -3,7 +3,6 @@
             [datomic-schema.schema :as s]
             [starcity.datomic.schema.security-deposit
              [add-check-ref :as add-check-ref]
-             [check :as check]
              [change-charge-to-charges :as change-charge-to-charges]]))
 
 (def ^{:added "1.1.x"} schema
@@ -17,6 +16,7 @@
       ;; TODO: change to float
       [amount-received :long
        "Amount of money that has been received for this security deposit in cents."]
+
 
       ;; TODO: change to float
       [amount-required :long
@@ -57,9 +57,7 @@
    :schema/add-checks-to-security-deposit-schema-11-4-16
    {:txes [add-check-ref/schema]}
 
-   :schema/add-check-schema-11-4-16
-   {:txes     [check/schema]
-    :requires [:starcity/add-starcity-partition]}
+
 
    :schema/alter-security-deposit-schema-11-2-16
    {:txes     [change-charge-to-charges/schema]

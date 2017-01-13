@@ -19,9 +19,10 @@
   (let [id (tempid)]
     [{:db/id                      account-id
       :account/member-application id}
-
      (assoc-when {:db/id                     id
                   :member-application/status status}
+                 :member-application/locked (or (= status :member-application.status/submitted)
+                                                (= status :member-application.status/approved))
                  :member-application/desired-license license
                  :member-application/desired-properties properties
                  :member-application/current-address address
@@ -34,4 +35,6 @@
                      (application [:account/email "test@test.com"]
                                   :license (license conn 3))
                      (application [:account/email "onboarding@test.com"]
-                                  :license (license conn 6)))))
+                                  :license (license conn 6)
+                                  :status :member-application.status/approved
+                                  :properties [[:property/internal-name "52gilbert"]]))))

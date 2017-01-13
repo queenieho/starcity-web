@@ -1,0 +1,20 @@
+@import variables
+
+$container-padding: $container-padding-tb $container-padding-lr
+
+.mars-pane
+  background-color: #f5f5f5
+  // Necessary?
+  min-height: 100vh
+
+  .pane-header
+    padding-top: $container-padding-tb
+    padding-bottom: $container-padding-tb
+    background-color: white
+    border-bottom: 1px solid #e9e9e9
+
+    .pane-header__title
+      padding: 0 $container-padding-lr
+
+  .pane-content
+    padding: 20px $container-padding-lr

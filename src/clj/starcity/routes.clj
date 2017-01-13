@@ -24,7 +24,6 @@
              [team :as team]
              [terms :as terms]]
             [starcity.webhooks
-             [plaid :as plaid]
              [stripe :as stripe]]))
 
 (defn- redirect-by-role
@@ -110,7 +109,6 @@
   (context "/api/v1" [] api/routes)
 
   (context "/webhooks" []
-           (POST "/plaid" [] plaid/hook)
            (POST "/stripe" [] stripe/hook))
 
   ;; catch-all

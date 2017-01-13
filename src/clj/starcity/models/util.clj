@@ -19,9 +19,6 @@
   (assert (= 1 (count (first query-result))))
   (ffirst query-result))
 
-(defn entity? [x]
-  (= (type x) datomic.query.EntityMap))
-
 (defn qe
   "Returns the single entity returned by a query."
   [query db & args]

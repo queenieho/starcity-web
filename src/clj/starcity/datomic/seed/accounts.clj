@@ -17,10 +17,15 @@
    :account/activated    true})
 
 (def tx-data
-  [(account "test@test.com" "Applicant" "User" "5103817881" :account.role/applicant)
-   (account "member@test.com" "Member" "User" "5103817881" :account.role/member)
-   (account "onboarding@test.com" "Onboarding" "User" "5103817881" :account.role/onboarding)
-   (account "admin@test.com" "Admin" "User" "5103817881" :account.role/admin)])
+  [(account "test@test.com" "Applicant" "User" "2345678910" :account.role/applicant)
+   (account "member@test.com" "Member" "User" "2345678910" :account.role/member)
+   (account "onboarding@test.com" "Onboarding" "User" "2345678910" :account.role/onboarding)
+   (account "admin@test.com" "Admin" "User" "2345678910" :account.role/admin)
+   ;; Testing Accounts
+   (account "jon@test.com" "Jon" "Dishotsky" "2345678910" :account.role/onboarding)
+   (account "jesse@test.com" "Jesse" "Suarez" "2345678910" :account.role/onboarding)
+   (account "mo@test.com" "Mo" "Sakrani" "2345678910" :account.role/onboarding)
+   (account "meg@test.com" "Meg" "Bell" "2345678910" :account.role/onboarding)])
 
 (defn seed [conn]
   @(d/transact conn tx-data))

@@ -4,7 +4,8 @@
             [starcity.datomic.schema.account
              [add-role-pending :as add-role-pending]
              [add-indexes :as add-indexes]
-             [rename-roles :as rename-roles]]))
+             [rename-roles :as rename-roles]
+             [license-alterations :as license-alterations]]))
 
 
 (def ^{:added "1.0.0"} schema
@@ -62,9 +63,13 @@
     :requires [:starcity/add-starcity-partition]}
 
    :schema.account/add-indexes-11-20-16
-   {:txes [add-indexes/schema]
+   {:txes     [add-indexes/schema]
     :requires [:starcity/add-account-schema]}
 
    :schema.account/rename-roles
-   {:txes [rename-roles/schema]
-    :requires [:starcity/add-account-roles]}})
+   {:txes     [rename-roles/schema]
+    :requires [:starcity/add-account-roles]}
+
+   :schema.account/license-alterations
+   {:txes     [license-alterations/schema]
+    :requires [:starcity/add-account-schema]}})
