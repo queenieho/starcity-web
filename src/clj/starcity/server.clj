@@ -18,13 +18,14 @@
              [datomic :refer [conn]]
              [auth :refer [auth-backend]]
              [config :refer [config]]
-             [log :as log]
              [routes :refer [app-routes]]]
-            [starcity.views.error :as view]))
+            [starcity.views.error :as view]
+            [taoensso.timbre :as t]))
 
 ;; =============================================================================
 ;; Handler & Middleware
 
+;; TODO: This doesn't fail well when we're dealing with an api request
 (defn wrap-exception-handling
   [handler]
   (fn [{:keys [identity uri request-method remote-addr] :as req}]
@@ -32,10 +33,10 @@
       (handler req)
       (catch Exception e
         (do
-          (log/exception e ::unhandled (assoc-when {:uri         uri
-                                                    :method      request-method
-                                                    :remote-addr remote-addr}
-                                                   :user (:account/email identity)))
+          (t/error e ::unhandled (assoc-when {:uri         uri
+                                              :method      request-method
+                                              :remote-addr remote-addr}
+                                             :user (:account/email identity)))
           {:status 500 :body (view/error "Unexpected server error.")})))))
 
 (defn wrap-logging
@@ -43,10 +44,10 @@
   [handler]
   (fn [{:keys [uri request-method identity remote-addr] :as req}]
     (when-not (= uri "/favicon.ico")
-      (log/info ::request (assoc-when {:uri         uri
-                                       :method      request-method
-                                       :remote-addr remote-addr}
-                                      :user (:account/email identity))))
+      (t/trace ::request (assoc-when {:uri         uri
+                                      :method      request-method
+                                      :remote-addr remote-addr}
+                                     :user (:account/email identity))))
     (handler req)))
 
 (defn- datomic-session-store [conn]
@@ -76,12 +77,12 @@
 
 (defn- start-server
   [{:keys [port] :as conf}]
-  (log/info ::start {:port port})
+  (t/info ::start {:port port})
   (run-server (app-handler conn) {:port port :max-body (* 20 1024 1024)}))
 
 (defn- stop-server
   [server]
-  (log/info ::stop)
+  (t/info ::stop)
   (server))
 
 (defstate web-server

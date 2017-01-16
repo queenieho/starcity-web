@@ -27,7 +27,7 @@
   [application-id]
   (let [application (d/entity (d/db conn) application-id)]
     (and (application/submitted? application)
-         (account/applicant? (account/by-application application)))))
+         (account/applicant? (first (:account/_member-application application))))))
 
 (def cannot-approve? (comp not can-approve?))
 

@@ -2,5 +2,9 @@
 mkdir resources/public/assets/css
 echo "Installing external JS & CSS dependencies via Bower..."
 bower install
+echo "Installing NPM dependencies..."
+npm install
+echo "Compiling `ant design` LESS..."
+lessc --clean-css style/less/antd.less resources/public/assets/css/antd.css
 echo "Compiling SASS..."
-sass resources/public/assets/stylesheets/main.scss:resources/public/assets/css/starcity.css
+sass style/sass/main.sass:resources/public/assets/css/starcity.css --style compressed

@@ -1,7 +1,14 @@
 (ns starcity.util
   (:require [plumbing.core :refer [dissoc-in]]
-            [clj-time.coerce :as c]
-            [clj-time.format :as f]))
+            [potemkin :refer [import-vars]]
+            [starcity.util.predicates]
+            [starcity.util.date]))
+
+(import-vars
+ [starcity.util.predicates
+  entity? conn? lookup?]
+ [starcity.util.date
+  is-first-day-of-month? end-of-day beginning-of-day])
 
 (defn transform-when-key-exists
   "(transform-when-key-exists
@@ -82,3 +89,10 @@
      (assoc acc (keyword (name k)) v))
    {}
    m))
+
+(defn round
+  [x & [precision]]
+  (if precision
+    (let [scale (Math/pow 10 precision)]
+      (-> x (* scale) Math/round (/ scale)))
+    (Math/round x)))

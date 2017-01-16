@@ -26,9 +26,11 @@
 
 (defn create-customer
   "Create a new Stripe customer."
-  [email source & {:keys [cb description]}]
-  (request {:endpoint "customers"
-            :method   :post}
+  [email source & {:keys [cb description managed-account]}]
+  (request (assoc-when
+            {:endpoint "customers"
+             :method   :post}
+            :managed-account managed-account)
            (assoc-when
             {:email  email
              :source source}

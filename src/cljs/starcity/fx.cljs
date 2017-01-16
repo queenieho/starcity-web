@@ -4,6 +4,7 @@
             [re-frame.fx :refer [register]]
             [re-frame.interop :refer [set-timeout!]]
             [re-frame.loggers :refer [console]]
+            [starcity.utils :refer [find-by]]
             [accountant.core :as accountant]))
 
 ;; =============================================================================
@@ -101,3 +102,29 @@
          :flush (on-trailing-edge id)
 
          (console :error "re-frame: bad dispatch-throttle action:" action "id: " id))))))
+
+;; =============================================================================
+;; Load Scripts
+;; =============================================================================
+
+;; Given a script src, asynchronously loads the remote script if it doesn't
+;; already exist in the DOM.
+
+(extend-type js/NodeList
+  ISeqable
+  (-seq [array] (array-seq array 0)))
+
+(defn- script-loaded? [src]
+  (let [scripts (js->clj (.querySelectorAll js/document "script"))]
+    (find-by #(= (.-src %) src) scripts)))
+
+(reg-fx
+ :load-scripts
+ (fn [scripts]
+   (doall
+    (for [src scripts]
+      (when-not (script-loaded? src)
+        (let [script (.createElement js/document "script")]
+          (aset script "src" src)
+          (aset script "async" true)
+          (.appendChild js/document.body script)))))))

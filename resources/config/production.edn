@@ -1,4 +1,4 @@
-{:log {:level   :info
+{:log {:level   :trace
        :logfile "/var/log/starcity-web/server.log"}
 
  :data-dir "/var/starcity-web"

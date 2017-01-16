@@ -9,13 +9,13 @@
              [codec :refer [url-encode]]
              [response :as response]]
             [starcity
-             [config :as config]
-             [log :as log]]
+             [config :as config]]
             [starcity.controllers.utils :refer :all]
             [starcity.models.account :as account]
             [starcity.services.mailgun :refer [send-email]]
             [starcity.views.signup :as view]
-            [starcity.web.messages :refer [respond-with-errors]]))
+            [starcity.web.messages :refer [respond-with-errors]]
+            [taoensso.timbre :as timbre]))
 
 ;; =============================================================================
 ;; Constants
@@ -81,7 +81,7 @@
 
 (defn- send-activation-email [account]
   (let [email (account/email account)]
-    (log/info ::send-activation-email {:user email})
+    (timbre/info ::send-activation-email {:user email})
     (send-email email
                 activation-email-subject
                 (activation-email-content account))))
@@ -113,9 +113,9 @@
           ;; SUCCESS
           (let [account (account/create email password first-name last-name)]
             (do
-              (log/info :account/created {:user       email
-                                          :first-name first-name
-                                          :last-name  last-name})
+              (timbre/info :account/created {:user       email
+                                             :first-name first-name
+                                             :last-name  last-name})
               (send-activation-email account)
               (response/redirect redirect-after-signup)))
           ;; account already exists for email
@@ -137,7 +137,7 @@
           (let [session (assoc session :identity (account/session-data acct))]
             (do
               (account/activate acct)
-              (log/info :account/activated {:user email})
+              (timbre/info :account/activated {:user email})
               (-> (response/redirect redirect-after-activation)
                   (assoc :session session))))
           ;; hashes don't match

@@ -2,11 +2,15 @@
   (:require [starcity.datomic.conformity :as c]
             [starcity.datomic.migrata
              [address :as address]
-             [member-application :as member-application]]))
+             [avatar :as avatar]
+             [member-application :as member-application]
+             [property :as property]]))
 
 (defn- assemble-norms [conn]
   (merge (address/norms conn)
-         (member-application/norms conn)))
+         (avatar/norms conn)
+         (member-application/norms conn)
+         (property/norms conn)))
 
 (defn migrate
   "Run all data migrations that have not already been run. Should be called at

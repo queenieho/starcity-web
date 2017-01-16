@@ -1,5 +1,6 @@
 (ns starcity.models.approval
   (:require [starcity.models.account :as account]
+            [starcity.models.account.role :as role]
             [starcity.models.util :refer :all]
             [starcity.datomic :refer [conn tempid]]
             [starcity.services.mailgun :as mailgun]
@@ -35,7 +36,7 @@
   by updating his/her role."
   [account-id]
   [{:db/id        account-id
-    :account/role account/onboarding-role}])
+    :account/role role/onboarding}])
 
 (s/fdef update-role-txdata
         :args (s/cat :account-id :starcity.spec/lookup)
@@ -79,13 +80,17 @@
 ;; =============================================================================
 ;; Actions
 
+;; TODO: This is an act that logically takes place on the `account`. Move this
+;; to the account model and use potemkin to expose the api.
+
 ;; NOTE: A weird bug prevented me from calling this function with five arguments
 ;; -- I have no clue why. Converting the args to a map seems to have fixed it,
 ;; although not sure why. Shrug.
 
 (defn approve!
   [{:keys [application-id approver-id internal-name deposit-amount email-content email-subject]}]
-  (let [account (account/by-application (d/entity (d/db conn) application-id))
+  (let [account (first (:account/_member-application (d/entity (d/db conn) application-id)))
+                                        ; TODO: (account/by-application (d/entity (d/db conn) application-id))
         email   (:account/email account)
         txdata  (concat
                  ;; Create approval entity

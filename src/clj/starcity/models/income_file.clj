@@ -4,11 +4,11 @@
             [me.raynes.fs :as fs]
             [starcity
              [config :refer [data-dir]]
-             [datomic :refer [conn tempid]]
-             [log :as log]]
+             [datomic :refer [conn tempid]]]
             [starcity.models
              [account :as account]
-             [util :refer [qes]]]))
+             [util :refer [qes]]]
+            [taoensso.timbre :as t]))
 
 (defn- write-income-file
   "Write a an income file to the filesystem and add an entity that points to the
@@ -28,18 +28,18 @@
                                          :income-file/size         (long size)
                                          :db/id                    tid}])
               ent-id (d/resolve-tempid (d/db conn) (:tempids tx) tid)]
-          (log/info ::write {:user         (account/email account)
-                             :filename     filename
-                             :content-type content-type
-                             :size         size
-                             :entity-id    ent-id})
+          (t/info ::write {:user         (account/email account)
+                           :filename     filename
+                           :content-type content-type
+                           :size         size
+                           :entity-id    ent-id})
           output-path)))
     ;; catch to log, then rethrow
     (catch Exception e
-      (log/exception e ::write {:user         (account/email account)
-                                :filename     filename
-                                :content-type content-type
-                                :size         size})
+      (t/error e ::write {:user         (account/email account)
+                          :filename     filename
+                          :content-type content-type
+                          :size         size})
       (throw e))))
 
 (defn create

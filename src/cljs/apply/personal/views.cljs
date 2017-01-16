@@ -1,7 +1,7 @@
 (ns apply.personal.views
   (:require [apply.prompts.views :as p]
             [apply.prompts.models :as prompts]
-            [apply.states :as states]
+            [starcity.states :as states]
             [starcity.dom :as dom]
             [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]

@@ -1,6 +1,7 @@
 (ns starcity.core
   (:gen-class)
   (:require [starcity.server]
+            [starcity.seeder]
             [starcity.datomic]
             [starcity.log]
             [starcity.nrepl]
@@ -8,6 +9,7 @@
             [starcity.environment]
             [starcity.services.mailchimp]
             [starcity.services.mailgun]
+            [starcity.scheduler]
             [clojure.tools.cli :refer [parse-opts]]
             [mount.core :as mount]))
 

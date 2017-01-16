@@ -94,6 +94,8 @@
 
 (def name :property/name)
 (def internal-name :property/internal-name)
+(def managed-account-id :property/managed-account-id)
+(def ops-fee :property/ops-fee)
 
 (defn base-rent
   "Determine the base rent at `property` for the given `license`."

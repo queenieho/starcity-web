@@ -46,6 +46,9 @@
 (defn- json? [content]
   (and (map? content) (:json content)))
 
+(defn- css? [content]
+  (and (map? content) (:css content)))
+
 (defn- onboarding-auth-item [{:keys [context]}]
   (cond
     (nil? context)                      ["/onboarding" "Security Deposit"]
@@ -113,6 +116,9 @@
              [object-name (object-or-thunk)]
              j))})
 
+(defn css [& css]
+  {:css css})
+
 ;; =============================================================================
 ;; Page Constructors
 
@@ -123,11 +129,12 @@
   [title & content]
   (let [scripts (->> (filter scripts? content) (mapcat :scripts))
         json    (->> (filter json? content) (mapcat :json))
+        css     (->> (filter css? content) (mapcat :css))
         content (remove #(or (scripts? %) (json? %)) content)]
     (fn [req]
       (html5
        {:lang "en"}
-       (head title base-css)
+       (apply head title (concat css [base-css]))
        [:body
         (for [c content]
           (if (fn? c)
@@ -141,12 +148,13 @@
 (defn cljs-page
   [app-name title & content]
   (let [scripts (->> (filter scripts? content) (mapcat :scripts))
-        json    (->> (filter json? content) (mapcat :json))]
+        json    (->> (filter json? content) (mapcat :json))
+        css     (->> (filter css? content) (mapcat :css))]
     (html5
      {:lang "en"}
-     (head title base-css)
+     (apply head title (concat css [base-css]))
      [:body
-      (remove #(or (scripts? %) (json? %)) content)
+      (remove #(or (scripts? %) (json? %) (css? %)) content)
       (include-json json)
       (apply include-js (concat scripts
                                 [(format "/js/cljs/%s.js" app-name)]))

@@ -26,13 +26,6 @@
         :args (s/cat :env #{"production" "tartan"})
         :ret string?)
 
-;; (defn- inject-log-error
-;;   "Inspect response and log errors if found."
-;;   [res]
-;;   (do
-;;     (when-let [{:keys []}])
-;;     res))
-
 (defn- plaid-request
   ([req-config token params]
    (plaid-request req-config token params nil))
@@ -65,14 +58,6 @@
                  (assoc-when {} :account_id account-id)
                  cb))
 
-(defn get-income
-  "Get income data for user."
-  [access-token & [cb]]
-  (plaid-request {:endpoint "income/get"}
-                 access-token
-                 {}
-                 cb))
-
 (defn auth-data
   "Get auth data for a user."
   [access-token & [cb]]
@@ -80,23 +65,3 @@
                  access-token
                  {}
                  cb))
-
-(defn upgrade-to-income
-  "Upgrade user to be an income user."
-  [access-token & [cb]]
-  (plaid-request {:endpoint "upgrade"
-                  :webhook? true}
-                 access-token
-                 {:upgrade_to "income"}
-                 cb))
-
-(comment
-
-  (doseq [access-token []]
-    @(http/post "https://joinstarcity.com/webhooks/plaid"
-                {:body (json/generate-string {:code 10
-                                              :message "testing..."
-                                              :access_token access-token})
-                 :headers {"Content-Type" "application/json"}}))
-
-  )

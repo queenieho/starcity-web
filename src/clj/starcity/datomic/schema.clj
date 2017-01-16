@@ -4,11 +4,14 @@
              [account :as account]
              [address :as address]
              [approval :as approval]
+             [avatar :as avatar]
              [charge :as charge]
+             [check :as check]
              [community-safety :as community-safety]
              [license :as license]
              [member-application :as member-application]
              [member-license :as member-license]
+             [news :as news]
              [partition :as partition]
              [plaid :as plaid]
              [property :as property]
@@ -23,11 +26,14 @@
   (merge account/norms
          address/norms
          approval/norms
+         avatar/norms
          charge/norms
+         check/norms
          community-safety/norms
          license/norms
          member-application/norms
          member-license/norms
+         news/norms
          partition/norms
          plaid/norms
          property/norms

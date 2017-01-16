@@ -2,8 +2,9 @@
   (:require [cheshire.core :as json]
             [org.httpkit.client :as http]
             [starcity.config.stripe :as config]
-            [starcity.log :as log]
-            [starcity.services.codec :refer [form-encode]]))
+            [starcity.services.codec :refer [form-encode]]
+            [plumbing.core :refer [assoc-when]]
+            [taoensso.timbre :as t]))
 
 ;; =============================================================================
 ;; Internal
@@ -16,12 +17,13 @@
   [res]
   (update-in res [:body] json/parse-string true))
 
-(defn- inject-log-error
+(defn- inject-throw-error
   "Inspect the response and log errors if found."
   [res]
   (do
-    (when-let [{:keys [type message param]} (get-in res [:body :error])]
-      (log/warn ::request-error {:type type :message message :param param}))
+    (when-let [{:keys [type message param] :as e} (get-in res [:body :error])]
+      (t/error ::request-error {:type type :message message :param param})
+      (throw (ex-info "Error in Stripe request!" e)))
     res))
 
 (defn- params-for
@@ -37,15 +39,20 @@
 (defn request
   ([req-config params]
    (request req-config params nil))
-  ([{:keys [endpoint method] :as conf} params cb]
+  ([{:keys [endpoint method managed-account] :as conf} params cb]
    (let [req-map    {:url        (format "%s/%s" base-url endpoint)
                      :method     method
-                     :headers    {"Accept" "application/json"}
+                     :headers    (assoc-when
+                                  {"Accept" "application/json"}
+                                  "Stripe-Account" managed-account)
                      :basic-auth [config/secret-key ""]}
          [k params] (params-for method params)]
      (if cb
+       ;; NOTE: The error handling doesn't work here, since the exception is
+       ;; thrown on the thread that the cb is invoked in...which is not the
+       ;; calling thread.
        (http/request (assoc req-map k params)
-                     (comp cb inject-log-error parse-json-body))
+                     (comp cb inject-throw-error parse-json-body))
        (-> @(http/request (assoc req-map k params))
            parse-json-body
-           inject-log-error)))))
+           inject-throw-error)))))

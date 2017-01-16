@@ -8,10 +8,10 @@
             [compojure.core :refer [defroutes GET POST]]
             [starcity
              [auth :as auth]
-             [countries :as countries]
-             [log :as log]]
+             [countries :as countries]]
             [starcity.api.common :as api]
             [starcity.datomic :refer [conn]]
+            [taoensso.timbre :as timbre]
             [starcity.models
              [account :as account]
              [application :as application]
@@ -154,9 +154,9 @@
                                                    (apply/update (:data params) account-id path)
                                                    (api/ok (apply/progress account-id))
                                                    (catch Exception e
-                                                     (log/exception e ::update {:user   (account/email account)
-                                                                                :path   path
-                                                                                :params params})
+                                                     (timbre/error e ::update {:user   (account/email account)
+                                                                               :path   path
+                                                                               :params params})
                                                      (api/server-error))))))
 
 (defn income-files-handler
@@ -169,7 +169,7 @@
               paths (income-file/create account files)]
           (api/ok (apply/progress account-id)))
         (catch Exception e
-          (log/exception e ::income-upload {:user (account/email account)})
+          (timbre/error e ::income-upload {:user (account/email account)})
           (api/server-error "Something went wrong while uploading your proof of income. Please try again.")))
       (api/malformed {:errors ["You must choose at least one file to upload."]}))))
 
@@ -184,10 +184,10 @@
     (if (can-pay? account-id token)
       (try
         (apply/submit! account token)
-        (log/info :application/submit {:user (account/email account)})
+        (timbre/info :application/submit {:user (account/email account)})
         (api/ok {})
         (catch Exception e
-          (log/exception e :application/submit {:user (account/email account)})
+          (timbre/error e :application/submit {:user (account/email account)})
           (api/server-error "Whoops! Something went wrong while processing your payment. Please try again.")))
       (api/malformed {:errors ["You must submit payment."]}))))
 

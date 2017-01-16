@@ -10,19 +10,13 @@ pom.xml.asc
 .hgignore
 .hg/
 /data
-.sass-cache
-/resources/public/assets/css
-/resources/public/js/elm
+.sass-cache/
 /resources/public/assets/bower
-/resources/public/assets/.sass-cache
+/resources/public/assets/css
 /resources/public/js/cljs
-/resources/public/js/app
-/resources/public/js/bower
 *.log            # TODO: move to /logs
 /logs
-/init-script
 .cljs_rhino_repl/*
 figwheel_server.log
 .DS_Store
-/elm-stuff
-/elm/TAGS
+node_modules/

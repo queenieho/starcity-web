@@ -1,70 +1,52 @@
 (ns starcity.models.account
-  (:require [buddy.core
-             [codecs :refer [bytes->hex]]
-             [hash :refer [md5]]]
-            [buddy.hashers :as hashers]
-            [clojure.string :refer [lower-case trim]]
+  (:require [clojure
+             [spec :as s]
+             [string :refer [capitalize lower-case trim]]]
             [datomic.api :as d]
-            [starcity
-             [config :as config]
+            [potemkin :refer [import-vars]]
+            [starcity spec
              [datomic :refer [conn tempid]]]
-            [starcity.models.util :refer :all]
-            [starcity.models.util.update :refer [make-update-fn]]
-            [starcity.spec]
-            [clojure.spec :as s]))
-
-;; =============================================================================
-;; Helpers
-
-(defn- generate-activation-hash
-  [email]
-  (-> email
-      (str (System/currentTimeMillis))
-      (md5)
-      (bytes->hex)))
-
-;; =============================================================================
-;; Roles
-
-(derive :account.role/admin :account.role/applicant)
-(derive :account.role/admin :account.role/member)
-(derive :account.role/admin :account.role/onboarding)
-;; deprecated
-(derive :account.role/admin :account.role/tenant)
-(derive :account.role/admin :account.role/pending)
-
-(s/def ::role
-  #{:account.role/admin
-    :account.role/member
-    :account.role/onboarding
-    :account.role/applicant
-    ;; deprecated
-    :account.role/pending
-    :account.role/tenant})
-
-(def admin-role :account.role/admin)
-(def onboarding-role :account.role/onboarding)
-(def applicant-role :account.role/applicant)
-(def member-role :account.role/member)
+            [starcity.util :refer [entity? conn?]]
+            [starcity.spec.datomic]
+            [starcity.models.account
+             [auth :as auth]
+             [role :as r]]))
 
 ;; =============================================================================
 ;; Selectors
 
 (def email :account/email)
+(def phone-number :account/phone-number)
 (def first-name :account/first-name)
 (def middle-name :account/middle-name)
 (def last-name :account/last-name)
 (def dob :account/dob)
 (def activation-hash :account/activation-hash)
 (def member-application :account/member-application)
+(def role :account/role)
 
 (defn full-name
-  "Full name of this account."
+  "Full name of person identified by this account."
   [{:keys [:account/first-name :account/last-name :account/middle-name]}]
   (if (not-empty middle-name)
     (format "%s %s %s" first-name middle-name last-name)
     (format "%s %s" first-name last-name)))
 
+;; TODO: `conn` as arg
+(defn stripe-customer
+  "Retrieve the `stripe-customer` that belongs to this account. Produces the
+  customer that is on the Stripe master account, NOT the managed one -- the
+  customer on the managed account will be used *only* for autopay."
+  [account]
+  (when-let [c (d/q '[:find ?e .
+                      :in $ ?a
+                      :where
+                      [?e :stripe-customer/account ?a]
+                      [(missing? $ ?e :stripe-customer/managed)]]
+                    (d/db conn) (:db/id account))]
+    (d/entity (d/db conn) c)))
+
+;; TODO: `conn` as arg
 (defn created-at
   "Find the time that this account was created at.
 
@@ -80,183 +62,79 @@
       (sort)
       (first)))
 
-;; =============================================================================
-;; Passwords
-
-(defn- hash-password [password]
-  (hashers/derive password {:alg :bcrypt+blake2b-512 :iterations 12}))
-
-(defn- check-password [password hash]
-  (hashers/check password hash))
-
-(defn generate-random-password
-  "With no args, produces a random string of 8 characters. `n` can optionally be
-  specified."
-  ([]
-   (generate-random-password 8))
-  ([n]
-   (let [chars    (concat
-                   (map char (range 48 58))
-                   (map char (range 65 91))
-                   (map char (range 97 123)))
-         password (take n (repeatedly #(rand-nth chars)))]
-     (reduce str password))))
-
-(defn change-password
-  "Change the password for `account` to `new-password`. `new-password` will be
-  hashed before it is saved to db."
-  [account new-password]
-  @(d/transact conn [{:db/id (:db/id account) :account/password (hash-password new-password)}]))
-
-(s/fdef change-password
-        :args (s/cat :account :starcity.spec/entity
-                     :new-password string?))
-
-(defn reset-password
-  "Reset the password for `account` by generating a random password. Return the
-  generated password."
-  [account]
-  (let [new-password (generate-random-password)]
-    (change-password account new-password)
-    new-password))
+(s/fdef created-at
+        :args (s/cat :account entity?)
+        :ret inst?)
 
 ;; =============================================================================
 ;; Predicates
 
-(defn exists?
-  "Returns an account iff one exists under this username, and nil otherwise."
-  [email]
+;; TODO: `conn` as arg
+(defn exists? [email]
   (d/entity (d/db conn) [:account/email email]))
 
-(defn applicant?
-  [account]
-  (= (:account/role account) :account.role/applicant))
-
-(defn admin?
-  [account]
-  (= (:account/role account) :account.role/admin))
-
-(defn member?
-  [account]
-  (= (:account/role account) :account.role/member))
-
-(defn is-password?
-  [account password]
-  (let [hash (:account/password account)]
-    (check-password password hash)))
-
 ;; =============================================================================
-;; Lookups
+;; Queries
 
-(def by-email
-  "More semantic way to search for an user by email than using the `exists?'
-  function."
-  exists?)
-
-(defn by-application
-  "Given a member application entity, produce the associated account."
-  [application]
-  (first (:account/_member-application application)))
+;; TODO: `conn` as arg
+(defn by-email [email]
+  (d/entity (d/db conn) [:account/email email]))
 
 ;; =============================================================================
 ;; Transactions
 
+;; TODO: Don't transact here
 (defn create
   "Create a new user record in the database, and return the user's id upon
   successful creation."
   [email password first-name last-name]
-  (let [acct (ks->nsks :account
-                       {:first-name      (trim first-name)
-                        :last-name       (trim last-name)
-                        :email           (-> email trim lower-case)
-                        :password        (-> password trim hash-password)
-                        :activation-hash (generate-activation-hash email)
-                        :activated       false
-                        :role            :account.role/applicant})
+  (let [acct {:account/first-name      (-> first-name trim capitalize)
+              :account/last-name       (-> last-name trim capitalize)
+              :account/email           (-> email trim lower-case)
+              :account/password        (-> password trim auth/hash-password)
+              :account/activation-hash (auth/activation-hash email)
+              :account/activated       false
+              :account/role            r/applicant}
         tid  (tempid)
         tx   @(d/transact conn [(assoc acct :db/id tid)])]
-    (d/entity (d/db conn) (d/resolve-tempid (d/db conn) (:tempids tx) tid))))
+    (->> (d/resolve-tempid (d/db conn) (:tempids tx) tid)
+         (d/entity (d/db conn)))))
 
+(s/fdef create
+        :args (s/cat :email string?
+                     :password string?
+                     :first-name string?
+                     :last-name string?)
+        :ret :starcity.spec.datomic/entity)
+
+;; TODO: Don't transact here
 (defn activate
-  "Activate the account by setting the `:account/activated` flag to true."
+  "Indicate that the user has successfully verified ownership over the provided
+  email address."
   [account]
-  (let [ent {:db/id (:db/id account) :account/activated true}]
-    @(d/transact conn [ent])))
+  (:db-after @(d/transact conn [{:db/id             (:db/id account)
+                                 :account/activated true}])))
 
-;; =============================================================================
-;; Authentication
+(s/fdef activate
+        :args (s/cat :account :starcity.spec.datomic/entity)
+        :ret :starcity.spec.datomic/db)
 
-(defn session-data
-  "Produce the data that should be stored in the session for `account`."
-  [account]
-  {:account/email      (:account/email account)
-   :account/role       (:account/role account)
-   :account/activated  (:account/activated account)
-   :account/first-name (:account/first-name account)
-   :account/last-name  (:account/last-name account)
-   :db/id              (:db/id account)})
+;;; Convenience API
 
-(defn authenticate
-  "Return the user record found under `username' iff a user record exists for
-  that username and the password matches."
-  [email password]
-  (when-let [acct (one (d/db conn) :account/email email)]
-    (when (check-password password (:account/password acct))
-      (session-data acct))))
-
-
-
-(comment
-
-  (require '[clj-time.core :as t])
-
-  (require '[clj-time.coerce :as c])
-
-  (defn- in-september? [t]
-    (t/within? (t/interval (t/date-time 2016 9 1) (t/date-time 2016 9 30)) t))
-
-  (defn- in-october? [t]
-    (t/within? (t/interval (t/date-time 2016 10 1) (t/date-time 2016 10 31)) t))
-
-  (defn- in-november? [t]
-    (t/within? (t/interval (t/date-time 2016 11 1) (t/date-time 2016 11 30)) t))
-
-  (defn- accounts-created []
-    (->> (d/q '[:find ?tx-time
-                :where
-                [?e :account/email _ ?tx]
-                [?tx :db/txInstant ?tx-time]]
-              (d/db conn))
-         (map (comp c/from-date first))))
-
-  (defn- applications-created []
-    (->> (d/q '[:find ?tx-time
-                :where
-                [?e :member-application/desired-availability _ ?tx]
-                [?tx :db/txInstant ?tx-time]]
-              (d/db conn))
-         (map (comp c/from-date first))))
-
-  {:accounts
-   {:september (->> (accounts-created)
-                    (filter in-september?)
-                    (count))
-    :october   (->> (accounts-created)
-                    (filter in-october?)
-                    (count))
-    :november  (->> (accounts-created)
-                    (filter in-november?)
-                    (count))}
-   :applications
-   {:september (->> (applications-created)
-                    (filter in-september?)
-                    (count))
-    :october   (->> (applications-created)
-                    (filter in-october?)
-                    (count))
-    :november  (->> (applications-created)
-                    (filter in-november?)
-                    (count))}}
-
-
-  )
+(import-vars
+ [starcity.models.account.role
+  applicant
+  member
+  admin
+  onboarding
+  applicant?
+  member?
+  admin?
+  onboarding?
+  change-role]
+ [starcity.models.account.auth
+  change-password
+  reset-password
+  authenticate
+  session-data
+  is-password?])
