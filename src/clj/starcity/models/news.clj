@@ -3,7 +3,8 @@
             [plumbing.core :refer [assoc-when]]
             [starcity.util :refer :all]
             [starcity.models.account :as account]
-            [starcity.datomic.partition :refer [tempid]]))
+            [starcity.datomic.partition :refer [tempid]]
+            [datomic.api :as d]))
 
 ;; =============================================================================
 ;; Transactions
@@ -46,9 +47,26 @@
           "This is your primary gateway to Starcity. For now you can <b>manage your rent and payment information</b>, but there's a lot more coming; stay tuned for updates!"
           :title "Welcome to your member dashboard!"))
 
+(def autopay-action
+  :account.rent.autopay/setup)
+
 (defn autopay
   [account]
   (create account
           "Just link your bank account and you'll never have to worry about missing a rent payment."
-          :action :account.rent.autopay/setup
+          :action autopay-action
           :title "Set up Automatic Rent Payments"))
+
+;; =============================================================================
+;; Queries
+
+(defn by-action
+  "Look up a news item by its `action`."
+  [conn account action]
+  (->> (d/q '[:find ?e .
+              :in $ ?action ?account
+              :where
+              [?e :news/action ?action]
+              [?e :news/account ?account]]
+            (d/db conn) action (:db/id account))
+       (d/entity (d/db conn))))

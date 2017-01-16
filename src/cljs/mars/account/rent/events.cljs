@@ -133,8 +133,9 @@
  :rent/toggle-show-autopay
  [(path db/path)]
  (fn [db _]
-   (when-not (db/autopay-enabled? db)
-     (db/toggle-show-autopay db))))
+   (if-not (db/autopay-enabled? db)
+     (db/toggle-show-autopay db)
+     db)))
 
 (reg-event-fx
  :rent.autopay/fetch-status
