@@ -25,7 +25,8 @@
    (account "jon@test.com" "Jon" "Dishotsky" "2345678910" :account.role/onboarding)
    (account "jesse@test.com" "Jesse" "Suarez" "2345678910" :account.role/onboarding)
    (account "mo@test.com" "Mo" "Sakrani" "2345678910" :account.role/onboarding)
-   (account "meg@test.com" "Meg" "Bell" "2345678910" :account.role/onboarding)])
+   (account "meg@test.com" "Meg" "Bell" "2345678910" :account.role/onboarding)
+   (account "jp@test.com" "Josh" "Petersen" "2345678910" :account.role/onboarding)])
 
 (defn seed [conn]
   @(d/transact conn tx-data))
