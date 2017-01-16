@@ -149,7 +149,6 @@
        [:div.card-content
         [:p.title.is-4 "The Mission"]
         [:p.subtitle.is-5 "Available <b>April 1, 2017</b>"]]]))
-
     [:a.button.is-primary.is-large {:href "/signup"} "Apply Now"])))
 
 ;; =============================================================================
