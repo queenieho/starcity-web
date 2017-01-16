@@ -57,8 +57,7 @@
 
 (defn- default-due-date [start]
   (let [start (c/to-date-time start)]
-    (-> (t/date-time (t/year start) (t/month start) 6)
-        (t/minus (t/seconds 1))
+    (-> (t/date-time (t/year start) (t/month start) 5)
         (c/to-date))))
 
 (defn create
