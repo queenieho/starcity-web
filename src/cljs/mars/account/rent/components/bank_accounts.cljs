@@ -49,4 +49,4 @@
                  :icon     (if (:enabled autopay) "check" "info-circle")}
        (if (:enabled autopay)
          "Autopay Enabled"
-         "Autopay")]])])
+         "Enable Autopay")]])])

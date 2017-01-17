@@ -34,7 +34,7 @@
       :type     "primary"
       :loading  enabling
       :on-click #(dispatch [:rent.autopay/enable])}
-     "Enable Autopay"]]
+     "Enable"]]
 
    [:button.modal-close
     {:on-click #(dispatch [:rent/toggle-show-autopay])}]])

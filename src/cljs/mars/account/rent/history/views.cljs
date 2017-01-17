@@ -50,6 +50,9 @@
   (and (not= status "paid")
        (t/after? (t/now) date)))
 
+(defn late? [due-date paid-date]
+  (t/after? (c/to-date-time paid-date) (c/to-date-time due-date)))
+
 (defn- dot-props-for [status due-date]
   (case status
     "due"     [nil (when (overdue? status due-date) "red")]
@@ -85,7 +88,7 @@
         [:span.tag.is-danger.is-small "overdue"]))))
 
 (defn- payment-item
-  [{:keys [id status method pstart pend due] :as item} bank-account last]
+  [{:keys [id status method pstart pend due paid] :as item} bank-account last]
   (let [payment-date (payment-date pstart pend)
         [type color] (dot-props-for status due)]
     [a/timeline-item
@@ -97,7 +100,9 @@
      [:div {:style {:margin-top "4px"}}
       (if (paid-or-pending? status)
         (payment-tag item)
-        (payment-button item bank-account))]]))
+        (payment-button item bank-account))
+      (when (and (= status "paid") (late? due paid))
+        [:span.tag.is-danger.is-small {:style {:margin-left 8}} "late"])]]))
 
 (defn history [bank-account]
   (let [loading (subscribe [:rent.history/loading?])

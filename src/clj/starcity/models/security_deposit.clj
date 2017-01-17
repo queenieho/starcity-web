@@ -108,7 +108,6 @@
 (defn by-charge [charge]
   (->> (d/q '[:find ?e .
               :in $ ?c
-              :where
-              [?e :security-deposit/charges ?c]]
+              :where [?e :security-deposit/charges ?c]]
             (d/db conn) (:db/id charge))
        (d/entity (d/db conn))))
