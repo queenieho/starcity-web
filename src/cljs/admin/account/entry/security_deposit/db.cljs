@@ -10,7 +10,7 @@
 (def default-value
   {:loading             false
    :data                {}
-   :check-statuses      ["deposited" "cleared" "bounced" "cancelled"]
+   :check-statuses      ["deposited" "cleared" "bounced" "cancelled" "received"]
    :showing-check-modal false
    :check-modal-data    {}})
 
