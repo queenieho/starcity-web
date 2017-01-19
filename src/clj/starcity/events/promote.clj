@@ -2,25 +2,20 @@
   (:require [clj-time
              [coerce :as c]
              [core :as t]]
-            [clojure.core.async :refer [go]]
             [clojure.spec :as s]
             [datomic.api :as d]
-            [dire.core :refer [with-pre-hook!]]
             [plumbing.core :refer [assoc-when]]
             [starcity
              [datomic :refer [conn]]
-             [util :refer [entity? round]]]
-            [starcity.events
-             [account :refer [deauthorize!]]
              [util :refer :all]]
+            [starcity.events.plumbing :refer [defproducer]]
             [starcity.models
              [account :as account]
              [license :as license]
              [member-license :as member-license]
              [news :as news]
              [rent-payment :as rent-payment]
-             [security-deposit :as security-deposit]]
-            [taoensso.timbre :as timbre]))
+             [security-deposit :as security-deposit]]))
 
 (defn- assert-onboarded
   "Asserts that `account` has a paid security deposit and currently has the
@@ -47,6 +42,15 @@
                          :rent-payment.status/due
                          :due-date (c/to-date (t/plus dt (t/days 5))))))
 
+(defn- security-deposit-due-date
+  [conn account commencement]
+  (let [deposit  (security-deposit/by-account account)
+        due-date (-> (t/plus (c/to-date-time (end-of-day commencement))
+                             (t/days 30))
+                     c/to-date)]
+    {:db/id                   (:db/id deposit)
+     :security-deposit/due-by due-date}))
+
 (defn member-tx
   "All of the transaction data needed to transition an account smoothly from
   onboarding to membership."
@@ -57,32 +61,13 @@
                          (prorated-payment commencement rate))]
     [(->> (assoc-when member-license :member-license/rent-payments payment)
           (assoc base :account/license))
+     (security-deposit-due-date conn account commencement)
      (news/welcome account)
      (news/autopay account)]))
 
-(defn to-member!
-  "Promote `account` to membership status."
+(defproducer to-member! ::to-member
   [account license unit commencement rate]
-  (assert-onboarded account)
-  (go
-    (deauthorize! account)
-    (try
-      @(d/transact conn (member-tx conn account license unit commencement rate))
-      (catch Throwable ex
-        (timbre/error ex ::to-member {:account      (:db/id account)
-                                      :license      (license/term license)
-                                      :unit         (:db/id unit)
-                                      :commencement commencement
-                                      :rate         rate})
-        ex))))
-
-(with-pre-hook! #'to-member!
-  (fn [account license unit commencement rate]
-    (timbre/info ::to-member {:account      (:db/id account)
-                              :license      (license/term license)
-                              :unit         (:db/id unit)
-                              :commencement commencement
-                              :rate         rate})))
+  @(d/transact conn (member-tx conn account license unit commencement rate)))
 
 (s/fdef to-member!
         :args (s/cat :account entity?

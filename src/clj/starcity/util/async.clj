@@ -1,4 +1,4 @@
-(ns starcity.events.util
+(ns starcity.util.async
   (:require [clojure.core.async :as a :refer [<!! <! go]]))
 
 (defn chan? [x]

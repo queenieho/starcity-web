@@ -1,51 +1,59 @@
 (ns starcity.events.rent
-  (:require [clojure.core.async :as a :refer [go]]
+  (:require [clj-time
+             [coerce :as c]
+             [core :as t]]
             [clojure.spec :as s]
-            [dire.core :refer [with-pre-hook!]]
-            [starcity
-             [datomic :refer [conn]]
-             [util :refer [entity?]]]
-            [starcity.events.rent.make-ach-payment :as ach]
-            [starcity.events.util :refer :all]
-            [taoensso.timbre :as timbre]
             [datomic.api :as d]
-            [clj-time.coerce :as c]
-            [clj-time.core :as t]
-            [starcity.models.rent-payment :as rent-payment]
-            [starcity.models.member-license :as member-license]
-            [starcity.services.mailgun :as mail]
-            [starcity.models.account :as account]
-            [starcity.services.mailgun.senders :as ms]
-            [starcity.services.mailgun.message :as mm]
-            [starcity.config :as config]))
+            [starcity.datomic :refer [conn]]
+            [starcity.events.plumbing :refer [defproducer]]
+            [starcity.models
+             [account :as account]
+             [charge :as charge]
+             [member-license :as member-license]
+             [rent-payment :as rent-payment]]
+            [starcity.models.stripe.customer :as customer]
+            [starcity.services.stripe :as stripe]
+            [starcity.util :refer :all]))
 
 ;; =============================================================================
 ;; Make ACH Payment
 
-(defn- create-ach-charge!
-  "Create the charge on Stripe and corresponding rent payment."
-  [account payment]
-  (go-try
-   (let [charge-id (ach/create-charge! conn account payment)]
-     (ach/create-payment conn charge-id account payment)
-     charge-id)))
+(defn- cents [x]
+  (int (* 100 x)))
 
-(defn make-ach-payment!
-  "Trigger event signifying that member with `account` would like to pay
-  `payment` using ACH."
-  [account payment]
-  (go
-    (try
-      (let [charge-id (<!? (create-ach-charge! account payment))]
-        (ach/slack charge-id account payment))
-      (catch Throwable ex
-        (timbre/error ex ::make-payment {:account   (:db/id account)
-                                         :payment   (:db/id payment)})
-        ex))))
+(defn- create-charge!
+  "Create a charge for `payment` on Stripe."
+  [conn account payment]
+  (if (rent-payment/unpaid? payment)
+    (let [customer (account/stripe-customer account)
+          license  (member-license/active conn account)]
+      (get-in (stripe/charge (cents (rent-payment/amount payment))
+                             (customer/bank-account-token customer)
+                             (account/email account)
+                             :customer-id (customer/id customer)
+                             :managed-account (member-license/managed-account-id license))
+              [:body :id]))
+    (throw (ex-info "Cannot pay a payment that is already paid!"
+                    {:payment (:db/id payment) :account (:db/id account)}))))
 
-(with-pre-hook! #'make-ach-payment!
-  (fn [a p] (timbre/info ::make-payment {:account (:db/id a)
-                                        :payment (:db/id p)})))
+(defn- create-payment
+  "Create/update necessary database entities to record the payment."
+  [conn charge-id account payment]
+  (let [charge (charge/create charge-id account)]
+    @(d/transact conn [charge
+                       (assoc
+                        (rent-payment/pending payment)
+                        :rent-payment/paid-on (java.util.Date.)
+                        :rent-payment/method rent-payment/ach
+                        :rent-payment/charge (:db/id charge))])))
+
+(defproducer make-ach-payment! ::make-ach-payment
+  [account payment]
+  (let [charge-id (create-charge! conn account payment)]
+    {:result    (create-payment conn charge-id account payment)
+     :charge-id charge-id
+     :account   account
+     :payment   payment}))
 
 (s/fdef make-ach-payment!
         :args (s/cat :account entity? :payment entity?)
@@ -75,39 +83,14 @@
         :member-license/rent-payments p}))
    licenses))
 
-(defn send-reminder [account]
-  (mail/send (account/email account) "Reminder: Your Rent is Due"
-             (mm/msg
-              (mm/greeting (account/first-name account))
-              (mm/p "It's that time again! Your rent payment is <b>due by the 5th</b>.")
-              (mm/p "Please log into your member dashboard "
-                    [:a {:href (str config/hostname "/me/account/rent")} "here"]
-                    " to pay your rent with ACH. <b>If you'd like to stop getting these reminders, sign up for autopay while you're there!</b>")
-              (mm/signature))
-             :from ms/noreply))
-
-(defn- send-reminders [conn license-ids]
-  (let [accounts (map (comp member-license/account (partial d/entity (d/db conn))) license-ids)]
-    (doseq [account accounts]
-      (send-reminder account))))
-
-(defn create-monthly-rent-payments!
-  "Once per month all of the rent payments need to be created for active members
-  that are not on Autopay -- this event creates those payments and sends email
-  reminders to the members."
+;; Once per month all of the rent payments need to be created for active
+;; members that are not on Autopay -- this event creates those payments and
+;; sends email reminders to the members.
+(defproducer create-monthly-rent-payments! ::create-monthly-rent-payments
   [period]
-  (go
-    (try
-      (let [txes (->> (query-active-licenses conn) (license-txes period))]
-        @(d/transact conn txes)
-        (send-reminders conn (map :db/id txes))
-        :ok)
-      (catch Throwable ex
-        (timbre/error ex ::create-monthly-rent-payments {:period period})
-        ex))))
-
-(with-pre-hook! #'create-monthly-rent-payments!
-  (fn [period] (timbre/info ::create-monthly-rent-payments {:period period})))
+  (let [txes (->> (query-active-licenses conn) (license-txes period))]
+    {:result   @(d/transact conn txes)
+     :licenses (map :db/id txes)}))
 
 (comment
   (create-monthly-rent-payments!

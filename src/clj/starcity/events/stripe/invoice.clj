@@ -2,19 +2,18 @@
   (:require [clj-time
              [coerce :as c]
              [core :as t]]
-            [clojure.core.async :refer [go <!]]
+            [clojure.core.async :refer [go]]
             [clojure.spec :as s]
             [dire.core :refer [with-pre-hook!]]
-            [starcity.datomic :refer [conn]]
-            [starcity.events.stripe.invoice
-             [created :as created]
-             [payment-failed :as payment-failed]
-             [payment-succeeded :as payment-succeeded]]
-            [starcity.events.util :as e :refer :all]
+            [starcity
+             [datomic :refer [conn]]
+             [util :refer [chan?]]]
+            [starcity.events.plumbing :refer [defproducer]]
             [starcity.models
              [member-license :as member-license]
              [rent-payment :as rent-payment]]
-            [taoensso.timbre :as timbre]))
+            [taoensso.timbre :as timbre]
+            [datomic.api :as d]))
 
 ;; =============================================================================
 ;; Internal
@@ -30,89 +29,79 @@
 ;; =============================================================================
 ;; Invoice Created
 
-(defn created!
-  "A new invoice has been created on Stripe, which means that a corresponding
-  `rent-payment` entity should be created on our end to represent the autopay
-  payment."
-  [invoice-id customer-id period-start]
-  (go (try
-        (created/add-rent-payment! conn invoice-id customer-id period-start)
-        (catch Throwable ex
-          (timbre/error ex ::created {:invoice-id   invoice-id
-                                      :customer-id  customer-id
-                                      :period-start period-start})
-          ex))))
+(defn- add-rent-payment!
+  "Add a new rent payment entity to member's `license` based on `invoice-id`."
+  [conn invoice-id customer-id period-start]
+  (let [license (member-license/by-customer-id conn customer-id)
+        payment (rent-payment/autopay-payment invoice-id
+                                              period-start
+                                              (member-license/rate license))]
+    @(d/transact conn [(member-license/add-rent-payments license payment)])))
 
-(with-pre-hook! #'created!
-  (fn [i c p] (timbre/info ::created {:invoice-id   i
-                                     :customer-id  c
-                                     :period-start p})))
+(defproducer created! ::created
+  [invoice-id customer-id period-start]
+  (add-rent-payment! conn invoice-id customer-id period-start))
 
 (s/fdef created!
         :args (s/cat :invoice-id string? :customer-id string? :period-start inst?)
         :ret chan?)
 
+(comment
+  (created! "in_19ximtjdow24tc1az91yfza4" "cus_9bzpu7sapb8g7y" (c/to-date (t/date-time 2017 1 1)))
+
+  )
+
 ;; =============================================================================
 ;; Invoice Payment Failed
 
-(defn payment-failed!
-  "An invoice payment has failed on Stripe, which means that the account's
-  `rent-payment` entity should reflect the failure.
+(defn- maybe-remove-paid-on
+  "Remove the `:rent-payment/paid-on` fact iff there are both a paid-on date
+  and the payment has been attempted thrice."
+  [payment num-failures tx-data]
+  (let [paid-on (:rent-payment/paid-on payment)]
+    (if (and paid-on (= num-failures 3))
+      (conj tx-data [:db/retract (:db/id payment) :rent-payment/paid-on paid-on])
+      tx-data)))
 
-  We also want to notify ourselves and the customer of what's happened."
+(defn- failed
+  "Keep track of then number of times that a payment has failed and change the
+  status back to `due` when the payment has failed thrice."
+  [conn invoice-id payment failures]
+  (let [tx-data [(-> {:db/id                         (:db/id payment)
+                     :rent-payment/autopay-failures failures}
+                    (merge (when (= 3 failures)
+                             {:rent-payment/status :rent-payment.status/due})))]]
+    @(d/transact conn (maybe-remove-paid-on payment failures tx-data))))
+
+(defproducer payment-failed! ::payment-failed
   [invoice-id]
-  (go
-    (try
-      (let [{:keys [payment account license]} (entities conn invoice-id)
-            failures (-> payment rent-payment/failures inc)
-            res (payment-failed/failed! conn invoice-id payment failures)]
-        (payment-failed/slack invoice-id account license failures)
-        (payment-failed/notify-customer account failures)
-        res)
-      (catch Throwable ex
-        (timbre/error ex ::failed {:invoice-id invoice-id})
-        ex))))
-
-(with-pre-hook! #'payment-failed!
-  (fn [i] (timbre/info ::payment-failed {:invoice-id i})))
+  (let [payment      (rent-payment/by-invoice-id conn invoice-id)
+        num-failures (-> payment rent-payment/failures inc)]
+    (failed conn invoice-id payment num-failures)))
 
 (s/fdef payment-failed!
         :args (s/cat :invoice-id string?)
         :ret chan?)
 
+(comment
+  (payment-failed! "in_19ximtjdow24tc1az91yfza4")
+
+  )
+
 ;; =============================================================================
 ;; Invoice Payment Succeeded
 
-(defn payment-succeeded!
-  "An invoice payment has succeeded on Stripe -- update the corresponding
-  `rent-payment` entity and send appropriate notifications."
+;; An invoice payment has succeeded on Stripe -- update the corresponding
+;; `rent-payment` entity and send appropriate notifications.
+(defproducer payment-succeeded! ::payment-succeeded
   [invoice-id]
-  (go
-    (try
-      (let [{:keys [payment license account]} (entities conn invoice-id)
-            res (payment-succeeded/paid! conn payment)]
-        (payment-succeeded/slack invoice-id license account)
-        (payment-succeeded/notify-customer account payment)
-        res)
-      (catch Throwable ex
-        (timbre/error ex ::succeeded {:invoice-id invoice-id})
-        ex))))
-
-(with-pre-hook! #'payment-succeeded!
-  (fn [i] (timbre/info ::payment-succeeded {:invoice-id i})))
+  (let [payment (rent-payment/by-invoice-id conn invoice-id)]
+    @(d/transact conn [(rent-payment/paid payment)])))
 
 (s/fdef payment-succeeded!
         :args (s/cat :invoice-id string?))
 
-
-
-
 (comment
-
-  (created! "in_19XImtJDow24Tc1az91yfzA4" "cus_9bzpu7sapb8g7y" (c/to-date (t/date-time 2017 1 1)))
-
-  (payment-succeeded! "in_19XImtJDow24Tc1az91yfzA4")
-
-  (payment-failed! "in_19XImtJDow24Tc1az91yfzA4")
+  (payment-succeeded! "in_19ximtjdow24tc1az91yfza4")
 
   )

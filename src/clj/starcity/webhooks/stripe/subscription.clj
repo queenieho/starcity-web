@@ -1,10 +1,9 @@
 (ns starcity.webhooks.stripe.subscription
-  (:require [clojure.core.async :refer [go]]
-            [datomic.api :as d]
-            [dire.core :refer [with-pre-hook!]]
+  (:require [datomic.api :as d]
             [starcity
              [config :as config]
              [datomic :refer [conn]]]
+            [starcity.events.autopay :as autopay]
             [starcity.models
              [account :as account]
              [member-license :as member-license]]
@@ -34,7 +33,7 @@
    (mm/signature)))
 
 (defn- notify-autopay-starting [account]
-  (mail/send (account/email account) "Autopay Payment Beginning Soon"
+  (mail/send (account/email account) "Autopay Beginning Soon"
              (autopay-starting-email account)
              :from ms/noreply))
 
@@ -55,38 +54,8 @@
 ;; We'll delete the reference to the subscription on our end, which will require
 ;; the user to re-setup autopay should she/he wish to.
 
-(defn- deactivation-email [account]
-  (mm/msg
-   (mm/greeting (account/first-name account))
-   (mm/p "We have failed to charge the account that you have linked to autopay for the third time, so autopay has been deactivated for your account.")
-   (mm/signature)))
-
-(defn- notify-autopay-deactivation [account]
-  (mail/send (account/email account) "Autopay Deactivated"
-             (deactivation-email account)
-             :from ms/noreply))
-
-;; NOTE: This currently just removes the subscription, which puts user back
-;; into the "authorization" state. Is that sufficient? Should we delete the
-;; source from the Stripe customer?
-(defn- delete-subscription! [sub-id]
-  (go
-    (try
-      (let [member-license (member-license/by-subscription-id conn sub-id)
-            account (member-license/account member-license)
-            res @(d/transact conn [(member-license/remove-subscription member-license)])]
-        (notify-autopay-deactivation account)
-        res)
-      (catch Throwable ex
-        (timbre/error ex ::autopay-deactivated {:subscription-id sub-id})
-        ex))))
-
-(with-pre-hook! #'delete-subscription!
-  (fn [s] (timbre/info ::autopay-deactivated {:subscription-id s})))
-
 (defmethod handle-event "customer.subscription.deleted" [data event]
-  (let [sub-id (subscription-id data)]
-    (manage event (delete-subscription! sub-id))))
+  (manage event (autopay/unsubscribe! (subscription-id data))))
 
 (comment
 
@@ -97,11 +66,17 @@
                    :data {:object {:id "sub_9mToVxHJw7PJRq"}}}
                   (d/entity (d/db conn) [:stripe-event/event-id "blah"])))
 
-  (do
+  (let [account (account/by-email "member@test.com")
+        license (member-license/active conn account)
+        sub-id  "sub_9mUbid8jkxAQvd"]
     (event/create "blah3" "customer.subscription.deleted")
-    (handle-event {:id   "blah2"
+    @(d/transact conn [{:db/id (:db/id license)
+                        :member-license/subscription-id sub-id}])
+    (handle-event {:id   "blah3"
                    :type "customer.subscription.deleted"
-                   :data {:object {:id "sub_9mUbid8jkxAQvd"}}}
+                   :data {:object {:id sub-id}}}
                   (d/entity (d/db conn) [:stripe-event/event-id "blah3"])))
+
+
 
   )

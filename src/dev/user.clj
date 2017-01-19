@@ -8,6 +8,7 @@
             [starcity.datomic :refer [conn]]
             [starcity.config]
             [starcity.seeder]
+            [starcity.events.observers]
             [datomic.api :as d]
             [starcity.models.util :refer :all]
             [starcity.services.mailgun]

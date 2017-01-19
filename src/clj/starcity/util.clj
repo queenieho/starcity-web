@@ -2,13 +2,16 @@
   (:require [plumbing.core :refer [dissoc-in]]
             [potemkin :refer [import-vars]]
             [starcity.util.predicates]
-            [starcity.util.date]))
+            [starcity.util.date]
+            [starcity.util.async]))
 
 (import-vars
  [starcity.util.predicates
-  entity? conn? lookup?]
+  entity? conn? lookup? throwable?]
  [starcity.util.date
-  is-first-day-of-month? end-of-day beginning-of-day])
+  is-first-day-of-month? end-of-day beginning-of-day]
+ [starcity.util.async
+  chan? <!!? <!? go-try])
 
 (defn transform-when-key-exists
   "(transform-when-key-exists

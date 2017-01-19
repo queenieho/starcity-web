@@ -16,3 +16,6 @@
   (and (vector? x)
        (keyword? (first x))
        (= (count x) 2)))
+
+(defn throwable? [x]
+  (instance? java.lang.Throwable x))

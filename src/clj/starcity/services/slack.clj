@@ -66,13 +66,6 @@
 (defn- ->channel [s]
   (if (str/starts-with? s "#") s (str "#" s)))
 
-(defn- log-result
-  [{:keys [error] :as res}]
-  (if error
-    (timbre/error error ::sent)
-    (timbre/trace ::sent))
-  res)
-
 (defn send
   [{:keys [channel username] :or {channel default-channel}} msg]
   (let [out-c      (chan 1)
@@ -83,7 +76,13 @@
                 :headers   {"Content-Type" "application/json"}
                 :body      (json/generate-string (merge msg msg-params))}
                (fn [res]
-                 (put! out-c (log-result res))))
+                 (if-let [error (:error res)]
+                   (do
+                     (timbre/error error ::send {:response (dissoc res :error)})
+                     (put! out-c error))
+                   (do
+                     (timbre/trace ::send {:response res})
+                     (put! out-c true)))))
     out-c))
 
 ;;; Templates

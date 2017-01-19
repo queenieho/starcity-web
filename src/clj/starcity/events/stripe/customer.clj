@@ -1,19 +1,15 @@
 (ns starcity.events.stripe.customer
-  (:require [clojure.core.async :refer [<! go]]
-            [dire.core :refer [with-pre-hook!]]
-            [datomic.api :as d]
+  (:require [datomic.api :as d]
             [starcity
              [config :as config]
-             [datomic :refer [conn]]]
+             [datomic :refer [conn]]
+             [util :refer [<!?]]]
+            [starcity.events.plumbing :refer [defproducer]]
             [starcity.models.account :as account]
-            [starcity.services
-             [mailgun :as mail]
-             [slack :as slack]]
+            [starcity.services.mailgun :as mail]
             [starcity.services.mailgun
              [message :as mm]
-             [senders :as ms]]
-            [starcity.services.slack.message :as sm]
-            [taoensso.timbre :as timbre]))
+             [senders :as ms]]))
 
 (defn- link [account]
   (cond
@@ -33,30 +29,18 @@
              (email-content account)
              :from ms/noreply))
 
-(defn- notify-internal [account]
-  (slack/ops
-   (sm/msg
-    (sm/failure
-     (sm/title "Bank Verification Failure")
-     (sm/text (format "%s's bank account could not be verified."
-                      (account/full-name account)))))))
-
 (defn- lookup-customer [customer-id]
   (d/entity (d/db conn) [:stripe-customer/customer-id customer-id]))
 
-(defn verification-failed!
-  "The customer's bank verification has failed. He/she should be notified, and
-  we should be notified too, because why not?"
+;; In the case of this producer, the action being taken is to send notifications
+;; to the user -- there's nothing to be done in the DB yet.
+(defproducer verification-failed! ::verification-failed
   [customer-id]
-  (go (let [customer (lookup-customer customer-id)
-            account  (:stripe-customer/account customer)
-            res-1    (<! (notify-user account))
-            res-2    (<! (notify-internal account))]
-        (if-let [error (or (:error res-1) (:error res-2))]
-          (do
-            (timbre/error error ::verification-failed {:customer-id customer-id})
-            error)
-          :ok))))
+  (let [account (account/by-customer-id conn customer-id)
+        _       (<!? (notify-user account))]
+    :done))
 
-(with-pre-hook! #'verification-failed!
-  (fn [c] (timbre/info ::verification-failed {:customer-id c})))
+(comment
+  (verification-failed! "cus_9bzpu7sapb8g7y")
+
+  )
