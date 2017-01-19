@@ -6,21 +6,18 @@
 (defn- properties [conn]
   (d/q '[:find [?e ...] :where [?e :property/name _]] (d/db conn)))
 
-(def property-pattern
-  [:db/id
-   :property/upcoming
-   :property/name
-   :property/internal-name
-   :property/available-on
-   {:property/licenses [:property-license/license
-                        :property-license/base-price]}])
+(defn- clientize-license [license]
+  {:property-license/license    (:property-license/license license)
+   :property-license/base-price (:property-license/base-price license)})
 
-;; TODO: Don't use pull api, use a parse fn
-
-(defn- fetch-properties [conn]
-  (->> (properties conn)
-       (d/pull-many (d/db conn) property-pattern)
-       (map #(assoc-in % [:property/units] (count (property/available-units %))))))
+(defn- clientize-property [conn id]
+  (let [property (d/entity (d/db conn) id)]
+    {:db/id                  (:db/id property)
+     :property/name          (:property/name property)
+     :property/internal-name (:property/internal-name property)
+     :property/available-on  (:property/available-on property)
+     :property/licenses      (map clientize-license (:property/licenses property))
+     :property/units         (count (property/available-units property))}))
 
 ;; TODO: Spec
 (defn initial-data
@@ -29,6 +26,6 @@
   (letfn [(clientize [l]
             {:license/term (:license/term l)
              :db/id        (:db/id l)})]
-    {:properties (fetch-properties conn)
+    {:properties (map (partial clientize-property conn) (properties conn))
      :licenses   (->> (license/licenses conn)
                       (map clientize))}))

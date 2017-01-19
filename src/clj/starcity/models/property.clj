@@ -1,13 +1,12 @@
 (ns starcity.models.property
-  (:require [starcity.services.stripe :as stripe]
-            [starcity.services.stripe.connect :as connect]
-            [starcity.datomic :refer [conn tempid]]
-            [starcity.models.util :refer :all]
+  (:refer-clojure :exclude [name])
+  (:require [clojure.spec :as s]
             [datomic.api :as d]
-            [starcity.spec]
-            [clojure.spec :as s]
-            [clj-time.core :as t])
-  (:refer-clojure :exclude [name]))
+            [starcity spec
+             [datomic :refer [conn tempid]]]
+            [starcity.models.util :refer :all]
+            [starcity.services.stripe :as stripe]
+            [starcity.services.stripe.connect :as connect]))
 
 ;; =============================================================================
 ;; API
@@ -25,17 +24,14 @@
 ;; Queries
 
 (defn available-units
-  "Retrieve all units that are currently available.
-
-  A property is considered *available* iff no :account/unit references it."
+  "A unit is considered available if there is no active member license that
+  references it."
   [property]
-  (qes '[:find ?u
-         :in $ ?p
-         :where
-         [?p :property/units ?u]
-         [?a :account/email _]
-         (not [?a :account/unit ?u])]
-       (d/db conn) (:db/id property)))
+  (filter
+   (fn [u]
+     (let [ml (first (:member-license/_unit u))]
+       (or (nil? ml) (not (:member-license/active ml)))))
+   (:property/units property)))
 
 (defn many
   [pattern]
