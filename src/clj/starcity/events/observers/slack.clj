@@ -12,7 +12,9 @@
             [starcity.services.slack :as slack]
             [starcity.services.slack.message :as sm]
             [taoensso.timbre :as timbre]
-            [starcity.models.member-license :as member-license]))
+            [starcity.models.member-license :as member-license]
+            [starcity.models.security-deposit :as security-deposit]
+            [starcity.services.stripe :as stripe]))
 
 ;; =============================================================================
 ;; Helpers
@@ -72,6 +74,10 @@
 ;; =============================================================================
 ;; Stripe: Charges
 
+;; TODO: Fix Stripe API to be async
+(defn- charge-amount [charge]
+  (-> (:charge/stripe-id charge) stripe/fetch-charge :body :amount))
+
 ;; =====================================
 ;; Failure
 
@@ -80,7 +86,10 @@
 
 (defmethod charge-failed :security-deposit
   [conn charge]
-  (let [account (charge/account charge)]
+  (let [account      (charge/account charge)
+        deposit      (security-deposit/by-charge charge)
+        is-remainder (security-deposit/partially-paid? deposit)
+        amount       (charge-amount charge)]
     (slack/ops
      (sm/msg
       (sm/failure
@@ -88,7 +97,9 @@
        (sm/text (format "%s's ACH payment has failed." (account/full-name account)))
        (sm/fields
         (sm/field "Email" (account/email account) true)
-        (sm/field "Phone" (account/phone-number account) true)))))))
+        (sm/field "Phone" (account/phone-number account) true)
+        (sm/field "Payment" (if is-remainder "remainder" "initial") true)
+        (sm/field "Amount" (format "$%.2f" (float (/ amount 100))) true)))))))
 
 (defmethod charge-failed :rent [conn charge]
   (let [account (charge/account charge)]
@@ -101,9 +112,6 @@
        (sm/fields
         (sm/field "Email" (account/email account) true)
         (sm/field "Phone" (account/phone-number account) true)))))))
-
-(defmethod charge-failed :default [_ _]
-  :noop)
 
 (defmethod handler :starcity.events.stripe.charge/failed
   [{:keys [charge-id]}]
@@ -118,12 +126,19 @@
 
 (defmethod charge-succeeded :security-deposit
   [conn charge]
-  (let [account (charge/account charge)]
+  (let [account    (charge/account charge)
+        deposit    (security-deposit/by-charge charge)
+        is-initial (security-deposit/partially-paid? deposit)
+        amount     (charge-amount charge)]
     (slack/ops
      (sm/msg
       (sm/success
-       (sm/title "Security Deposit Paid")
-       (sm/text (format "%s has paid his/her security deposit!" (account/full-name account))))))))
+       (sm/title "Security Deposit Succeeded")
+       (sm/text (format "%s's security deposit payment has succeeded."
+                        (account/full-name account)))
+       (sm/fields
+        (sm/field "Payment" (if is-initial "initial" "remainder") true)
+        (sm/field "Amount" (format "$%.2f" (float (/ amount 100))) true)))))))
 
 (defmethod charge-succeeded :rent
   [conn charge]

@@ -11,13 +11,14 @@
             [starcity.api.common :as api]
             [starcity.models
              [security-deposit :as security-deposit]
-             [stripe :as stripe]]
+             [stripe :as stripe]
+             [check :as check]]
             [starcity.models.check :as check]
             [starcity.util :refer :all]))
 
 (s/def ::number integer?)
 (s/def ::name string?)
-(s/def ::status security-deposit/check-statuses)
+(s/def ::status check/statuses)
 (s/def ::amount float?)
 (s/def ::date :starcity.spec/date)
 (s/def ::received-on :starcity.spec/date)

@@ -18,7 +18,8 @@
  (fn [_ _]
    {:dispatch-n [[:rent.upcoming/bootstrap]
                  [:rent.bank-account/bootstrap]
-                 [:rent.history/bootstrap]]}))
+                 [:rent.history/bootstrap]
+                 [:rent.security-deposit/bootstrap]]}))
 
 ;; =============================================================================
 ;; Bootstrap Upcoming Payment
@@ -262,3 +263,103 @@
                          :duration 6.0
                          :title    "Payment Succeeded"
                          :content  payment-success-msg}}))
+
+;; =============================================================================
+;; Security Deposit
+
+(reg-event-fx
+ :rent.security-deposit/bootstrap
+ [(path db/path)]
+ (fn [_ _]
+   {:dispatch [:rent.security-deposit/fetch]}))
+
+(reg-event-fx
+ :rent.security-deposit/fetch
+ [(path db/path)]
+ (fn [{:keys [db]} _]
+   {:db         (db/fetching-security-deposit db)
+    :http-xhrio {:method          :get
+                 :uri             (api/route "/security-deposit")
+                 :response-format (ajax/json-response-format {:keywords? true})
+                 :on-success      [:rent.security-deposit.fetch/success]
+                 :on-failure      [:rent.security-deposit.fetch/failure]}}))
+
+(reg-event-db
+ :rent.security-deposit.fetch/success
+ [(path db/path)]
+ (fn [db [_ result]]
+   (l/log "security deposit:" result)
+   (db/set-security-deposit db (:result result))))
+
+(reg-event-db
+ :rent.security-deposit.fetch/failure
+ [(path db/path)]
+ (fn [db [_ err]]
+   (l/error "security deposit:" err)
+   (db/set-security-deposit-error db err)))
+
+;; =====================================
+;; Confirmation
+
+(reg-event-db
+ :rent.security-deposit/show-confirmation
+ [(path db/path)]
+ (fn [db _]
+   (db/show-security-deposit-confirmation db)))
+
+(reg-event-db
+ :rent.security-deposit/hide-confirmation
+ [(path db/path)]
+ (fn [db _]
+   (if-not (db/paying-security-deposit? db)
+     (db/hide-security-deposit-confirmation db)
+     db)))
+
+;; =====================================
+;; Payment
+
+(reg-event-fx
+ :rent.security-deposit/pay
+ [(path db/path)]
+ (fn [{:keys [db]} _]
+   {:db            (db/paying-security-deposit db)
+    :alert/message {:type     :loading
+                    :duration :indefinite
+                    :content  "Submitting payment..."}
+    :http-xhrio    {:method          :post
+                    :uri             (api/route "/security-deposit/pay")
+                    :response-format (ajax/json-response-format {:keywords? true})
+                    :format          (ajax/json-request-format)
+                    :on-success      [:rent.security-deposit.pay/success]
+                    :on-failure      [:rent.security-deposit.pay/failure]}}))
+
+(def ^:private deposit-success-msg
+  "Your payment has been successfully submitted! Thanks!")
+
+(reg-event-fx
+ :rent.security-deposit.pay/success
+ [(path db/path)]
+ (fn [{:keys [db]} _]
+   {:db                 (db/set-paying-security-deposit db false)
+    :alert.message/hide true
+    :alert/notify       {:type     :success
+                         :duration 8.0
+                         :title    "Payment Submitted"
+                         :content  deposit-success-msg}
+    :dispatch-n         [[:rent.security-deposit/fetch]
+                         [:rent.security-deposit/hide-confirmation]]}))
+
+(def ^:private deposit-failure-msg
+  "We failed to process your payment. Please try again, and be sure to check your network connection.")
+
+(reg-event-fx
+ :rent.security-deposit.pay/failure
+ [(path db/path)]
+ (fn [{:keys [db]} _]
+   {:db                 (db/set-paying-security-deposit db false)
+    :dispatch           [:rent.security-deposit/hide-confirmation]
+    :alert.message/hide true
+    :alert/notify       {:type     :error
+                         :duration 8.0
+                         :title    "Payment Failed"
+                         :content  deposit-failure-msg}}))

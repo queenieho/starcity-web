@@ -46,12 +46,10 @@
                      (get-in [:body :id])))))
 
 (defn- update-db [conn charge-id deposit]
-  (let [total  (security-deposit/amount-required deposit)
-        charge (charge/create charge-id (security-deposit/account deposit))]
+  (let [charge (charge/create charge-id (security-deposit/account deposit))]
     @(d/transact conn [charge
-                       {:db/id                            (:db/id deposit)
-                        :security-deposit/charges         (:db/id charge)
-                        :security-deposit/amount-received total}])))
+                       {:db/id                    (:db/id deposit)
+                        :security-deposit/charges (:db/id charge)}])))
 
 (defproducer pay-remainder! ::pay-remainder-ach [deposit]
   (let [account   (security-deposit/account deposit)

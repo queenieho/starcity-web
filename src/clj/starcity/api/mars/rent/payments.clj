@@ -6,7 +6,6 @@
             [starcity.api.common :refer :all]
             [starcity.models.rent :as rent]
             [starcity.events.rent :refer [make-ach-payment!]]
-            [starcity.events.util :refer :all]
             [starcity.util :refer :all]
             [datomic.api :as d]
             [taoensso.timbre :as timbre]))

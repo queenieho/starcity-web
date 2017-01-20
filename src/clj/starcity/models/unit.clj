@@ -1,5 +1,4 @@
-(ns starcity.models.unit
-  (:require [datomic.api :as d]))
+(ns starcity.models.unit)
 
 ;; =============================================================================
 ;; Selectors

@@ -1,4 +1,5 @@
 (ns starcity.models.charge
+  (:refer-clojure :exclude [type])
   (:require [datomic.api :as d]
             [starcity.datomic :refer [conn]]
             [starcity.datomic.partition :refer [tempid]]
@@ -21,6 +22,10 @@
 (def failed-tx
   "The transaction to mark `charge` as failed."
   (partial status-tx :charge.status/failed))
+
+(def pending
+  "The transaction to mark `charge` as pending."
+  (partial status-tx :charge.status/pending))
 
 (defn succeeded
   "Mark `charge` as succeeded."
@@ -77,6 +82,18 @@
                   :charge.status/pending})
 
 (def account :charge/account)
+(def status :charge/status)
+
+(defn type
+  [conn charge]
+  (cond
+    (is-security-deposit-charge? conn charge) :security-deposit
+    (is-rent-ach-charge? conn charge)         :rent
+    :otherwise                                :default))
+
+(s/fdef type
+        :args (s/cat :conn conn? :charge entity?)
+        :ret #{:security-deposit :rent :default})
 
 ;; =============================================================================
 ;; Transactions

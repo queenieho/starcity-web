@@ -27,7 +27,7 @@
       (throw (ex-info "Cannot find charge entity." {:charge-id charge-id}))
 
       (not (charge/is-pending? charge))
-      (throw (ex-info "Only a pending charge can be marked as failed!"
+      (throw (ex-info "Only a pending charge can processed!"
                       {:charge    (:db/id charge)
                        :charge-id charge-id
                        :status    (charge/status charge)}))
@@ -77,8 +77,8 @@
         :ret chan?)
 
 (comment
-  (let [charge-id "py_19dVuEIvRccmW9nOihcbvJwF"]
-    (succeeded! charge-id "Oh no! It failed!"))
+  (let [charge-id "py_19e7bGIvRccmW9nOck1mpDS9"]
+    (succeeded! charge-id 150000))
 
   )
 
@@ -92,8 +92,8 @@
 (defmethod failed :security-deposit [conn charge]
   (let [sd (security-deposit/by-charge charge)]
     (when (security-deposit/is-unpaid? sd)
-      ;; TODO: Make event!
       ;; Delete the customer to kick him/her back through the onboarding flow
+      ;; TODO: Make event!
       (customer/delete! (-> charge charge/account account/stripe-customer)))
     @(d/transact conn [(charge/failed-tx charge)])))
 
@@ -117,7 +117,7 @@
         :ret chan?)
 
 (comment
-  (let [charge-id "py_19dVUbIvRccmW9nOKj60A2i7"]
+  (let [charge-id "py_19e7erIvRccmW9nO6ij5WnGl"]
     (failed! charge-id "Oh no! It failed!"))
 
   )

@@ -14,7 +14,8 @@
             [starcity.services.mailgun
              [message :as mm]
              [senders :as ms]]
-            [taoensso.timbre :as timbre]))
+            [taoensso.timbre :as timbre]
+            [starcity.models.security-deposit :as security-deposit]))
 
 ;; =============================================================================
 ;; Handlers
@@ -56,13 +57,22 @@
 (defmethod charge-failed :default [_ c] :noop)
 
 (defmethod charge-failed :security-deposit [conn charge]
-  (let [account (charge/account charge)]
+  (let [account (charge/account charge)
+        deposit (security-deposit/by-charge charge)]
     (mail/send (account/email account) "Security Deposit Payment Failure"
                (mm/msg
                 (mm/greeting (account/first-name account))
                 (mm/p "Unfortunately your security deposit payment failed to go through.")
                 (mm/p "The most common reasons for this are insufficient funds, or incorrectly entered account credentials.")
-                (mm/p "Please log back in to Starcity by clicking " [:a {:href (format "%s/onboarding" config/hostname)} "this link"] " to re-enter your bank account information.")
+                ;; If it's partially paid, that means that the user is no longer
+                ;; in onboarding.
+                (if (security-deposit/partially-paid? deposit)
+                  (mm/p "Please log back in to your member dashboard by clicking "
+                        [:a {:href (format "%s/me/account/rent" config/hostname)} "this link"]
+                        " to retry your payment.")
+                  (mm/p "Please log back in to Starcity by clicking "
+                        [:a {:href (format "%s/onboarding" config/hostname)} "this link"]
+                        " to re-enter your bank account information."))
                 (mm/signature))
                :from ms/noreply)))
 
@@ -89,11 +99,16 @@
 (defmethod charge-succeeded :default [_ _] :noop)
 
 (defmethod charge-succeeded :security-deposit [conn charge]
-  (let [account (charge/account charge)]
+  (let [account (charge/account charge)
+        deposit (security-deposit/by-charge charge)]
     (mail/send (account/email account) "Security Deposit Payment Succeeded"
                (mm/msg
                 (mm/greeting (account/first-name account))
-                (mm/p "This is a confirmation to let you know that your security deposit was successfully paid.")
+                ;; If it's partially paid, that means that the user just paid the initial $500
+                (if (security-deposit/partially-paid? deposit)
+                  (mm/p (format "This is a confirmation to let you know that your initial security deposit payment has succeeded. <b>Please note that the remainder of your deposit &mdash; $%s &mdash; is due one month from now."
+                                (security-deposit/amount-remaining deposit)))
+                  (mm/p "This is a confirmation to let you know that your security deposit has been successfully paid."))
                 (mm/signature))
                :from ms/noreply)))
 
@@ -137,8 +152,8 @@
         account  (member-license/account license)
         failures (-> (rent-payment/by-invoice-id conn invoice-id) rent-payment/failures)]
     (mail/send (account/email account) "Autopay Payment Failed"
-              (payment-failure-msg account failures)
-              :from ms/noreply)))
+               (payment-failure-msg account failures)
+               :from ms/noreply)))
 
 ;; =====================================
 ;; Payment Succeeded
@@ -158,8 +173,8 @@
         account (member-license/account license)
         payment (rent-payment/by-invoice-id conn invoice-id)]
     (mail/send (account/email account) "Autopay Payment Successful"
-              (payment-success-msg account payment)
-              :from ms/noreply)))
+               (payment-success-msg account payment)
+               :from ms/noreply)))
 
 ;; =============================================================================
 ;; Autopay
@@ -174,8 +189,8 @@
   [{:keys [license]}]
   (let [account (member-license/account license)]
     (mail/send (account/email account) "Autopay Deactivated"
-              (deactivation-email account)
-              :from ms/noreply)))
+               (deactivation-email account)
+               :from ms/noreply)))
 
 ;; =============================================================================
 ;; Observer

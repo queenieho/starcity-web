@@ -7,6 +7,7 @@
 ;;; Selectors
 
 (def amount :check/amount)
+(def status :check/status)
 
 ;;; Statuses
 
@@ -15,6 +16,9 @@
 (def cancelled :check.status/cancelled)
 (def bounced :check.status/bounced)
 (def deposited :check.status/deposited)
+
+(def statuses
+  #{received cleared cancelled bounced deposited})
 
 ;;; Predicates
 

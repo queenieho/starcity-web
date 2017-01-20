@@ -3,6 +3,7 @@
             [mars.account.rent.components.bank-accounts :as bank-accounts]
             [mars.account.rent.link-account.views :as link-account]
             [mars.account.rent.history.views :as history]
+            [mars.account.rent.components.security-deposit :as security-deposit]
             [mars.components.antd :as a]
             [mars.components.pane :as pane]
             [re-frame.core :refer [subscribe dispatch]]
@@ -61,7 +62,8 @@
   (let [upcoming     (subscribe [:rent/upcoming])
         bank-account (subscribe [:rent/bank-account])
         autopay      (subscribe [:rent/autopay])
-        make-payment (subscribe [:rent/make-payment])]
+        make-payment (subscribe [:rent/make-payment])
+        sec-deposit  (subscribe [:rent/security-deposit])]
     (fn []
       [:div
        [link-account-modal]
@@ -78,13 +80,17 @@
           (let [{:keys [loading bank-account]} @bank-account]
             [bank-accounts/bank-accounts bank-account loading @autopay
              :on-link-account #(dispatch [:rent/toggle-link-account])
-             :on-enable-autopay #(dispatch [:rent/toggle-show-autopay])])]]
+             :on-enable-autopay #(dispatch [:rent/toggle-show-autopay])])]
+         [:div {:style {:margin-bottom 16}}
+          [security-deposit/security-deposit
+           @sec-deposit
+           (:bank-account @bank-account)]]]
         [:div.column
          [history/history (:bank-account @bank-account)]]]])))
 
 (defn view []
   [:div.rent
    (pane/pane
-    (pane/header "Rent"
-                 "View your payment history and manage rent autopay")
+    (pane/header "Rent &amp; Security Deposit"
+                 "Make rent payments, pay your security deposit &amp; manage autopay")
     (pane/content [content]))])

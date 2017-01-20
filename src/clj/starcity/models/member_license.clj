@@ -5,7 +5,9 @@
             [clojure.spec :as s]
             [datomic.api :as d]
             [starcity.util :refer :all]
-            [starcity.models.license :as license]))
+            [starcity.models.license :as license]
+            [starcity.models.unit :as unit]
+            [starcity.models.property :as property]))
 
 ;; =============================================================================
 ;; API
@@ -39,6 +41,24 @@
 (defn by-subscription-id [conn sub-id]
   (d/entity (d/db conn) [:member-license/subscription-id sub-id]))
 
+(defn by-customer-id [conn customer-id]
+  (->> (d/q '[:find ?ml .
+              :in $ ?sc
+              :where
+              [?sc :stripe-customer/account ?a]
+              [?a :account/license ?ml]]
+            (d/db conn) [:stripe-customer/customer-id customer-id])
+       (d/entity (d/db conn))))
+
+(defn by-invoice-id [conn invoice-id]
+  (->> (d/q '[:find ?e .
+              :in $ ?i
+              :where
+              [?rp :rent-payment/invoice-id ?i]
+              [?e :member-license/rent-payments ?rp]]
+            (d/db conn) invoice-id)
+       (d/entity (d/db conn))))
+
 ;; =============================================================================
 ;; Selectors
 
@@ -51,6 +71,11 @@
 (def subscription-id :member-license/subscription-id)
 (def plan-id :member-license/plan-id)
 (def account :account/_license)
+
+(defn managed-account-id
+  "Retrieve the id of the managed Stripe account for the property that `member-license` is a part of."
+  [member-license]
+  (-> member-license unit unit/property property/managed-account-id))
 
 ;; =============================================================================
 ;; Predicates

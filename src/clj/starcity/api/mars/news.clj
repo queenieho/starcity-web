@@ -37,7 +37,9 @@
     (ok {:news (->> (query-news conn account)
                     (map clientize-news-item))})))
 
-(defn dismiss-news [news-id]
+(defn dismiss-news
+  "Dismiss news item identified by `news-id`."
+  [news-id]
   (fn [req]
     (let [news (d/entity (d/db conn) (str->int news-id))]
       (news/dismiss! news)

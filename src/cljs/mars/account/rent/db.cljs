@@ -9,10 +9,16 @@
 
 (def path ::rent)
 (def default-value
-  (merge {path {:autopay      {:showing         false
-                               :enabled         false
-                               :fetching-status false
-                               :enabling        false}
+  (merge {path {:autopay {:showing         false
+                          :enabled         false
+                          :fetching-status false
+                          :enabling        false}
+
+                :security-deposit {:loading      false
+                                   :data         {}
+                                   :error        false
+                                   :paying       false
+                                   :confirmation false}
 
                 :make-payment {:showing false
                                :paying  false}
@@ -23,9 +29,9 @@
                                :account {:bank-name ""
                                          :number    ""}}
 
-                :upcoming     {:loading true
-                               :payment {:amount 0
-                                         :due-by (t/now)}}}}
+                :upcoming {:loading true
+                           :payment {:amount 0
+                                     :due-by (t/now)}}}}
          link-account/default-value
          history/default-value))
 
@@ -122,3 +128,46 @@
 
 (defn toggle-paying [db]
   (update-in db [:make-payment :paying] not))
+
+;; =============================================================================
+;; Security Deposit
+
+(defn fetching-security-deposit? [db]
+  (get-in db [:security-deposit :loading]))
+
+(defn fetching-security-deposit [db]
+  (assoc-in db [:security-deposit :loading] true))
+
+(defn set-security-deposit-error [db to]
+  (-> (assoc-in db [:security-deposit :error] to)
+      (assoc-in [:security-deposit :loading] false)))
+
+(defn set-security-deposit [db security-deposit]
+  (let [security-deposit (update security-deposit :due-by c/to-date-time)]
+    (-> (assoc-in db [:security-deposit :data] security-deposit)
+        (set-security-deposit-error false)
+        (assoc-in [:security-deposit :loading] false))))
+
+(defn security-deposit-error? [db]
+  (boolean (get-in db [:security-deposit :error])))
+
+(defn security-deposit [db]
+  (get-in db [:security-deposit :data]))
+
+(defn paying-security-deposit? [db]
+  (get-in db [:security-deposit :paying]))
+
+(defn set-paying-security-deposit [db to]
+  (assoc-in db [:security-deposit :paying] to))
+
+(defn paying-security-deposit [db]
+  (set-paying-security-deposit db true))
+
+(defn security-deposit-confirmation [db]
+  (get-in db [:security-deposit :confirmation]))
+
+(defn show-security-deposit-confirmation [db]
+  (assoc-in db [:security-deposit :confirmation] true))
+
+(defn hide-security-deposit-confirmation [db]
+  (assoc-in db [:security-deposit :confirmation] false))

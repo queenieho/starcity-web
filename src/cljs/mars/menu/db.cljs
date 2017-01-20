@@ -57,7 +57,7 @@
 ;; NOTE: enumeration is the simplest solution for now.
 (defn key->route [key]
   (case key
-    "activity"        (routes/activity)
+    "activity"     (routes/activity)
     "account.rent" (routes/account {:subsection "rent"})
     (routes/activity)))
 

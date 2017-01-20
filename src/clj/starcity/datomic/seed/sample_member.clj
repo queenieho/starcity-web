@@ -24,8 +24,11 @@
         license (->> (d/q '[:find ?e . :where [?e :license/term 3]]
                           (d/db conn))
                      (d/entity (d/db conn)))]
+    ;; NOTE: needs to happen before `member-tx`
+    @(d/transact conn [(-> (create-security-deposit (:db/id member))
+                           (assoc :security-deposit/payment-type :security-deposit.payment-type/partial
+                                  :security-deposit/amount-received 500))])
     @(d/transact conn (concat
-                       [(create-security-deposit (:db/id member))]
                        (map (comp create-security-deposit (partial conj [:account/email]))
                             ["jon@test.com" "jesse@test.com" "mo@test.com" "meg@test.com"])
                        (member-tx conn member license unit (java.util.Date.) 2000.0)))))

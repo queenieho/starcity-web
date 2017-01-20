@@ -80,6 +80,10 @@
 (defn by-email [email]
   (d/entity (d/db conn) [:account/email email]))
 
+(defn by-customer-id [conn customer-id]
+  (:stripe-customer/account
+   (d/entity (d/db conn) [:stripe-customer/customer-id customer-id])))
+
 ;; =============================================================================
 ;; Transactions
 

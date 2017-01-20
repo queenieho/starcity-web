@@ -46,3 +46,14 @@
    {:showing (db/showing-make-payment? db)
     :payment (db/rent-payment db)
     :paying  (db/paying? db)}))
+
+(reg-sub
+ :rent/security-deposit
+ :<- [::rent]
+ (fn [db _]
+   {:loading          (db/fetching-security-deposit? db)
+    :error            (db/security-deposit-error? db)
+    :confirmation     (db/security-deposit-confirmation db)
+    :paying           (db/paying-security-deposit? db)
+    :security-deposit (db/security-deposit db)
+    :bank-linked      (db/bank-account-linked? db)}))

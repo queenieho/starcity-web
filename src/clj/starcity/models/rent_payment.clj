@@ -91,6 +91,7 @@
                        t/last-day-of-the-month
                        c/to-date)]
     (create amount period-start period-end :rent-payment.status/pending
+            :paid-on (java.util.Date.)
             :method autopay
             :invoice-id invoice-id)))
 
