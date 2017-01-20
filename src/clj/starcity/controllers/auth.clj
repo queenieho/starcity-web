@@ -55,7 +55,7 @@
   (if-let [email (:email params)]
     (let [cleaned (-> email str/trim str/lower-case)]
       (if-let [acct (account/by-email cleaned)]
-        (let [new-password (account/reset-password (auth/requester req))
+        (let [new-password (account/reset-password acct)
               next         (format "/login?email=%s&reset-password=true" cleaned)]
           (send-password-reset-email acct new-password)
           (response/redirect next))
