@@ -8,7 +8,8 @@
              [account :as account]
              [member-license :as member-license]]
             [starcity.models.rent.util :refer [first-day-next-month]]
-            [starcity.models.stripe.customer :as customer]))
+            [starcity.models.stripe.customer :as customer]
+            [starcity.models.rent-payment :as rent-payment]))
 
 ;; =============================================================================
 ;; Next Payment
@@ -50,7 +51,7 @@
          :number    (customer/account-last4 bank-account)}))))
 
 ;; =============================================================================
-;; History
+;; Payments
 
 (defn- query-payments [conn account]
   (->> (d/q '[:find [?e ...]
@@ -66,9 +67,28 @@
   payments sorted by most recent first."
   [conn account]
   (let [payments (query-payments conn account)]
-    (->> (take 12 payments)
-         (sort-by :rent-payment/period-start)
+    (->> (sort-by :rent-payment/period-start payments)
          (reverse))))
+
+;; =============================================================================
+;; Number Late
+
+(defn total-late-payments
+  "Return the total number of late payments that have been made by `account` in
+  their current member license."
+  [conn account]
+  (let [active-license (member-license/active conn account)
+        payments       (member-license/payments active-license)]
+    (->> (filter #(= (rent-payment/status %) :rent-payment.status/paid)
+                 payments)
+         (reduce
+          (fn [acc payment]
+            (let [paid-on  (c/to-date-time (rent-payment/paid-on payment))
+                  due-date (c/to-date-time (rent-payment/due-date payment))]
+              (if (t/after? paid-on due-date)
+                (inc acc)
+                acc)))
+          0))))
 
 (comment
   (let [conn    starcity.datomic/conn

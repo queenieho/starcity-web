@@ -36,8 +36,8 @@
  :rent.history.fetch/success
  [(path db/path)]
  (fn [db [_ result]]
-   (-> (db/set-items db (:payments result))
-       (db/toggle-loading))))
+   (l/log result)
+   (db/fetch-success db result)))
 
 (reg-event-db
  :rent.history/set-pending-ach

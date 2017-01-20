@@ -31,6 +31,8 @@
 (def period-start :rent-payment/period-start)
 (def period-end :rent-payment/period-end)
 (def status :rent-payment/status)
+(def paid-on :rent-payment/paid-on)
+(def due-date :rent-payment/due-date)
 
 (defn failures [payment]
   (get payment :rent-payment/autopay-failures 0))
@@ -42,6 +44,12 @@
   "Is `payment` unpaid?"
   [payment]
   (#{:rent-payment.status/due} (status payment)))
+
+(defn past-due?
+  [payment]
+  (let [due-date (-> payment due-date c/to-date-time)]
+    (and (unpaid? payment)
+         (t/after? (t/now) due-date))))
 
 ;; =============================================================================
 ;; Transactions

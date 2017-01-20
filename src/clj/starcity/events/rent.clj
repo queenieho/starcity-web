@@ -21,13 +21,19 @@
 (defn- cents [x]
   (int (* 100 x)))
 
+(defn- charge-amount [payment]
+  (-> (if (rent-payment/past-due? payment)
+        (* (rent-payment/amount payment) 1.1)
+        (rent-payment/amount payment))
+      cents))
+
 (defn- create-charge!
   "Create a charge for `payment` on Stripe."
   [conn account payment]
   (if (rent-payment/unpaid? payment)
     (let [customer (account/stripe-customer account)
           license  (member-license/active conn account)]
-      (get-in (stripe/charge (cents (rent-payment/amount payment))
+      (get-in (stripe/charge (charge-amount payment)
                              (customer/bank-account-token customer)
                              (account/email account)
                              :customer-id (customer/id customer)

@@ -3,8 +3,9 @@
 
 (def path ::history)
 (def default-value
-  {path {:items   []
-         :loading false}})
+  {path {:items    []
+         :num-late 0
+         :loading  false}})
 
 (defn items [db]
   (:items db))
@@ -31,3 +32,10 @@
               item))
           items)
          (set-items db))))
+
+(defn fetch-success [db {:keys [payments]}]
+  (-> (set-items db payments)
+      (assoc :loading false)))
+
+(defn num-late-payments [db]
+  (get db :num-late))

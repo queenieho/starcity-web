@@ -8,7 +8,8 @@
             [starcity.events.rent :refer [make-ach-payment!]]
             [starcity.util :refer :all]
             [datomic.api :as d]
-            [taoensso.timbre :as timbre]))
+            [taoensso.timbre :as timbre]
+            [starcity.models.rent-payment :as rent-payment]))
 
 ;;; Next Payment
 
@@ -21,35 +22,40 @@
 ;;; Payments List
 
 (defn- clientize-payment-item
-  [{:keys [:db/id
-           :rent-payment/amount
-           :rent-payment/method
-           :rent-payment/status
-           :rent-payment/period-start
-           :rent-payment/period-end
-           :rent-payment/paid-on
-           :rent-payment/late
-           :rent-payment/due-date
-           :rent-payment/check
-           :rent-payment/method-desc]}]
-  (merge {:id     id
-          :status (name status)
-          :pstart period-start
-          :pend   period-end
-          :late   late
-          :due    due-date
-          :paid   paid-on
-          :amount amount
-          :desc   method-desc}
-         (when method {:method (name method)})
-         (when check {:check {:number (:check/number check)}})))
+  [total-late {:keys [:db/id
+                      :rent-payment/amount
+                      :rent-payment/method
+                      :rent-payment/status
+                      :rent-payment/period-start
+                      :rent-payment/period-end
+                      :rent-payment/paid-on
+                      :rent-payment/due-date
+                      :rent-payment/check
+                      :rent-payment/method-desc]
+               :as   payment}]
+  (let [overdue  (rent-payment/past-due? payment)
+        late-fee (and (> total-late 1) overdue)]
+    (merge {:id       id
+            :status   (name status)
+            :pstart   period-start
+            :pend     period-end
+            :due      due-date
+            :paid     paid-on
+            :overdue  overdue
+            :late-fee late-fee
+            :amount   (if late-fee (* amount 1.1) amount)
+            :desc     method-desc}
+           (when method {:method (name method)})
+           (when check {:check {:number (:check/number check)}}))))
 
 (defn payments-handler
   "Retrieve the list of rent payments for the requesting account."
   [req]
-  (let [account (auth/requester req)]
-    (ok {:payments (->> (rent/payments conn account)
-                        (map clientize-payment-item))})))
+  (let [account    (auth/requester req)
+        payments   (rent/payments conn account)
+        total-late (rent/total-late-payments conn account)]
+    (ok {:payments (->> (take 12 payments)
+                        (map (partial clientize-payment-item total-late)))})))
 
 ;;; Make Payment
 
@@ -58,7 +64,7 @@
     (d/entity (d/db conn) id)))
 
 (defn make-payment-handler
-  "TODO:"
+  "TODO: Doc"
   [{:keys [params] :as req}]
   (let [account (auth/requester req)
         payment (payment-entity (:payment-id params))]

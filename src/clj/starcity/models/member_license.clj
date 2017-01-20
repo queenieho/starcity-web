@@ -63,6 +63,7 @@
 ;; Selectors
 
 (def rate :member-license/rate)
+(def payments :member-license/rent-payments)
 (def commencement :member-license/commencement)
 (def term (comp :license/term :member-license/license))
 (def ends :member-license/ends)

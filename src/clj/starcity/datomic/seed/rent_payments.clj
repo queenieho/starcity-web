@@ -17,7 +17,8 @@
     (rp/create 2000.0 start end :rent-payment.status/paid
                :method rp/check
                :check (check/create "Member" 2000.0 (java.util.Date.) 1175)
-               :paid-on (date 2016 12 3))))
+               :due-date (date 2016 12 5)
+               :paid-on (date 2016 12 15))))
 
 (def check-november-partial
   (let [start (date 2016 11 15)
@@ -32,7 +33,7 @@
   (rp/create 1000.0 (date 2016 11 15) (date 2016 11 30) :rent-payment.status/paid
              :method rp/other
              :due-date (date 2016 11 20)
-             :paid-on (date 2016 11 19)
+             :paid-on (date 2016 11 21)
              :desc "bill.com"))
 
 (defn- tx-data [conn]
@@ -45,4 +46,4 @@
       check-november-other)]))
 
 (defn seed [conn]
-  #_@(d/transact conn (tx-data conn)))
+  @(d/transact conn (tx-data conn)))

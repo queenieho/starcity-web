@@ -15,4 +15,4 @@
    ])
 
 (defn seed [conn]
-  @(d/transact conn tx-data))
+  #_@(d/transact conn tx-data))

@@ -47,7 +47,7 @@
         :ret string?)
 
 (defn overdue? [status date]
-  (and (not= status "paid")
+  (and (= status "due")
        (t/after? (t/now) date)))
 
 (defn late? [due-date paid-date]
@@ -59,17 +59,24 @@
     "pending" ["clock-circle-o"]
     "paid"    ["check-circle-o" "green"]))
 
-(defn- payment-desc [{:keys [amount status due paid]}]
+(defn- payment-amount [{:keys [amount status due late-fee]}]
+  (if late-fee
+    [a/tooltip {:title "Because payment is past due, it has had a 10% late fee applied."}
+     [:em amount]]
+    [:span amount]))
+
+(defn- payment-desc [{:keys [amount status due paid] :as item}]
   (let [paid? (= status "paid")]
-    [:p (str "$"
-             amount
-             (if paid? " paid" " due")
-             " on "
-             (f/unparse short-formatter (if paid? paid due)))]))
+    [:p
+     "$"
+     [payment-amount item]
+     (if paid? " paid" " due")
+     " on "
+     (f/unparse short-formatter (if paid? paid due))]))
 
 (def ^:private paid-or-pending? #{"paid" "pending"})
 
-(defn- payment-tag [{:keys [status method due check desc] :as i}]
+(defn- payment-tag [{:keys [method check desc] :as i}]
   [:span.tag.is-info.is-small
    (case method
      "check"   (str "check #" (:number check))
@@ -77,15 +84,14 @@
      "autopay" "autopay"
      "other"   desc)])
 
-(defn- payment-button [{:keys [status due] :as item} bank-account]
-  (let [overdue (overdue? status due)]
-    (if bank-account
-      [:button.button.is-small
-       {:class    (if overdue "is-danger" "is-primary")
-        :on-click #(dispatch [:rent/make-payment item])}
-       "Pay Now"]
-      (when overdue
-        [:span.tag.is-danger.is-small "overdue"]))))
+(defn- payment-button [{:keys [overdue] :as item} bank-account]
+  (if bank-account
+    [:button.button.is-small
+     {:class    (if overdue "is-danger" "is-primary")
+      :on-click #(dispatch [:rent/make-payment item])}
+     "Pay Now"]
+    (when overdue
+      [:span.tag.is-danger.is-small "overdue"])))
 
 (defn- payment-item
   [{:keys [id status method pstart pend due paid] :as item} bank-account last]
