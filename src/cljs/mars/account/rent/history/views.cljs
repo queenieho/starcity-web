@@ -85,13 +85,21 @@
      "other"   desc)])
 
 (defn- payment-button [{:keys [overdue] :as item} bank-account]
-  (if bank-account
-    [:button.button.is-small
-     {:class    (if overdue "is-danger" "is-primary")
-      :on-click #(dispatch [:rent/make-payment item])}
-     "Pay Now"]
-    (when overdue
-      [:span.tag.is-danger.is-small "overdue"])))
+  (let [button [a/button
+                {:size     "small"
+                 :type     "ghost"
+                 :on-click #(dispatch [:rent/make-payment item])
+                 :disabled (not bank-account)}
+                "Pay Now"]]
+    [:div
+     (if bank-account
+       button
+       [a/tooltip {:title "Link your bank account to make payments."}
+        button])
+     (when overdue
+       [:span.tag.is-danger.is-small
+        {:style {:margin-left "8px"}}
+        "overdue"])]))
 
 (defn- payment-item
   [{:keys [id status method pstart pend due paid] :as item} bank-account last]
@@ -106,7 +114,7 @@
      [:div {:style {:margin-top "4px"}}
       (if (paid-or-pending? status)
         (payment-tag item)
-        (payment-button item bank-account))
+        [payment-button item bank-account])
       (when (and (= status "paid") (late? due paid))
         [:span.tag.is-danger.is-small {:style {:margin-left 8}} "late"])]]))
 
