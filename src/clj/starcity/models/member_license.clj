@@ -4,10 +4,13 @@
              [core :as t]]
             [clojure.spec :as s]
             [datomic.api :as d]
-            [starcity.util :refer :all]
-            [starcity.models.license :as license]
-            [starcity.models.unit :as unit]
-            [starcity.models.property :as property]))
+            [starcity.models
+             [license :as license]
+             [property :as property]
+             [unit :as unit]]
+            [starcity.util :refer [entity?
+                                   end-of-day
+                                   beginning-of-day]]))
 
 ;; =============================================================================
 ;; API

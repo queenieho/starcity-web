@@ -1,8 +1,9 @@
 (ns starcity.datomic
   (:require [datomic.api :as d]
             [mount.core :as mount :refer [defstate]]
+            [starcity.environment :as env]
             [starcity.config.datomic :as config]
-            [starcity.datomic.schema :as schema]
+            [starcity-db.core :as db]
             [taoensso.timbre :as timbre]))
 
 ;; =============================================================================
@@ -13,7 +14,16 @@
   (timbre/info ::connecting {:uri uri})
   (d/create-database uri)
   (let [conn (d/connect uri)]
-    (schema/install conn)
+    (db/conform-schema conn)
+    (try
+      (db/conform-migrations conn)
+      (catch Throwable t
+        ;; NOTE: This will always happen in development, as there will be
+        ;; no data to migrate. That's ok. If it happens in
+        ;; production...not ok.
+        (when (env/is-production?)
+          (timbre/error t "Error encountered while attempting to run migrations.")
+          (throw t))))
     conn))
 
 (defn- disconnect [{:keys [uri]} conn]

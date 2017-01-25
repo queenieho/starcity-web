@@ -1,12 +1,12 @@
-{:dev {:source-paths ["src/dev" "src/clj" "src/cljs"]
+{:dev {:source-paths ["src/clj" "src/cljs" "src/dev"]
        :plugins      [[lein-figwheel "0.5.8" :exclusions [org.clojure/clojure org.clojure/core.async]]
                       [lein-cooper "1.2.2" :exclusions [org.clojure/clojure]]]
        :dependencies [[figwheel-sidecar "0.5.8"]
                       [binaryage/devtools "0.8.2"]]}
 
  :uberjar {:aot          [starcity.core]
-           :prep-tasks   ["compile" ["cljsbuild" "once"]]
            :source-paths ["src/clj" "src/cljs"]
+           :prep-tasks   ["compile" ["cljsbuild" "once"]]
            :cljsbuild
            {:builds [{:id           "admin"
                       :source-paths ["src/cljs/admin" "src/cljs/starcity"]

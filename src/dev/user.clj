@@ -1,35 +1,38 @@
 (ns user
   (:require [clojure.tools.namespace.repl :refer [refresh]]
-            [mount.core :as mount :refer [defstate]]
+            [clojure.spec.test :as stest]
             [figwheel-sidecar.repl-api :as ra]
             [figwheel-sidecar.system :refer [fetch-config]]
-            [starcity.log]
             [starcity.server]
-            [starcity.datomic :refer [conn]]
+            [starcity.seed]
+            [starcity.datomic]
+            [starcity.log]
+            [starcity.nrepl]
             [starcity.config]
-            [starcity.seeder]
-            [starcity.events.observers]
-            [datomic.api :as d]
-            [starcity.models.util :refer :all]
-            [starcity.services.mailgun]
+            [starcity.environment]
             [starcity.services.mailchimp]
+            [starcity.services.mailgun]
+            [starcity.scheduler]
+            [starcity.events.observers]
+            [starcity.countries]
+            ;; convenience
+            [starcity.datomic :refer [conn]]
             [taoensso.timbre :as timbre]
-            [clojure.spec.test :as stest]))
-
-(timbre/refer-timbre)
+            [mount.core :as mount :refer [defstate]]))
 
 (stest/instrument)
+
+(timbre/refer-timbre)
 
 ;; =============================================================================
 ;; Figwheel
 
 (defn- start-figwheel []
   (when-not (ra/figwheel-running?)
-    (debug "Starting Figwheel server")
+    (timbre/debug "starting figwheel server...")
     (ra/start-figwheel!)))
 
-(defstate ^{:on-reload :noop}
-  figwheel
+(defstate ^{:on-reload :noop} figwheel
   :start (start-figwheel))
 
 ;; =============================================================================
@@ -46,3 +49,15 @@
 (defn reset []
   (stop)
   (refresh :after 'user/go))
+
+;; =============================================================================
+;; CLJS Repls
+
+(defn mars-repl []
+  (ra/cljs-repl "mars"))
+
+(defn admin-repl []
+  (ra/cljs-repl "admin"))
+
+(defn apply-repl []
+  (ra/cljs-repl "apply"))

@@ -1,7 +1,8 @@
 (ns starcity.core
   (:gen-class)
   (:require [starcity.server]
-            [starcity.seeder]
+            [starcity.seed]
+            [starcity.countries]
             [starcity.datomic]
             [starcity.log]
             [starcity.nrepl]
@@ -29,4 +30,8 @@
   (let [{:keys [options errors]} (parse-opts args cli-options)]
     (when errors
       (exit 1 (clojure.string/join "\n" errors)))
-    (mount/start-with {#'starcity.environment/environment (:env options)})))
+    (-> (case (:env options)
+          :staging    (mount/except [])
+          :production (mount/except [#'starcity.seed/seed]))
+        (mount/swap {#'starcity.environment/environment (:env options)})
+        mount/start)))

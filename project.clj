@@ -1,4 +1,4 @@
-(defproject starcity "1.2.2"
+(defproject starcity "1.2.3"
   :description "The web app for https://joinstarcity.com"
   :url "https://joinstarcity.com"
   :license {:name "Eclipse Public License"
@@ -31,7 +31,9 @@
                  [im.chit/hara.io.scheduler "2.4.8"]
                  [dire "0.5.4"]
                  ;; db
-                 [com.datomic/datomic-pro "0.9.5372" :exclusions [com.google.guava/guava]]
+                 [io.rkn/conformity "0.4.0"]
+                 [starcity-db "0.1.1" :exclusions [com.datomic/datomic-pro]]
+                 [com.datomic/datomic-pro "0.9.5544" :exclusions [com.google.guava/guava]]
                  [org.postgresql/postgresql "9.4.1211"]
                  [datomic-schema "1.3.0"]
                  ;; util
@@ -54,10 +56,18 @@
              "-XX:+DoEscapeAnalysis"
              "-XX:+UseConcMarkSweepGC"]
 
-  :repositories {"my.datomic.com" {:url   "https://my.datomic.com/repo"
-                                   :creds :gpg}}
+  :repositories {"my.datomic.com" {:url      "https://my.datomic.com/repo"
+                                   :username :env/datomic_username
+                                   :password :env/datomic_password}
 
-  :plugins [[lein-cljsbuild "1.1.4"]]
+                 "releases" {:url        "s3://starjars/releases"
+                             :username   :env/aws_access_key
+                             :passphrase :env/aws_secret_key}}
+
+  :plugins [[lein-cljsbuild "1.1.4"]
+            [s3-wagon-private "1.2.0"]]
+
+  :jar-name "starcity-web.jar"
 
   :repl-options {:init-ns          user
                  :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}

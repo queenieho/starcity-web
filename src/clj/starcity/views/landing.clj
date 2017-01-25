@@ -104,7 +104,7 @@
      (l/column
       {:class "is-one-third has-text-left"}
       (subtitle
-       "We provide <b>beautiful communal spaces</b> for all of the activites best done
+       "We provide <b>beautiful communal spaces</b> for all of the activities best done
        in the company of others.")
       (subtitle
        "We also respect the need for a <b>private space</b> of one's own.")
