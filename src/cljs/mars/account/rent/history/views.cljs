@@ -60,10 +60,11 @@
     "paid"    ["check-circle-o" "green"]))
 
 (defn- payment-amount [{:keys [amount status due late-fee]}]
-  (if late-fee
-    [a/tooltip {:title "Because payment is past due, it has had a 10% late fee applied."}
-     [:em amount]]
-    [:span amount]))
+  (let [amount (if-not (integer? amount) (.toFixed amount 2) amount)]
+    (if late-fee
+      [a/tooltip {:title "Because payment is past due, it has had a 10% late fee applied."}
+       [:em amount]]
+      [:span amount])))
 
 (defn- payment-desc [{:keys [amount status due paid] :as item}]
   (let [paid? (= status "paid")]

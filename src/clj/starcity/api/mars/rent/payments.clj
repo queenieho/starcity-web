@@ -9,7 +9,8 @@
             [starcity.util :refer :all]
             [datomic.api :as d]
             [taoensso.timbre :as timbre]
-            [starcity.models.rent-payment :as rent-payment]))
+            [starcity.models.rent-payment :as rent-payment]
+            [starcity.models.member-license :as member-license]))
 
 ;;; Next Payment
 
@@ -22,7 +23,7 @@
 ;;; Payments List
 
 (defn- clientize-payment-item
-  [total-late {:keys [:db/id
+  [grace-over {:keys [:db/id
                       :rent-payment/amount
                       :rent-payment/method
                       :rent-payment/status
@@ -34,7 +35,7 @@
                       :rent-payment/method-desc]
                :as   payment}]
   (let [overdue  (rent-payment/past-due? payment)
-        late-fee (and (> total-late 1) overdue)]
+        late-fee (and grace-over overdue)]
     (merge {:id       id
             :status   (name status)
             :pstart   period-start
@@ -53,9 +54,10 @@
   [req]
   (let [account    (auth/requester req)
         payments   (rent/payments conn account)
-        total-late (rent/total-late-payments conn account)]
+        grace-over (->> (member-license/active conn account)
+                        (member-license/grace-period-over? conn))]
     (ok {:payments (->> (take 12 payments)
-                        (map (partial clientize-payment-item total-late)))})))
+                        (map (partial clientize-payment-item grace-over)))})))
 
 ;;; Make Payment
 

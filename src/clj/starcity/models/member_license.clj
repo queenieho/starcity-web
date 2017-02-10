@@ -7,6 +7,7 @@
             [starcity.models
              [license :as license]
              [property :as property]
+             [rent-payment :as rent-payment]
              [unit :as unit]]
             [starcity.util :refer [entity?
                                    end-of-day
@@ -61,6 +62,34 @@
               [?e :member-license/rent-payments ?rp]]
             (d/db conn) invoice-id)
        (d/entity (d/db conn))))
+
+(defn total-late-payments
+  "Return the total number of late payments that have been made by `account` in
+  their current member license."
+  [conn license]
+  (let [payments (:member-license/rent-payments license)]
+    (->> (filter #(= (rent-payment/status %) :rent-payment.status/paid)
+                 payments)
+         (reduce
+          (fn [acc payment]
+            (let [paid-on  (c/to-date-time (rent-payment/paid-on payment))
+                  due-date (c/to-date-time (rent-payment/due-date payment))]
+              (if (t/after? paid-on due-date)
+                (inc acc)
+                acc)))
+          0))))
+
+;; TODO: Replace this with a configurable number of allowed payments on the
+;; member license so that we can tune it.
+(def ^:private max-late-payments
+  "The total number of late payments that can be associated with an account
+  within a year before late fees are charged."
+  1)
+
+(defn grace-period-over?
+  "Has the maximum number of allowed late payments been exceeded?"
+  [conn license]
+  (> (total-late-payments conn license) 1))
 
 ;; =============================================================================
 ;; Selectors

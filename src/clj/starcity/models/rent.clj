@@ -70,26 +70,6 @@
     (->> (sort-by :rent-payment/period-start payments)
          (reverse))))
 
-;; =============================================================================
-;; Number Late
-
-(defn total-late-payments
-  "Return the total number of late payments that have been made by `account` in
-  their current member license."
-  [conn account]
-  (let [active-license (member-license/active conn account)
-        payments       (member-license/payments active-license)]
-    (->> (filter #(= (rent-payment/status %) :rent-payment.status/paid)
-                 payments)
-         (reduce
-          (fn [acc payment]
-            (let [paid-on  (c/to-date-time (rent-payment/paid-on payment))
-                  due-date (c/to-date-time (rent-payment/due-date payment))]
-              (if (t/after? paid-on due-date)
-                (inc acc)
-                acc)))
-          0))))
-
 (comment
   (let [conn    starcity.datomic/conn
         account (d/entity (d/db conn) [:account/email "member@test.com"])]

@@ -40,23 +40,24 @@
    [:button.modal-close
     {:on-click #(dispatch [:rent/toggle-show-autopay])}]])
 
-(defn- make-payment-modal [payment & {:keys [showing paying]}]
-  [:div.modal {:class (when showing "is-active")}
-   [:div.modal-background
-    {:on-click #(dispatch [:rent.make-payment/toggle-show])}]
-   [:div.modal-content.box
-    [:p.title.is-4 "Make ACH Payment"]
-    [:p "By pressing the " [:b "Pay Now"] " button below, you agree to pay "
-     [:b "$" (:amount payment)] " to Starcity using your bank account."]
+(defn- make-payment-modal [{:keys [amount id]} & {:keys [showing paying]}]
+  (let [amount (if-not (integer? amount) (when amount (.toFixed amount 2)) amount)]
+    [:div.modal {:class (when showing "is-active")}
+     [:div.modal-background
+      {:on-click #(dispatch [:rent.make-payment/toggle-show])}]
+     [:div.modal-content.box
+      [:p.title.is-4 "Make ACH Payment"]
+      [:p "By pressing the " [:b "Pay Now"] " button below, you agree to pay "
+       [:b "$" amount] " to Starcity using your bank account."]
 
-    [:div {:style {:margin-top "16px"}}
-     [a/button
-      {:type     "primary"
-       :loading  paying
-       :on-click #(dispatch [:rent.make-payment/pay (:id payment)])}
-      "Pay Now"]]]
-   [:button.modal-close
-    {:on-click #(dispatch [:rent.make-payment/toggle-show])}]])
+      [:div {:style {:margin-top "16px"}}
+       [a/button
+        {:type     "primary"
+         :loading  paying
+         :on-click #(dispatch [:rent.make-payment/pay id])}
+        "Pay Now"]]]
+     [:button.modal-close
+      {:on-click #(dispatch [:rent.make-payment/toggle-show])}]]))
 
 (defn- content []
   (let [upcoming     (subscribe [:rent/upcoming])

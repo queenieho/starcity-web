@@ -206,7 +206,7 @@
                :due-date (date 2016 12 5)
                :paid-on (date 2016 12 15))))
 
-(def check-november-partial
+#_(def check-november-partial
   (let [start (date 2016 11 15)
         end   (date 2016 11 30)]
     (rp/create 1000.0 start end :rent-payment.status/paid
@@ -219,7 +219,7 @@
   (rp/create 1000.0 (date 2016 11 15) (date 2016 11 30) :rent-payment.status/paid
              :method rp/other
              :due-date (date 2016 11 20)
-             :paid-on (date 2016 11 21)
+             :paid-on (date 2016 11 19)
              :desc "bill.com"))
 
 (defn- rent-payments-tx [conn]
@@ -227,7 +227,6 @@
                      (member-license/active conn))]
     [(member-license/add-rent-payments
       license
-      (rp/create 2000.0 (date 2017 1 1) (date 2017 1 31) :rent-payment.status/due)
       check-december
       check-november-other)]))
 
@@ -278,7 +277,7 @@
   (cf/ensure-conforms
    conn
    {:seed/member-licenses {:txes [(member-licenses-tx conn)]}})
-  #_(cf/ensure-conforms
+  (cf/ensure-conforms
    conn
    {:seed/rent-payments {:txes [(rent-payments-tx conn)]}}) )
 

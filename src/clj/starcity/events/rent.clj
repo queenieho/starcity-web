@@ -21,19 +21,18 @@
 (defn- cents [x]
   (int (* 100 x)))
 
-(defn- charge-amount [payment]
-  (-> (if (rent-payment/past-due? payment)
-        (* (rent-payment/amount payment) 1.1)
-        (rent-payment/amount payment))
-      cents))
+(defn- charge-amount [conn license payment]
+  (if (and (rent-payment/past-due? payment)
+           (member-license/grace-period-over? conn license))
+    (* (rent-payment/amount payment) 1.1)
+    (rent-payment/amount payment)))
 
 (defn- create-charge!
   "Create a charge for `payment` on Stripe."
-  [conn account payment]
+  [conn account payment license amount]
   (if (rent-payment/unpaid? payment)
-    (let [customer (account/stripe-customer account)
-          license  (member-license/active conn account)]
-      (get-in (stripe/charge (charge-amount payment)
+    (let [customer (account/stripe-customer account)]
+      (get-in (stripe/charge (cents amount)
                              (customer/bank-account-token customer)
                              (account/email account)
                              :customer-id (customer/id customer)
@@ -44,19 +43,22 @@
 
 (defn- create-payment
   "Create/update necessary database entities to record the payment."
-  [conn charge-id account payment]
+  [conn charge-id account payment amount]
   (let [charge (charge/create charge-id account)]
     @(d/transact conn [charge
                        (assoc
                         (rent-payment/pending payment)
+                        :rent-payment/amount amount
                         :rent-payment/paid-on (java.util.Date.)
                         :rent-payment/method rent-payment/ach
                         :rent-payment/charge (:db/id charge))])))
 
 (defproducer make-ach-payment! ::make-ach-payment
   [account payment]
-  (let [charge-id (create-charge! conn account payment)]
-    {:result    (create-payment conn charge-id account payment)
+  (let [license   (member-license/active conn account)
+        amount    (charge-amount conn license payment)
+        charge-id (create-charge! conn account payment license amount)]
+    {:result    (create-payment conn charge-id account payment amount)
      :charge-id charge-id
      :account   account
      :payment   payment}))
