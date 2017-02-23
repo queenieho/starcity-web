@@ -1,10 +1,9 @@
 (ns starcity.models.news
   (:require [clojure.spec :as s]
+            [datomic.api :as d]
             [plumbing.core :refer [assoc-when]]
-            [starcity.util :refer :all]
-            [starcity.models.account :as account]
             [starcity.datomic.partition :refer [tempid]]
-            [datomic.api :as d]))
+            [toolbelt.predicates :refer [entity?]]))
 
 ;; =============================================================================
 ;; Transactions

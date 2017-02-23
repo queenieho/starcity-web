@@ -4,7 +4,7 @@
  :builds
  [{:id           "admin"
    :source-paths ["src/cljs/admin" "src/cljs/starcity"]
-   :figwheel     {:on-jsload admin.core/run}
+   :figwheel     {:on-jsload admin.core/render}
    :compiler     {:main                 admin.core
                   :preloads             [devtools.preload]
                   :asset-path           "/js/cljs/admin/out"

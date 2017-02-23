@@ -6,10 +6,22 @@
             [clojure.spec :as s]
             [datomic.api :as d]
             [starcity.util :refer :all]
-            [plumbing.core :refer [assoc-when]]))
+            [plumbing.core :refer [assoc-when]]
+            [starcity.models.check :as check]
+            [toolbelt.predicates :as p]))
+
+;; =============================================================================
+;; Constants
+;; =============================================================================
+
+(def max-autopay-failures
+  "The maximum number of times that autopay payments will be tried before the
+  subscription is canceled."
+  3)
 
 ;; =============================================================================
 ;; Specs
+;; =============================================================================
 
 (declare check ach autopay other)
 
@@ -25,6 +37,7 @@
 
 ;; =============================================================================
 ;; Selectors
+;; =============================================================================
 
 (def member-license :member-license/_rent-payments)
 (def amount :rent-payment/amount)
@@ -39,11 +52,17 @@
 
 ;; =============================================================================
 ;; Predicates
+;; =============================================================================
 
 (defn unpaid?
   "Is `payment` unpaid?"
   [payment]
   (#{:rent-payment.status/due} (status payment)))
+
+(defn paid?
+  "Is `payment` paid?"
+  [payment]
+  (#{:rent-payment.status/paid} (status payment)))
 
 (defn past-due?
   [payment]
@@ -53,6 +72,7 @@
 
 ;; =============================================================================
 ;; Transactions
+;; =============================================================================
 
 (defn- set-status [to-status]
   (fn [payment]
@@ -70,8 +90,8 @@
 
 (defn create
   "Create an arbitrary rent payment payment."
-  [amount period-start period-end status & {:keys [invoice-id method due-date check paid-on
-                                                   desc]}]
+  [amount period-start period-end status
+   & {:keys [invoice-id method due-date check paid-on desc]}]
   (when-not (is-first-day-of-month? (c/to-date-time period-start))
     (assert due-date "Due date must be supplied when the period start is not the first day of the month."))
   (when (#{paid} status)
@@ -103,8 +123,67 @@
             :method autopay
             :invoice-id invoice-id)))
 
+(defn- check-status->status [check-status]
+  (if (#{check/received check/deposited check/cleared} check-status)
+    :rent-payment.status/paid
+    :rent-payment.status/due))
+
+(defn add-check
+  "Add `check` to `payment`."
+  [payment check]
+  (let [new-status (check-status->status (check/status check))
+        paid-on    (when (= :rent-payment.status/paid new-status)
+                     (check/received-on check))]
+    (assoc-when
+     {:db/id               (:db/id payment)
+      :rent-payment/check  check
+      :rent-payment/method :rent-payment.method/check
+      :rent-payment/status new-status}
+     :rent-payment/paid-on paid-on)))
+
+(s/fdef add-check
+        :args (s/cat :payment p/entity? :check check/check?)
+        :ret (s/keys :req [:db/id
+                           :rent-payment/check
+                           :rent-payment/status
+                           :rent-payment/method]
+                     :opt [:rent-payment/paid-on]))
+
+(defn- new-status [updated-check]
+  (when-let [s (:check/status updated-check)]
+    (check-status->status s)))
+
+(defn- maybe-retract-paid-on [payment check updated-check]
+  (let [paid-on (:rent-payment/paid-on payment)]
+    (when (and (= (new-status updated-check) :rent-payment.status/due) paid-on)
+      [:db/retract (:db/id payment) :rent-payment/paid-on paid-on])))
+
+(defn- maybe-add-paid-on [payment check updated-check]
+  (let [old-status (:rent-payment/status payment)]
+    (when (and (= (new-status updated-check) :rent-payment.status/paid)
+               (= old-status :rent-payment.status/due))
+      [:db/add (:db/id payment) :rent-payment/paid-on
+       (or (check/received-on updated-check)
+           (check/received-on check))])))
+
+(defn update-check
+  [payment check updated-check]
+  (->> [(assoc-when
+         {:db/id (:db/id payment)}
+         :rent-payment/status (new-status updated-check))
+        (maybe-retract-paid-on payment check updated-check)
+        (maybe-add-paid-on payment check updated-check)]
+       (remove nil?)))
+
+(s/fdef update-check
+        :args (s/cat :payment p/entity?
+                     :check p/entity?
+                     :updated-check check/updated?)
+        :ret sequential?)
+
 ;; =============================================================================
-;; Lookups
+;; Queries
+;; =============================================================================
 
 (defn by-invoice-id [conn invoice-id]
   (d/entity (d/db conn) [:rent-payment/invoice-id invoice-id]))
@@ -116,42 +195,3 @@
               [?e :rent-payment/charge ?c]]
             (d/db conn) (:db/id charge))
        (d/entity (d/db conn))))
-
-;; =============================================================================
-;; Queries
-
-(defn- payments-within
-  [conn account within]
-  (d/q '[:find [?p ...]
-         :in $ ?a ?within
-         :where
-         [?a :account/license ?m]
-         [?m :member-license/rent-payments ?p]
-         [?p :rent-payment/period-start ?start]
-         [?p :rent-payment/period-end ?end]
-         [(.after ^java.util.Date ?end ?within)]
-         [(.before ^java.util.Date ?start ?within)]]
-       (d/db conn) (:db/id account) within))
-
-(with-postcondition! #'payments-within
-  "There can be only one rent payment due in a given month."
-  :at-most-one
-  (fn [result]
-    (< (count result) 2)))
-
-(defn payment-within
-  "Produce `account`'s rent payment for the current period."
-  [conn account within]
-  (when-let [p (first (payments-within conn account within))]
-    (d/entity (d/db conn) p)))
-
-(s/fdef payment-within
-        :args (s/cat :conn conn? :account entity? :within inst?)
-        :ret (s/or :nothing nil? :payment entity?))
-
-(comment
-  (let [conn    starcity.datomic/conn
-        account (d/entity (d/db conn) [:account/email "member@test.com"])]
-    (payment-within conn account (java.util.Date.)))
-
-  )

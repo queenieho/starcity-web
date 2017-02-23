@@ -1,117 +1,103 @@
 (ns starcity.models.approval
-  (:require [starcity.models.account :as account]
-            [starcity.models.account.role :as role]
-            [starcity.models.util :refer :all]
-            [starcity.datomic :refer [conn tempid]]
-            [starcity.services.mailgun :as mailgun]
-            [hiccup.core :refer [html]]
-            [datomic.api :as d]
-            [starcity.spec]
-            [clojure.spec :as s]))
+  (:require [clojure.spec :as s]
+            [starcity.datomic :refer [tempid]]
+            [starcity.models
+             [account :as account]
+             [security-deposit :as deposit]
+             [application :as app]
+             [unit :as unit]]
+            [toolbelt.predicates :as p]
+            [starcity.models.msg :as msg]))
 
 ;; =============================================================================
-;; Internal
+;; Selectors
 ;; =============================================================================
+
+(def approver
+  "The admin `account` that did the approving."
+  :approval/approver)
+
+(s/fdef approver
+        :args (s/cat :approval p/entity?)
+        :ret p/entity?)
+
+(def move-in
+  "The move-in date."
+  :approval/move-in)
+
+(s/fdef move-in
+        :args (s/cat :approval p/entity?)
+        :ret inst?)
+
+(def unit
+  "The `unit` that `account` is approved to live in."
+  :approval/unit)
+
+(s/fdef unit
+        :args (s/cat :approval p/entity?)
+        :ret p/entity?)
+
+(def license
+  "The `license` (term) that `account` was approved for."
+  :approval/license)
+
+(s/fdef license
+        :args (s/cat :approval p/entity?)
+        :ret p/entity?)
 
 ;; =============================================================================
 ;; Transactions
-
-(defn- create-txdata
-  "Produce the transaction data to create a new approval entity."
-  [account-id approver-id property-id]
-  [{:db/id                (tempid)
-    :approval/account     account-id
-    :approval/approved-by approver-id
-    :approval/approved-on (java.util.Date.)
-    :approval/property    property-id}])
-
-(s/fdef create-txdata
-        :args (s/cat :account-id :starcity.spec/lookup
-                     :approved-by-id :starcity.spec/lookup
-                     :property-id :starcity.spec/lookup)
-        :ret vector?)
-
-(defn- update-role-txdata
-  "Produce the transaction data required to mark this user's account as approved
-  by updating his/her role."
-  [account-id]
-  [{:db/id        account-id
-    :account/role role/onboarding}])
-
-(s/fdef update-role-txdata
-        :args (s/cat :account-id :starcity.spec/lookup)
-        :ret vector?)
-
-(defn- create-security-deposit-txdata
-  [account-id deposit-amount]
-  [{:db/id                            (tempid)
-    :security-deposit/account         account-id
-    :security-deposit/amount-required deposit-amount}])
-
-(s/fdef create-security-deposit-txdata
-        :args (s/cat :account-id :starcity.spec/lookup
-                     :deposit-amount integer?)
-        :ret vector?)
-
-(defn- application-txdata [application-id]
-  [[:db/add application-id :member-application/status :member-application.status/approved]])
-
 ;; =============================================================================
-;; API
-;; =============================================================================
+
+(defn create
+  "Produce transaction data required to create an approval entity."
+  [approver approvee unit license move-in]
+  {:db/id             (tempid)
+   :approval/account  (:db/id approvee)
+   :approval/approver (:db/id approver)
+   :approval/unit     (:db/id unit)
+   :approval/license  (:db/id license)
+   :approval/move-in  move-in
+   :approval/status   :approval.status/pending})
+
+(s/fdef create
+        :args (s/cat :approver p/entity?
+                     :approvee p/entity?
+                     :unit p/entity?
+                     :license p/entity?
+                     :move-in inst?)
+        :ret (s/keys :req [:db/id
+                           :approval/account
+                           :approval/approver
+                           :approval/unit
+                           :approval/license
+                           :approval/move-in
+                           :approval/status]))
+
+(defn approve
+  "Approve `approvee` by creating an `approval` entity and flipping the
+  necessary bits elswhere in the database.
+
+  More specifically, this means:
+  - Change `account`'s role to onboarding
+  - Create a security deposit stub
+  - Mark the application as approved"
+  [approver approvee unit license move-in]
+  [(create approver approvee unit license move-in)
+   (account/change-role approvee account/onboarding)
+   (deposit/create approvee (int (unit/rate unit license)))
+   (app/change-status (:account/application approvee)
+                      :application.status/approved)
+   (msg/approved approver approvee unit license move-in)])
+
+(s/fdef approve
+        :args (s/cat :approver p/entity?
+                     :approvee p/entity?
+                     :unit p/entity?
+                     :license p/entity?
+                     :move-in inst?)
+        :ret (s/and vector? (s/+ map?)))
 
 ;; =============================================================================
 ;; Queries
-
-(defn by-application-id
-  "Retrieve the approval entity for a given `application-id`."
-  [application-id]
-  (qe1 '[:find ?approval
-         :in $ ?application
-         :where
-         [?account :account/member-application ?application]
-         [?approval :approval/account ?account]]
-       (d/db conn) application-id))
-
-(s/fdef by-application-id
-        :args (s/cat :application-id :starcity.spec/lookup)
-        :ret integer?)
-
 ;; =============================================================================
-;; Actions
-
-;; TODO: This is an act that logically takes place on the `account`. Move this
-;; to the account model and use potemkin to expose the api.
-
-;; NOTE: A weird bug prevented me from calling this function with five arguments
-;; -- I have no clue why. Converting the args to a map seems to have fixed it,
-;; although not sure why. Shrug.
-
-(defn approve!
-  [{:keys [application-id approver-id internal-name deposit-amount email-content email-subject]}]
-  (let [account (first (:account/_member-application (d/entity (d/db conn) application-id)))
-                                        ; TODO: (account/by-application (d/entity (d/db conn) application-id))
-        email   (:account/email account)
-        txdata  (concat
-                 ;; Create approval entity
-                 (create-txdata (:db/id account)
-                                approver-id
-                                [:property/internal-name internal-name])
-                 (application-txdata application-id)
-                 ;; Convert account to new role
-                 (update-role-txdata (:db/id account))
-                 ;; Create security deposit entity
-                 (create-security-deposit-txdata (:db/id account) deposit-amount))]
-    (do
-      ;; Commit the changes
-      @(d/transact conn (vec txdata))
-      ;; Send email
-      (mailgun/send-email email email-subject email-content))))
-
-(s/fdef approve!
-        :args (s/cat :args
-                     (s/keys :req-un [::application-id
-                                      ::approver-id
-                                      ::internal-name
-                                      ::deposit-amount
-                                      ::email-content])))

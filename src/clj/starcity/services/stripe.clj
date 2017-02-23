@@ -37,14 +37,6 @@
             :description description)
            cb))
 
-(defn delete-customer
-  "Create a new Stripe customer."
-  [customer-id & {:keys [cb]}]
-  (request {:endpoint (format "customers/%s" customer-id)
-            :method   :delete}
-           {}
-           cb))
-
 (defn verify-source
   "Verify a bank account with microdeposits."
   [customer-id bank-account-token amount-1 amount-2 & {:keys [cb]}]

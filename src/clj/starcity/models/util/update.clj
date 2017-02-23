@@ -3,7 +3,7 @@
             [starcity.datomic :refer [conn]]
             [clojure.set :as set]
             [datomic.api :as d]
-            [starcity.util :refer :all]))
+            [toolbelt.predicates :refer [entity?]]))
 
 ;; =============================================================================
 ;; Helpers

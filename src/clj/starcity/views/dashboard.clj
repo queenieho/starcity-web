@@ -1,9 +1,6 @@
 (ns starcity.views.dashboard
-  (:require [starcity.views.page :as p]
-            [starcity.views.components.loading :as l]
-            [starcity.config.plaid :as config]
-            [starcity.config.stripe :as stripe]
-            [starcity.countries :refer [countries]]))
+  (:require [starcity.views.components.loading :as l]
+            [starcity.views.page :as p]))
 
 (def mars
   (p/cljs-page

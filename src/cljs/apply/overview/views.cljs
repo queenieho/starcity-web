@@ -4,7 +4,7 @@
 
 (def ^:private welcome-content
   [:div.content
-     [:p "My name is Mo Sakrani, and I'm your community advisor.
+     [:p "My name is Meg Bell, and I'm your community advisor.
      Congratulations! You've taken your first step towards joining a Starcity
      community. We're looking forward to getting to know you."]
 

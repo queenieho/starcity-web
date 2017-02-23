@@ -5,13 +5,16 @@
             [clj-time
              [coerce :as c]
              [core :as t]]
+            [clojure.java.io :as io]
             [compojure.core :refer [defroutes GET POST]]
+            [datomic.api :as d]
+            [me.raynes.fs :as fs]
             [starcity
              [auth :as auth]
-             [countries :as countries]]
+             [config :refer [data-dir]]
+             [countries :as countries]
+             [datomic :refer [conn]]]
             [starcity.api.common :as api]
-            [starcity.datomic :refer [conn]]
-            [taoensso.timbre :as timbre]
             [starcity.models
              [account :as account]
              [application :as application]
@@ -19,7 +22,7 @@
              [income-file :as income-file]
              [license :as license]
              [property :as property]]
-            [starcity.utils.validation :refer [errors-from valid?]]))
+            [taoensso.timbre :as timbre]))
 
 ;; =============================================================================
 ;; Initialize
@@ -39,7 +42,20 @@
 ;; =============================================================================
 ;; Helpers
 
-(defmulti ^:private validate (fn [_ k] k))
+(defn errors-from
+  "Extract errors from a bouncer error map."
+  [[errors _]]
+  (reduce (fn [acc [_ es]] (concat acc es)) [] errors))
+
+(defn valid?
+  ([vresult]
+   (valid? vresult identity))
+  ([[errors result] transform-after]
+   (if (nil? errors)
+     (transform-after result)
+     false)))
+
+(defmulti ^:private validate (fn [_ _ k] k))
 
 (defvalidator members
   {:default-message-format "Invalid community selection(s)."}
@@ -47,16 +63,17 @@
   (every? #(coll %) values))
 
 (defmethod validate :logistics/communities
-  [data _]
-  (let [internal-names (->> (property/many [:property/internal-name])
-                            (map :property/internal-name))]
+  [conn data _]
+  (let [internal-names (d/q '[:find [?name ...]
+                              :where [_ :property/internal-name ?name]]
+                            (d/db conn))]
     (b/validate
      data
      {:communities [[v/required :message "You must choose at least one community."]
                     [members (set internal-names)]]})))
 
 (defmethod validate :logistics/license
-  [data _]
+  [_ data _]
   (let [valid-ids (->> (license/licenses conn) (map :db/id))]
     (b/validate
      data
@@ -64,14 +81,14 @@
                 [v/member (set valid-ids) :message "The chosen license is invalid."]]})))
 
 (defmethod validate :logistics/move-in-date
-  [data _]
+  [_ data _]
   (b/validate
    data
    {:move-in-date [[v/required :message "You must supply a move-in-date."]
                    v/datetime]}))
 
 (defmethod validate :logistics/pets
-  [data _]
+  [_ data _]
   (let [has-pet? :has-pet
         has-dog? (comp #{"dog"} :pet-type)]
     (b/validate
@@ -85,7 +102,7 @@
                  [v/integer :message "The weight must be an integer."]]})))
 
 (defmethod validate :personal/phone-number
-  [data _]
+  [_ data _]
   (b/validate
    data
    {:phone-number [[v/required :message "You must supply a phone number."]]}))
@@ -96,7 +113,7 @@
   (t/before? (c/to-date-time date) (t/minus (t/now) (t/years 18))))
 
 (defmethod validate :personal/background
-  [data _]
+  [_ data _]
   (b/validate
    data
    {:consent [[v/boolean :message ":consent must be a boolean."] v/required]
@@ -110,19 +127,19 @@
               :postal-code [[v/required :message "Your postal code is required."]]}}))
 
 (defmethod validate :community/why-starcity
-  [data _]
+  [_ data _]
   (b/validate
    data
    {:why-starcity [[v/required :message "Please tell us about why you want to join Starcity."]]}))
 
 (defmethod validate :community/about-you
-  [data _]
+  [_ data _]
   (b/validate
    data
    {:free-time [[v/required :message "Please tell us about what you like to do in your free time."]]}))
 
 (defmethod validate :community/communal-living
-  [data _]
+  [_ data _]
   (b/validate
    data
    {:prior-experience [[v/required :message "Please tell us about your experiences with communal living."]]
@@ -140,24 +157,53 @@
 (defn update-handler
   "Handle an update of user's application."
   [{:keys [params] :as req}]
-  (let [account-id (api/account-id req)
-        account    (auth/requester req)
-        app        (application/by-account-id account-id)
-        path       (path->key (:path params))
-        vresult    (validate (:data params) path)]
+  (let [account (auth/requester req)
+        app     (application/by-account conn account)
+        path    (path->key (:path params))
+        vresult (validate conn (:data params) path)]
     (cond
       ;; there's an application, and it's not in-progress
       (and app
            (not (application/in-progress? app))) (api/unprocessable {:errors [submitted-msg]})
       (not (valid? vresult))                     (api/malformed {:errors (errors-from vresult)})
       :otherwise                                 (try
-                                                   (apply/update (:data params) account-id path)
-                                                   (api/ok (apply/progress account-id))
+                                                   (apply/update (:data params) (:db/id account) path)
+                                                   (api/ok (apply/progress (:db/id account)))
                                                    (catch Exception e
                                                      (timbre/error e ::update {:user   (account/email account)
                                                                                :path   path
                                                                                :params params})
                                                      (api/server-error))))))
+
+(defn- write-income-file!
+    "Write a an income file to the filesystem and add an entity that points to the
+  account and file path."
+  [account {:keys [filename content-type tempfile size]}]
+    (try
+      (let [output-dir  (format "%s/income-uploads/%s" data-dir (:db/id account))
+            output-path (str output-dir "/" filename)]
+        (do
+          (when-not (fs/exists? output-dir)
+            (fs/mkdirs output-dir))
+          (io/copy tempfile (java.io.File. output-path))
+          @(d/transact conn [(income-file/create account content-type output-path size)])
+          (timbre/info ::write {:user         (account/email account)
+                                :filename     filename
+                                :content-type content-type
+                                :size         size})
+          output-path))
+      ;; catch to log, then rethrow
+      (catch Exception e
+        (timbre/error e ::write {:user         (account/email account)
+                                 :filename     filename
+                                 :content-type content-type
+                                 :size         size})
+        (throw e))))
+
+(defn create-income-files!
+  "Save the income files for a given account."
+  [account files]
+  (doall (map (partial write-income-file! account) files)))
 
 (defn income-files-handler
   [{:keys [params] :as req}]
@@ -166,7 +212,7 @@
     (if-let [file-or-files (:files params)]
       (try
         (let [files (if (map? file-or-files) [file-or-files] file-or-files)
-              paths (income-file/create account files)]
+              paths (create-income-files! account files)]
           (api/ok (apply/progress account-id)))
         (catch Exception e
           (timbre/error e ::income-upload {:user (account/email account)})

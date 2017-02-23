@@ -3,8 +3,7 @@
             [starcity.datomic :refer [conn tempid]]
             [starcity.models
              [account :as account]
-             [address :as address]
-             [application :as application]]
+             [address :as address]]
             [starcity.services.community-safety :as community-safety]))
 
 ;; =============================================================================
@@ -20,7 +19,7 @@
                (assoc opts :middle-name middle-name)
                opts)))
           (-maybe-assoc-address [opts]
-            (if-let [address (-> account account/member-application application/address)]
+            (if-let [address (-> account :account/application :application/address)]
               (assoc opts :address {:city        (address/city address)
                                     :state       (address/state address)
                                     :postal-code (address/zip address)})

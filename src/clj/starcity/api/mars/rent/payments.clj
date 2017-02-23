@@ -1,51 +1,55 @@
 (ns starcity.api.mars.rent.payments
   (:require [compojure.core :refer [defroutes GET POST]]
+            [clojure.spec :as s]
+            [datomic.api :as d]
             [starcity
              [auth :as auth]
-             [datomic :refer [conn]]]
-            [starcity.api.common :refer :all]
-            [starcity.models.rent :as rent]
-            [starcity.events.rent :refer [make-ach-payment!]]
-            [starcity.util :refer :all]
-            [datomic.api :as d]
+             [datomic :refer [conn]]
+             [util :refer :all]]
+            [starcity.models
+             [account :as account]
+             [charge :as charge]
+             [member-license :as member-license]
+             [msg :as msg]
+             [rent :as rent]
+             [rent-payment :as rent-payment]]
+            [starcity.models.stripe.customer :as customer]
+            [starcity.services.stripe :as stripe]
+            [starcity.util.response :as resp]
             [taoensso.timbre :as timbre]
-            [starcity.models.rent-payment :as rent-payment]
-            [starcity.models.member-license :as member-license]))
+            [toolbelt.predicates :as p]))
 
-;;; Next Payment
+;; =============================================================================
+;; Handlers
+;; =============================================================================
+
+;; =============================================================================
+;; Next Payment
 
 (defn next-payment-handler
   "Retrieve the details of the 'next' payment for requesting account."
   [{:keys [params] :as req}]
   (let [account (auth/requester req)]
-    (ok (rent/next-payment conn account))))
+    (resp/json-ok (rent/next-payment conn account))))
 
-;;; Payments List
+;; =============================================================================
+;; Payments List
 
 (defn- clientize-payment-item
-  [grace-over {:keys [:db/id
-                      :rent-payment/amount
-                      :rent-payment/method
-                      :rent-payment/status
-                      :rent-payment/period-start
-                      :rent-payment/period-end
-                      :rent-payment/paid-on
-                      :rent-payment/due-date
-                      :rent-payment/check
-                      :rent-payment/method-desc]
-               :as   payment}]
-  (let [overdue  (rent-payment/past-due? payment)
+  [grace-over {:keys [:rent-payment/method :rent-payment/check] :as p}]
+  (let [amount   (:rent-payment/amount p)
+        overdue  (rent-payment/past-due? p)
         late-fee (and grace-over overdue)]
-    (merge {:id       id
-            :status   (name status)
-            :pstart   period-start
-            :pend     period-end
-            :due      due-date
-            :paid     paid-on
+    (merge {:id       (:db/id p)
+            :status   (name (:rent-payment/status p))
+            :pstart   (:rent-payment/period-start p)
+            :pend     (:rent-payment/period-end p)
+            :due      (:rent-payment/due-date p)
+            :paid     (:rent-payment/paid-on p)
             :overdue  overdue
             :late-fee late-fee
             :amount   (if late-fee (* amount 1.1) amount)
-            :desc     method-desc}
+            :desc     (:rent-payment/method-desc p)}
            (when method {:method (name method)})
            (when check {:check {:number (:check/number check)}}))))
 
@@ -56,31 +60,82 @@
         payments   (rent/payments conn account)
         grace-over (->> (member-license/active conn account)
                         (member-license/grace-period-over? conn))]
-    (ok {:payments (->> (take 12 payments)
-                        (map (partial clientize-payment-item grace-over)))})))
+    (resp/json-ok
+     {:payments (->> (take 12 payments)
+                     (map (partial clientize-payment-item grace-over)))})))
 
-;;; Make Payment
+;; =============================================================================
+;; Make a Payment
 
-(defn- payment-entity [payment-id]
-  (let [id (if (string? payment-id) (str->int payment-id) payment-id)]
-    (d/entity (d/db conn) id)))
+(defn- cents [x]
+  (int (* 100 x)))
 
-(defn make-payment-handler
-  "TODO: Doc"
-  [{:keys [params] :as req}]
-  (let [account (auth/requester req)
-        payment (payment-entity (:payment-id params))]
-    (try
-      (let [_ (<!!? (make-ach-payment! account payment))]
-        (ok {:message "success"}))
-      (catch Throwable ex
-        (server-error)))))
+(defn- charge-amount [conn license payment]
+  (if (and (rent-payment/past-due? payment)
+           (member-license/grace-period-over? conn license))
+    (* (rent-payment/amount payment) 1.1)
+    (rent-payment/amount payment)))
 
-;;; Routes
+(defn- create-charge!
+  "Create a charge for `payment` on Stripe."
+  [conn account payment license amount]
+  (if (rent-payment/unpaid? payment)
+    (let [customer (account/stripe-customer account)]
+      (get-in (stripe/charge (cents amount)
+                             (customer/bank-account-token customer)
+                             (account/email account)
+                             :customer-id (customer/id customer)
+                             :managed-account (member-license/managed-account-id license))
+              [:body :id]))
+    (throw (ex-info "Cannot pay a payment that is already paid!"
+                    {:payment (:db/id payment) :account (:db/id account)}))))
+
+(defn- make-payment!
+  [conn account payment]
+  (let [license   (member-license/active conn account)
+        amount    (charge-amount conn license payment)
+        charge-id (create-charge! conn account payment license amount)]
+    @(d/transact conn [(assoc
+                        (rent-payment/pending payment)
+                        :rent-payment/amount amount
+                        :rent-payment/paid-on (java.util.Date.)
+                        :rent-payment/method rent-payment/ach
+                        :rent-payment/charge (charge/create charge-id account amount))
+                       (msg/ach-payment payment account)])))
+
+(s/fdef make-payment!
+        :args (s/cat :conn p/conn?
+                     :account p/entity?
+                     :payment p/entity?))
+
+(def already-paid-error
+  "Cannot pay a payment that has already been paid!")
+
+(defn make-payment
+  "Make an ACH account for `account` against the payment identified by `payment-id`."
+  [conn account payment-id]
+  (let [payment (d/entity (d/db conn) payment-id)]
+    (if (rent-payment/paid? payment)
+      (resp/json-unprocessable {:error already-paid-error})
+      (try
+        (timbre/info :mars.rent/pay-ach {:account    (account/email account)
+                                         :payment-id payment-id})
+        (make-payment! conn account payment)
+        (resp/json-ok {:message "ok"})
+        (catch Throwable t
+          (timbre/error t :mars.rent/pay-ach {:account    (account/email account)
+                                              :payment-id payment-id}))))))
+
+;; =============================================================================
+;; Routes
+;; =============================================================================
 
 (defroutes routes
   (GET "/" [] payments-handler)
 
   (GET "/next" [] next-payment-handler)
 
-  (POST "/:payment-id/pay" [] make-payment-handler))
+  (POST "/:payment-id/pay" [payment-id]
+        (fn [req]
+          (let [account (auth/requester req)]
+            (make-payment conn account (str->int payment-id))))))

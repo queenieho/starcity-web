@@ -48,11 +48,13 @@
   generated password."
   [account]
   (let [new-password (generate-random-password)]
-    (change-password account new-password)))
+    (do
+      (change-password account new-password)
+      new-password)))
 
 (s/fdef reset-password
         :args (s/cat :account :starcity.spec.datomic/entity)
-        :ret :starcity.spec.datomic/db)
+        :ret string?)
 
 (defn is-password?
   "Does `password` the correct password for this `account`?"

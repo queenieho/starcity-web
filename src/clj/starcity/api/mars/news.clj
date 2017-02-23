@@ -7,8 +7,7 @@
              [datomic :refer [conn]]
              [util :refer :all]]
             [starcity.api.common :refer :all]
-            [starcity.events.news :as news]
-            [starcity.models.account :as account]))
+            [starcity.models.news :as news]))
 
 (defn- clientize-news-item [news]
   (assoc-when
@@ -42,8 +41,8 @@
   [news-id]
   (fn [req]
     (let [news (d/entity (d/db conn) (str->int news-id))]
-      (news/dismiss! news)
-      (ok {:message "success"}))))
+      @(d/transact conn [(news/dismiss news)])
+      (ok {:result "ok"}))))
 
 (defroutes routes
   (GET "/" [] fetch-news)

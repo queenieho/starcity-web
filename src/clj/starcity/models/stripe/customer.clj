@@ -205,20 +205,6 @@
         :ret (s/keys :req-un [::customer :starcity.spec.datomic/entity]))
 
 ;; =============================================================================
-;; Deletion
-
-(defn delete!
-  "Deletes a Stripe customer."
-  [stripe-customer]
-  (let [res (service/delete-customer (id stripe-customer))]
-    (if-let [error (service/error-from res)]
-      (throw (ex-info "Error encountered while trying to delete Stripe customer." error))
-      @(d/transact conn [[:db.fn/retractEntity (:db/id stripe-customer)]]))))
-
-(s/fdef delete!
-        :args (s/cat :account :starcity.spec.datomic/entity))
-
-;; =============================================================================
 ;; Bank Account Verification
 
 (defn verify-microdeposits

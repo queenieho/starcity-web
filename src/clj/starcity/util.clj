@@ -1,13 +1,10 @@
 (ns starcity.util
   (:require [plumbing.core :refer [dissoc-in]]
             [potemkin :refer [import-vars]]
-            [starcity.util.predicates]
             [starcity.util.date]
             [starcity.util.async]))
 
 (import-vars
- [starcity.util.predicates
-  entity? conn? lookup? throwable?]
  [starcity.util.date
   is-first-day-of-month? end-of-day beginning-of-day]
  [starcity.util.async

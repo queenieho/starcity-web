@@ -101,7 +101,7 @@
     [:tr
      [:td {:class (when is-selected-community? "is-active")} name]
      (for [{:keys [price license-id]} prices]
-       ^{:key (str internal-name price)}
+       ^{:key license-id}
        [:td {:class (when (and is-selected-community?
                                (= selected-license license-id))
                       "is-active")}

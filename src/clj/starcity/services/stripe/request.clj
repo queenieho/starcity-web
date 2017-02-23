@@ -36,6 +36,15 @@
 ;; API
 ;; =============================================================================
 
+(defn error-from
+  "Extract the error message from the response."
+  [response]
+  (get-in response [:body :error]))
+
+(def payload-from
+  "Extract the body of the response."
+   :body)
+
 (defn request
   ([req-config params]
    (request req-config params nil))

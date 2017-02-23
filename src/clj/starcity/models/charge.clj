@@ -6,7 +6,7 @@
             [starcity.spec]
             [clojure.spec :as s]
             [plumbing.core :refer [assoc-when]]
-            [starcity.util :refer :all]))
+            [toolbelt.predicates :refer [conn? entity?]]))
 
 ;; =============================================================================
 ;; Transactions
@@ -42,7 +42,7 @@
 
 (defn lookup
   "Look up a charge by the external `charge-id`."
-  [charge-id]
+  [conn charge-id]
   (d/entity (d/db conn) [:charge/stripe-id charge-id]))
 
 ;; =============================================================================
@@ -83,6 +83,7 @@
 
 (def account :charge/account)
 (def status :charge/status)
+(def amount :charge/amount)
 
 (defn type
   [conn charge]
@@ -99,11 +100,12 @@
 ;; Transactions
 
 (defn create
-  [stripe-id account & {:keys [purpose status]
-                        :or   {status :charge.status/pending}}]
+  [stripe-id account amount & {:keys [purpose status]
+                               :or   {status :charge.status/pending}}]
   (assoc-when
    {:db/id            (tempid)
     :charge/stripe-id stripe-id
+    :charge/amount    amount
     :charge/account   (:db/id account)
     :charge/status    status}
    :charge/purpose purpose))
@@ -112,6 +114,7 @@
 (s/fdef create
         :args (s/cat :stripe-id string?
                      :account entity?
+                     :amount float?
                      :opts (s/keys* :opt-un [::purpose ::status]))
         :ret (s/keys :req [:db/id :charge/stripe-id :charge/account :charge/status]
                      :opt [:charge/purpose]))

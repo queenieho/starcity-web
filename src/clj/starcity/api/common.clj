@@ -10,6 +10,9 @@
   [req]
   (get-in req [:identity :db/id]))
 
+(def json "application/json; charset=utf-8")
+(def transit "application/transit+json")
+
 (defn json-response
   [response]
   (assoc response :headers {"Content-Type" "application/json; charset=utf-8"}))

@@ -1,16 +1,18 @@
 (ns starcity.models.property
   (:refer-clojure :exclude [name])
   (:require [clojure.spec :as s]
-            [datomic.api :as d]
-            [starcity spec
-             [datomic :refer [conn tempid]]]
-            [starcity.models.util :refer :all]
-            [starcity.services.stripe :as stripe]
-            [starcity.services.stripe.connect :as connect]))
+            [starcity.models.unit :as unit]
+            starcity.spec
+            [datomic.api :as d]))
 
 ;; =============================================================================
-;; API
-;; =============================================================================
+;; Selectors
+
+(def name :property/name)
+(def internal-name :property/internal-name)
+(def managed-account-id :property/managed-account-id)
+(def ops-fee :property/ops-fee)
+(def units :property/units)
 
 ;; =============================================================================
 ;; Spec
@@ -23,89 +25,96 @@
 ;; =============================================================================
 ;; Queries
 
+(defn occupied-units
+  "Produce all units that are currently occupied."
+  [conn property]
+  (remove (partial unit/available? (d/db conn)) (units property)))
+
 (defn available-units
-  "A unit is considered available if there is no active member license that
-  references it."
-  [property]
-  (filter
-   (fn [u]
-     (let [ml (first (:member-license/_unit u))]
-       (or (nil? ml) (not (:member-license/active ml)))))
-   (:property/units property)))
+  "Produces all available units in `property`.
 
-(defn many
-  [pattern]
-  (->> (find-all-by (d/db conn) :property/name) ; get all properties
-       (entids) ; get just their entids
-       (d/pull-many (d/db conn) pattern)))
+  (A unit is considered available if there is no active member license that
+  references it.)"
+  [conn property]
+  (filter (partial unit/available? (d/db conn)) (units property)))
 
-;; =============================================================================
-;; Transactions
+(defn total-rent
+  "The total rent that can be collected from the current active member
+  licenses."
+  [conn property]
+  (->> (d/q '[:find ?m (sum ?rate)
+              :in $ ?p
+              :where
+              [?p :property/units ?u]
+              [?m :member-license/unit ?u]
+              [?m :member-license/status :member-license.status/active]
+              [?m :member-license/rate ?rate]]
+            (d/db conn) (:db/id property))
+       (map second)
+       (reduce + 0)))
 
-(defn exists?
-  [property-id]
-  (:property/name (one (d/db conn) property-id)))
+(defn- amount-query
+  [conn property date status]
+  (-> (d/q '[:find (sum ?amount) .
+             :in $ ?p ?now ?status
+             :where
+             [?p :property/units ?u]
+             [?m :member-license/unit ?u]
+             [?m :member-license/status :member-license.status/active]
+             [?m :member-license/rent-payments ?py]
+             [?py :rent-payment/amount ?amount]
+             [?py :rent-payment/status ?status]
+             [?py :rent-payment/period-start ?start]
+             [?py :rent-payment/period-end ?end]
+             [(.after ^java.util.Date ?end ?now)]
+             [(.before ^java.util.Date ?start ?now)]]
+           (d/db conn) (:db/id property) date status)
+      (or 0)))
 
-(defn create! [name internal-name units-available]
-  (let [entity (ks->nsks :property
-                         {:name            name
-                          :internal-name   internal-name
-                          :units-available units-available})
-        tid    (tempid)
-        tx     @(d/transact conn [(assoc entity :db/id tid)])]
-    (d/resolve-tempid (d/db conn) (:tempids tx) tid)))
+(defn amount-collected
+  "The amount in dollars that has been collected in `property` for the month
+  present within `date`."
+  [conn property date]
+  (amount-query conn property date :rent-payment.status/paid))
+
+(defn amount-outstanding
+  "The amount in dollars that is still due in `property` for the month present
+  within `date`."
+  [conn property date]
+  (amount-query conn property date :rent-payment.status/due))
+
+(defn amount-pending
+  "The amount in dollars that is pending in `property` for the month present
+  within `date`."
+  [conn property date]
+  (amount-query conn property date :rent-payment.status/pending))
 
 ;; =============================================================================
 ;; Managed Stripe Accounts
 
-(s/def ::dob :starcity.spec/datetime)
+;; (s/def ::dob :starcity.spec/datetime)
 
-;; TODO: too many params...
-;; TODO: Last 4 of ssn?
-(defn create-managed-account!
-  "Create a new managed account for `property-id`."
-  [property-id business-name tax-id account-number routing-number first-name last-name dob]
-  (let [res (connect/create-account!
-             (connect/owner first-name last-name dob)
-             (connect/business business-name tax-id)
-             (connect/account account-number routing-number))]
-    (if-let [e (stripe/error-from res)]
-      (throw (ex-info "Error encountered while trying to create managed account!"
-                      {:stripe-error e :property-id property-id}))
-      @(d/transact conn [{:db/id                       property-id
-                          :property/managed-account-id (:id (stripe/payload-from res))}]))))
+;; ;; TODO: too many params...
+;; ;; TODO: Last 4 of ssn?
+;; (defn create-managed-account!
+;;   "Create a new managed account for `property-id`."
+;;   [property-id business-name tax-id account-number routing-number first-name last-name dob]
+;;   (let [res (connect/create-account!
+;;              (connect/owner first-name last-name dob)
+;;              (connect/business business-name tax-id)
+;;              (connect/account account-number routing-number))]
+;;     (if-let [e (stripe/error-from res)]
+;;       (throw (ex-info "Error encountered while trying to create managed account!"
+;;                       {:stripe-error e :property-id property-id}))
+;;       @(d/transact conn [{:db/id                       property-id
+;;                           :property/managed-account-id (:id (stripe/payload-from res))}]))))
 
-(s/fdef create-managed-account!
-        :args (s/cat :property-id :starcity.spec/lookup
-                     :business-name string?
-                     :tax-id string?
-                     :account-number string?
-                     :routing-number string?
-                     :first-name string?
-                     :last-name string?
-                     :dob ::dob))
-
-;; =============================================================================
-;; Selectors
-
-(def name :property/name)
-(def internal-name :property/internal-name)
-(def managed-account-id :property/managed-account-id)
-(def ops-fee :property/ops-fee)
-
-(defn base-rent
-  "Determine the base rent at `property` for the given `license`."
-  [property license]
-  (ffirst
-   (d/q '[:find ?price
-          :in $ ?property ?license
-          :where
-          [?property :property/licenses ?plicense]
-          [?plicense :property-license/license ?license]
-          [?plicense :property-license/base-price ?price]]
-        (d/db conn) (:db/id property) (:db/id license))))
-
-(s/fdef base-rent
-        :args (s/cat :property :starcity.spec/entity
-                     :license :starcity.spec/entity)
-        :ret float?)
+;; (s/fdef create-managed-account!
+;;         :args (s/cat :property-id :starcity.spec/lookup
+;;                      :business-name string?
+;;                      :tax-id string?
+;;                      :account-number string?
+;;                      :routing-number string?
+;;                      :first-name string?
+;;                      :last-name string?
+;;                      :dob ::dob))

@@ -1,25 +1,23 @@
 (ns admin.core
-  (:require [admin.routes :as routes]
-            [admin.views :refer [app]]
+  (:require [goog.dom :as gdom]
+            [reagent.core :as r]
+            [re-frame.core :refer [dispatch-sync]]
+            [admin.db]
             [admin.events]
             [admin.subs]
-            [starcity.fx]               ; for `:route`
-            [starcity.log :refer [log]]
-            [reagent.core :as reagent]
-            [re-frame.core :refer [dispatch-sync]]))
-
-;; =============================================================================
-;; Config
-;; =============================================================================
+            [admin.routes :as routes]
+            [admin.views :as views]
+            [ant-ui.fx]
+            [cljsjs.antd]
+            [reagent.core :as r]
+            [toolbelt.re-frame.fx]))
 
 (enable-console-print!)
 
-;; =============================================================================
-;; API
-;; =============================================================================
+(defn render []
+  (r/render [views/app] (gdom/getElement "app")))
 
-(defn ^:export run
-  []
-  (routes/app-routes)
+(defn ^:export run []
+  (routes/hook-browser-navigation!)
   (dispatch-sync [:app/initialize])
-  (reagent/render [app] (.getElementById js/document "app")))
+  (render))

@@ -1,17 +1,17 @@
 (ns starcity.core
   (:gen-class)
-  (:require [starcity.server]
-            [starcity.seed]
+  (:require [starcity.environment]
+            [starcity.server]
             [starcity.countries]
             [starcity.datomic]
             [starcity.log]
             [starcity.nrepl]
             [starcity.config]
-            [starcity.environment]
+            [starcity.config.stripe]
+            [starcity.observers]
             [starcity.services.mailchimp]
             [starcity.services.mailgun]
             [starcity.scheduler]
-            [starcity.events.observers]
             [clojure.tools.cli :refer [parse-opts]]
             [mount.core :as mount]))
 
@@ -30,8 +30,5 @@
   (let [{:keys [options errors]} (parse-opts args cli-options)]
     (when errors
       (exit 1 (clojure.string/join "\n" errors)))
-    (-> (case (:env options)
-          :staging    (mount/except [])
-          :production (mount/except [#'starcity.seed/seed]))
-        (mount/swap {#'starcity.environment/environment (:env options)})
+    (-> (mount/swap {#'starcity.environment/environment (:env options)})
         mount/start)))

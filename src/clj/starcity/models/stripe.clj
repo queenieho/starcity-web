@@ -4,8 +4,12 @@
             [plumbing.core :refer [assoc-when]]
             [starcity spec
              [datomic :refer [conn tempid]]]
-            [starcity.models.account :as account]
             [starcity.services.stripe :as service]))
+
+;; TODO: Delete this namespace. Shouldn't be a model.
+;; It's currently used in:
+;; `starcity.models.apply.submit`
+;; `starcity.models.onboarding`
 
 ;; =============================================================================
 ;; Actions
@@ -26,6 +30,7 @@
             tx        @(d/transact conn [(assoc-when
                                           {:db/id            tid
                                            :charge/stripe-id (:id payload)
+                                           :charge/amount    (float (/ amount 100))
                                            :charge/account   account-id
                                            :charge/status    :charge.status/pending}
                                           :charge/purpose description)])

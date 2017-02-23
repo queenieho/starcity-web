@@ -1,124 +1,108 @@
 (ns starcity.models.application
-  (:require [starcity.datomic :refer [conn tempid]]
-            [starcity.models.util :refer :all]
-            [starcity.models.util.update :refer :all]
-            [starcity.spec]
-            [clojure.spec :as s]
+  (:require [clojure.spec :as s]
             [datomic.api :as d]
-            [plumbing.core :refer [assoc-when]]
-            [starcity.models.account :as account]))
+            [toolbelt.predicates :as p]))
 
 ;; =============================================================================
-;; API
-;; =============================================================================
+;; Selectors
 
-(declare status rejected?)
-
-;; =============================================================================
-;; Transactions
-
-(s/def ::status
-  #{:member-application.status/in-progress
-    :member-application.status/submitted
-    :member-application.status/approved
-    :member-application.status/rejected})
-
-(defn change-status
-  "Change the status of this application."
-  [{e :db/id} new-status]
-  @(d/transact conn [[:db/add e :member-application/status new-status]]))
-
-(s/fdef change-status
-        :args (s/cat :application :starcity.spec/entity
-                     :status ::status))
-
-(defn submit
-  "Indicate that this application is submitted."
-  [application]
-  @(d/transact
-    conn
-    [{:db/id                           (:db/id application)
-      :member-application/status       :member-application.status/submitted
-      :member-application/submitted-at (java.util.Date.)}]))
-
-;; =============================================================================
-;; Queries
-
-(defn by-account-id
-  "Retrieve an application by account id."
-  [account-id]
-  (qe1
-   '[:find ?e
-     :in $ ?acct
-     :where
-     [?acct :account/member-application ?e]]
-   (d/db conn) account-id))
-
-(s/fdef by-account-id
-        :args (s/cat :account-id :starcity.spec/lookup))
+(def account (comp first :account/_member-application))
+(def desired-license :application/license)
+(def move-in-date :application/move-in)
+(def communities :application/communities)
+(def community-fitness :application/fitness)
+(def address :application/address)
+(def has-pet? :application/has-pet)
+(def pet :application/pet)
+(def completed-at :application/submitted-at)
+(def status :application/status)
 
 ;; =============================================================================
 ;; Predicates
 
 (defn in-progress?
   "Has this application been submitted?"
-  [application]
-  (= :member-application.status/in-progress (status application)))
+  [app]
+  (= :application.status/in-progress (status app)))
 
 (s/fdef in-progress?
-        :args (s/cat :application :starcity.spec/entity)
+        :args (s/cat :application p/entity?)
         :ret boolean?)
 
 (defn submitted?
   "Has this application been submitted?"
-  [application]
-  (= :member-application.status/submitted (status application)))
+  [app]
+  (= :application.status/submitted (status app)))
 
 (s/fdef submitted?
-        :args (s/cat :application :starcity.spec/entity)
+        :args (s/cat :application p/entity?)
         :ret boolean?)
 
 (defn approved?
   "Is this application approved?"
-  [application]
-  (= :member-application.status/approved (status application)))
+  [app]
+  (= :application.status/approved (status app)))
 
 (s/fdef approved?
-        :args (s/cat :application :starcity.spec/entity)
+        :args (s/cat :application p/entity?)
         :ret boolean?)
 
 (defn rejected?
   "Is this application rejected?"
-  [application]
-  (= :member-application.status/rejected (status application)))
+  [app]
+  (= :application.status/rejected (status app)))
 
 (s/fdef rejected?
-        :args (s/cat :application :starcity.spec/entity)
+        :args (s/cat :application p/entity?)
         :ret boolean?)
 
 ;; alias for convenience
 (def completed? submitted?)
 
 ;; =============================================================================
-;; Selectors
+;; Transactions
 
-(defn license
-  [application]
-  (get-in application [:member-application/desired-license]))
+(s/def ::status
+  #{:application.status/in-progress
+    :application.status/submitted
+    :application.status/approved
+    :application.status/rejected
+    ;; Legacy
+    :member-application.status/in-progress
+    :member-application.status/submitted
+    :member-application.status/approved
+    :member-application.status/rejected })
 
-(defn term
-  [application]
-  (:license/term (license application)))
+(defn change-status
+  "Change the status of this application."
+  [app new-status]
+  {:db/id                     (:db/id app)
+   :application/status new-status})
 
-(def full-name
-  "Get the full name of the applicant that this application belongs to."
-  (comp account/full-name first :account/_member-application))
+(s/fdef change-status
+        :args (s/cat :application p/entity?
+                     :status ::status)
+        :ret vector?)
 
-(def move-in-date :member-application/desired-availability)
-(def communities :member-application/desired-properties)
-(def community-fitness :member-application/community-fitness)
-(def address :member-application/current-address)
-(def has-pet? :member-application/has-pet)
-(def pet :member-application/pet)
-(def completed-at :member-application/submitted-at)
-(def status :member-application/status)
+(defn submit
+  "Indicate that this application is submitted."
+  [app]
+  {:db/id              (:db/id app)
+   :application/status :application.status/submitted})
+
+;; =============================================================================
+;; Queries
+
+(defn by-account
+  "Retrieve an application by account."
+  [conn account]
+  (->> (d/q '[:find ?e .
+              :in $ ?a
+              :where
+              [?a :account/application ?e]]
+            (d/db conn) (:db/id account))
+       (d/entity (d/db conn))))
+
+(s/fdef by-account
+        :args (s/cat :conn p/conn? :account p/entity?)
+        :ret p/entity?)

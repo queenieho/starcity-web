@@ -181,7 +181,7 @@
                  [:prompt.help/toggle]]}))
 
 (def ^:private help-success-msg
-  "Thanks for sending a message! I'll respond soon by email.")
+  "Thanks for getting in touch! I'll respond soon by email.")
 
 (reg-event-fx
  :prompt.help/success

@@ -1,13 +1,13 @@
 (ns starcity.models.check
   (:require [plumbing.core :refer [assoc-when]]
             [clojure.spec :as s]
-            [starcity.util :refer :all])
+            [toolbelt.predicates :refer [entity?]]
+            [toolbelt.predicates :as p])
   (:refer-clojure :exclude [update]))
 
-;;; Selectors
-
-(def amount :check/amount)
-(def status :check/status)
+;; =============================================================================
+;; Selectors
+;; =============================================================================
 
 ;;; Statuses
 
@@ -18,9 +18,32 @@
 (def deposited :check.status/deposited)
 
 (def statuses
+  "All available statuses that a check may have."
   #{received cleared cancelled bounced deposited})
 
-;;; Predicates
+(def amount :check/amount)
+(def status :check/status)
+(def received-on :check/received-on)
+
+(defn security-deposit
+  "Produce the security deposit that references this `check`, if any."
+  [check]
+  (:security-deposit/_checks check))
+
+(s/fdef security-deposit
+        :args (s/cat :check p/entity?)
+        :ret (s/or :nothing nil? :deposit p/entity?))
+
+(defn rent-payment
+  "Produce the rent payment that references this `check`, if any."
+  [check]
+  (:rent-payment/_check check))
+
+(s/fdef rent-payment
+        :args (s/cat :check p/entity?)
+        :ret (s/or :nothing nil? :payment p/entity?))
+
+;;; Specs
 
 (s/def :check/name string?)
 (s/def :check/amount float?)
@@ -33,11 +56,19 @@
   (s/keys :req [:check/name :check/amount :check/date :check/number :check/status]
           :opt [:check/received-on :check/bank :db/id]))
 
+;; =============================================================================
+;; Predicates
+;; =============================================================================
+
 (defn updated? [c]
   (s/valid? ::updated-check c))
 
 (defn check? [c]
   (s/valid? ::check c))
+
+;; =============================================================================
+;; Transactions
+;; =============================================================================
 
 (defn create
   "Produce the tx-data required to create a `check` entity."

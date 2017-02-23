@@ -1,18 +1,15 @@
 (ns starcity.scheduler
-  (:require [hara.io.scheduler :as sch]
+  (:require [datomic.api :as d]
+            [hara.io.scheduler :as sch]
             [mount.core :refer [defstate]]
-            [starcity.scheduler.rent :as rent]
-            [clj-time.coerce :as c]
-            [clj-time.core :as t]
-            [datomic.api :as d]
-            [starcity.models.account :as account]
-            [starcity.models.member-license :as member-license]
+            [starcity.datomic :refer [conn]]
+            [starcity.models.cmd :as cmd]
             [taoensso.timbre :as timbre]))
 
 (def ^:private scheduler*
   (sch/scheduler
    {:create-rent-payments
-    {:handler rent/create-rent-payments
+    {:handler #(d/transact conn [(cmd/create-rent-payments %)])
      :schedule "0 0 0 * 1 * *"          ; first of every month
      }}
    {}
@@ -25,3 +22,8 @@
   :stop (do
           (timbre/info ::stopping)
           (sch/stop! scheduler)))
+
+(comment
+  (d/transact conn [(cmd/create-rent-payments #inst "2017-03-01T00:00:00.000-00:00")])
+
+  )

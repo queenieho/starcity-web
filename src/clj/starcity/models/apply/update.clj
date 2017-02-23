@@ -13,16 +13,16 @@
 ;; =============================================================================
 
 (defn- community-safety [application]
-  (-> application :account/_member-application first :community-safety/_account first))
+  (-> application :account/_application first :community-safety/_account first))
 
 (defn- create-application-if-needed
   [account-id]
   (when-not (common/by-account-id account-id)
     @(d/transact
       conn
-      [{:db/id                       (tempid)
-        :member-application/status   :member-application.status/in-progress
-        :account/_member-application account-id}])))
+      [{:db/id                (tempid)
+        :application/status   :application.status/in-progress
+        :account/_application account-id}])))
 
 (defmulti ^:private update-tx (fn [_ _ key] key))
 
@@ -33,22 +33,22 @@
   [{communities :communities} application _]
   (replace-unique conn
                   (:db/id application)
-                  :member-application/desired-properties
+                  :application/communities
                   (communities->lookups communities)))
 
 (defmethod update-tx :logistics/license
   [{license :license} application _]
-  [[:db/add (:db/id application) :member-application/desired-license license]])
+  [[:db/add (:db/id application) :application/license license]])
 
 (defmethod update-tx :logistics/move-in-date
   [{date :move-in-date} application _]
-  [[:db/add (:db/id application) :member-application/desired-availability (c/to-date date)]])
+  [[:db/add (:db/id application) :application/move-in (c/to-date date)]])
 
 ;; TODO: has-pet? => has-pet
 
 (defmethod update-tx :logistics/pets
   [{:keys [has-pet pet-type breed weight]} application _]
-  (let [pet (get application :member-application/pet)]
+  (let [pet (get application :application/pet)]
     (-> (cond
           ;; Indicated that they have a pet AND there's already a pet entiti -- this is an update
           (and has-pet pet)       [(assoc-when {:db/id    (:db/id pet)
@@ -58,12 +58,12 @@
           (and (not has-pet) pet) [[:db.fn/retractEntity (:db/id pet)]]
           ;; Indicated that they have a pet, but previously did not. Create pet entity
           (and has-pet (not pet)) [{:db/id                  (:db/id application)
-                                    :member-application/pet (assoc-when {:pet/type (keyword pet-type)}
+                                    :application/pet (assoc-when {:pet/type (keyword pet-type)}
                                                                         :pet/breed breed :pet/weight weight)}]
           ;; Indicated that they have no pet, and had no prior pet. Do nothing.
           (and (not has-pet) (not pet)) [])
         ;; Update application flag.
-        (conj [:db/add (:db/id application) :member-application/has-pet has-pet]))))
+        (conj [:db/add (:db/id application) :application/has-pet has-pet]))))
 
 (defmethod update-tx :personal/phone-number
   [{phone-number :phone-number} application _]
@@ -90,7 +90,7 @@
 (defn- address-tx
   [{{:keys [region locality country postal-code]} :address} application]
   [{:db/id (:db/id application)
-    :member-application/current-address
+    :application/address
     {:address/region      region
      :address/locality    locality
      :address/country     country
@@ -104,7 +104,7 @@
 
 (defn- community-fitness-id
   [application]
-  (get-in application [:member-application/community-fitness :db/id]))
+  (get-in application [:application/fitness :db/id]))
 
 (defn- community-fitness-tx
   [application data]
@@ -113,23 +113,23 @@
      (merge {:db/id cfid} data)
      ;; Create a new community fitness entity (it's a component)
      {:db/id                                (:db/id application)
-      :member-application/community-fitness data})])
+      :application/fitness data})])
 
 (defmethod update-tx :community/why-starcity
   [{:keys [why-starcity]} app _]
-  (community-fitness-tx app {:community-fitness/why-interested why-starcity}))
+  (community-fitness-tx app {:fitness/interested why-starcity}))
 
 ;; dealbreakers are considered optional, and may be nil
 (defmethod update-tx :community/about-you
   [{:keys [free-time dealbreakers]} app _]
-  (->> (assoc-when {:community-fitness/free-time free-time}
-                   :community-fitness/dealbreakers dealbreakers)
+  (->> (assoc-when {:fitness/free-time free-time}
+                   :fitness/dealbreakers dealbreakers)
        (community-fitness-tx app)))
 
 (defmethod update-tx :community/communal-living
   [{:keys [prior-experience skills]} app _]
-  (->> {:community-fitness/skills                  skills
-        :community-fitness/prior-community-housing prior-experience}
+  (->> {:fitness/skills     skills
+        :fitness/experience prior-experience}
        (community-fitness-tx app)))
 
 ;; =============================================================================

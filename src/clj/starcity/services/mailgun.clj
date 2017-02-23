@@ -1,13 +1,15 @@
 (ns starcity.services.mailgun
   (:refer-clojure :exclude [send])
-  (:require [mailgun.mail :as mail]
-            [clojure.core.async :refer [put! chan]]
+  (:require [cheshire.core :as json]
+            [clojure.core.async :refer [chan put!]]
+            [mailgun.mail :as mail]
+            [org.httpkit.client :as http]
+            [plumbing.core :refer [assoc-when]]
             [starcity.config.mailgun :as config]
             [starcity.environment :refer [environment]]
-            [mount.core :as mount :refer [defstate]]
-            [org.httpkit.client :as http]
-            [cheshire.core :as json]
-            [taoensso.timbre :as timbre]))
+            [taoensso.timbre :as timbre]
+            [clojure.spec :as s]
+            [toolbelt.predicates :as p]))
 
 (defn- send-mail-async
   "Send email to mailgun with the passed creds and the content, *but async*.
@@ -48,7 +50,7 @@
   [:p "Best,"
    [:br]
    [:br]
-   "Mo"
+   "Meg"
    [:br]
    "Head of Community"])
 
@@ -61,10 +63,12 @@
 (defn- log-result
   [to from subject {:keys [error] :as res}]
   (let [res' (update res :body json/parse-string true)
-        log  {:to       to
-              :from     from
-              :subject  subject
-              :response (select-keys res' [:body :status])}]
+        log  (assoc-when
+              {:to       to
+               :from     from
+               :subject  subject
+               :response (select-keys res' [:body :status])}
+              :uuid (::uuid res))]
     (if error
       (timbre/error error ::sent log)
       (timbre/trace ::sent log))
@@ -72,7 +76,7 @@
 
 (defn send
   "Send an email asynchronously."
-  [to subject msg & {:keys [from]}]
+  [to subject msg & {:keys [from uuid]}]
   (let [out-c (chan 1)
         creds {:key config/api-key :domain config/domain}
         data  {:from    (or from config/default-sender)
@@ -81,5 +85,14 @@
                :html    msg}]
     (send-mail-async creds data
                      (fn [res]
-                       (put! out-c (log-result to from subject res))))
+                       (put! out-c (log-result to from subject (assoc res ::uuid uuid)))))
     out-c))
+
+(s/def ::uuid uuid?)
+(s/def ::from string?)
+(s/fdef send
+        :args (s/cat :to string?
+                     :subject string?
+                     :msg string?
+                     :opts (s/keys* :opt-un [::from ::uuid]))
+        :ret p/chan?)

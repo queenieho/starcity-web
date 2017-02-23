@@ -7,8 +7,10 @@
   (d/q '[:find [?e ...] :where [?e :property/name _]] (d/db conn)))
 
 (defn- clientize-license [license]
-  {:property-license/license    (:property-license/license license)
-   :property-license/base-price (:property-license/base-price license)})
+  (-> (select-keys license [:property-license/license
+                            :property-license/base-price
+                            :db/id])
+      (update :property-license/license select-keys [:db/id :license/term])))
 
 (defn- clientize-property [conn id]
   (let [property (d/entity (d/db conn) id)]
@@ -17,9 +19,8 @@
      :property/internal-name (:property/internal-name property)
      :property/available-on  (:property/available-on property)
      :property/licenses      (map clientize-license (:property/licenses property))
-     :property/units         (count (property/available-units property))}))
+     :property/units         (count (property/available-units conn property))}))
 
-;; TODO: Spec
 (defn initial-data
   "Required information to the application client."
   [conn]

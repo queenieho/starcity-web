@@ -8,7 +8,7 @@
 (defn conn?
   "Is `x` a Datomic connection?"
   [x]
-  (= datomic.peer.LocalConnection (type x)))
+  (instance? datomic.peer.Connection x))
 
 (defn lookup?
   "is `x` a lookup ref?"

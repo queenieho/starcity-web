@@ -1,10 +1,9 @@
 (ns starcity.models.apply.progress
-  (:require [starcity.datomic :refer [conn]]
-            [starcity.countries :as countries]
+  (:require [clojure.spec :as s]
             [datomic.api :as d]
             [plumbing.core :refer [assoc-when]]
-            [clojure.spec :as s]
-            [starcity.spec]
+            [starcity spec
+             [datomic :refer [conn]]]
             [starcity.models.application :as application]))
 
 ;; =============================================================================
@@ -23,23 +22,23 @@
            {:income-file/_account [:income-file/path]}
            {:community-safety/_account
             [:db/id :community-safety/consent-given?]}
-           {:account/member-application
-            [{:member-application/desired-properties
+           {:account/application
+            [{:application/communities
               [:property/internal-name]}
-             {:member-application/desired-license [:db/id]}
-             :member-application/desired-availability
-             :member-application/has-pet
-             {:member-application/pet
+             {:application/license [:db/id]}
+             :application/move-in
+             :application/has-pet
+             {:application/pet
               [:pet/type :pet/breed :pet/weight]}
-             {:member-application/current-address
+             {:application/address
               [:address/region :address/locality :address/postal-code :address/country]}
-             {:member-application/community-fitness
-              [:community-fitness/why-interested
-               :community-fitness/free-time
-               :community-fitness/dealbreakers
-               :community-fitness/skills
-               :community-fitness/prior-community-housing]}
-             :member-application/status
+             {:application/fitness
+              [:fitness/interested
+               :fitness/free-time
+               :fitness/dealbreakers
+               :fitness/skills
+               :fitness/experience]}
+             :application/status
              :db/id]}]
           account-id))
 
@@ -63,24 +62,24 @@
 ;; Communities
 
 (defn- parse-communities [data]
-  (let [communities (get-in data [:account/member-application
-                                  :member-application/desired-properties])]
+  (let [communities (get-in data [:account/application
+                                  :application/communities])]
     {:communities (map :property/internal-name communities)}))
 
 ;; =====================================
 ;; license
 
 (defn- parse-license [data]
-  {:license (get-in data [:account/member-application
-                          :member-application/desired-license
+  {:license (get-in data [:account/application
+                          :application/license
                           :db/id])})
 
 ;; =====================================
 ;; move-in date
 
 (defn- parse-move-in [data]
-  {:move-in-date (get-in data [:account/member-application
-                               :member-application/desired-availability])})
+  {:move-in-date (get-in data [:account/application
+                               :application/move-in])})
 
 ;; =====================================
 ;; Pet
@@ -88,9 +87,9 @@
 ;; TODO: Why not use `:member-application/has-pet`?
 (defn- parse-pet [data]
   (let [{:keys [:pet/type :pet/breed :pet/weight] :as pet}
-        (get-in data [:account/member-application
-                      :member-application/pet])]
-    (if (nil? (get-in data [:account/member-application :member-application/has-pet]))
+        (get-in data [:account/application
+                      :application/pet])]
+    (if (nil? (get-in data [:account/application :application/has-pet]))
       {}
       {:pet (assoc-when {:has-pet (boolean pet)}
                         :pet-type (when type (name type))
@@ -110,8 +109,8 @@
 ;; Address
 
 (defn- parse-address [data]
-  (let [address (get-in data [:account/member-application
-                              :member-application/current-address])]
+  (let [address (get-in data [:account/application
+                              :application/address])]
     {:address {:locality    (:address/locality address)
                :region      (:address/region address)
                :postal-code (:address/postal-code address)
@@ -127,17 +126,17 @@
 ;; =====================================
 ;; Community Fitness
 
-(defn- parse-community-fitness [data]
-  {:community-fitness
-   (get-in data [:account/member-application
-                 :member-application/community-fitness])})
+(defn- parse-fitness [data]
+  {:fitness
+   (get-in data [:account/application
+                 :application/fitness])})
 
 ;; =====================================
 ;; Completion
 
 (defn- parse-completion [data]
   (let [application (d/entity (d/db conn)
-                              (get-in data [:account/member-application :db/id]))]
+                              (get-in data [:account/application :db/id]))]
     {:complete (and application
                     (not (application/in-progress? application)))}))
 
@@ -173,21 +172,21 @@
 
 (s/def ::income-file-paths (s/+ string?))
 ;; Community fitness
-(s/def :community-fitness/free-time :starcity.spec/non-empty-string)
-(s/def :community-fitness/skills :starcity.spec/non-empty-string)
-(s/def :community-fitness/prior-community-housing :starcity.spec/non-empty-string)
-(s/def :community-fitness/why-interested :starcity.spec/non-empty-string)
-(s/def :community-fitness/dealbreakers :starcity.spec/non-empty-string)
-(s/def ::community-fitness
-  (s/keys :req [:community-fitness/free-time
-                :community-fitness/skills
-                :community-fitness/prior-community-housing
-                :community-fitness/why-interested]
-          :opt [:community-fitness/dealbreakers]))
+(s/def :fitness/free-time :starcity.spec/non-empty-string)
+(s/def :fitness/skills :starcity.spec/non-empty-string)
+(s/def :fitness/experience :starcity.spec/non-empty-string)
+(s/def :fitness/interested :starcity.spec/non-empty-string)
+(s/def :fitness/dealbreakers :starcity.spec/non-empty-string)
+(s/def ::fitness
+  (s/keys :req [:fitness/free-time
+                :fitness/skills
+                :fitness/experience
+                :fitness/interested]
+          :opt [:fitness/dealbreakers]))
 
 (s/def ::complete-parsed-data
   (s/keys :req-un [::communities ::license ::move-in-date ::community-safety
-                   ::address ::income-file-paths ::community-fitness ::pet]))
+                   ::address ::income-file-paths ::fitness ::pet]))
 
 ;; =============================================================================
 ;; API
@@ -206,7 +205,7 @@
                                  parse-community-safety
                                  parse-address
                                  parse-income-files
-                                 parse-community-fitness
+                                 parse-fitness
                                  parse-completion)
                            data))
         res (assoc res :payment-allowed (is-payment-allowed? res))]

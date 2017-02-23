@@ -5,6 +5,9 @@
 
 (def ^:private endpoint "subscriptions")
 
+;; =============================================================================
+;; Create!
+
 (defn create!
   [customer-id plan-id & {:keys [source managed fee-percent trial-end]}]
   (when fee-percent
@@ -35,6 +38,26 @@
                                              ::trial-end]))
         :ret (s/keys :req-un [::id]))
 
+;; =============================================================================
+;; Update!
+
+(defn update!
+  [subscription-id & {:keys [managed fee-percent]}]
+  (request (assoc-when
+            {:endpoint (str endpoint "/" subscription-id)
+             :method   :post}
+            :managed-account managed)
+           (assoc-when
+            {}
+            :application_fee_percent fee-percent)))
+
+(s/fdef update!
+        :args (s/cat :subscription ::id
+                     :opts (s/keys* :opt-un [::managed ::fee-percent])))
+
+;; =============================================================================
+;; Fetch
+
 (defn fetch
   [id & {:keys [managed]}]
   (request (assoc-when
@@ -42,3 +65,7 @@
              :method  :get}
             :managed-account managed)
            {}))
+
+(s/fdef fetch
+        :args (s/cat :id ::id
+                     :opts (s/keys* :opt-un [::managed])))

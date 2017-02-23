@@ -40,13 +40,13 @@
   (let [defaults (read-config (config-file "config.edn"))]
     (-> (merge-with merge
                     defaults
-                    (read-secrets +secrets-file+)
-                    (read-config (config-for-environment environment)))
+                    (read-config (config-for-environment environment))
+                    (read-secrets +secrets-file+))
         (assoc :environment environment))))
 
 ;; =============================================================================
 ;; API
 
-(defstate config :start (load-config environment))
+(defstate config :start (load-config environment) :stop :noop)
 (defstate hostname :start (:hostname config) :stop :noop)
 (defstate data-dir :start (:data-dir config) :stop :noop)

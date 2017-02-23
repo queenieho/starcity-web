@@ -5,14 +5,13 @@
             [plumbing.core :refer [assoc-when]]
             [ring.middleware
              [content-type :refer [wrap-content-type]]
-             [json :refer [wrap-json-params wrap-json-response]]
              [keyword-params :refer [wrap-keyword-params]]
              [multipart-params :refer [wrap-multipart-params]]
              [nested-params :refer [wrap-nested-params]]
              [params :refer [wrap-params]]
              [resource :refer [wrap-resource]]
              [session :refer [wrap-session]]]
-            ;; [ring.middleware.session.cookie :refer [cookie-store]]
+            [ring.middleware.format :refer [wrap-restful-format]]
             [ring.middleware.session.datomic :refer [datomic-store]]
             [starcity
              [datomic :refer [conn]]
@@ -63,8 +62,7 @@
       (wrap-authentication auth-backend)
       (wrap-keyword-params)
       (wrap-nested-params)
-      (wrap-json-params)
-      (wrap-json-response)
+      (wrap-restful-format)
       (wrap-params)
       (wrap-multipart-params)
       (wrap-resource "public")

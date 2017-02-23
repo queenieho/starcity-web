@@ -74,7 +74,7 @@
                         (account/activation-hash account))}
       "Click here to activate your account"]
      " and apply for a home."]
-    [:p "Best," [:br] [:br] "Mo" [:br] "Head of Community"]]))
+    [:p "Best," [:br] [:br] "Meg" [:br] "Head of Community"]]))
 
 (def ^:private activation-email-subject
   "Activate Your Account")

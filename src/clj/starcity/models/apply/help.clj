@@ -9,5 +9,6 @@
   (let [acct  (d/entity (d/db conn) account-id)
         email (:account/email acct)]
     (slack/send-message
-     (format "A member is asking for help from step `%s`.\n\n*%s* asks:\n>%s\n\nHis/her email is: %s"
-             k (full-name acct) question email))))
+     (format "An applicant is asking for help from step `%s`.\n\n*%s* asks:\n>%s\n\nHis/her email is: %s"
+             k (full-name acct) question email)
+     :channel "#community")))

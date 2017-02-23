@@ -6,7 +6,10 @@
             [starcity.models.util :refer :all]
             [datomic.api :as d]
             [starcity.spec]
-            [clojure.spec :as s]))
+            [clojure.spec :as s]
+            [starcity.models.account :as account]
+            [starcity.models.approval :as approval]
+            [starcity.models.unit :as unit]))
 
 ;; TODO: Change progress to communicate w/ entities rather than maps or ids
 
@@ -115,8 +118,8 @@
 (defn applicant-property
   "The property that this applicant is being onboarded for."
   [progress]
-  (:approval/property
-   (one (d/db conn) :approval/account (account-id progress))))
+  (let [account (d/entity (d/db conn) (account-id progress))]
+    (-> account account/approval approval/unit unit/property)))
 
 (def property-code
   (comp :property/internal-name applicant-property))

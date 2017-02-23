@@ -1,6 +1,6 @@
 (ns starcity.models.account.role
   (:require [clojure.spec :as s]
-            [starcity.util :refer [entity?]]))
+            [toolbelt.predicates :refer [entity?]]))
 
 (s/def ::role
   #{:account.role/admin
@@ -37,10 +37,12 @@
 
 ;;; Transactions
 
-(defn change-role [account to]
+(defn change-role
+  "Produce transaction data to change `account`'s role to `role`"
+  [account role]
   {:db/id        (:db/id account)
-   :account/role to})
+   :account/role role})
 
 (s/fdef change-role
-        :args (s/cat :account entity? :to ::role)
+        :args (s/cat :account entity? :role ::role)
         :ret (s/keys :req [:db/id :account/role]))

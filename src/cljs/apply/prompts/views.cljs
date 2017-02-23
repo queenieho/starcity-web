@@ -54,9 +54,9 @@
            [:p.control [save-button @curr-prompt @complete]])
          [:p.control [next-button @curr-prompt @complete]]]]])))
 
-(defn- mo-image [hover]
+(defn- advisor-image [hover]
   [:img.is-circular
-   {:src   "/assets/img/mo.jpg"
+   {:src   "/assets/img/meg.jpg"
     :alt   "community advisor headshot"
     :class (when hover "community-advisor")}])
 
@@ -73,7 +73,7 @@
         [:div.box
          [:div.media
           [:figure.media-left
-           [:p.image.is-96x96 (mo-image false)]]
+           [:p.image.is-96x96 (advisor-image false)]]
           [:div.media-content
            [:form {:on-submit #(do (.preventDefault %)
                                    (dispatch [:prompt.help/send]))}
@@ -99,7 +99,7 @@
   [title]
   [:header
    [:figure.image.is-64x64
-    [:a {:on-click #(dispatch [:prompt.help/toggle])} (mo-image true)]]
+    [:a {:on-click #(dispatch [:prompt.help/toggle])} (advisor-image true)]]
    [:h3.prompt-title.title.is-4 title]
    [contact-modal]])
 

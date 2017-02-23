@@ -4,6 +4,7 @@
             [clojure.core.async :refer [chan put!]]
             [clojure.string :as str]
             [org.httpkit.client :as http]
+            [plumbing.core :refer [assoc-when]]
             [starcity.config.slack :as config]
             [starcity.environment :refer [is-development?]]
             [taoensso.timbre :as timbre]))
@@ -67,7 +68,7 @@
   (if (str/starts-with? s "#") s (str "#" s)))
 
 (defn send
-  [{:keys [channel username] :or {channel default-channel}} msg]
+  [{:keys [channel username] :or {channel default-channel}} msg & {:keys [uuid]}]
   (let [out-c      (chan 1)
         msg-params (-> {:username (or username config/username)}
                        (assoc-channel (->channel channel)))]
@@ -78,10 +79,14 @@
                (fn [res]
                  (if-let [error (:error res)]
                    (do
-                     (timbre/error error ::send {:response (dissoc res :error)})
+                     (timbre/error error ::send (assoc-when
+                                                 {:response (dissoc res :error)}
+                                                 :uuid uuid))
                      (put! out-c error))
                    (do
-                     (timbre/trace ::send {:response res})
+                     (timbre/trace ::send (assoc-when
+                                           {:response res}
+                                           :uuid uuid))
                      (put! out-c true)))))
     out-c))
 

@@ -1,4 +1,4 @@
-{:datomic  {:uri "datomic:mem://localhost:4334/starcity"}
+{:datomic  {:uri "datomic:dev://localhost:4334/starcity"}
 
  :data-dir "/var/starcity-web"
 

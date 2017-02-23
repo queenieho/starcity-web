@@ -32,7 +32,7 @@
     [:p "Best,"
      [:br]
      [:br]
-     "Mo"
+     "Meg"
      [:br]
      "Head of Community"]]))
 
@@ -127,4 +127,4 @@
       ;; confirmation.
       (send-submission-email! account)
       (notify-us account)
-      (application/submit application))))
+      @(d/transact conn [(application/submit application)]))))

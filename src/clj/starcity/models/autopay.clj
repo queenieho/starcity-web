@@ -50,7 +50,7 @@
   "Is `account` subscribed to autopay?"
   [conn account]
   (let [ml (member-license/active conn account)]
-    (member-license/subscribed? ml)))
+    (member-license/autopay-on? ml)))
 
 ;;; Plan Data
 
