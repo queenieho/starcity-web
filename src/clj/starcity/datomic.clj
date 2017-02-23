@@ -19,11 +19,8 @@
     (try
       (db/conform-migrations conn)
       (catch Throwable t
-        ;; NOTE: This will always happen in development, as there will be
-        ;; no data to migrate. That's ok. If it happens in
-        ;; production...not ok.
-        (when (env/is-production?)
-          (timbre/error t "Error encountered while attempting to run migrations.")
+        (timbre/error t "Error encountered while attempting to run migrations.")
+        (when-not (env/is-development?)
           (throw t))))
     conn))
 
