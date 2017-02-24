@@ -222,14 +222,15 @@
    "Approve"])
 
 (defn eligibility []
-  (let [app        (subscribe [:account/application])]
+  (let [app (subscribe [:account/application])]
     (fn []
       (let [{:keys [application/address application/has-pet
-                    application/pet income/files]} @app]
+                    application/pet income/files application/status]} @app]
         [:div
          [approval-modal]
          [a/card {:title "Eligiblity"
-                  :extra (r/as-element [approve-button])}
+                  :extra (when (= status :application.status/submitted)
+                           (r/as-element [approve-button]))}
           [:div
            [:p [:strong "Current Address"]]
            [:p (or address "N/A")]

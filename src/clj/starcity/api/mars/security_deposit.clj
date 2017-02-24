@@ -72,7 +72,7 @@
 
       :otherwise (let [amount    (charge-amount deposit)
                        charge-id (make-charge! deposit customer account license amount)
-                       charge    (charge/create charge-id account (float amount))]
+                       charge    (charge/create charge-id (float amount) :account account)]
                    @(d/transact conn [{:db/id                    (:db/id deposit)
                                        :security-deposit/charges charge}
                                       (msg/remainder-deposit-paid account charge-id)])

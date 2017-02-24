@@ -100,7 +100,7 @@
                         :rent-payment/amount amount
                         :rent-payment/paid-on (java.util.Date.)
                         :rent-payment/method rent-payment/ach
-                        :rent-payment/charge (charge/create charge-id account amount))
+                        :rent-payment/charge (charge/create charge-id amount :account account))
                        (msg/ach-payment payment account)])))
 
 (s/fdef make-payment!

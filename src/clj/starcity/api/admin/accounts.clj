@@ -24,13 +24,19 @@
             [toolbelt
              [core :as tb :refer [str->int]]
              [datomic :as td]
-             [predicates :as p]]))
+             [predicates :as p]]
+            [starcity.models.rent-payment :as rent-payment]
+            [starcity.models.property :as property]
+            [starcity.models.charge :as charge]))
 
 ;; =============================================================================
 ;; Common
 ;; =============================================================================
 
 (def transit "application/transit+json")
+
+(def stripe-dashboard-uri
+  "https://dashboard.stripe.com")
 
 ;; =====================================
 ;; Clientize Security Deposit
@@ -45,11 +51,12 @@
                        :check/received-on :check/date])))
 
 (defn- charge->payment [charge]
-  {:payment/id       (:db/id charge)
-   :payment/method   :ach
-   :payment/status   (name (:charge/status charge))
-   :payment/amount   (:charge/amount charge)
-   :charge/stripe-id (:charge/stripe-id charge)})
+  {:payment/id        (:db/id charge)
+   :payment/method    :ach
+   :payment/status    (name (:charge/status charge))
+   :payment/amount    (:charge/amount charge)
+   :charge/stripe-uri (format "%s/payments/%s"
+                              stripe-dashboard-uri (:charge/stripe-id charge))})
 
 (defn- clientize-security-deposit [deposit]
   (let [checks  (deposit/checks deposit)
@@ -125,7 +132,7 @@
 (defn- payment-methods [conn account]
   (let [license (member-license/active conn account)]
     {:payment/autopay (member-license/autopay-on? license)
-     :payment/bank    (member-license/bank-linked? license)}))
+     :payment/bank    (account/bank-linked? account)}))
 
 (defn- security-deposit [_ account]
   (clientize-security-deposit (account/security-deposit account)))
@@ -153,6 +160,20 @@
                       :check/received-on
                       :check/date]))
 
+(defn- payment-uri [payment]
+  (let [method     (rent-payment/method payment)
+        charge-id  (-> payment rent-payment/charge charge/id)
+        invoice-id (rent-payment/invoice payment)
+        managed-id (-> payment rent-payment/member-license member-license/managed-account-id)]
+    (case method
+      :rent-payment.method/ach
+      (format "%s/payments/%s" stripe-dashboard-uri charge-id)
+
+      :rent-payment.method/autopay
+      (format "%s/%s/invoices/%s" stripe-dashboard-uri managed-id invoice-id)
+
+      nil)))
+
 (defn- clientize-payment [payment]
   (-> (select-keys payment [:db/id
                             :rent-payment/status
@@ -164,7 +185,8 @@
                             :rent-payment/method-desc
                             :rent-payment/method
                             :rent-payment/check])
-      (update :rent-payment/check clientize-check)))
+      (update :rent-payment/check clientize-check)
+      (assoc :rent-payment/stripe-uri (payment-uri payment))))
 
 (defn- payments [conn account]
   (->> (query-payments conn account)
@@ -264,7 +286,7 @@
        (c/to-date)))
 
 (defn application [conn account]
-  (let [app (app/by-account conn account)]
+  (when-let [app (app/by-account conn account)]
     (merge
      {:application/status      (app/status app)
       :application/move-in     (app/move-in-date app)
@@ -282,7 +304,7 @@
 
 (defmethod clientize-account :account.role/applicant
   [conn account client-data]
-  (assoc client-data :account/application (application conn account)))
+  (plumbing/assoc-when client-data :account/application (application conn account)))
 
 ;; =====================================
 ;; Catch-all
@@ -430,7 +452,7 @@
           (-> (response/response {:message "Invalid account, unit or license."})
               (response/status 400))
 
-          (not (unit/available? (d/db conn) unit))
+          (unit/occupied? (d/db conn) unit)
           (resp-err unit-occupied-error)
 
           (not (account/can-approve? account))

@@ -28,7 +28,7 @@
 (defn occupied-units
   "Produce all units that are currently occupied."
   [conn property]
-  (remove (partial unit/available? (d/db conn)) (units property)))
+  (filter (partial unit/occupied? (d/db conn)) (units property)))
 
 (defn available-units
   "Produces all available units in `property`.
@@ -36,7 +36,7 @@
   (A unit is considered available if there is no active member license that
   references it.)"
   [conn property]
-  (filter (partial unit/available? (d/db conn)) (units property)))
+  (remove (partial unit/occupied? (d/db conn)) (units property)))
 
 (defn total-rent
   "The total rent that can be collected from the current active member
@@ -55,7 +55,7 @@
 
 (defn- amount-query
   [conn property date status]
-  (-> (d/q '[:find (sum ?amount) .
+  (->> (d/q '[:find ?py ?amount
              :in $ ?p ?now ?status
              :where
              [?p :property/units ?u]
@@ -69,7 +69,7 @@
              [(.after ^java.util.Date ?end ?now)]
              [(.before ^java.util.Date ?start ?now)]]
            (d/db conn) (:db/id property) date status)
-      (or 0)))
+       (reduce #(+ %1 (second %2)) 0)))
 
 (defn amount-collected
   "The amount in dollars that has been collected in `property` for the month

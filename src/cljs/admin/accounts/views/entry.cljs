@@ -81,12 +81,12 @@
       (let [{:keys [approval/approver approval/move-in approval/term approval/unit]}
             @approval]
         [a/card
-        (apply level/overview
-               (level/overview-item "Approved By" approver)
-               (level/overview-item "Move-in Date" move-in date/short-date)
-               (level/overview-item "Term" term #(str % " months"))
-               (level/overview-item "Unit" (:unit/name unit))
-               (deposit-overview-items @deposit))]))))
+         (apply level/overview
+                (level/overview-item "Approved By" approver)
+                (level/overview-item "Move-in Date" move-in date/short-date)
+                (level/overview-item "Term" term #(str % " months"))
+                (level/overview-item "Unit" (:unit/name unit))
+                (deposit-overview-items @deposit))]))))
 
 ;; =============================================================================
 ;; Structure
@@ -115,14 +115,23 @@
     [onboarding-stats]]
    [deposit/payments]])
 
+;; NOTE: Proxy for `content*` since I cannot `subscribe` in a multimethod
+(defn- applicant-content []
+  (let [app (subscribe [:account/application])]
+    (fn []
+      (if (nil? @app)
+        [a/card
+         [:b "This account has not yet begun the application process."]]
+        [:div
+         [app/overview]
+         [:div.columns {:style {:margin-top 16}}
+          [:div.column.is-two-thirds
+           [app/community-fitness]]
+          [:div.column
+           [app/eligibility]]]]))))
+
 (defmethod content* :applicant/overview [_]
-  [:div
-   [app/overview]
-   [:div.columns {:style {:margin-top 16}}
-    [:div.column.is-two-thirds
-     [app/community-fitness]]
-    [:div.column
-     [app/eligibility]]]])
+  [applicant-content])
 
 (defn- contact []
   (let [contact (subscribe [:account/contact])

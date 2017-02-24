@@ -154,7 +154,7 @@
                        (conj acc (update-tx property-id k v)))
                      []
                      params))
-  {:result "Ok."})
+  {:result "ok"})
 
 (comment
   (let [property (d/entity (d/db conn) [:property/internal-name "52gilbert"])]
@@ -186,11 +186,11 @@
              (-> (clientize-unit conn unit)
                  (assoc :unit/available (if available-by
                                           (unit/available? db unit available-by)
-                                          (unit/available? db unit))
+                                          (unit/available? db unit (java.util.Date.)))
                         ;; NOTE: Using `:unit/market` to avoid disambiguation
                         ;; with the `:unit/rate` produced by `clientize-unit`.
                         ;; Obviously, finding a way to unify these things into
-                        ;; once function would be better.
+                        ;; one function would be better.
                         :unit/market (when license
                                        (unit/rate unit (d/entity db license))))))
            units)
@@ -207,7 +207,7 @@
         :ret (s/keys :req-un [:fetch-units/result]))
 
 ;; =============================================================================
-;; unit-entry
+;; Unit Entry
 
 (defn- clientize-unit-entry [conn unit]
   (let [occupant (unit/occupied-by conn unit)]

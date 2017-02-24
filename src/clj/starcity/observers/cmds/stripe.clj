@@ -79,7 +79,7 @@
 (defmulti succeeded charge/type)
 
 (defmethod succeeded :default [conn charge]
-  [(charge/succeeded-tx charge)])
+  [(charge/succeeded charge)])
 
 (defn- new-amount
   "Given the security deposit and an amount in cents, determine what the new
@@ -89,7 +89,7 @@
 
 (defmethod succeeded :security-deposit [conn charge]
   (let [sd (deposit/by-charge charge)]
-    [(charge/succeeded-tx charge)
+    [(charge/succeeded charge)
      {:db/id                            (:db/id sd)
       :security-deposit/amount-received (new-amount sd (charge/amount charge))}]))
 
@@ -97,7 +97,7 @@
 ;; type ACH. Simply set its status to `:rent-payment.status/paid`.
 (defmethod succeeded :rent [conn charge]
   (let [p (rent-payment/by-charge conn charge)]
-    [(charge/succeeded-tx charge)
+    [(charge/succeeded charge)
      (rent-payment/paid p)]))
 
 (defmethod handle "charge.succeeded" [conn cmd]
@@ -111,6 +111,9 @@
 (defmulti charge-failed
   (fn [conn charge tx]
     (charge/type conn charge)))
+
+(defmethod charge-failed :default [conn charge tx]
+  tx)
 
 (defmethod charge-failed :security-deposit [conn charge tx]
   (let [deposit  (deposit/by-charge charge)
@@ -130,13 +133,12 @@
           ;; remove that timestamp.
           [:db/retract (:db/id p) :rent-payment/paid-on (:rent-payment/paid-on p)])))
 
-(defmethod charge-failed :default [conn charge tx]
-  tx)
-
 (defmethod handle "charge.failed" [conn cmd]
-  (let [charge-id (event-subject-id cmd)]
-    (->> [(msg/charge-failed charge-id)]
-         (charge-failed conn (fetch-valid conn charge-id)))))
+  (let [charge-id (event-subject-id cmd)
+        charge    (fetch-valid conn charge-id)]
+    (->> [(msg/charge-failed charge-id)
+          (charge/failed charge)]
+         (charge-failed conn charge))))
 
 ;; =============================================================================
 ;; Customer
@@ -175,9 +177,27 @@
   (let [{:keys [id customer period_start]} (fetch-stripe-event cmd)
         ;; NOTE: Stripe dates are in seconds since 1/1/1970 -- this converts to
         ;; milliseconds, then to an inst
-        period-start (c/to-date (t/date-time 2017 3 1)) #_(-> period_start (* 1000) c/from-long c/to-date)]
+        period-start (-> period_start (* 1000) c/from-long c/to-date)]
     [(add-rent-payment conn id customer period-start)
      (msg/invoice-created id customer period-start)]))
+
+;; =====================================
+;; Updated
+
+;; Invoices are created without an associated payment to allow us to add
+;; line-items if needed. The `invoice.updated` event will fire when the charge
+;; is created, which we can then use as an opportunity to create a charge on the
+;; autopay payment.
+;; See https://stripe.com/docs/api#invoices for reference.
+
+(defmethod handle "invoice.updated" [conn cmd]
+  (let [{:keys [id charge]} (fetch-stripe-event cmd)
+        payment             (rent-payment/by-invoice-id conn id)]
+    ;; When there's not already a charge for this payment, create one.
+    (if-not (rent-payment/charge payment)
+      [{:db/id               (:db/id payment)
+        :rent-payment/charge (charge/create charge (rent-payment/amount payment))}]
+      [])))
 
 ;; =====================================
 ;; Failed

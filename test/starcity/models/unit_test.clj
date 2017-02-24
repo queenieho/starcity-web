@@ -26,12 +26,12 @@
                         (when unit
                           {:member-license/unit (:db/id unit)}))})
 
-(defn renewal-license
-  [account-id ends unit-id]
-  {:db/id            account-id
-   :account/licenses {:member-license/unit   unit-id
-                      :member-license/status :member-license.status/renewal
-                      :member-license/ends   ends}})
+;; (defn renewal-license
+;;   [account-id ends unit-id]
+;;   {:db/id            account-id
+;;    :account/licenses {:member-license/unit   unit-id
+;;                       :member-license/status :member-license.status/renewal
+;;                       :member-license/ends   ends}})
 
 (defn sdate [y m d]
   (c/to-date (t/date-time y m d)))
@@ -42,13 +42,13 @@
           jon    (member "jon@abc.com" :member-license.status/active (sdate 2017 2 28) unit-1)
           db     (db/speculate (d/db conn) [unit-1 jon])]
 
-      (testing "Units with active licenses that have not yet expired are occupied."
-        (is (false? (unit/available? db (unit/by-name db "unit-1") (sdate 2017 2 27)))))
+      (testing "Units with active licenses that have not yet expired are not available."
+        (is (not (unit/available? db (unit/by-name db "unit-1") (sdate 2017 2 27)))))
 
-      (testing "Units with past ends are not occupied"
-        (is (true? (unit/available? db (unit/by-name db "unit-1") (sdate 2017 3 1)))))
+      (testing "Units with end-dates in the past are available."
+        (is (unit/available? db (unit/by-name db "unit-1") (sdate 2017 3 1))))
 
-      (testing "Renewal licences are taken into consideration."
+      #_(testing "Renewal licences are taken into consideration."
         (let [renewal (renewal-license (:db/id jon) (sdate 2017 5 31) (:db/id unit-1))
               db      (db/speculate (d/db conn) [unit-1 jon renewal])]
 

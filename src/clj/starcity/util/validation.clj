@@ -1,4 +1,5 @@
 (ns starcity.util.validation
+  (:refer-clojure :exclude [float])
   (:require [bouncer.validators :as v]))
 
 ;; =============================================================================

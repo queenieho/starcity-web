@@ -55,18 +55,47 @@
                       :otherwise [:span]))))}])
 
 (defn- payment->row [payment]
-  {:key      (:db/id payment)
-   :amount   (:rent-payment/amount payment)
-   :status   (name (:rent-payment/status payment))
-   :due-date (:rent-payment/due-date payment)
-   :paid-on  (:rent-payment/paid-on payment)
-   :period   [(:rent-payment/period-start payment)
-              (:rent-payment/period-end payment)]
-   :method   (if (= :rent-payment.method/other (:rent-payment/method payment))
-               (:rent-payment/method-desc payment)
-               (when-let [method (:rent-payment/method payment)]
-                 (name method)))
-   :check    (:rent-payment/check payment)})
+  {:key        (:db/id payment)
+   :amount     (:rent-payment/amount payment)
+   :status     (name (:rent-payment/status payment))
+   :due-date   (:rent-payment/due-date payment)
+   :paid-on    (:rent-payment/paid-on payment)
+   :period     [(:rent-payment/period-start payment)
+                (:rent-payment/period-end payment)]
+   :method     (if (= :rent-payment.method/other (:rent-payment/method payment))
+                 (:rent-payment/method-desc payment)
+                 (when-let [method (:rent-payment/method payment)]
+                   (name method)))
+   :check      (:rent-payment/check payment)
+   :stripe-uri (:rent-payment/stripe-uri payment)})
+
+;; NOTE: Lots of duplication between this and `deposit.cljs`
+(defmulti payment-content :method)
+
+(defmethod payment-content :default [_]
+  [:p "No details."])
+
+(defmethod payment-content "check" [{check :check}]
+  [:p
+   [:b "check number: "] (:number check) u/divider
+   [:b "bank: "] (:bank check) u/divider
+   [:b "date on check: "] (date/short-date (:date check)) u/divider
+   [:b "received on: "] (date/short-date (:received-on check))])
+
+(defn- stripe-uri [payment]
+  [:p "View payment details on the "
+   [:a {:href   (:stripe-uri payment)
+        :target "_blank"}
+    "Stripe dashboard."]])
+
+(defmethod payment-content "ach" [payment]
+  (stripe-uri payment))
+
+(defmethod payment-content "autopay" [payment]
+  (stripe-uri payment))
+
+(defn- expanded-row [payment]
+  (r/as-element [payment-content payment]))
 
 (defn payments
   "Component that displays the current account's rent payments in tabular format."
@@ -74,6 +103,7 @@
   (let [name     (subscribe [:account/name])
         payments (subscribe [:account/rent-payments])]
     (fn []
-      [a/table {:dataSource (clj->js (map payment->row @payments))
-                :columns    (columns @name)
-                :size       :small}])))
+      [a/table {:dataSource        (clj->js (map payment->row @payments))
+                :columns           (columns @name)
+                :expandedRowRender (comp expanded-row #(js->clj % :keywordize-keys true))
+                :size              :small}])))

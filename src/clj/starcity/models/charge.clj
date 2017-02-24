@@ -1,44 +1,40 @@
 (ns starcity.models.charge
   (:refer-clojure :exclude [type])
-  (:require [datomic.api :as d]
-            [starcity.datomic :refer [conn]]
-            [starcity.datomic.partition :refer [tempid]]
-            [starcity.spec]
-            [clojure.spec :as s]
+  (:require [clojure.spec :as s]
+            [datomic.api :as d]
             [plumbing.core :refer [assoc-when]]
+            [starcity.datomic.partition :refer [tempid]]
             [toolbelt.predicates :refer [conn? entity?]]))
 
 ;; =============================================================================
-;; Transactions
+;; Selectors
+;; =============================================================================
 
-(defn- status-tx [status charge]
-  {:db/id         (:db/id charge)
-   :charge/status status})
+(declare is-security-deposit-charge? is-rent-ach-charge?)
 
-(def succeeded-tx
-  "The transaction to mark `charge` as succeeded."
-  (partial status-tx :charge.status/succeeded))
+(s/def ::status #{:charge.status/succeeded
+                  :charge.status/failed
+                  :charge.status/pending})
 
-(def failed-tx
-  "The transaction to mark `charge` as failed."
-  (partial status-tx :charge.status/failed))
+(def account :charge/account)
+(def status :charge/status)
+(def amount :charge/amount)
+(def id :charge/stripe-id)
 
-(def pending
-  "The transaction to mark `charge` as pending."
-  (partial status-tx :charge.status/pending))
+(defn type
+  [conn charge]
+  (cond
+    (is-security-deposit-charge? conn charge) :security-deposit
+    (is-rent-ach-charge? conn charge)         :rent
+    :otherwise                                :default))
 
-(defn succeeded
-  "Mark `charge` as succeeded."
-  [charge]
-  (d/transact conn [(succeeded-tx charge)]))
-
-(defn failed
-  "Mark `charge` as failed."
-  [charge]
-  (d/transact conn [(failed-tx charge)]))
+(s/fdef type
+        :args (s/cat :conn conn? :charge entity?)
+        :ret #{:security-deposit :rent :default})
 
 ;; =============================================================================
-;; Lookup
+;; Queries
+;; =============================================================================
 
 (defn lookup
   "Look up a charge by the external `charge-id`."
@@ -47,6 +43,7 @@
 
 ;; =============================================================================
 ;; Predicates
+;; =============================================================================
 
 (defn- is-status? [status charge]
   (= (:charge/status charge) status))
@@ -75,46 +72,40 @@
        (d/db conn) (:db/id charge)))
 
 ;; =============================================================================
-;; Selectors
-
-(s/def ::status #{:charge.status/succeeded
-                  :charge.status/failed
-                  :charge.status/pending})
-
-(def account :charge/account)
-(def status :charge/status)
-(def amount :charge/amount)
-
-(defn type
-  [conn charge]
-  (cond
-    (is-security-deposit-charge? conn charge) :security-deposit
-    (is-rent-ach-charge? conn charge)         :rent
-    :otherwise                                :default))
-
-(s/fdef type
-        :args (s/cat :conn conn? :charge entity?)
-        :ret #{:security-deposit :rent :default})
-
-;; =============================================================================
 ;; Transactions
+;; =============================================================================
 
 (defn create
-  [stripe-id account amount & {:keys [purpose status]
-                               :or   {status :charge.status/pending}}]
+  [stripe-id amount & {:keys [purpose status account]
+                       :or   {status :charge.status/pending}}]
   (assoc-when
    {:db/id            (tempid)
     :charge/stripe-id stripe-id
     :charge/amount    amount
-    :charge/account   (:db/id account)
     :charge/status    status}
+   :charge/account (:db/id account)
    :charge/purpose purpose))
 
 (s/def ::purpose string?)
 (s/fdef create
         :args (s/cat :stripe-id string?
-                     :account entity?
                      :amount float?
-                     :opts (s/keys* :opt-un [::purpose ::status]))
-        :ret (s/keys :req [:db/id :charge/stripe-id :charge/account :charge/status]
-                     :opt [:charge/purpose]))
+                     :opts (s/keys* :opt-un [::purpose ::status ::account]))
+        :ret (s/keys :req [:db/id :charge/stripe-id :charge/status :charge/amount]
+                     :opt [:charge/purpose :charge/account]))
+
+(defn- status-tx [status charge]
+  {:db/id         (:db/id charge)
+   :charge/status status})
+
+(def succeeded
+  "The transaction to mark `charge` as succeeded."
+  (partial status-tx :charge.status/succeeded))
+
+(def failed
+  "The transaction to mark `charge` as failed."
+  (partial status-tx :charge.status/failed))
+
+(def pending
+  "The transaction to mark `charge` as pending."
+  (partial status-tx :charge.status/pending))

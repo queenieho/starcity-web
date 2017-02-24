@@ -31,29 +31,48 @@
 
 ;; =============================================================================
 ;; Predicates
+;; =============================================================================
 
 (defn available?
   "Returns true iff `unit` is not or will not be occupied by someone during
-  `date`. `date` defaults to /now/ if not supplied."
-  ([db unit]
-   (available? db unit (java.util.Date.)))
-  ([db unit date]
-   (empty?
-    (d/q '[:find ?ml
-           :in $ ?u ?date
-           :where
-           ;; all mls that reference unit u
-           [?ml :member-license/unit ?u]
-           ;; any active or renewal licenses...
-           (or [?ml :member-license/status :member-license.status/active]
-               [?ml :member-license/status :member-license.status/renewal])
-           ;; ...that are active during ?date
-           [(.before ^java.util.Date ?date ?ends)]
-           [?ml :member-license/ends ?ends]]
-         db (:db/id unit) date))))
+  `date`. Should be used only as a guideline, as it cannot take into
+  consideration whether or not the occupant will renew his/her license."
+  [db unit date]
+  (empty?
+   (d/q '[:find ?ml
+          :in $ ?u ?date
+          :where
+          ;; all mls that reference unit u
+          [?ml :member-license/unit ?u]
+          ;; any active licenses...
+          [?ml :member-license/status :member-license.status/active]
+          ;; ...that are active during ?date
+          [(.before ^java.util.Date ?date ?ends)]
+          [?ml :member-license/ends ?ends]]
+        db (:db/id unit) date)))
 
 (s/fdef available?
-        :args (s/cat :db p/db? :unit p/entity? :date (s/? inst?))
+        :args (s/cat :db p/db? :unit p/entity? :date inst?)
+        :ret boolean?)
+
+(defn occupied?
+  "Returns true iff `unit` is occupied. Differs from `available?` in that it
+  only checks for active licenses -- it does not incorporate any notion of
+  time."
+  [db unit]
+  (-> (d/q '[:find ?ml
+             :in $ ?u
+             :where
+             ;; all mls that reference unit u...
+             [?ml :member-license/unit ?u]
+             ;; ...that are active
+             [?ml :member-license/status :member-license.status/active]]
+           db (:db/id unit))
+      empty?
+      not))
+
+(s/fdef occupied?
+        :args (s/cat :db p/db? :unit p/entity?)
         :ret boolean?)
 
 ;; =====================================

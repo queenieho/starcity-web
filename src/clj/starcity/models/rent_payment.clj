@@ -30,10 +30,21 @@
                   :rent-payment.status/pending
                   :rent-payment.status/paid})
 
-(def check :rent-payment.method/check)
-(def autopay :rent-payment.method/autopay)
-(def ach :rent-payment.method/ach)
-(def other :rent-payment.method/other)
+(def check
+  "The check payment method."
+  :rent-payment.method/check)
+
+(def autopay
+  "The autopay payment method."
+  :rent-payment.method/autopay)
+
+(def ach
+  "The ACH payment method."
+  :rent-payment.method/ach)
+
+(def other
+  "Some other payment method."
+  :rent-payment.method/other)
 
 ;; =============================================================================
 ;; Selectors
@@ -47,8 +58,29 @@
 (def paid-on :rent-payment/paid-on)
 (def due-date :rent-payment/due-date)
 
-(defn failures [payment]
+(def invoice
+  "The id of the Stripe invoice."
+  :rent-payment/invoice-id)
+
+(def method
+  "The method used to pay this payment."
+  :rent-payment/method)
+
+(def charge
+  "The charge associated with this payment."
+  :rent-payment/charge)
+
+(s/fdef charge
+        :args (s/cat :payment p/entity?)
+        :ret (s/or :nothing nil? :charge p/entity?))
+
+;; TODO: rename to `autopay-failures`
+(defn failures
+  "The number of times autopay has failed."
+  [payment]
   (get payment :rent-payment/autopay-failures 0))
+
+(def charge :rent-payment/charge)
 
 ;; =============================================================================
 ;; Predicates
@@ -122,6 +154,9 @@
             :paid-on (java.util.Date.)
             :method autopay
             :invoice-id invoice-id)))
+
+;; =============================================================================
+;; Checks
 
 (defn- check-status->status [check-status]
   (if (#{check/received check/deposited check/cleared} check-status)

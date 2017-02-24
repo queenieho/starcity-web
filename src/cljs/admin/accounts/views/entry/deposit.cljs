@@ -34,7 +34,7 @@
 
 (defmulti deposit-content :method)
 
-(defmethod deposit-content :check
+(defmethod deposit-content "check"
   [{payment :payment}]
   [:p
    [:b "check number: "] (:number payment) u/divider
@@ -42,13 +42,10 @@
    [:b "date on check: "] (date/short-date (:date payment)) u/divider
    [:b "received on: "] (date/short-date (:received-on payment))])
 
-(def stripe-dashboard-uri
-  "https://dashboard.stripe.com/payments/")
-
-(defmethod deposit-content :ach
+(defmethod deposit-content "ach"
   [{payment :payment}]
   [:p "View payment details on the "
-   [:a {:href   (str stripe-dashboard-uri (:stripe-id payment))
+   [:a {:href   (:stripe-uri payment)
         :target "_blank"}
     "Stripe dashboard."]])
 
@@ -68,7 +65,7 @@
        "Add Check"])))
 
 (defn payments
-  "Component taht displays the current account's security deposit payments in
+  "Component that displays the current account's security deposit payments in
   tabular format."
   []
   (let [deposit (subscribe [:account/deposit])]
