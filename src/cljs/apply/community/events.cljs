@@ -23,18 +23,17 @@
 
 (reg-event-db
  :community/parse
- (fn [db [_ {:keys [community-fitness]}]]
-   (let [{:keys [:community-fitness/why-interested
-                 :community-fitness/free-time
-                 :community-fitness/dealbreakers
-                 :community-fitness/skills
-                 :community-fitness/prior-community-housing]}
-         community-fitness]
+ (fn [db [_ {:keys [fitness]}]]
+   (let [{:keys [:fitness/interested
+                 :fitness/free-time
+                 :fitness/dealbreakers
+                 :fitness/skills
+                 :fitness/experience]} fitness]
      (merge
       db
       (prompts/syncify
-       {:community/why-starcity    {:why-starcity why-interested}
+       {:community/why-starcity    {:why-starcity interested}
         :community/about-you       {:free-time    free-time
                                     :dealbreakers dealbreakers}
         :community/communal-living {:skills           skills
-                                    :prior-experience prior-community-housing}})))))
+                                    :prior-experience experience}})))))

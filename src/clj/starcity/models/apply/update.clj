@@ -112,7 +112,7 @@
      ;; Already a community fitness entity -- update it
      (merge {:db/id cfid} data)
      ;; Create a new community fitness entity (it's a component)
-     {:db/id                                (:db/id application)
+     {:db/id               (:db/id application)
       :application/fitness data})])
 
 (defmethod update-tx :community/why-starcity
