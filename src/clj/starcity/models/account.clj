@@ -25,6 +25,12 @@
 
 
 ;; =============================================================================
+;; Specs
+;; =============================================================================
+
+(s/def :account/name string?)
+
+;; =============================================================================
 ;; Imports
 ;; =============================================================================
 
@@ -117,6 +123,14 @@
 (s/fdef approval
         :args (s/cat :account p/entity?)
         :ret p/entity?)
+
+(def slack-handle
+  "Produces the slack handle for this account."
+  :account/slack-handle)
+
+(s/fdef slack-handle
+        :args (s/cat :account p/entity?)
+        :ret (s/or :nothing nil? :handle string?))
 
 ;; =============================================================================
 ;; Predicates
@@ -246,3 +260,17 @@
                      :commencement inst?
                      :rate float?)
         :ret vector?)
+
+;; =============================================================================
+;; Transformations
+;; =============================================================================
+
+(defn clientize
+  "Produce a client-suitable representation of an `account` entity."
+  [account]
+  {:db/id        (:db/id account)
+   :account/name (full-name account)})
+
+(s/fdef clientize
+        :args (s/cat :account p/entity?)
+        :ret (s/keys :req [:db/id :account/name]))

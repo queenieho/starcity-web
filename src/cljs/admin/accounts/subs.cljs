@@ -270,12 +270,17 @@
 ;; Account Subnav
 ;; =============================================================================
 
-(reg-sub
- :account.subnav/active
- :<- [::subnav]
- :<- [:account/role]
- (fn [[{:keys [active defaults]} role] _]
-   (or active (get defaults role))))
+;; (reg-sub
+;;  :account.subnav/active
+;;  :<- [:nav/current-page]
+;;  :<- [::subnav]
+;;  :<- [:account/role]
+;;  (fn [[page {:keys [active defaults]} role] _]
+;;    (case page
+;;      :account (get defaults role)
+;;      :account/)
+;;    (println "subnav page:" page)
+;;    (or active (get defaults role))))
 
 (reg-sub
  :account.subnav/items

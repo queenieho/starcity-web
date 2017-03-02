@@ -6,6 +6,7 @@
             [day8.re-frame.http-fx]
             [re-frame.core :refer [path reg-event-db reg-event-fx]]
             [toolbelt.core :as tb]
+            [plumbing.core :as plumbing]
             [cljs-time.coerce :as c]))
 
 ;; =============================================================================
@@ -114,12 +115,16 @@
 ;; Account Entry
 ;; =============================================================================
 
+(defn- dispatches-for-page [page account-id]
+  (cond-> [[:account/fetch account-id]]
+    (= page :account/notes) (conj [:notes.account/fetch account-id])))
+
 (reg-event-fx
  :account/navigate
  [(path db/path)]
- (fn [{:keys [db]} [_ account-id]]
-   {:db       (db/viewing-account-id db account-id)
-    :dispatch [:account/fetch account-id]}))
+ (fn [{:keys [db]} [_ page account-id]]
+   {:db         (db/viewing-account-id db account-id)
+    :dispatch-n (dispatches-for-page page account-id)}))
 
 (reg-event-fx
  :account.viewing/refresh
@@ -142,8 +147,7 @@
  :account.fetch/success
  [(path db/path)]
  (fn [{:keys [db]} [_ {account :result}]]
-   {:db       (db/done-fetching-account db account)
-    :dispatch [:account.subnav/navigate-default account]}))
+   {:db (db/done-fetching-account db account)}))
 
 (reg-event-fx
  :account.fetch/failure
@@ -290,25 +294,9 @@
 ;; Navigation
 ;; =============================================================================
 
-;; When we navigate to a new account we need to make sure that the subnav is set
-;; to an appropriate value for an account with this role.
-(reg-event-db
- :account.subnav/navigate-default
- [(path db/path)]
- (fn [db [_ account]]
-   (let [role                            (:account/role account)
-         {:keys [items defaults active]} (:subnav db)
-         available-options               (set (get items role))
-         default                         (get defaults role)]
-     ;; If the active subnav is not within the available options...
-     (if-not (available-options active)
-       ;; Navigate to the default
-       (db/navigate-to db default)
-       ;; Otherwise, leave as-is
-       db))))
-
-(reg-event-db
+(reg-event-fx
  :account.subnav/navigate-to
  [(path db/path)]
- (fn [db [_ to]]
-   (db/navigate-to db to)))
+ (fn [{:keys [db]} [_ to]]
+   (let [account-id (db/viewing-account-id db)]
+     {:route (routes/path-for to :account-id account-id)})))

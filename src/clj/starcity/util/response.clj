@@ -18,6 +18,12 @@
   [body]
   (resp/response body))
 
+(defn forbidden
+  "Given a response `body`, produce a resposne with status code 403."
+  [body]
+  (-> (resp/response body)
+      (resp/status 403)))
+
 (defn json [response]
   (resp/content-type response "application/json; charset=utf-8"))
 
@@ -32,3 +38,5 @@
 
 (def json-ok (comp json ok))
 (def transit-ok (comp transit ok))
+
+(def transit-forbidden (comp transit unauthorized))

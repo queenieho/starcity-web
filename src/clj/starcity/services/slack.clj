@@ -93,5 +93,6 @@
 ;;; Templates
 
 (def ops (partial send {:channel "ops"}))
+(def crm (partial send {:channel "crm"}))
 (def community (partial send {:channel "community"}))
 (def log (partial send {:channel "webserver"}))

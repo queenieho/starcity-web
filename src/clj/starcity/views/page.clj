@@ -1,11 +1,14 @@
 (ns starcity.views.page
   (:require [starcity.views.components
-             [head :refer [head]]
+             [head :as head]
              [footer :as f]
              [navbar :as n]
              [notification :as nf]
              [layout :as l]]
-            [hiccup.page :refer [html5 include-css include-js]]
+            [optimus.html :as optimus]
+            [hiccup.page :refer [html5
+                                 include-css
+                                 include-js]]
             [cheshire.core :as json]
             [clojure.spec :as s]
             [starcity.web.messages :as msg]))
@@ -14,7 +17,7 @@
 ;; Constants
 ;; =============================================================================
 
-(def google-analytics
+(def ^:private google-analytics
   [:script
    "(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
   (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -24,32 +27,27 @@
   ga('create', 'UA-81813253-1', 'auto');
   ga('send', 'pageview');"])
 
-(def base-js
-  ["https://code.jquery.com/jquery-2.1.1.min.js"])
+(def ^:private jquery
+  "https://code.jquery.com/jquery-2.1.1.min.js")
 
-(def base-css
-  "/assets/css/starcity.css")
+(def ^:private base-css-bundle
+  "styles.css")
+
+(def ^:private base-js-bundle
+  "main.js")
 
 ;; =============================================================================
-;; Internal
+;; Components
 ;; =============================================================================
 
-(defn- include-json
-  [json]
-  (for [[name obj] json]
-    [:script
-     (format "var %s = %s" name (json/encode obj))]))
+;;; NOTE: With the exception of `title`, these are all terrible.
 
-(defn- scripts? [content]
-  (and (map? content) (:scripts content)))
+(defn title
+  "Construct the page title."
+  [t]
+  (str "Starcity &mdash; " t))
 
-(defn- json? [content]
-  (and (map? content) (:json content)))
-
-(defn- css? [content]
-  (and (map? content) (:css content)))
-
-(defn- onboarding-auth-item [{:keys [context]}]
+(defn- onboarding-auth-item [{:keys [context] :as req}]
   (cond
     (nil? context)                      ["/onboarding" "Security Deposit"]
     (re-find #"^/onboarding.*" context) ["/settings" "Account"]
@@ -64,18 +62,8 @@
                         ["/login" "Log In"])]
     (n/nav-item uri content :button)))
 
-;; =============================================================================
-;; API
-;; =============================================================================
-
-(defn title [t] (str "Starcity &mdash; " t))
-
-(defn content [& content]
-  (fn [req]
-    (for [c content]
-      (if (fn? c)
-        (c req)
-        c))))
+;; =====================================
+;; Navbars
 
 (defn navbar [req]
   (n/navbar
@@ -107,55 +95,87 @@
 ;; for convenience when constructing pages
 (def footer f/footer)
 
-(defn scripts [& scripts]
-  {:scripts scripts})
+;; =============================================================================
+;; Includes
+;; =============================================================================
 
-(defn json [& json]
-  {:json (for [[object-name object-or-thunk :as j] json]
-           (if (fn? object-or-thunk)
-             [object-name (object-or-thunk)]
-             j))})
+(defn- include-json
+  [json]
+  (for [[name obj] json]
+    [:script
+     (format "var %s = %s;" name (json/encode obj))]))
+
+(defn scripts
+  "Specify _paths_ to additional `scripts` to be loaded into the page (in order
+  provided)."
+  [& scripts]
+  {::scripts scripts})
+
+(defn bundles
+  "Specify names of Optimus `bundles` to be loaded into the page (in order
+  provided). Bundles are loaded _after_ `scripts.`"
+  [& bundles]
+  {::bundles bundles})
+
+(defn json
+  [& json]
+  {::json (for [[object-name object-or-thunk :as j] json]
+            (if (fn? object-or-thunk)
+              [object-name (object-or-thunk)]
+              j))})
 
 (defn css [& css]
-  {:css css})
+  {::css css})
 
-;; =============================================================================
-;; Page Constructors
+(defn- render-html-content [req content]
+  (for [c content]
+    (if (fn? c)
+      (c req)
+      c)))
 
-;; TODO: Remove repetetive bits in the two functions below.
+(defn- render-head [req title css-includes]
+  (->> (concat css-includes [base-css-bundle])
+       (optimus/link-to-css-bundles req)
+       (apply head/head title)))
+
+(defn- parse-content
+  "Separates _includes_ from HTML content."
+  [& content]
+  (let [grp (group-by map? content)]
+    [(get grp false)
+     (or (->> (get grp true) (apply (partial merge-with concat))) {})]))
 
 (defn page
   "Page template with a solid navbar."
   [title & content]
-  (let [scripts (->> (filter scripts? content) (mapcat :scripts))
-        json    (->> (filter json? content) (mapcat :json))
-        css     (->> (filter css? content) (mapcat :css))
-        content (remove #(or (scripts? %) (json? %)) content)]
+  (let [[content includes] (apply parse-content content)]
     (fn [req]
       (html5
        {:lang "en"}
-       (apply head title (concat css [base-css]))
+       (render-head req title (includes ::css))
        [:body
-        (for [c content]
-          (if (fn? c)
-            (c req)
-            c))
+        (render-html-content req content)
         footer
-        (include-json json)
-        (apply include-js (concat base-js scripts ["/js/main.js"]))
+        (include-json (includes ::json))
+        (include-js jquery)
+        (apply include-js (includes ::scripts))
+        (optimus/link-to-js-bundles req (concat (includes ::bundles)
+                                                [base-js-bundle]))
         google-analytics]))))
 
-(defn cljs-page
+(defn app
+  "Produce a ClojureScript app handler with configurable script, stylesheet and
+  content injection."
   [app-name title & content]
-  (let [scripts (->> (filter scripts? content) (mapcat :scripts))
-        json    (->> (filter json? content) (mapcat :json))
-        css     (->> (filter css? content) (mapcat :css))]
-    (html5
-     {:lang "en"}
-     (apply head title (concat css [base-css]))
-     [:body
-      (remove #(or (scripts? %) (json? %) (css? %)) content)
-      (include-json json)
-      (apply include-js (concat scripts
-                                [(format "/js/cljs/%s.js" app-name)]))
-      [:script (format "window.onload = function() { %s.core.run(); }" app-name)]])))
+  (let [[content includes] (apply parse-content content)]
+    (fn [req]
+      (html5
+       {:lang "en"}
+       (render-head req title (includes ::css))
+       [:body
+        (render-html-content req content)
+        (include-json (includes ::json))
+        (apply include-js (includes ::scripts))
+        (optimus/link-to-js-bundles req (concat (includes ::bundles)
+                                                [(str app-name ".js")]))
+        [:script (format "window.onload = function() { %s.core.run(); }" app-name)]]))))

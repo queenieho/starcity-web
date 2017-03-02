@@ -34,15 +34,17 @@
   "bcrypt+blake2b-512$30e1776f40ee533841fcba62a0dbd580$12$2dae523ec1eb9fd91409ebb5ed805fe53e667eaff0333243")
 
 (defn account
-  [email first-name last-name phone role]
-  {:db/id                (d/tempid part)
-   :account/email        email
-   :account/password     password
-   :account/first-name   first-name
-   :account/last-name    last-name
-   :account/phone-number phone
-   :account/role         role
-   :account/activated    true})
+  [email first-name last-name phone role & [slack-handle]]
+  (assoc-when
+   {:db/id                (d/tempid part)
+    :account/email        email
+    :account/password     password
+    :account/first-name   first-name
+    :account/last-name    last-name
+    :account/phone-number phone
+    :account/role         role
+    :account/activated    true}
+   :account/slack-handle slack-handle))
 
 (def accounts-tx
   [(account "test@test.com" "Applicant" "User" "2345678910" :account.role/applicant)
@@ -50,6 +52,7 @@
    (account "member@test.com" "Member" "User" "2345678910" :account.role/member)
    (account "onboarding@test.com" "Onboarding" "User" "2345678910" :account.role/onboarding)
    (account "admin@test.com" "Admin" "User" "2345678910" :account.role/admin)
+   (account "josh@joinstarcity.com" "Josh" "Lehman" "2345678910" :account.role/admin "@josh")
    ;; Testing Accounts
    (account "jon@test.com" "Jon" "Dishotsky" "2345678910" :account.role/onboarding)
    (account "jesse@test.com" "Jesse" "Suarez" "2345678910" :account.role/onboarding)

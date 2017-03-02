@@ -1,7 +1,8 @@
 (ns admin.db
   (:require [admin.accounts.db :as accounts]
-            [admin.properties.db :as properties]
             [admin.licenses.db :as licenses]
+            [admin.notes.db :as notes]
+            [admin.properties.db :as properties]
             [admin.units.db :as units]))
 
 (def nav-path ::nav)
@@ -9,10 +10,11 @@
   (merge {nav-path {:selected "1"
                     :items    [{:key "1" :text "Accounts" :icon "user"}
                                {:key "2" :text "Properties" :icon "home"}]
-                    :route    :home}}
+                    :route    {:page :home :params {}}}}
          accounts/default-value
-         properties/default-value
          licenses/default-value
+         notes/default-value
+         properties/default-value
          units/default-value))
 
 (defn page->key [page]

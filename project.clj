@@ -1,4 +1,4 @@
-(defproject starcity "1.3.3"
+(defproject starcity "1.4.0"
   :description "The web app for https://joinstarcity.com"
   :url "https://joinstarcity.com"
   :license {:name "Eclipse Public License"
@@ -22,6 +22,7 @@
                  [hiccup "1.0.5"]
                  [buddy "1.1.0"]
                  [bouncer "1.0.0"]
+                 [optimus "0.19.1"]
                  ;; HTTP APIs
                  [nilenso/mailgun "0.2.3"]
                  [org.apache.httpcomponents/httpclient "4.5.2"] ; dep resolution?
@@ -32,7 +33,7 @@
                  [mount "0.1.11"]
                  ;; Datomic
                  [io.rkn/conformity "0.4.0"]
-                 [starcity-db "1.3.0" :exclusions [com.datomic/datomic-free]]
+                 [starcity-db "1.4.0" :exclusions [com.datomic/datomic-free]]
                  [com.datomic/datomic-pro "0.9.5544" :exclusions [com.google.guava/guava]]
                  [org.postgresql/postgresql "9.4.1211"]
                  ;; CLJS
@@ -54,7 +55,7 @@
                  [com.taoensso/timbre "4.8.0"]
                  [com.taoensso/nippy "2.12.2"]
                  [prismatic/plumbing "0.5.3"]
-                 [starcity/toolbelt "0.1.2" :exclusions [com.datomic/datomic-free]]]
+                 [starcity/toolbelt "0.1.3" :exclusions [com.datomic/datomic-free]]]
 
   :jvm-opts ["-server"
              "-Xmx2g"

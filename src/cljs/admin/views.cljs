@@ -4,7 +4,8 @@
             [admin.properties.views]
             [admin.units.views]
             [ant-ui.core :as a]
-            [re-frame.core :refer [dispatch subscribe]]))
+            [re-frame.core :refer [dispatch subscribe]]
+            [toolbelt.core :as tb]))
 
 (defn- menu-item [{:keys [key text icon]}]
   [a/menu-item {:key key}
@@ -21,14 +22,14 @@
                :on-select     #(dispatch [:menu/item-selected (.-key %)])}
        (doall (map menu-item @items))])))
 
-(defmethod app-content :default [{page :page}]
+(defmethod app-content :default [page]
   [:h2 (str "page not found: " page)])
 
 (defn app []
-  (let [route (subscribe [:nav/route])]
+  (let [root-page (subscribe [:nav/root-page])]
     (fn []
       [a/layout {:class "ant-layout-has-sider" :style {:min-height "100vh"}}
        [a/layout-sider {:collapsible true}
         [:div.logo]
         [menu]]
-       [app-content @route]])))
+       [app-content @root-page]])))

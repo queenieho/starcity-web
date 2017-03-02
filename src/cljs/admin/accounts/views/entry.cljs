@@ -1,6 +1,7 @@
 (ns admin.accounts.views.entry
   (:require [admin.accounts.views.entry.application :as app]
             [admin.accounts.views.entry.license :as license]
+            [admin.accounts.views.entry.notes :as notes]
             [admin.accounts.views.entry.rent :as rent]
             [admin.accounts.views.entry.deposit :as deposit]
             [admin.components.content :as c]
@@ -25,18 +26,17 @@
 (defn s->k [s]
   (apply keyword (string/split s #"/")))
 
-;; TODO: The value of the radio-buttons below needs to be a string...this makes
-;; using namespaced keywords really difficult.
+;; The value of the radio-buttons below needs to be a string, hence the
+;; `k->s` and `s->k` functions
 (defn- subnav-item [item]
   (if (vector? item)
     [a/radio-button {:value (k->s (first item))} (second item)]
     [a/radio-button {:value (k->s item)} (name item)]))
 
-(defn- subnav []
-  (let [curr  (subscribe [:account.subnav/active])
-        items (subscribe [:account.subnav/items])]
-    (fn []
-      [a/radio-group {:value     (when-let [v @curr] (k->s v))
+(defn- subnav [current-page]
+  (let [items (subscribe [:account.subnav/items])]
+    (fn [current-page]
+      [a/radio-group {:value     (when-let [v current-page] (k->s v))
                       :on-change #(let [v (.. % -target -value)]
                                     (dispatch [:account.subnav/navigate-to (s->k v)]))
                       :size      :large
@@ -89,15 +89,14 @@
                 (deposit-overview-items @deposit))]))))
 
 ;; =============================================================================
-;; Structure
+;; Overview
 
-(defmulti content* identity)
+(defmulti overview identity)
 
-(defmethod content* :default [nav]
-  [a/card
-   [:h2 "Nav Not Implemented: " [:strong nav]]])
+(defmethod overview :default [role]
+  [:div "No overview for " [:strong role]])
 
-(defmethod content* :member/overview [_]
+(defmethod overview :account.role/member [_]
   [:div
    [:div {:style {:margin-bottom 16}}
     [member-stats]]
@@ -105,17 +104,7 @@
     [rent/payments]]
    [deposit/payments]])
 
-(defmethod content* :member/licenses [_]
-  [a/card {:title "Member Licenses"}
-   [license/licenses]])
-
-(defmethod content* :onboarding/overview [_]
-  [:div
-   [:div {:style {:margin-bottom 16}}
-    [onboarding-stats]]
-   [deposit/payments]])
-
-;; NOTE: Proxy for `content*` since I cannot `subscribe` in a multimethod
+;; Proxy for `overview` since we cannot `subscribe` in a multimethod
 (defn- applicant-content []
   (let [app (subscribe [:account/application])]
     (fn []
@@ -130,19 +119,43 @@
           [:div.column
            [app/eligibility]]]]))))
 
-(defmethod content* :applicant/overview [_]
+(defmethod overview :account.role/applicant [_]
   [applicant-content])
 
-(defn- contact []
-  (let [contact (subscribe [:account/contact])
-        role    (subscribe [:account/role])]
-    (fn []
+(defmethod overview :account.role/onboarding [_]
+  [:div
+   [:div {:style {:margin-bottom 16}}
+    [onboarding-stats]]
+   [deposit/payments]])
+
+;; =============================================================================
+;; Content
+
+(defmulti content* (fn [page _] page))
+
+(defmethod content* :default [page _]
+  [a/card
+   [:h2 "Nav Not Implemented: " [:strong page]]])
+
+(defmethod content* :account [_ role]
+  (overview role))
+
+(defmethod content* :account/notes [_ _]
+  [notes/notes])
+
+(defmethod content* :account/licenses [_ _]
+  [a/card {:title "Member Licenses"}
+   [license/licenses]])
+
+(defn- contact [role]
+  (let [contact (subscribe [:account/contact])]
+    (fn [role]
       (let [{:keys [:account/phone :account/email]} @contact]
         [:div.level
          [:div.level-left
           [:div.level-item
            [:strong.contact-item
-            [a/icon {:type "user"}] @role]]
+            [a/icon {:type "user"}] role]]
           (when phone
             [:div.level-item
              [:p.contact-item
@@ -153,15 +166,16 @@
               [a/icon {:type "mail"}] email]])]]))))
 
 (defn content []
-  (let [nav        (subscribe [:account.subnav/active])
+  (let [page       (subscribe [:nav/current-page])
+        role       (subscribe [:account/role])
         is-loading (subscribe [:account/fetching?])]
     (fn []
       [c/content
        [:div.columns
         [:div.column {:style {:padding-top 18}}
-         [contact]]
+         [contact @role]]
         [:div.column
-         [subnav]]]
+         [subnav @page]]]
        (if @is-loading
          [a/card {:loading true}]
-         (content* @nav))])))
+         (content* @page @role))])))

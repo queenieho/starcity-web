@@ -1,16 +1,28 @@
 (ns admin.subs
   (:require [re-frame.core :refer [reg-sub]]
             [admin.accounts.subs]
+            [admin.licenses.subs]
+            [admin.notes.subs]
             [admin.properties.subs]
             [admin.units.subs]
-            [admin.licenses.subs]
             [admin.db :as db]
             [admin.routes :as routes]
             [clojure.string :refer [capitalize]]
-            [toolbelt.core :as tb :refer [str->int]]))
+            [toolbelt.core :as tb :refer [str->int]]
+            [clojure.string :as string]))
+
+;; =============================================================================
+;; Global Data
+;; =============================================================================
+
+(reg-sub
+ :auth
+ (fn [db _]
+   (:auth db)))
 
 ;; =============================================================================
 ;; Nav
+;; =============================================================================
 
 (reg-sub
  ::nav
@@ -23,13 +35,26 @@
  (fn [db _]
    (:route db)))
 
+;; We define top-level routes as non-namespaced keywords. Subnavs are expressed
+;; using namespaced keywords. This subscription returns the "root nav". For
+;; example:
+;; :account -> :account
+;; :account/notes -> :account
+;; :x.y/z -> :x
+(reg-sub
+ :nav/root-page
+ :<- [:nav/route]
+ (fn [route _]
+   (:root route)))
+
 (reg-sub
  :nav/current-page
- :<- [::nav]
- (fn [db _]
-   (db/current-page db)))
+ :<- [:nav/route]
+ (fn [route _]
+   (:page route)))
 
-;; =====================================
+;; =============================================================================
+
 ;; Breadcrumbs
 
 (defn- bc
@@ -40,29 +65,35 @@
   ([path label opts]
    [(apply routes/path-for path (-> opts seq flatten)) label]))
 
-(defmulti bcs :page)
+;; Breadcrumbs don't apply to subnavs at the moment.
+(defmulti bcs
+  (fn [root-or-map]
+    (cond
+      (keyword? root-or-map)        root-or-map
+      (contains? root-or-map :root) (:root root-or-map)
+      :otherwise
+      (throw (ex-info "Cannot generate breadcrumb!" root-or-map)))))
 
 (defmethod bcs :home [_]
   [(bc :home)])
 
 (defmethod bcs :accounts [_]
-  (conj (bcs {:page :home})
-        (bc :accounts)))
+  (conj (bcs :home) (bc :accounts)))
 
 (defmethod bcs :account [{:keys [params account/name]}]
-  (conj (bcs {:page :accounts})
+  (conj (bcs :accounts)
         (bc :account name {:account-id (:account-id params)})))
 
 (defmethod bcs :properties [_]
-  (conj (bcs {:page :home})
+  (conj (bcs :home)
         (bc :properties)))
 
 (defmethod bcs :property [{:keys [params property/name]}]
-  (conj (bcs {:page :properties})
+  (conj (bcs :properties)
         (bc :property name {:property-id (:property-id params)})))
 
 (defmethod bcs :unit [{:keys [params unit/name] :as route}]
-  (conj (bcs (assoc route :page :property))
+  (conj (bcs (assoc route :root :property))
         (bc :unit name {:property-id (:property-id params)
                         :unit-id     (:unit-id params)})))
 
@@ -72,7 +103,7 @@
  :<- [:accounts]
  :<- [:properties]
  :<- [:units]
- (fn [[route accounts properties units :as nav] _]
+ (fn [[route accounts properties units] _]
    (let [{:keys [unit-id
                  property-id
                  account-id]} (:params route)
@@ -80,11 +111,11 @@
          property-name        (:property/name (get properties (str->int property-id)))
          unit-name            (:unit/name (get units (str->int unit-id)))]
      (bcs (assoc route
-                :account/name account-name
-                :property/name property-name
-                :unit/name unit-name)))))
+                 :account/name account-name
+                 :property/name property-name
+                 :unit/name unit-name)))))
 
-;; =====================================
+;; =============================================================================
 ;; Menu
 
 (reg-sub

@@ -12,7 +12,10 @@
    [["" :home]
     ["accounts"
      [["" :accounts]
-      [["/" :account-id] :account]]]
+
+      [["/" :account-id] [["" :account]
+                          ["/licenses" :account/licenses]
+                          ["/notes" :account/notes]]]]]
     ["properties"
      [["" :properties]
       [["/" :property-id] [["" :property]

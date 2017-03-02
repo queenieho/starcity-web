@@ -8,26 +8,32 @@
             [compojure.core :refer [defroutes GET POST]]
             [datomic.api :as d]
             [plumbing.core :as plumbing]
-            [ring.util.response :as response]
+            ;; [ring.util.response :as response]
             [starcity
              [auth :as auth]
              [datomic :refer [conn]]]
+            [starcity.util.response :as response]
             [starcity.models
              [account :as account]
              [application :as app]
              [approval :as approval]
+             [charge :as charge]
              [income-file :as income-file]
              [license :as license]
              [member-license :as member-license]
+             [note :as note]
+             [property :as property]
+             [rent-payment :as rent-payment]
              [security-deposit :as deposit]
              [unit :as unit]]
             [toolbelt
              [core :as tb :refer [str->int]]
              [datomic :as td]
              [predicates :as p]]
-            [starcity.models.rent-payment :as rent-payment]
-            [starcity.models.property :as property]
-            [starcity.models.charge :as charge]))
+            [bouncer.core :as b]
+            [bouncer.validators :as v]
+            [starcity.util.validation :as uv]
+            [starcity.models.msg :as msg]))
 
 ;; =============================================================================
 ;; Common
@@ -281,7 +287,7 @@
   [conn account app]
   (->> [app account (app/community-fitness app)]
        (remove nil?)                    ; in case community fitness is not present
-       (map (comp c/to-date-time (partial td/updated-at conn)))
+       (map (comp c/to-date-time (partial td/updated-at (d/db conn))))
        (t/latest)
        (c/to-date)))
 
@@ -299,7 +305,7 @@
       :application/address     (address (app/address app))
       :application/fitness     (into {} (app/community-fitness app))
       :application/updated-at  (updated-at conn account app)
-      :application/created-at  (td/created-at conn app)}
+      :application/created-at  (td/created-at (d/db conn) app)}
      (income conn account))))
 
 (defmethod clientize-account :account.role/applicant
@@ -445,24 +451,102 @@
   (let [account  (d/entity (d/db conn) account-id)
         unit     (d/entity (d/db conn) unit-id)
         license  (d/entity (d/db conn) license-id)
-        resp-err (comp #(response/status % 422) #(response/response {:error %}))]
-    (-> (cond
+        resp-err #(response/transit-unprocessable {:error %})]
+    (cond
 
-          (some nil? [account unit license])
-          (-> (response/response {:message "Invalid account, unit or license."})
-              (response/status 400))
+      (some nil? [account unit license])
+      (response/transit-malformed {:message "Invalid account, unit or license."})
 
-          (unit/occupied? (d/db conn) unit)
-          (resp-err unit-occupied-error)
+      (unit/occupied? (d/db conn) unit)
+      (resp-err unit-occupied-error)
 
-          (not (account/can-approve? account))
-          (resp-err cannot-approve-error)
+      (not (account/can-approve? account))
+      (resp-err cannot-approve-error)
 
-          :otherwise
-          (do
-            @(d/transact conn (approval/approve approver account unit license move-in))
-            (response/response {:result "ok"})))
-        (response/content-type transit))))
+      :otherwise
+      (do
+        @(d/transact conn (approval/approve approver account unit license move-in))
+        (response/transit-ok {:result "ok"})))))
+
+;; =============================================================================
+;; Notes
+;; =============================================================================
+
+;; =============================================================================
+;; Fetch Notes
+
+(defn- clientize-note [db [note-id created-at]]
+  (let [note (d/entity db note-id)]
+    (note/clientize db note created-at)))
+
+(defn- query-notes [db account-id]
+  (->> (d/q '[:find ?note ?tx-time
+              :in $ ?account
+              :where
+              [?account :account/notes ?note]
+              [?note :note/author _ ?tx]
+              [?tx :db/txInstant ?tx-time]]
+            db account-id)
+       (sort-by second)
+       (reverse)
+       ;; TODO: Pagination
+       (map (partial clientize-note db))))
+
+(defn fetch-notes
+  "Fetch all notes that are attached to the account identified by `account-id`."
+  [conn account-id]
+  {:result (query-notes (d/db conn) account-id)})
+
+(comment
+
+  (let [db      (d/db conn)
+        account (d/entity db 285873023222884)]
+    (time (fetch-notes conn 285873023222884)))
+
+
+  (let [member (d/entity (d/db conn) 285873023222884)
+        author (d/entity (d/db conn) [:account/email "admin@test.com"])]
+    (d/transact conn [{:db/id         (:db/id member)
+                       :account/notes [(note/create author "First note" "This is the note content.")
+                                       (note/create author "Second note" "This is the second note's content.")]}]))
+
+  (let [member (d/entity (d/db conn) 285873023222884)
+        author (d/entity (d/db conn) [:account/email "admin@test.com"])]
+    (d/transact conn [{:db/id         (:db/id member)
+                       :account/notes [(note/create author "Third note"
+                                                    "This is the third note's content. It references something that needs to be resolved ASAP!"
+                                                    :assigned-to author)]}]))
+
+  (let [note   (d/entity (d/db conn) 285873023222960)
+        author (d/entity (d/db conn) [:account/email "admin@test.com"])]
+    (d/transact conn [(note/add-comment note (note/create-comment author "This is another comment!"))]))
+
+
+  )
+
+;; =============================================================================
+;; Create Note
+
+(defn create-note!
+  "Create a new note under `account-id` given `params`."
+  [conn account-id author {:keys [subject content notify ticket]}]
+  (let [note (note/create author subject content :ticket? ticket)]
+    @(d/transact conn [{:db/id         account-id
+                        :account/notes note}
+                       (msg/note-created note notify)])
+    {:result "ok"}))
+
+(s/def ::subject string?)
+(s/def ::content string?)
+(s/def ::notify boolean?)
+(s/def ::ticket boolean?)
+(s/fdef create-note!
+        :args (s/cat :conn p/conn?
+                     :account-id integer?
+                     :author p/entity?
+                     :params (s/keys :req-un [::subject ::content]
+                                     :opt-un [::notify ::ticket]))
+        :ret (s/keys :req-un [::result]))
 
 ;; =============================================================================
 ;; Routes
@@ -472,21 +556,15 @@
 
   (GET "/overview" []
        (fn [_]
-         (-> (accounts-overview conn)
-             (response/response)
-             (response/content-type transit))))
+         (response/transit-ok (accounts-overview conn))))
 
   (GET "/autocomplete" [q]
        (fn [_]
-         (-> (search-accounts conn q)
-             (response/response)
-             (response/content-type transit))))
+         (response/transit-ok (search-accounts conn q))))
 
   (GET "/:account-id" [account-id]
        (fn [_]
-         (-> (fetch-account conn (str->int account-id))
-             (response/response)
-             (response/content-type transit))))
+         (response/transit-ok (fetch-account conn (str->int account-id)))))
 
   (POST "/:account-id/approve" [account-id]
         (fn [{:keys [params] :as req}]
@@ -495,4 +573,25 @@
                               (str->int account-id)
                               (:unit-id params)
                               (:license-id params)
-                              (:move-in params))))))
+                              (:move-in params)))))
+
+  ;; =====================================
+  ;; Notes
+
+  (GET "/:account-id/notes" [account-id]
+       (fn [_]
+         (response/transit-ok
+          (fetch-notes conn (str->int account-id)))))
+
+  (POST "/:account-id/notes" [account-id]
+        (fn [{params :params :as req}]
+          (let [vresult (b/validate params {:subject [v/required v/string]
+                                            :content [v/required v/string]
+                                            :notify  v/boolean
+                                            :ticket  v/boolean})
+                author  (auth/requester req)]
+            (if-let [params (uv/valid? vresult)]
+              (response/transit-ok (create-note! conn (str->int account-id) author params))
+              (response/transit-malformed {:message (first (uv/errors vresult))})))))
+
+  )

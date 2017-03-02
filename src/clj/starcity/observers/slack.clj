@@ -13,7 +13,10 @@
             [starcity.models.member-license :as member-license]
             [starcity.config :as config]
             [starcity.models.unit :as unit]
-            [starcity.models.property :as property]))
+            [starcity.models.property :as property]
+            [starcity.models.note :as note]
+            [clojure.string :as string]
+            [clojure.set :as set]))
 
 (defmulti handle (fn [_ msg] (:msg/key msg)))
 
@@ -23,6 +26,7 @@
 
 ;; =============================================================================
 ;; Approve
+;; =============================================================================
 
 (defn- unit-link [unit property]
   (let [url (format "%s/admin/properties/%s/units/%s"
@@ -63,6 +67,7 @@
 
 ;; =============================================================================
 ;; ACH Payment Made
+;; =============================================================================
 
 (defmethod handle msg/ach-payment-key
   [conn {params :msg/params :as msg}]
@@ -89,6 +94,7 @@
 
 ;; =============================================================================
 ;; Remainder security deposit paid
+;; =============================================================================
 
 (defmethod handle msg/remainder-deposit-paid-key
   [conn {params :msg/params :as msg}]
@@ -279,3 +285,50 @@
        (sm/text (format "%s's autopay payment has succeeded!"
                         (account/full-name account)))))
      :uuid (:msg/uuid msg))))
+
+;; =============================================================================
+;; Notes
+;; =============================================================================
+
+(defn- note-url [note]
+  (format "%s/admin/accounts/%s/notes" config/hostname (-> note note/account :db/id)))
+
+(defmethod handle msg/note-created-key
+  [conn {{:keys [note/uuid notify?]} :msg/params :as msg}]
+  (when-let [note (and notify? (note/by-uuid (d/db conn) uuid))]
+    (let [ntype (if (note/ticket? note) "Ticket" "Note")]
+      (slack/crm
+       (sm/msg
+        (sm/success
+         (sm/title (note/subject note) (note-url note))
+         (sm/text (note/content note))
+         (sm/fields
+          (sm/field "Author" (-> note note/author account/full-name) true)
+          (sm/field "Type" (string/lower-case ntype) true))))))))
+
+(defn- notify-handles [note]
+  (let [parent-note (note/parent note)
+        handles     (->> (conj (note/children parent-note) parent-note)
+                         (map (comp account/slack-handle note/author))
+                         (remove nil?)
+                         (set))]
+    (set/difference handles #{(-> note note/author account/slack-handle)})))
+
+(defmethod handle msg/note-comment-created-key
+  [conn {{:keys [comment/uuid notify?]} :msg/params :as msg}]
+  (when-let [note (and notify? (note/by-uuid (d/db conn) uuid))]
+    (doseq [handle (notify-handles note)]
+      (slack/send
+       {:channel handle}
+       (sm/msg
+        (sm/info
+         (sm/title (format "%s commented on a note that you are subscribed to:"
+                           (-> note note/author account/full-name))
+                   (note-url (note/parent note)))
+         (sm/text (format "_%s_" (note/content note)))))))))
+
+(comment
+  (notify-handles
+   (note/by-uuid (d/db starcity.datomic/conn) #uuid "58b624a8-4e5d-4b1f-9fc0-ddb5452d31b4"))
+
+  )

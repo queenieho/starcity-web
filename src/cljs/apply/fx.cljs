@@ -16,7 +16,6 @@
                   :description     "Member Application"
                   :amount          (.-amount js/stripe)
                   :key             (.-key js/stripe)
-                  :email           (.-email js/stripe)
                   :zipCode         true
                   :allowRememberMe true
                   :locale          "auto"

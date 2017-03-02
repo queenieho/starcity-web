@@ -3,8 +3,8 @@
             [starcity.views.page :as p]))
 
 (def mars
-  (p/cljs-page
+  (p/app
    "mars"
    (p/title "Members")
-   (p/css "/assets/css/antd.css")
+   (p/css "antd.css")
    [:div#app l/hero-section]))

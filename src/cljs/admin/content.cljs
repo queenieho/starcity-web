@@ -1,5 +1,4 @@
-(ns admin.content)
+(ns admin.content
+  (:require [toolbelt.core :as tb]))
 
-(defmulti app-content
-  "TODO:"
-  :page)
+(defmulti app-content identity)

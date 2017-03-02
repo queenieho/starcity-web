@@ -7,6 +7,7 @@
 
 ;; =============================================================================
 ;; Transactions
+;; =============================================================================
 
 (s/def :msg/key keyword?)
 (s/def ::msg
@@ -33,9 +34,10 @@
 
 
 ;; =============================================================================
-;; Named msg
+;; Named
+;; =============================================================================
 
-;; =====================================
+;; =============================================================================
 ;; Accounts
 
 (def approved-key :account/approve)
@@ -57,7 +59,33 @@
                      :move-in inst?)
         :ret ::msg)
 
-;; =====================================
+;; =============================================================================
+;; Notes
+
+(def note-created-key :note/created)
+
+(defn note-created
+  "A new note has been created."
+  [note & [notify?]]
+  (create note-created-key :params {:note/uuid (:note/uuid note)
+                                    :notify?   notify?}))
+
+(s/fdef note-created
+        :args (s/cat :note (s/keys :req [:note/uuid]) :notify? (s/? boolean?))
+        :ret ::msg)
+
+(def note-comment-created-key :note.comment/created)
+
+(defn note-comment-created
+  [comment & [notify?]]
+  (create note-comment-created-key :params {:comment/uuid (:note/uuid comment)
+                                            :notify?      notify?}))
+
+(s/fdef note-comment-created
+        :args (s/cat :comment (s/keys :req [:note/uuid]) :notify? (s/? boolean?))
+        :ret ::msg)
+
+;; =============================================================================
 ;; Rent
 
 (def ach-payment-key :rent.payment.ach/pay)
@@ -95,7 +123,7 @@
         :args (s/cat :account p/entity? :charge-id string?)
         :ret ::msg)
 
-;; =====================================
+;; =============================================================================
 ;; Stripe
 
 (def charge-succeeded-key :stripe.charge/succeeded)
@@ -127,6 +155,9 @@
   [customer-id status]
   (create customer-source-updated-key :params {:customer-id customer-id
                                                :status      status}))
+
+;; =============================================================================
+;; Autopay
 
 (def invoice-created-key :stripe.invoice/created)
 
@@ -172,7 +203,7 @@
         :args (s/cat :member-license p/entity?)
         :ret ::msg)
 
-(def autopay-deactivated-key :stripe.subscription/autopay-will-begin)
+(def autopay-deactivated-key :stripe.subscription/autopay-deactivated)
 
 (defn autopay-deactivated
   [member-license]

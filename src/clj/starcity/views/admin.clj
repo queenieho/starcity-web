@@ -3,7 +3,8 @@
             [starcity.views.page :as p]))
 
 (def admin
-  (p/cljs-page "admin"
+  (p/app
+   "admin"
    (p/title "Admin")
-   (p/css "/assets/css/antd.css")
+   (p/css "antd.css")
    [:div#app l/hero-section]))

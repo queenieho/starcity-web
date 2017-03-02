@@ -18,16 +18,18 @@
    (n/nav-item "/about" "About")
    (n/nav-button "/settings" "Account")))
 
-(defn apply [email]
-  (p/cljs-page "apply"
-               (p/title "Apply")
-               navbar
-               [:section#apply.section l/hero-section]
-               p/footer
-               (p/json ["stripe" (fn [] {:amount application-fee
-                                        :key    public-key
-                                        :email  email})]
-                       ["countries" countries-json])
-               (p/scripts "https://checkout.stripe.com/checkout.js"
-                          "https://code.jquery.com/jquery-2.1.1.min.js"
-                          "/js/main.js")))
+(def apply
+  (p/app
+   "apply"
+   (p/title "Apply")
+   navbar
+   [:section#apply.section l/hero-section]
+   p/footer
+   (p/json ["stripe" (fn []
+                       {:amount application-fee
+                        :key    public-key})]
+           ["countries" (fn [] countries-json)])
+   (p/scripts "https://checkout.stripe.com/checkout.js"
+              "https://code.jquery.com/jquery-2.1.1.min.js"
+              ;; "/js/main.js"
+              )))

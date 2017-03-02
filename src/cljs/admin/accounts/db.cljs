@@ -17,12 +17,9 @@
                                         :applicants/active
                                         :applicants/submitted]}
 
-          :subnav {:items    {:account.role/applicant  [:applicant/overview :notes]
-                              :account.role/member     [:member/overview :member/licenses :notes]
-                              :account.role/onboarding [:onboarding/overview :notes]}
-                   :defaults {:account.role/applicant  :applicant/overview
-                              :account.role/member     :member/overview
-                              :account.role/onboarding :onboarding/overview}}
+          :subnav {:items {:account.role/applicant  [[:account "application"] :account/notes]
+                           :account.role/member     [[:account "member"] :account/licenses :account/notes]
+                           :account.role/onboarding [[:account "overview"] :account/notes]}}
 
           :approval {:showing false
                      :units   []}
@@ -91,9 +88,11 @@
 ;; Account Entry
 
 (defn viewing-account-id
-  "Set the id of the account that is currently being viewed."
-  [db account-id]
-  (assoc db :viewing account-id))
+  "Get or set the id of the account that is currently being viewed."
+  ([db]
+   (get db :viewing))
+  ([db account-id]
+   (assoc db :viewing account-id)))
 
 (s/fdef viewing-account-id
         :args (s/cat :db map? :account-id integer?)
@@ -135,13 +134,13 @@
   [db]
   (set-fetching-account db true))
 
-;; ============================================================================
-;; Subnav
+;; ;; ============================================================================
+;; ;; Subnav
 
-(defn navigate-to
-  "Get or set the sub-navigation."
-  [db to]
-  (assoc-in db [:subnav :active] to))
+;; (defn navigate-to
+;;   "Get or set the sub-navigation."
+;;   [db to]
+;;   (assoc-in db [:subnav :active] to))
 
 ;; =============================================================================
 ;; Approval

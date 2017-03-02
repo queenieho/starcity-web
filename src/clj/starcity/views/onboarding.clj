@@ -279,15 +279,14 @@
   (page "Enter Bank Account Information"
         enter-bank-info-content
         (p/json ["stripe" (fn [] {:key public-key})])
-        (p/scripts "https://js.stripe.com/v2/"
-                   "/assets/bower/jquery-validation/dist/jquery.validate.min.js"
-                   "/js/bank-info.js")))
+        (p/scripts "https://js.stripe.com/v2/")
+        (p/bundles "bank-info.js")))
 
 (def verify-microdeposits
   (page "Verify Bank Account" verify-microdeposits-content))
 
 (def pay-by-ach
-  (page "Make ACH Payment" pay-by-ach-content (p/scripts "/js/pay-by-ach.js")))
+  (page "Make ACH Payment" pay-by-ach-content (p/bundles "pay-by-ach.js")))
 
 (def security-deposit-complete
   (p/page
