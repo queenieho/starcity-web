@@ -16,8 +16,9 @@
      [:p.title (:property/name property)]]
     (metric "Occupancy"
             (str (:property/total-occupied property) " / " (:property/total-units property)))
-    (metric "Rent Collected" (str "$" (:property/amount-collected property)))
-    (metric "Rent Outstanding" (str "$" (:property/amount-outstanding property)))
+    (metric "Rent Due" (str "$" (:property/amount-due property)))
+    (metric "Rent Pending" (str "$" (:property/amount-pending property)))
+    (metric "Rent Paid" (str "$" (:property/amount-paid property)))
     (metric "Total Rent" (str "$" (:property/amount-total property)))
     (metric "Connect" [:a {:target "_blank" :href (:property/stripe-url property)} "Stripe"])]])
 

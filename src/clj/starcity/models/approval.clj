@@ -2,12 +2,24 @@
   (:require [clojure.spec :as s]
             [starcity.datomic :refer [tempid]]
             [starcity.models
-             [account :as account]
-             [security-deposit :as deposit]
              [application :as app]
+             [cmd :as cmd]
+             [msg :as msg]
+             [security-deposit :as deposit]
              [unit :as unit]]
-            [toolbelt.predicates :as p]
-            [starcity.models.msg :as msg]))
+            [toolbelt.predicates :as p]))
+
+;; =============================================================================
+;; Lookups
+;; =============================================================================
+
+(def by-account
+  "Look up the `approval` entity by `account`."
+  (comp first :approval/_account))
+
+(s/fdef by-account
+        :args (s/cat :account p/entity?)
+        :ret p/entity?)
 
 ;; =============================================================================
 ;; Selectors
@@ -84,11 +96,14 @@
   - Mark the application as approved"
   [approver approvee unit license move-in]
   [(create approver approvee unit license move-in)
-   (account/change-role approvee account/onboarding)
+   ;; Change role
+   {:db/id (:db/id approvee) :account/role :account.role/onboarding}
    (deposit/create approvee (int (unit/rate unit license)))
    (app/change-status (:account/application approvee)
                       :application.status/approved)
-   (msg/approved approver approvee unit license move-in)])
+   (msg/approved approver approvee unit license move-in)
+   ;; Log `approvee` out
+   (cmd/delete-session approvee)])
 
 (s/fdef approve
         :args (s/cat :approver p/entity?
@@ -97,7 +112,3 @@
                      :license p/entity?
                      :move-in inst?)
         :ret (s/and vector? (s/+ map?)))
-
-;; =============================================================================
-;; Queries
-;; =============================================================================

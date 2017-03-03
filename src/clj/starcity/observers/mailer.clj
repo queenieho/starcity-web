@@ -6,8 +6,10 @@
              [charge :as charge]
              [member-license :as member-license]
              [msg :as msg]
+             [property :as property]
              [rent-payment :as rent-payment]
-             [security-deposit :as deposit]]
+             [security-deposit :as deposit]
+             [unit :as unit]]
             [starcity.services.mailgun :as mail]
             [starcity.services.mailgun
              [message :as mm]
@@ -21,7 +23,45 @@
   (timbre/debug ::no-handler msg))
 
 ;; =============================================================================
-;; Monthly Rent Reminders
+;; Accounts
+;; =============================================================================
+
+;; TODO:
+;; The dashboard also has a services menu where you can request assistance for
+;; your move in day, learn about our storage options, and customize your room
+;; design.
+
+(defmethod handle msg/promoted-key
+  [conn {params :msg/params :as msg}]
+  (let [{:keys [promoter-id account-id]} params
+        promoter                         (d/entity (d/db conn) promoter-id)
+        account                          (d/entity (d/db conn) account-id)
+        license                          (member-license/active conn account)
+        property                         (-> license member-license/unit unit/property)]
+    (mail/send
+     (account/email account)
+     (format "Welcome to %s!" (property/name property))
+     (mm/msg
+      (mm/greeting (account/first-name account))
+      (mm/p "Thank you for signing your membership agreement and submitting
+      payment for your security deposit. <b>Now you're officially a Starcity
+      member!</b> We're looking forward to having you join the community and
+      can't wait to get to know you better.")
+      (mm/p (format "The next step to getting settled in is to log into your <a
+      href='%s/me'>member dashboard</a>. This is where you'll be able to pay
+      your rent payments and the remainder of your security deposit (if
+      applicable). You can choose to <a href='%s/me/account/rent'>enable
+      autopay</a> or make individual rent payments going forward."
+      config/hostname config/hostname))
+      (mm/p "Please let us know if you have any questions about the move-in
+      process or need assistance navigating the dashboard.")
+      (mm/signature "Meg" "Head of Community"))
+     :from ms/meg
+     :uuid (:msg/uuid msg))))
+
+;; =============================================================================
+;; Rent
+;; =============================================================================
 
 (defn- send-reminder [account uuid]
   (mail/send
@@ -199,8 +239,8 @@
      "Autopay Payment Pending"
      (mm/msg
       (mm/greeting (account/first-name account))
-      (mm/p "This is a friendly reminder that your autopay payment is being processed")
-      (mm/p "Please note that it may take ub to <b>5 business days</b> for the funds to be withdrawn from your account")
+      (mm/p "This is a friendly reminder that your autopay payment is being processed.")
+      (mm/p "Please note that it may take up to <b>5 business days</b> for the funds to be withdrawn from your account.")
       (mm/signature))
      :from ms/noreply
      :uuid (:msg/uuid msg))))

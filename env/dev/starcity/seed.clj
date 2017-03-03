@@ -9,10 +9,15 @@
             [starcity.datomic :refer [conn]]
             [starcity.models
              [account :as account]
+             [application :as app]
+             [approval :as approval]
              [check :as check]
+             [license :as license]
              [member-license :as member-license]
              [property :as property]
-             [rent-payment :as rp]]))
+             [rent-payment :as rp]
+             [security-deposit :as deposit]
+             [unit :as unit]]))
 
 ;; =============================================================================
 ;; Internal
@@ -120,15 +125,31 @@
 ;; =============================================================================
 ;; Approval
 
-(def approval-tx
-  [{:db/id                (d/tempid part)
-    :approval/account     [:account/email "onboarding@test.com"]
-    :approval/approved-by [:account/email "admin@test.com"]
-    :approval/approved-on (java.util.Date.)
-    :approval/property    [:property/internal-name "52gilbert"]}
-   {:db/id                            (d/tempid part)
-    :security-deposit/account         [:account/email "onboarding@test.com"]
-    :security-deposit/amount-required 2100}])
+(defn approve
+  "A more light-weight version of `starcity.models.approval/approve` that
+  doesn't create `msg` and `cmd`."
+  [approver approvee unit license move-in]
+  [(approval/create approver approvee unit license move-in)
+   ;; Change role
+   {:db/id (:db/id approvee) :account/role :account.role/onboarding}
+   (deposit/create approvee (int (unit/rate unit license)))
+   (app/change-status (:account/application approvee)
+                      :application.status/approved)])
+
+(defn approval-tx [conn]
+  (concat
+   (approve
+    (d/entity (d/db conn) [:account/email "admin@test.com"])
+    (d/entity (d/db conn) [:account/email "member@test.com"])
+    (unit/by-name (d/db conn) "52gilbert-1")
+    (license/by-term conn 3)
+    (c/to-date (t/now)))
+   (approve
+    (d/entity (d/db conn) [:account/email "admin@test.com"])
+    (d/entity (d/db conn) [:account/email "onboarding@test.com"])
+    (unit/by-name (d/db conn) "52gilbert-2")
+    (license/by-term conn 3)
+    (c/to-date (t/plus (t/now) (t/months 1))))))
 
 ;; =============================================================================
 ;; Applications
@@ -171,6 +192,10 @@
    (application [:account/email "onboarding@test.com"]
                 :license (license conn 6)
                 :status :application.status/approved
+                :properties [[:property/internal-name "52gilbert"]])
+   (application [:account/email "member@test.com"]
+                :license (license conn 3)
+                :status :application.status/approved
                 :properties [[:property/internal-name "52gilbert"]])))
 
 ;; =============================================================================
@@ -187,8 +212,7 @@
 (def security-deposits-tx
   (map
    (comp create-security-deposit (partial conj [:account/email]))
-   ["member@test.com"
-    "jon@test.com"
+   ["jon@test.com"
     "jesse@test.com"
     "mo@test.com"
     "meg@test.com"
@@ -198,13 +222,9 @@
 ;; Member Licenses
 
 (defn member-licenses-tx [conn]
-  (let [member  (d/entity (d/db conn) [:account/email "member@test.com"])
-        unit    (->> (d/entity (d/db conn) [:property/internal-name "52gilbert"])
-                     (property/available-units conn)
-                     first)
-        license (->> (d/q '[:find ?e . :where [?e :license/term 3]] (d/db conn))
-                     (d/entity (d/db conn)))]
-    (account/promote-to-member conn member license unit (java.util.Date.) 2000.0)))
+  (let [admin  (d/entity (d/db conn) [:account/email "admin@test.com"])
+        member (d/entity (d/db conn) [:account/email "member@test.com"])]
+    (remove #(contains? % :msg/uuid) (account/promote admin member))))
 
 ;; =============================================================================
 ;; Rent Payments
@@ -276,9 +296,6 @@
     :seed/licenses          {:txes [licenses-tx]}
     :seed/properties        {:txes     [(properties-tx conn)]
                              :requires [:seed/licenses]}
-    :seed/approval          {:txes     [approval-tx]
-                             :requires [:seed/accounts
-                                        :seed/properties]}
     :seed/applications      {:txes     [(applications-tx conn)]
                              :requires [:seed/accounts
                                         :seed/licenses
@@ -288,8 +305,10 @@
     :seed/stripe-customers  {:txes     [stripe-customers-tx]
                              :requires [:seed/accounts]}
     :seed/avatar            {:txes [avatar-tx]}})
-
   ;; NOTE: These need to happen in separate transactions.
+  (cf/ensure-conforms
+   conn
+   {:seed/approval {:txes [(approval-tx conn)]}})
   (cf/ensure-conforms
    conn
    {:seed/member-licenses {:txes [(member-licenses-tx conn)]}})

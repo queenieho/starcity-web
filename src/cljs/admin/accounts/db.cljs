@@ -24,9 +24,10 @@
           :approval {:showing false
                      :units   []}
 
-          :loading {:account  false
-                    :overview false
-                    :units    false}}}
+          :loading {:account   false
+                    :overview  false
+                    :units     false
+                    :promoting false}}}
    check-form/default-value))
 
 (defn accounts [db]
@@ -180,3 +181,15 @@
 (defn error-fetching-units [db]
   ;; TODO:
   (set-loading db :units false))
+
+;; =============================================================================
+;; Promotion
+
+(defn promoting? [db]
+  (get-in db [:loading :promoting]))
+
+(defn is-promoting [db]
+  (set-loading db :promoting true))
+
+(defn done-promoting [db]
+  (set-loading db :promoting false))

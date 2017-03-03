@@ -39,4 +39,4 @@
 (def json-ok (comp json ok))
 (def transit-ok (comp transit ok))
 
-(def transit-forbidden (comp transit unauthorized))
+(def transit-forbidden (comp transit forbidden))

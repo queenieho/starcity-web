@@ -267,20 +267,18 @@
    (db/approving? db)))
 
 ;; =============================================================================
-;; Account Subnav
+;; Promotion
 ;; =============================================================================
 
-;; (reg-sub
-;;  :account.subnav/active
-;;  :<- [:nav/current-page]
-;;  :<- [::subnav]
-;;  :<- [:account/role]
-;;  (fn [[page {:keys [active defaults]} role] _]
-;;    (case page
-;;      :account (get defaults role)
-;;      :account/)
-;;    (println "subnav page:" page)
-;;    (or active (get defaults role))))
+(reg-sub
+ :account/promoting?
+ :<- [::accounts]
+ (fn [db _]
+   (db/promoting? db)))
+
+;; =============================================================================
+;; Account Subnav
+;; =============================================================================
 
 (reg-sub
  :account.subnav/items

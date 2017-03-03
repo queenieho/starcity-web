@@ -28,13 +28,14 @@
 
 (defn clientize-property [conn property]
   (let [now (java.util.Date.)]
-    {:db/id                       (:db/id property)
-     :property/name               (property/name property)
-     :property/total-units        (count (property/units property))
-     :property/total-occupied     (count (property/occupied-units conn property))
-     :property/amount-total       (property/total-rent conn property)
-     :property/amount-outstanding (tb/round (property/amount-outstanding conn property now) 2)
-     :property/amount-collected   (tb/round (property/amount-collected conn property now) 2)}))
+    {:db/id                   (:db/id property)
+     :property/name           (property/name property)
+     :property/total-units    (count (property/units property))
+     :property/total-occupied (count (property/occupied-units conn property))
+     :property/amount-total   (property/total-rent conn property)
+     :property/amount-due     (tb/round (property/amount-due conn property now) 2)
+     :property/amount-pending (tb/round (property/amount-pending conn property now) 2)
+     :property/amount-paid    (tb/round (property/amount-paid conn property now) 2)}))
 
 (defn overview [conn]
   {:result

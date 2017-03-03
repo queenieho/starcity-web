@@ -9,7 +9,8 @@
             [clojure.spec :as s]
             [starcity.models.account :as account]
             [starcity.models.approval :as approval]
-            [starcity.models.unit :as unit]))
+            [starcity.models.unit :as unit]
+            [starcity.models.msg :as msg]))
 
 ;; TODO: Change progress to communicate w/ entities rather than maps or ids
 
@@ -171,10 +172,13 @@
   "Update the `security-deposit` entity to reflect that the security deposit has
   been paid via a successful ACH payment."
   [progress payment-choice charge-id]
-  (let [payment-type (keyword "security-deposit.payment-type" payment-choice)]
+  (let [payment-type (keyword "security-deposit.payment-type" payment-choice)
+        account      (d/entity (d/db conn) (account-id progress))
+        charge       (d/entity (d/db conn) charge-id)]
     @(d/transact conn [{:db/id                         (security-deposit-id progress)
                         :security-deposit/charges      charge-id
-                        :security-deposit/payment-type payment-type}])))
+                        :security-deposit/payment-type payment-type}
+                       (msg/deposit-payment-made account charge)])))
 
 
 (declare payment-received?)

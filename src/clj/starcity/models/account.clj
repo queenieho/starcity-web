@@ -6,7 +6,7 @@
              [spec :as s]
              [string :refer [capitalize lower-case trim]]]
             [datomic.api :as d]
-            [plumbing.core :refer [assoc-when]]
+            [plumbing.core :as plumbing]
             [potemkin :refer [import-vars]]
             [starcity.datomic :refer [conn tempid]]
             [starcity.models
@@ -21,7 +21,11 @@
             [starcity.util.date :refer [end-of-day]]
             [toolbelt
              [core :refer [round]]
-             [predicates :as p :refer [entity?]]]))
+             [predicates :as p :refer [entity?]]]
+            [starcity.models.cmd :as cmd]
+            [starcity.models.approval :as approval]
+            [starcity.models.unit :as unit]
+            [starcity.models.msg :as msg]))
 
 
 ;; =============================================================================
@@ -231,7 +235,7 @@
                          :due-date (c/to-date (t/plus dt (t/days 5))))))
 
 (defn- security-deposit-due-date
-  [conn account commencement]
+  [account commencement]
   (let [deposit  (deposit/by-account account)
         due-date (-> (t/plus (c/to-date-time (end-of-day commencement))
                              (t/days 30))
@@ -239,26 +243,39 @@
     {:db/id                   (:db/id deposit)
      :security-deposit/due-by due-date}))
 
-(defn promote-to-member
-  "All of the transaction data needed to transition an account smoothly from
-  onboarding to membership."
-  [conn account license unit commencement rate]
-  (let [base           (change-role account r/member)
-        member-license (member-license/create license unit commencement rate :member-license.status/active)
-        payment        (prorated-payment commencement rate)]
-    [(->> (assoc-when member-license :member-license/rent-payments payment)
-          (assoc base :account/license))
-     (security-deposit-due-date conn account commencement)
-     (news/welcome account)
-     (news/autopay account)]))
+;; license unit commencement rate
 
-(s/fdef promote-to-member
-        :args (s/cat :conn p/conn?
-                     :account p/entity?
-                     :license p/entity?
-                     :unit p/entity?
-                     :commencement inst?
-                     :rate float?)
+(defn- approval->member-license
+  [{:keys [approval/unit approval/license] :as approval}]
+  (member-license/create
+   license
+   unit
+   (approval/move-in approval)
+   (unit/rate unit license)
+   :member-license.status/active))
+
+(defn promote
+  "Promote `account` to membership status."
+  [promoter account]
+  (assert (approval/by-account account)
+          "`account` must be approved before it can be promoted!")
+  (let [base           (change-role account r/member)
+        approval       (approval/by-account account)
+        member-license (approval->member-license approval)
+        payment        (prorated-payment (approval/move-in approval)
+                                         (member-license/rate member-license))]
+    [(->> (plumbing/assoc-when member-license :member-license/rent-payments payment)
+          (assoc base :account/license))
+     (security-deposit-due-date account (approval/move-in approval))
+     (news/welcome account)
+     (news/autopay account)
+     ;; Log `account` out
+     (cmd/delete-session account)
+     (msg/promoted promoter account)]))
+
+(s/fdef promote
+        :args (s/cat :promoter p/entity?
+                     :account p/entity?)
         :ret vector?)
 
 ;; =============================================================================

@@ -6,35 +6,35 @@
             [org.httpkit.client :as http]
             [plumbing.core :refer [assoc-when]]
             [starcity.config.slack :as config]
-            [starcity.environment :refer [is-development?]]
+            [starcity.environment :refer [is-production?]]
             [taoensso.timbre :as timbre]))
 
 ;; =============================================================================
 ;; Helpers
 ;; =============================================================================
 
-(def ^:private default-channel
-  "#webserver")
+(def ^:private debug-channel
+  "#debug")
 
 (defn- assoc-channel-when
   "Assoc the channel into opts when channel is non-nil.
 
-  If we're in development, override the channel with the `default-channel`."
+  If we're in development, override the channel with the `debug-channel`."
   [opts channel]
   (if channel
-    (if (is-development?)
-      (assoc opts :channel default-channel)
-      (assoc opts :channel channel))
+    (if (is-production?)
+      (assoc opts :channel channel)
+      (assoc opts :channel debug-channel))
     opts))
 
 (defn- assoc-channel
   "Assoc the `channel` into `params`.
 
-  If we're in development, override the channel with the `default-channel`."
+  If we're in development, override the channel with the `debug-channel`."
   [opts channel]
-  (if (is-development?)
-    (assoc opts :channel default-channel)
-    (assoc opts :channel channel)))
+  (if (is-production?)
+    (assoc opts :channel channel)
+    (assoc opts :channel debug-channel)))
 
 ;; =============================================================================
 ;; API
@@ -68,7 +68,7 @@
   (if (str/starts-with? s "#") s (str "#" s)))
 
 (defn send
-  [{:keys [channel username] :or {channel default-channel}} msg & {:keys [uuid]}]
+  [{:keys [channel username] :or {channel debug-channel}} msg & {:keys [uuid]}]
   (let [out-c      (chan 1)
         msg-params (-> {:username (or username config/username)}
                        (assoc-channel (->channel channel)))]

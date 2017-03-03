@@ -47,18 +47,32 @@
 ;; Content
 ;; =============================================================================
 
+(defn- can-promote? [{:keys [deposit/received deposit/pending]}]
+  (or (> received 0) (> pending 0)))
+
 ;; =============================================================================
 ;; Stats
 
+(defn- promote [deposit]
+  (let [is-promoting (subscribe [:account/promoting?])]
+    [a/popconfirm
+     {:title       "Are you sure? This cannot be undone!"
+      :ok-text     "Yes"
+      :cancel-text "No"
+      :on-confirm  #(dispatch [:account/promote!])}
+     [a/button {:type     :primary
+                :disabled (not (can-promote? deposit))
+                :loading  @is-promoting}
+     "Promote"]]))
+
 (defn deposit-overview-items
-  [{:keys [deposit/received deposit/required deposit/due-date deposit/method]}]
+  [{:keys [deposit/received deposit/required deposit/due-date deposit/method]
+    :as   deposit}]
   (let [is-paid (and (= received required) (> received 0))]
     (if is-paid
       [(level/overview-item "Deposit Paid?" "YES")]
-      [;; (level/overview-item "Deposit Total" required (partial str "$"))
-       (level/overview-item "Deposit Amt. Due" (- required received) (partial str "$"))
-       (level/overview-item "Payment Method" method (fnil (comp string/upper-case name) "N/A"))
-       (level/overview-item "Due Date" due-date date/short-date)])))
+      [(level/overview-item "Deposit Amt. Due" (- required received) (partial str "$"))
+       (level/overview-item "Payment Method" method (fnil (comp string/upper-case name) "N/A"))])))
 
 (defn member-stats []
   (let [deposit (subscribe [:account/deposit])
@@ -86,7 +100,7 @@
                 (level/overview-item "Move-in Date" move-in date/short-date)
                 (level/overview-item "Term" term #(str % " months"))
                 (level/overview-item "Unit" (:unit/name unit))
-                (deposit-overview-items @deposit))]))))
+                (conj (deposit-overview-items @deposit) (level/overview-item [promote @deposit])))]))))
 
 ;; =============================================================================
 ;; Overview

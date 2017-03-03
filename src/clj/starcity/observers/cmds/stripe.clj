@@ -173,11 +173,18 @@
                                               (member-license/rate license))]
     (member-license/add-rent-payments license payment)))
 
+;; NOTE: Stripe dates are in seconds since 1/1/1970 -- this converts to
+;; milliseconds, then to an inst
+(defn- invoice-start-date
+  "Produce the invoice's start date by inspecting the line items. The
+  `:period_start` date on the `event-data` has proven to be unreliable; hence
+  the use of the `:lines`."
+  [event-data]
+  (-> event-data :lines :data first :period :start (* 1000) c/from-long c/to-date))
+
 (defmethod handle "invoice.created" [conn cmd]
-  (let [{:keys [id customer period_start]} (fetch-stripe-event cmd)
-        ;; NOTE: Stripe dates are in seconds since 1/1/1970 -- this converts to
-        ;; milliseconds, then to an inst
-        period-start (-> period_start (* 1000) c/from-long c/to-date)]
+  (let [{:keys [id customer] :as data} (fetch-stripe-event cmd)
+        period-start                   (invoice-start-date data)]
     [(add-rent-payment conn id customer period-start)
      (msg/invoice-created id customer period-start)]))
 

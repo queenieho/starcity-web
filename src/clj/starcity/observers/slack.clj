@@ -1,22 +1,23 @@
 (ns starcity.observers.slack
-  (:require [datomic.api :as d]
+  (:require [clojure
+             [set :as set]
+             [string :as string]]
+            [datomic.api :as d]
+            [starcity.config :as config]
             [starcity.models
              [account :as account]
              [charge :as charge]
+             [member-license :as member-license]
              [msg :as msg]
+             [note :as note]
+             [property :as property]
              [rent-payment :as rent-payment]
-             [security-deposit :as deposit]]
+             [security-deposit :as deposit]
+             [unit :as unit]]
             [starcity.services.slack :as slack]
             [starcity.services.slack.message :as sm]
             [taoensso.timbre :as timbre]
-            [toolbelt.date :as td]
-            [starcity.models.member-license :as member-license]
-            [starcity.config :as config]
-            [starcity.models.unit :as unit]
-            [starcity.models.property :as property]
-            [starcity.models.note :as note]
-            [clojure.string :as string]
-            [clojure.set :as set]))
+            [toolbelt.date :as td]))
 
 (defmulti handle (fn [_ msg] (:msg/key msg)))
 
@@ -28,11 +29,12 @@
 ;; Approve
 ;; =============================================================================
 
-(defn- unit-link [unit property]
-  (let [url (format "%s/admin/properties/%s/units/%s"
-                    config/hostname
-                    (:db/id property)
-                    (:db/id unit))]
+(defn- unit-link [unit]
+  (let [property (unit/property unit)
+        url      (format "%s/admin/properties/%s/units/%s"
+                         config/hostname
+                         (:db/id property)
+                         (:db/id unit))]
     (sm/link url (:unit/name unit))))
 
 (defn- property-link [property]
@@ -42,7 +44,6 @@
 (defmethod handle msg/approved-key
   [conn {params :msg/params :as msg}]
   (let [{:keys [approver-id approvee-id unit-id license-id move-in]} params
-
         db       (d/db conn)
         approver (d/entity db approver-id)
         approvee (d/entity db approvee-id)
@@ -60,9 +61,33 @@
        (sm/fields
         (sm/field "Email" (account/email approvee) true)
         (sm/field "Property" (property-link property) true)
-        (sm/field "Unit" (unit-link unit property) true)
+        (sm/field "Unit" (unit-link unit) true)
         (sm/field "Move-in" (td/short-date move-in) true)
         (sm/field "Term" (format "%s months" (:license/term license)) true))))
+     :uuid (:msg/uuid msg))))
+
+;; =============================================================================
+;; Promotion
+;; =============================================================================
+
+(defn- account-link [account]
+  (let [url (format "%s/admin/accounts/%s" config/hostname (:db/id account))]
+    (sm/link url (account/full-name account))))
+
+(defmethod handle msg/promoted-key
+  [conn {params :msg/params :as msg}]
+  (let [{:keys [promoter-id account-id]} params
+        promoter (d/entity (d/db conn) promoter-id)
+        account  (d/entity (d/db conn) account-id)
+        license  (member-license/active conn account)]
+    (slack/community
+     (sm/msg
+      (sm/info
+       (sm/text (format "*%s* is now a member!" (account/full-name account)))
+       (sm/fields
+        (sm/field "Account" (account-link account) true)
+        (sm/field "Unit" (unit-link (member-license/unit license)) true)
+        (sm/field "Promoted By" (account/full-name promoter) true))))
      :uuid (:msg/uuid msg))))
 
 ;; =============================================================================
@@ -96,6 +121,22 @@
 ;; Remainder security deposit paid
 ;; =============================================================================
 
+;; First payment, made while in onboarding
+(defmethod handle msg/deposit-payment-made-key
+  [conn {params :msg/params :as msg}]
+  (let [account (d/entity (d/db conn) (:account-id params))
+        charge  (d/entity (d/db conn) (:charge-id params))]
+    (slack/ops
+     (sm/msg
+      (sm/success
+       (sm/title "View Payment on Stripe"
+                 (format "https://dashboard.stripe.com/payments/%s" (charge/id charge)))
+       (sm/text (format "%s has made a security deposit payment!"
+                        (account/full-name account)))
+       (sm/fields
+        (sm/field "Amount" (str "$" (charge/amount charge)) true)))))))
+
+;; Possible second payment, made from MARS
 (defmethod handle msg/remainder-deposit-paid-key
   [conn {params :msg/params :as msg}]
   (let [account (d/entity (d/db conn) (:account-id params))
@@ -304,7 +345,8 @@
          (sm/text (note/content note))
          (sm/fields
           (sm/field "Author" (-> note note/author account/full-name) true)
-          (sm/field "Type" (string/lower-case ntype) true))))))))
+          (sm/field "Type" (string/lower-case ntype) true))))
+       :uuid (:msg/uuid msg)))))
 
 (defn- notify-handles [note]
   (let [parent-note (note/parent note)
@@ -325,10 +367,5 @@
          (sm/title (format "%s commented on a note that you are subscribed to:"
                            (-> note note/author account/full-name))
                    (note-url (note/parent note)))
-         (sm/text (format "_%s_" (note/content note)))))))))
-
-(comment
-  (notify-handles
-   (note/by-uuid (d/db starcity.datomic/conn) #uuid "58b624a8-4e5d-4b1f-9fc0-ddb5452d31b4"))
-
-  )
+         (sm/text (format "_%s_" (note/content note)))))
+       :uuid (:msg/uuid msg)))))

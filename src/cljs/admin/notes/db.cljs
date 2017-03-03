@@ -60,9 +60,4 @@
   (assert (contains? note :note/referenced-by))
   (update-in db [:notes (:note/referenced-by note)]
              (fn [notes]
-               (remove
-                (fn [n]
-                  (if (= (:db/id note) (:db/id n))
-                    note
-                    n))
-                notes))))
+               (remove #(= (:db/id note) (:db/id %)) notes))))

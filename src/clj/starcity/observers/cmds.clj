@@ -3,6 +3,7 @@
              [coerce :as c]
              [core :as t]]
             [datomic.api :as d]
+            [plumbing.core :as plumbing]
             [starcity.models
              [cmd :as cmd]
              [msg :as msg]
@@ -12,6 +13,10 @@
             [starcity.services.stripe.customer :as customer-service]
             [taoensso.timbre :as timbre]))
 
+;; =============================================================================
+;; Global
+;; =============================================================================
+
 (defmulti handle (fn [conn cmd] (:cmd/key cmd)))
 
 (defmethod handle :default
@@ -20,6 +25,7 @@
 
 ;; =============================================================================
 ;; Rent
+;; =============================================================================
 
 ;; Autopay payments are created via webhook notification from Stripe.
 (defn- active-licenses
@@ -60,6 +66,7 @@
 
 ;; =============================================================================
 ;; Stripe
+;; =============================================================================
 
 (defmethod handle cmd/stripe-webhook-event-key
   [conn cmd]
@@ -87,6 +94,7 @@
 
 ;; =============================================================================
 ;; Session
+;; =============================================================================
 
 (defn- get-session-id [conn account-id]
   (d/q '[:find ?s .
@@ -96,10 +104,12 @@
        (d/db conn) account-id))
 
 (defn- delete-session [conn account-id]
-  (when-let [session-id (get-session-id account-id)]
-    [[:db.fn/retractEntity session-id]]))
+  (when-let [session-id (get-session-id conn account-id)]
+    [:db.fn/retractEntity session-id]))
+
 
 (defmethod handle cmd/delete-session-key
   [conn {account-id :cmd/params :as cmd}]
-  @(d/transact conn [(cmd/successful cmd)
-                     (delete-session conn account-id)]))
+  @(d/transact conn (plumbing/conj-when
+                     [(cmd/successful cmd)]
+                     (delete-session conn account-id))))

@@ -59,6 +59,19 @@
                      :move-in inst?)
         :ret ::msg)
 
+(def promoted-key :account/promoted)
+
+(defn promoted
+  "An `account` has been promoted by `promoter`."
+  [promoter account]
+  (create promoted-key :params {:promoter-id (:db/id promoter)
+                                :account-id  (:db/id account)}))
+
+(s/fdef promoted
+        :args (s/cat :promoter p/entity?
+                     :account p/entity?)
+        :ret ::msg)
+
 ;; =============================================================================
 ;; Notes
 
@@ -111,20 +124,8 @@
         :args (s/cat :licenses (s/spec (s/+ integer?)))
         :ret ::msg)
 
-(def remainder-deposit-paid-key :security-deposit.remainder/paid)
-
-(defn remainder-deposit-paid
-  "The remainder of the security deposit has been paid."
-  [account charge-id]
-  (create remainder-deposit-paid-key :params {:charge-id  charge-id
-                                              :account-id (:db/id account)}))
-
-(s/fdef remainder-deposit-paid
-        :args (s/cat :account p/entity? :charge-id string?)
-        :ret ::msg)
-
 ;; =============================================================================
-;; Stripe
+;; Charges
 
 (def charge-succeeded-key :stripe.charge/succeeded)
 
@@ -211,4 +212,32 @@
 
 (s/fdef autopay-deactivated
         :args (s/cat :member-license p/entity?)
+        :ret ::msg)
+
+;; =============================================================================
+;; Security Deposit
+
+
+(def deposit-payment-made-key :security-deposit/ach-payment-made)
+
+(defn deposit-payment-made
+  "A security deposit payment has been made."
+  [account charge]
+  (create deposit-payment-made-key :params {:charge-id  (:db/id charge)
+                                            :account-id (:db/id account)}))
+
+(s/fdef deposit-payment-made
+        :args (s/cat :account p/entity? :charge p/entity?)
+        :ret ::msg)
+
+(def remainder-deposit-paid-key :security-deposit.remainder/paid)
+
+(defn remainder-deposit-paid
+  "The remainder of the security deposit has been paid."
+  [account charge-id]
+  (create remainder-deposit-paid-key :params {:charge-id  charge-id
+                                              :account-id (:db/id account)}))
+
+(s/fdef remainder-deposit-paid
+        :args (s/cat :account p/entity? :charge-id string?)
         :ret ::msg)

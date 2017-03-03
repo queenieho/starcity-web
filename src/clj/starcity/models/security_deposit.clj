@@ -70,7 +70,8 @@
 ;; =============================================================================
 
 (defn is-unpaid? [security-deposit]
-  (= 0 (get security-deposit :security-deposit/amount-received 0)))
+  (and (= 0 (get security-deposit :security-deposit/amount-received 0))
+       (= 0 (amount-pending security-deposit))))
 
 (def is-paid? (comp not is-unpaid?))
 
@@ -173,6 +174,7 @@
   [account amount]
   {:db/id                            (tempid)
    :security-deposit/account         (:db/id account)
+   :security-deposit/amount-received 0
    :security-deposit/amount-required amount})
 
 (s/fdef create
@@ -180,6 +182,7 @@
                      :amount integer?)
         :ret (s/keys :req [:db/id
                            :security-deposit/account
+                           :security-deposit/amount-received
                            :security-deposit/amount-required]))
 
 
