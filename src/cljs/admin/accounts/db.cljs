@@ -17,9 +17,12 @@
                                         :applicants/active
                                         :applicants/submitted]}
 
-          :subnav {:items {:account.role/applicant  [[:account "application"] :account/notes]
-                           :account.role/member     [[:account "member"] :account/licenses :account/notes]
-                           :account.role/onboarding [[:account "overview"] :account/notes]}}
+          :subnav {:items {:account.role/applicant  [[:account "overview"]
+                                                     :account/notes]
+                           :account.role/member     [[:account "overview"]
+                                                     :account/licenses :account/application :account/notes]
+                           :account.role/onboarding [[:account "overview"]
+                                                     :account/application :account/notes]}}
 
           :approval {:showing false
                      :units   []}

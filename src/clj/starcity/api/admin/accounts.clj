@@ -134,6 +134,56 @@
                                       :account/contact (contact account)})}))
 
 ;; =============================================================================
+;; Applicant
+
+(defn- income [conn account]
+  {:income/files
+   (map (fn [file]
+          (-> (select-keys file [:db/id :income-file/path])
+              (assoc :income-file/name (last (string/split (:income-file/path file) #"/")))
+              (dissoc :income-file/path)))
+        (income-file/by-account conn account))})
+
+(defn- address
+  [{:keys [address/locality address/region address/postal-code address/country]}]
+  (when (and locality region postal-code country)
+    (format "%s %s, %s, %s" locality region postal-code (or country "US"))))
+
+(defn- updated-at
+  "We need to examine three different entities to determine when the application
+  was last updated, since part of the application updates fields on these
+  entities. This function examines the time that the `:member-application`,
+  `:account` and `:community-fitness` entities were last updated and picks the
+  latest update."
+  [conn account app]
+  (->> [app account (app/community-fitness app)]
+       (remove nil?)                    ; in case community fitness is not present
+       (map (comp c/to-date-time (partial td/updated-at (d/db conn))))
+       (t/latest)
+       (c/to-date)))
+
+(defn application [conn account]
+  (when-let [app (app/by-account conn account)]
+    (merge
+     {:application/status      (app/status app)
+      :application/move-in     (app/move-in-date app)
+      :application/license     (select-keys (app/desired-license app)
+                                            [:db/id :license/term])
+      :application/has-pet     (app/has-pet? app)
+      :application/pet         (into {} (app/pet app))
+      :application/communities (map #(select-keys % [:property/name :db/id])
+                                    (app/communities app))
+      :application/address     (address (app/address app))
+      :application/fitness     (into {} (app/community-fitness app))
+      :application/updated-at  (updated-at conn account app)
+      :application/created-at  (td/created-at (d/db conn) app)}
+     (income conn account))))
+
+(defmethod clientize-account :account.role/applicant
+  [conn account client-data]
+  (plumbing/assoc-when client-data :account/application (application conn account)))
+
+;; =============================================================================
 ;; Member
 
 (defn- payment-methods [conn account]
@@ -221,11 +271,13 @@
   (-> (zipmap [:account/payment
                :account/deposit
                :account/rent-payments
-               :account/member-licenses]
+               :account/member-licenses
+               :account/application]
               ((juxt payment-methods
                      security-deposit
                      payments
-                     member-licenses)
+                     member-licenses
+                     application)
                conn account))
       (merge client-data)))
 
@@ -245,73 +297,8 @@
        :approval/unit     (select-keys (approval/unit approval) [:db/id :unit/name])
        :approval/term     (-> approval approval/license license/term)}
 
-      :account/deposit
-      (clientize-security-deposit deposit)})))
-
-(comment
-  ;; NOTE: Combine the use of `transform-when-key-exists` and `select-keys`
-  ;; below into one `toolbelt.datomic` fn?
-  (let [account  (d/entity (d/db conn) [:account/email "applicant@test.com"])
-        approval (account/approval account)]
-    (tb/transform-when-key-exists
-        (select-keys approval [:approval/move-in :approval/approver :approval/unit
-                               :approval/license])
-      {:approval/move-in  identity
-       :approval/approver account/full-name
-       :approval/license  :license/term
-       :approval/unit     #(select-keys % [:db/id :unit/name])}))
-
-  )
-
-;; =============================================================================
-;; Applicant
-
-(defn- income [conn account]
-  {:income/files
-   (map (fn [file]
-          (-> (select-keys file [:db/id :income-file/path])
-              (assoc :income-file/name (last (string/split (:income-file/path file) #"/")))
-              (dissoc :income-file/path)))
-        (income-file/by-account conn account))})
-
-(defn- address
-  [{:keys [address/locality address/region address/postal-code address/country]}]
-  (when (and locality region postal-code country)
-    (format "%s %s, %s, %s" locality region postal-code (or country "US"))))
-
-(defn- updated-at
-  "We need to examine three different entities to determine when the application
-  was last updated, since part of the application updates fields on these
-  entities. This function examines the time that the `:member-application`,
-  `:account` and `:community-fitness` entities were last updated and picks the
-  latest update."
-  [conn account app]
-  (->> [app account (app/community-fitness app)]
-       (remove nil?)                    ; in case community fitness is not present
-       (map (comp c/to-date-time (partial td/updated-at (d/db conn))))
-       (t/latest)
-       (c/to-date)))
-
-(defn application [conn account]
-  (when-let [app (app/by-account conn account)]
-    (merge
-     {:application/status      (app/status app)
-      :application/move-in     (app/move-in-date app)
-      :application/license     (select-keys (app/desired-license app)
-                                            [:db/id :license/term])
-      :application/has-pet     (app/has-pet? app)
-      :application/pet         (into {} (app/pet app))
-      :application/communities (map #(select-keys % [:property/name :db/id])
-                                    (app/communities app))
-      :application/address     (address (app/address app))
-      :application/fitness     (into {} (app/community-fitness app))
-      :application/updated-at  (updated-at conn account app)
-      :application/created-at  (td/created-at (d/db conn) app)}
-     (income conn account))))
-
-(defmethod clientize-account :account.role/applicant
-  [conn account client-data]
-  (plumbing/assoc-when client-data :account/application (application conn account)))
+      :account/deposit     (clientize-security-deposit deposit)
+      :account/application (application conn account)})))
 
 ;; =====================================
 ;; Catch-all
@@ -498,33 +485,6 @@
   [conn account-id]
   {:result (query-notes (d/db conn) account-id)})
 
-(comment
-
-  (let [db      (d/db conn)
-        account (d/entity db 285873023222884)]
-    (time (fetch-notes conn 285873023222884)))
-
-
-  (let [member (d/entity (d/db conn) 285873023222884)
-        author (d/entity (d/db conn) [:account/email "admin@test.com"])]
-    (d/transact conn [{:db/id         (:db/id member)
-                       :account/notes [(note/create author "First note" "This is the note content.")
-                                       (note/create author "Second note" "This is the second note's content.")]}]))
-
-  (let [member (d/entity (d/db conn) 285873023222884)
-        author (d/entity (d/db conn) [:account/email "admin@test.com"])]
-    (d/transact conn [{:db/id         (:db/id member)
-                       :account/notes [(note/create author "Third note"
-                                                    "This is the third note's content. It references something that needs to be resolved ASAP!"
-                                                    :assigned-to author)]}]))
-
-  (let [note   (d/entity (d/db conn) 285873023222960)
-        author (d/entity (d/db conn) [:account/email "admin@test.com"])]
-    (d/transact conn [(note/add-comment note (note/create-comment author "This is another comment!"))]))
-
-
-  )
-
 ;; =============================================================================
 ;; Create Note
 
@@ -605,6 +565,4 @@
                 author  (auth/requester req)]
             (if-let [params (uv/valid? vresult)]
               (response/transit-ok (create-note! conn (str->int account-id) author params))
-              (response/transit-malformed {:message (first (uv/errors vresult))})))))
-
-  )
+              (response/transit-malformed {:message (first (uv/errors vresult))}))))))

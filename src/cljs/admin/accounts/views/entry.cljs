@@ -154,6 +154,9 @@
 (defmethod content* :account [_ role]
   (overview role))
 
+(defmethod content* :account/application [_ _]
+  [applicant-content])
+
 (defmethod content* :account/notes [_ _]
   [notes/notes])
 

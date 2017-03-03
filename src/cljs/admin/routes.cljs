@@ -14,6 +14,7 @@
      [["" :accounts]
 
       [["/" :account-id] [["" :account]
+                          ["/application" :account/application]
                           ["/licenses" :account/licenses]
                           ["/notes" :account/notes]]]]]
     ["properties"
