@@ -144,8 +144,14 @@
 ;; Customer
 
 (defmethod handle "customer.source.updated" [conn cmd]
-  (let [{:keys [status customer]} (fetch-stripe-event cmd)]
-    [(msg/customer-source-updated customer status)]))
+  (let [{:keys [id status customer]} (fetch-stripe-event cmd)
+        tx [(msg/customer-source-updated customer status)]]
+    (if (= status "verification_failed")
+      ;; If verification has failed then the bank information needs to be
+      ;; re-entered. Delete the customer.
+      (conj tx (cmd/delete-customer (d/entity (d/db conn) [:stripe-customer/customer-id id])))
+      ;; Otherwise, just pass along the `msg`.
+      tx)))
 
 ;; =============================================================================
 ;; Invoice (Autopay)
