@@ -30,7 +30,8 @@
          :open-menus []
          :items      [(item "activity")
                       (submenu "account" "Account"
-                               (item "rent"))]}})
+                               (item "rent")
+                               (item "settings"))]}})
 
 ;; NOTE: Only works w/ top-level menu. Menus with more than one level of nesting
 ;; won't work currently.
@@ -57,8 +58,9 @@
 ;; NOTE: enumeration is the simplest solution for now.
 (defn key->route [key]
   (case key
-    "activity"     (routes/activity)
-    "account.rent" (routes/account {:subsection "rent"})
+    "activity"         (routes/activity)
+    "account.rent"     (routes/account {:subsection "rent"})
+    "account.settings" (routes/account {:subsection "settings"})
     (routes/activity)))
 
 (defn set-active [db key]

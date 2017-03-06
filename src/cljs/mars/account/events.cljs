@@ -3,7 +3,8 @@
                                    reg-event-fx
                                    path]]
             [mars.account.db :as db]
-            [mars.account.rent.events]))
+            [mars.account.rent.events]
+            [mars.account.settings.events]))
 
 (reg-event-fx
  :account/initialize

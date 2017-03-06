@@ -1,6 +1,7 @@
 (ns mars.account.views
   (:require [re-frame.core :refer [subscribe dispatch]]
-            [mars.account.rent.views :as rent]))
+            [mars.account.rent.views :as rent]
+            [mars.account.settings.views :as settings]))
 
 (defn default-view []
   [:div
@@ -13,5 +14,6 @@
   (let [subsection (subscribe [:account/subsection])]
     (fn []
       (case @subsection
-        :rent [rent/view]
+        :rent     [rent/view]
+        :settings [settings/view]
         [default-view]))))

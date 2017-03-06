@@ -1,7 +1,8 @@
 (ns mars.account.subs
   (:require [re-frame.core :refer [reg-sub]]
             [mars.account.db :as db]
-            [mars.account.rent.subs]))
+            [mars.account.rent.subs]
+            [mars.account.settings.subs]))
 
 (reg-sub
  ::account
