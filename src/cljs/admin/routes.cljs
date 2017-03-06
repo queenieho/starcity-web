@@ -8,20 +8,21 @@
 ;; https://github.com/PEZ/reagent-bidi-accountant-example/blob/master/src/routing_example/core.cljs
 
 (def app-routes
-  ["/admin/"
-   [["" :home]
-    ["accounts"
+  ["/admin"
+   [["/accounts"
      [["" :accounts]
 
       [["/" :account-id] [["" :account]
                           ["/application" :account/application]
                           ["/licenses" :account/licenses]
                           ["/notes" :account/notes]]]]]
-    ["properties"
+    ["/properties"
      [["" :properties]
       [["/" :property-id] [["" :property]
                            ["/units"
-                            [[["/" :unit-id] :unit]]]]]]]]])
+                            [[["/" :unit-id] :unit]]]]]]]
+
+    [true :home]]])
 
 (defn hook-browser-navigation! []
   (accountant/configure-navigation!
