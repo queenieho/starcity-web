@@ -5,6 +5,7 @@
              [checks :as checks]
              [income :as income]
              [licenses :as licenses]
+             [metrics :as metrics]
              [notes :as notes]
              [properties :as properties]]
             [starcity.auth :as auth]
@@ -21,5 +22,6 @@
   (context "/checks" [] checks/routes)
   (context "/income-file" [] income/routes)
   (context "/licenses" [] licenses/routes)
+  (context "/metrics" [] metrics/routes)
   (context "/notes" [] notes/routes)
   (context "/properties" [] properties/routes))

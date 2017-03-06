@@ -291,3 +291,26 @@
 (s/fdef clientize
         :args (s/cat :account p/entity?)
         :ret (s/keys :req [:db/id :account/name]))
+
+;; =============================================================================
+;; Metrics
+;; =============================================================================
+
+(defn total-created
+  "Produce the number of accounts created between `pstart` and `pend`."
+  [db pstart pend]
+  (or (d/q '[:find (count ?e) .
+             :in $ ?pstart ?pend
+             :where
+             [?e :account/activation-hash _ ?tx] ; use for creation inst
+             [?tx :db/txInstant ?created]
+             [(.after ^java.util.Date ?created ?pstart)]
+             [(.before ^java.util.Date ?created ?pend)]]
+           db pstart pend)
+      0))
+
+(s/fdef total-created
+        :args (s/cat :db p/db?
+                     :period-start inst?
+                     :period-end inst?)
+        :ret integer?)

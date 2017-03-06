@@ -1,6 +1,7 @@
 (ns admin.subs
   (:require [re-frame.core :refer [reg-sub]]
             [admin.accounts.subs]
+            [admin.home.subs]
             [admin.licenses.subs]
             [admin.notes.subs]
             [admin.properties.subs]

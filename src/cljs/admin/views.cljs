@@ -1,6 +1,7 @@
 (ns admin.views
   (:require [admin.content :refer [app-content]]
             [admin.accounts.views]
+            [admin.home.views]
             [admin.properties.views]
             [admin.units.views]
             [ant-ui.core :as a]

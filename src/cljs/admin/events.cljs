@@ -1,5 +1,6 @@
 (ns admin.events
   (:require [admin.accounts.events]
+            [admin.home.events]
             [admin.licenses.events]
             [admin.notes.events]
             [admin.properties.events]
@@ -20,6 +21,7 @@
  :app/initialize
  (fn [_ _]
    {:db         db/default-value
+    :dispatch   [:home/initialize]
     :http-xhrio {:method          :get
                  :uri             "/api/v1/admin"
                  :response-format (ajax/transit-response-format)

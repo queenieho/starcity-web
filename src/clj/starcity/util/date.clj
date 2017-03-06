@@ -31,3 +31,9 @@
 (s/fdef beginning-of-day
         :args (s/cat :date inst?)
         :ret inst?)
+
+(def beginning-of-month
+  (comp c/to-date beginning-of-day t/first-day-of-the-month c/from-date))
+
+(def end-of-month
+  (comp c/to-date end-of-day t/last-day-of-the-month c/from-date))

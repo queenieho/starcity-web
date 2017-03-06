@@ -11,10 +11,11 @@
         (for [[link label] @definitions]
           ^{:key link} [a/breadcrumb-item [:a {:href link} label]]))])))
 
-(defn header [right]
-  [a/layout-header {:id "admin-content-header"}
-   [:div.columns
-    [:div.header-left.column
-     [breadcrumbs]]
-    [:div.header-right.column
-     right]]])
+(defn header [& [right]]
+  (let [right (or right [:div])]
+    [a/layout-header {:id "admin-content-header"}
+     [:div.columns
+      [:div.header-left.column
+       [breadcrumbs]]
+      [:div.header-right.column
+       right]]]))

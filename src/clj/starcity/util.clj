@@ -6,7 +6,7 @@
 
 (import-vars
  [starcity.util.date
-  is-first-day-of-month? end-of-day beginning-of-day]
+  beginning-of-month end-of-month is-first-day-of-month? end-of-day beginning-of-day]
  [starcity.util.async
   chan? <!!? <!? go-try])
 
