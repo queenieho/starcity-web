@@ -42,24 +42,6 @@
    (->> (d/q '[:find [?p ...] :where [?p :property/name _]] (d/db conn))
         (map (comp (partial clientize-property conn) (partial d/entity (d/db conn)))))})
 
-(comment
-
-  (property/total-rent
-   conn
-   (d/entity (d/db conn) [:property/internal-name "52gilbert"]))
-
-  (d/q '[:find ?m (?rate)
-         :in $ ?p
-         :where
-         [?p :property/units ?u]
-         [?m :member-license/unit ?u]
-         [?m :member-license/status :member-license.status/active]
-         [?m :member-license/rate ?rate]]
-       (d/db conn) [:property/internal-name "52gilbert"])
-
-  (overview conn)
-  )
-
 ;; =============================================================================
 ;; Entry
 
@@ -102,15 +84,6 @@
        :property/stripe-url (str dashboard-url
                                  (property/managed-account-id property)
                                  "/payments")})}))
-
-(comment
-  (let [property (d/entity (d/db conn) [:property/internal-name "2072mission"])]
-    (units conn property))
-
-  (let [unit (d/entity (d/db conn) [:unit/name "2072mission-1"])]
-    (unit/occupied-by conn unit))
-
-  )
 
 ;; =============================================================================
 ;; Update
@@ -156,23 +129,6 @@
                      []
                      params))
   {:result "ok"})
-
-(comment
-  (let [property (d/entity (d/db conn) [:property/internal-name "52gilbert"])]
-    (->> (update-ops-fee conn property 30.0)
-         first))
-
-  (let [property (d/entity (d/db conn) [:property/internal-name "52gilbert"])]
-    (update-ops-fee! conn property 25.0))
-
-  (let [property (d/entity (d/db conn) [:property/internal-name "52gilbert"])]
-    (:application_fee_percent (:body (sub/fetch "sub_9zbG4ycfe4VA1u"
-                                                :managed (property/managed-account-id property)))))
-
-  (let [property (d/entity (d/db conn) [:property/internal-name "52gilbert"])]
-    (property/units property))
-
-  )
 
 ;; =============================================================================
 ;; Fetch Units
@@ -228,21 +184,6 @@
   [conn unit-id]
   (let [unit (d/entity (d/db conn) unit-id)]
     {:result (clientize-unit-entry conn unit)}))
-
-
-(comment
-  #_(d/transact conn [{:db/id 285873023222893
-                       :unit/licenses
-                       [{:license-price/license (:db/id (license/by-term conn 1))
-                         :license-price/price   2500.0}
-                        {:license-price/license (:db/id (license/by-term conn 3))
-                         :license-price/price   2400.0}
-                        {:license-price/license (:db/id (license/by-term conn 6))
-                         :license-price/price   2200.0}
-                        {:license-price/license (:db/id (license/by-term conn 12))
-                         :license-price/price   2100.0}]}])
-
-  )
 
 ;; =============================================================================
 ;; Update License Price
