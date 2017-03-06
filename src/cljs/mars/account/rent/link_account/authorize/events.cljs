@@ -41,7 +41,6 @@
  :rent.link-account.authorize.submit/success
  [(path db/path)]
  (fn [{:keys [db]} [_ response]]
-   (l/log response)
    {:db                 (db/toggle-subscribing db)
     :alert.message/hide true
     :dispatch-n         [[:rent.autopay/fetch-status]
@@ -61,7 +60,7 @@
  :rent.link-account.authorize.submit/failure
  [(path db/path)]
  (fn [{:keys [db]} [_ error]]
-   (l/log error)
+   (l/error error)
    {:db                 (db/toggle-subscribing db)
     :alert.message/hide true
     :alert/notify       failure-notification}))

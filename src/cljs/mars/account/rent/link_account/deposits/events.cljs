@@ -94,7 +94,6 @@
  :autopay.send-bank-token/success
  [(path db/path)]
  (fn [{:keys [db]} [_ response]]
-   (l/log response)
    {:dispatch      [:rent.link-account.status/update (:status response)]
     :alert/message {:content "Success!"
                     :type    :success}}))

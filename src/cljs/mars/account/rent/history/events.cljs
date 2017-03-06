@@ -36,7 +36,6 @@
  :rent.history.fetch/success
  [(path db/path)]
  (fn [db [_ result]]
-   (l/log result)
    (db/fetch-success db result)))
 
 (reg-event-db

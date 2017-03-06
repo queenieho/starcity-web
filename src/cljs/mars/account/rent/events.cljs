@@ -254,7 +254,6 @@
  :rent.make-payment.pay/success
  [(path db/path)]
  (fn [{:keys [db]} [_ payment-id res]]
-   (l/log res)
    {:db                 (db/toggle-paying db)
     :dispatch-n         [[:rent.make-payment/toggle-show]
                          [:rent.history/set-pending-ach payment-id]]
@@ -288,7 +287,6 @@
  :rent.security-deposit.fetch/success
  [(path db/path)]
  (fn [db [_ result]]
-   (l/log "security deposit:" result)
    (db/set-security-deposit db (:result result))))
 
 (reg-event-db

@@ -128,7 +128,6 @@
  :rent.link-account.plaid.verify/failure
  [(path db/path)]
  (fn [{:keys [db]} [_ error]]
-   (l/log error)
    {:db                 (db/toggle-plaid-loading db)
     :alert.message/hide true
     :alert/notify       {:type    :error
