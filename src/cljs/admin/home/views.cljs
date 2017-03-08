@@ -1,10 +1,11 @@
 (ns admin.home.views
-  (:require [admin.content :refer [app-content]]
-            [ant-ui.core :as a]
+  (:require [admin.components.content :as c]
             [admin.components.header :as h]
-            [admin.components.content :as c]
+            [admin.content :refer [app-content]]
             [admin.util :as u]
-            [re-frame.core :refer [subscribe dispatch]]))
+            [ant-ui.core :as a]
+            [re-frame.core :refer [dispatch subscribe]]
+            [toolbelt.core :as tb]))
 
 (defn- date-val [data k]
   (when-let [d (get data k)] (u/date->input-format d)))
@@ -21,19 +22,20 @@
                      (.preventDefault %)
                      (dispatch [:home.metrics/update! @controls]))
        :style     {:margin-top 16}}
-      [:div.control
-       [:label.label "From"]
-       [a/input {:type      "date"
-                 :class     "ant-input"
-                 :value     (date-val @controls :from)
-                 :on-change (on-change :from)}]]
 
       [:div.control
-       [:label.label "To"]
-       [a/input {:type      "date"
-                 :class     "ant-input"
-                 :value     (date-val @controls :to)
-                 :on-change (on-change :to)}]]
+         [:label.label "From"]
+         [a/input {:type      "date"
+                   :class     "ant-input"
+                   :value     (date-val @controls :from)
+                   :on-change (on-change :from)}]]
+
+      [:div.control
+         [:label.label "To"]
+         [a/input {:type      "date"
+                   :class     "ant-input"
+                   :value     (date-val @controls :to)
+                   :on-change (on-change :to)}]]
 
       [:div.control
        [a/button

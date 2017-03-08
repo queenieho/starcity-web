@@ -7,15 +7,19 @@
             [admin.subs]
             [admin.routes :as routes]
             [admin.views :as views]
+            [ant-ui.core :as a]
             [ant-ui.fx]
-            [cljsjs.antd]
+            [ant-ui.locales :refer [en-US]]
             [reagent.core :as r]
             [toolbelt.re-frame.fx]))
 
 (enable-console-print!)
 
 (defn render []
-  (r/render [views/app] (gdom/getElement "app")))
+  (r/render
+   [a/locale-provider {:locale en-US}
+    [views/app]]
+   (gdom/getElement "app")))
 
 (defn ^:export run []
   (routes/hook-browser-navigation!)

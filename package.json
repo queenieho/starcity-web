@@ -21,7 +21,7 @@
   },
   "homepage": "https://joinstarcity.com",
   "dependencies": {
-    "antd": "^2.6.0",
+    "antd": "^2.8.0",
     "less-plugin-clean-css": "^1.5.1"
   }
 }
