@@ -65,7 +65,9 @@
 ;; Build Message
 
 (defn- ->channel [s]
-  (if (str/starts-with? s "#") s (str "#" s)))
+  (if (or (str/starts-with? s "#") (str/starts-with? s "@"))
+    s
+    (str "#" s)))
 
 (defn send
   [{:keys [channel username] :or {channel debug-channel}} msg & {:keys [uuid]}]
