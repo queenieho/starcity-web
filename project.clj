@@ -57,10 +57,11 @@
                  [prismatic/plumbing "0.5.3"]
                  [starcity/toolbelt "0.1.3" :exclusions [com.datomic/datomic-free]]
                  [enlive "1.1.6"]
-                 [hickory "0.7.0"]]
+                 [hickory "0.7.0"]
+                 [cljsjs/moment "2.17.1-0"]]
 
   :jvm-opts ["-server"
-             "-Xmx2g"
+             "-Xmx4g"
              "-XX:+UseCompressedOops"
              "-XX:+DoEscapeAnalysis"
              "-XX:+UseConcMarkSweepGC"]

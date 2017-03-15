@@ -114,9 +114,15 @@
 
 
   (context "/onboarding" []
-           (restrict onboarding/routes
-                     {:handler  {:and [authenticated-user (user-isa :account.role/onboarding)]}
-                      :on-error (fn [req _] (redirect-by-role req))}))
+           (restrict
+            (routes
+             (GET "*" [] onboarding/show))
+            {:handler  {:and [authenticated-user (user-isa :account.role/onboarding)]}
+             :on-error redirect-by-role})
+
+           #_(restrict onboarding/routes
+                       {:handler  {:and [authenticated-user (user-isa :account.role/onboarding)]}
+                        :on-error redirect-by-role}))
 
   (context "/api/v1" [] api/routes)
 

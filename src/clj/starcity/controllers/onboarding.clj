@@ -2,6 +2,7 @@
   (:require [bouncer
              [core :as b]
              [validators :as v]]
+            [starcity.config.stripe :refer [public-key]]
             [compojure.core :refer [context defroutes GET POST]]
             [datomic.api :as d]
             [ring.util.response :as response]
@@ -17,7 +18,10 @@
             [starcity.models.stripe.customer :as customer]
             [starcity.views.onboarding :as view]
             [starcity.web.messages :as msg :refer [respond-with-errors]]
-            [taoensso.timbre :as timbre]))
+            [taoensso.timbre :as timbre]
+            [starcity.views.page :as p]
+            [starcity.views.components.loading :as l]
+            [starcity.views.components.navbar :as n]))
 
 ;; =============================================================================
 ;; Helpers
@@ -311,3 +315,28 @@
                                    (view/pay-by-check))))))
 
                     (context "/ach" [] ach-routes))))
+
+;; =============================================================================
+;; NEW
+;; =============================================================================
+
+(def ^:private navbar
+  (n/navbar
+   false
+   (n/nav-item "/communities" "Communities")
+   (n/nav-item "/faq" "FAQ")
+   (n/nav-item "/about" "About")
+   (n/nav-button "/settings" "Account")))
+
+(def ^:private view
+  (p/app
+   "onboarding"
+   (p/title "Onboarding")
+   navbar
+   [:section#onboarding.section l/hero-section]
+   p/footer
+   (p/css "antd.css")
+   (p/json ["stripe" (fn [] {:key public-key})])))
+
+(def show
+  (comp ok view))

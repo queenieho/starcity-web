@@ -72,3 +72,6 @@
 
 (defn apply-repl []
   (ra/cljs-repl "apply"))
+
+(defn onboarding-repl []
+  (ra/cljs-repl "onboarding"))

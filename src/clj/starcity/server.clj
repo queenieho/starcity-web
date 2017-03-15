@@ -72,16 +72,17 @@
   ""
   {;;; Public Site JS
    "main.js"       ["/js/main.js"]
-   "tour.js"       ["/js/tour.js"]
+
    ;; TODO: Phase these out...
    "bank-info.js"  ["/js/jquery.validate.js"
                     "/js/bank-info.js"]
    "pay-by-ach.js" ["/js/pay-by-ach.js"]
 
    ;;; CLJS apps
-   "admin.js" ["/js/cljs/admin.js"]
-   "apply.js" ["/js/cljs/apply.js"]
-   "mars.js"  ["/js/cljs/mars.js"]
+   "admin.js"      ["/js/cljs/admin.js"]
+   "apply.js"      ["/js/cljs/apply.js"]
+   "mars.js"       ["/js/cljs/mars.js"]
+   "onboarding.js" ["/js/cljs/onboarding.js"]
 
    ;;; Styles
    "antd.css"   ["/assets/css/antd.css"]
