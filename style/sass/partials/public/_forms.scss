@@ -1,0 +1,45 @@
+input, select {
+  font-family: 'Work Sans', sans-serif;
+  border-radius: 50px;
+  border-width: 1px;
+  padding: 9px 24px 10px;
+  border-style: solid;
+  &::-webkit-input-placeholder {
+    font-family: 'Work Sans', sans-serif;
+  }
+}
+
+.input-large {
+  border-color: white;
+  background-color: transparent;
+  color: white;
+  &::-webkit-input-placeholder {
+    color: rgba(255,255,255,0.5);
+  }
+  &:focus {
+    outline: none;
+  }
+}
+
+.input-blue {
+  border-color: $blue;
+  background-color: white;
+  color: $black;
+  &::-webkit-input-placeholder {
+    color: $gray;
+  }
+  &:focus {
+    box-shadow: 0px 0px 80px rgba(17,134,201,0.2);
+  }
+}
+
+.input-joined {
+  border-radius: 50px 0 0 50px;
+  margin-top: -1px; 
+}
+
+@media screen and (min-width: 60em) {
+  input {
+    padding: 15px 30px 16px;
+  }
+}

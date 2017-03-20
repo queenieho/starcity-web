@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+<!-- HEADER (to inject "active") -->
+{% block header %}
+{% with active="lifestyle" %}{% include "partials/header.html" %}{% endwith %}
+{% endblock %}
+
+<!-- SVG -->
+{% block svg %}
+{% include "lifestyle/svg.html" %}
+{% endblock %}
+
+<!-- CONTENT -->
+{% block content %}
+<main class="overflow-hidden">
+  <section class="hero hero-lifestyle ph5-ns pv6 mb5-ns mb3 fade-in">
+    <h1 class="text-white tc w-50 w-80 w-100-m center">Live a more<br>
+      <span class="handwriting pt2 pb4 relative dib rotate-tilt">intentional
+        <svg class="sketch white left-3-ns top-2-ns top-0 left-0 nt1"> <use xlink:href="#line2" /></svg>
+      </span><br>
+      life</h1>
+  </section>
+  <section class="ph4 pv5-l pt5 pb0">
+    <div class="w-20-l w-100 tc center relative dn-l db nt6 pb6">
+      <svg class="sketch purple z-3 w3 top--4 rotate-120 dib-l dn"> <use xlink:href="#arrow1" /></svg>
+      <svg class="sketch green z-3 w4 right--3 nr4 dib-l dn"> <use xlink:href="#arrow2" /></svg>
+      <svg class="sketch purple z-3 w3 top-4 mt5 pt4 rotate-300 dib-l dn"> <use xlink:href="#arrow3" /></svg>
+      <svg class="sketch blue z-3 w4 left--4 top-4 nt2 dib-l dn"> <use xlink:href="#arrow4" /></svg>
+      <svg class="sketch yellow z-3 w3 left--1 top--4 mt4 ml2 rotate-90 dib-l dn"> <use xlink:href="#arrow5" /></svg>
+      <h2 class="text-yellow relative z-2">Our Values</h2>
+      <p class="relative z-2">We’ve set out to create a new constitution for living as a group. We resolve to form a more perfect union within our community and live by the following values.</p>
+    </div>
+    <div class="circle-container">
+      <div class="w-20-l w-100 mt5 mb0-l tc mb6">
+        <h3 class="handwriting f3 text-green relative">
+          <span class="relative">
+            <img src="assets/img/sketch-benevolent.png" class="absolute top--4 left-1 w4 mt3 ml3">
+            Be Benevolent
+          </span>
+        </h3>
+        <p>Every person has good in them. We understand that each of us has quirks and, sometimes, difficult days. So we listen and empathize. And we ask Starcity to see the best in people and treat everyone on an even playing field. The civility of the community is paramount. Kindness and a supportive environment makes us smile :) </p>
+      </div>
+      <div class="w-20-l w-100 mt5 mb0-l tc mb6">
+        <h3 class="handwriting f3 text-purple relative">
+          <span class="relative">
+            <img src="assets/img/sketch-fun1.png" class="absolute w3 top--2 left--3 ml2 transform-200">
+            Life<br> is Short
+            <img src="assets/img/sketch-fun2.png" class="absolute w3 ml3 nt4 transform-200 ff-dn">
+          </span>
+        </h3>
+        <p>Let's have a good time...</p>
+      </div>
+      <div class="w-20-l w-100 mt5 mb0-l tc mb6">
+        <h3 class="handwriting f3 text-blue relative pl4 ml2">
+          <span class="relative">
+            <img src="assets/img/sketch-transparency.png" class="absolute w4 left--4 top--2 ml3">
+            Transparency<br> with Privacy
+          </span>
+        </h3>
+        <p>Trust and honesty are the foundations of lasting relationships. We build trust within through clear communication. And we expect Starcity to be open about its policies and procedures, and hyper-responsible with our privacy.</p>
+      </div>
+
+      <div class="w-20-l w-100 mt5 mb0-l tc mb6">
+        <h3 class="handwriting f3 text-yellow">
+          <span class="relative">
+            <img src="assets/img/sketch-empower.png" class="absolute w4 left--3 top--3">
+            Empower<br>each other
+          </span>
+        </h3>
+        <p>We support one another by being nonjudgmental, staying curious and lending a helping hand. We honor local culture by supporting artists, chefs and vendors in the neighborhood. We expect Starcity to give us a safe space to pursue our dreams. </p>
+      </div>
+      <div class="w-20-l w-100 mt5 mb0-l tc mb6">
+        <h3 class="handwriting f3 text-purple">
+          <span class="relative">
+            <img src="assets/img/sketch-diversity.png" class="absolute w4 top--4 mt3 ml1">
+            Diversity<br>is Dynamic
+          </span>
+        </h3>
+        <p>We seek unbounded perspectives. We ask ourselves and Starcity to invite in members that are open-minded, come from different backgrounds, and have varying interests and perspectives. The result is a more interesting life.</p>
+      </div>
+      <div class="w-20-l w-100 tc center relative db-l dn">
+        <svg class="sketch purple z-3 w3 top--4 rotate-120 dib-l dn"> <use xlink:href="#arrow1" /></svg>
+        <svg class="sketch green z-3 w4 right--3 nr4 dib-l dn"> <use xlink:href="#arrow2" /></svg>
+        <svg class="sketch purple z-3 w3 top-4 mt5 pt4 rotate-300 dib-l dn"> <use xlink:href="#arrow3" /></svg>
+        <svg class="sketch blue z-3 w4 left--4 top-4 nt2 dib-l dn"> <use xlink:href="#arrow4" /></svg>
+        <svg class="sketch yellow z-3 w3 left--1 top--4 mt4 ml2 rotate-90 dib-l dn"> <use xlink:href="#arrow5" /></svg>
+        <h2 class="text-yellow relative z-2">Our Values</h2>
+        <p class="relative z-2">We’ve set out to create a new constitution for living as a group. We resolve to form a more perfect union within our community and live by the following values.</p>
+        <div class="absolute top-0 left-50 w-100-l w-50-m w-80 nt4">
+          <img src="assets/img/circle-watercolor-yellow.jpg" class="relative z-0 left--50">
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="relative">
+    <section class="ph5-ns db-l dn pt6 mw center">
+      <div class="watercolor watercolor-purple absolute right-0 w-100 z-999 mt6"></div>
+      <h2 class="text-purple tc pb4"><span class="handwriting">Starcity</span> vs. The Old way</h2>
+      <table border="0" cellpadding="0" cellspacing="0" class="table-comparison mw center relative">
+        <tr>
+          <th class="w4"></th>
+          <th class="ttu text-gray f6 pt5">Shared Apartment</th>
+          <th class="ttu text-gray f6 pt5 pr3">Studio/1 Bedroom</th>
+          <th class="ttu text-purple handwriting f3 ph4 shadow-top relative z-0 pt5">
+            Starcity
+            <svg class="sketch purple w4 top-2 left-4"> <use xlink:href="#line3" /></svg>
+          </th>
+        </tr>
+        <tr>
+          <td class="ttu text-gray fwb f6 pv4">Rent</td>
+          <td class="tc pv4 ph4">$1,500 - $1,600</td>
+          <td class="tc pv4 pl4 pr5">~$3,000</td>
+          <td class="tc fwb pv4 ph5 shadow relative z-2">$1,600</td>
+        </tr>
+        <tr>
+          <td class="ttu text-gray fwb f6 pv4">WiFi</td>
+          <td class="tc pv4 ph4">Steal the neighbor's...</td>
+          <td class="tc pt4 pl4 pr5">"Please be at home between 10am and 4pm."</td>
+          <td class="tc fwb pv4 ph5 shadow">Enterprise-grade, super-fast, stream all day</td>
+        </tr>
+        <tr>
+          <td class="ttu text-gray fwb f6 pv4">Cleaning Services</td>
+          <td class="tc pv4 ph4">What?! Or DIY.</td>
+          <td class="tc pt4 pl4 pr5">Try to book unreliable cleaning startup</td>
+          <td class="tc fwb pv4 ph5 shadow">2-3 times a week</td>
+        </tr>
+        <tr>
+          <td class="ttu text-gray fwb f6 pv4">Utilities</td>
+          <td class="tc pv4 ph4">Collect $$ from your roommates. Pay for other people’s long showers...</td>
+          <td class="tc pt4 pl4 pr5">Call PG&amp;E, SF Water, and Recology to set up services. Pay monthly.</td>
+          <td class="tc fwb pv4 ph5 shadow">Don’t think about it. We have you covered!</td>
+        </tr>
+        <tr>
+          <td class="ttu text-gray fwb f6 pv4">Furniture</td>
+          <td class="tc pv4 ph4">IKEA. Ugh...</td>
+          <td class="tc pt4 pl4 pr5">Spend thousands of dollars to get set up</td>
+          <td class="tc fwb pv4 ph5 shadow">Fully-equipped with high end, well-designed, functional furniture!</td>
+        </tr>
+        <tr>
+          <td class="ttu text-gray fwb f6 pv4">Community Events</td>
+          <td class="tc pv4 ph4">Maybe?</td>
+          <td class="tc pt4 pl4 pr5">Just another lonely Friday night with Netflix</td>
+          <td class="tc fwb pv4 ph5 shadow">Yes! Opt-in to dinners, weekend outings, volunteer opportunities and more.</td>
+        </tr>
+        <tr>
+          <td class="ttu text-gray fwb f6 pv4">House Concierge</td>
+          <td class="tc pv4 ph4">Ha!</td>
+          <td class="tc pt4 pl4 pr5">Nope</td>
+          <td class="tc fwb pv4 ph5 shadow">Each home has a Starcity team member that allows you to focus on you.</td>
+        </tr>
+        <tr>
+          <td class="ttu text-gray fwb f6 pt4"pb5 >Access to Multiple Homes</td>
+          <td class="tc pt4 pb5 ph4">Nope</td>
+          <td class="tc pt4 pb5 pl4 pr5">Nope</td>
+          <td class="tc fwb pt4 pb5 ph5 shadow">Kick back in a different part of town.</td>
+        </tr>
+        <tr>
+          <td class="border-top ttu text-gray fwb f6 pv5">Total</td>
+          <td class="border-top tc fwb pv5 ph4">$1,700 - $1,800</td>
+          <td class="border-top tc fwb pv5 pl4 pr5">~$4,000</td>
+          <td class="border-top tc fwb text-purple pv5 ph4 shadow-bottom">$2,000 - $2,100</td>
+        </tr>
+      </table>
+    </section>
+  </section>
+  <section class="cf ph4-ns pt5-l pt0 mw center tl-l tc">
+    <div class="fl w-third-l w-100 ph4 pv3">
+      <img src="assets/img/sketch-room.png" class="w-50 w-40-m pv3">
+      <h4>Private room and spacious living rooms</h4>
+      <p>Communal living only works when you can opt into the community aspects on your terms. We invite introverts, extroverts and everyone in between to join. Your room is your sanctuary.</p>
+    </div>
+    <div class="fl w-third-l w-100 ph4 pv3">
+      <img src="assets/img/sketch-wifi.png" class="w-50 w-40-m pv3 nl3">
+      <h4>Ultra fast WiFi</h4>
+      <p>Our enterprise-grade internet is always on and achieves 100Mbs per user. No more buffering, no more dead spots, you can stream to your heart’s content. </p>
+    </div>
+    <div class="fl w-third-l w-100 ph4 pv3">
+      <img src="assets/img/sketch-utilities.png" class="w-50 w-40-m pv3 nl3">
+      <h4>All Utilities</h4>
+      <p>We pay the bills. No envelopes or stamps. We’ll event take out the trash and recycle.</p>
+    </div>
+  </section>
+  <section class="cf ph4-ns pb6-ns pb5 mw center tl-l tc">
+    <div class="fl w-third-l w-100 ph4 pv3">
+      <img src="assets/img/sketch-cleaning.png" class="w-50 w-40-m pv3 nl4">
+      <h4>Weekly Cleaning</h4>
+      <p>Yes that’s right! All the shared spaces are cleaned regularly by a professional cleaning service. Room cleans are available upon request as part of a premium package for those who like things extra tidy. We get a great rate since we'll have onsite cleaning staff each week.</p>
+    </div>
+    <div class="fl w-third-l w-100 ph4 pv3">
+      <img src="assets/img/sketch-laundry.png" class="w-50 w-40-m pv3 nl2">
+      <h4>Fully-furnished spaces, intentionally designed</h4>
+      <p>We build our homes with comfort and durability in mind. We think people are interesting and the design of our homes should be too. Simply move in with a suitcase!</p>
+      <p>An authentic and collaborative living experience without a hassle. ‘Nuff said. </p>
+    </div>
+  </section>
+  <section class="cf ph4 pv4-ns mw center">
+    <div class="w-40 w-80 w-80-m center tc pb5-l pb4">
+      <h2 class="text-blue">Meet Our Members</h2>
+    </div>
+    <div class="cf pb4">
+      <div class="fl w-third-l w-100 ph4-ns ph2 pv4 tc">
+        <img src="assets/img/bio-jon.jpg" class="mask mask-circle1 w-60 w-70-l w-30-m center tc br-100 dib nt4" alt="avatar">
+        <h3 class="text-green handwriting mb0">Migerta</h3>
+        <h4 class="mt2">Sommelier</h4>
+        <p>&ldquo;I moved to San Francisco in search of work and play. I love Starcity because I have a dope kitchen, the people are fun and they take good care of me.&rdquo;</p>
+      </div>
+      <div class="fl w-third-l w-100 ph4-ns ph2 pv4 tc">
+        <img src="assets/img/bio-jon.jpg" class="mask mask-circle2 w-60 w-70-l w-30-m center tc br-100 dib nt4" alt="avatar">
+        <h3 class="text-blue handwriting mb0">Eduardo</h3>
+        <h4 class="mt2">Retired</h4>
+        <p>&ldquo;Starcity is good hombres.&rdquo;</p>
+      </div>
+      <div class="fl w-third-l w-100 ph4-ns ph2 pv4 tc">
+        <img src="assets/img/bio-jon.jpg" class="mask mask-circle3 w-60 w-70-l w-30-m center tc br-100 dib nt4" alt="avatar">
+        <h3 class="text-purple handwriting mb0">Chris</h3>
+        <h4 class="mt2">Finance</h4>
+        <p>&ldquo;I am very bullish on Starcity after testing the product and spending more time with the team.&rdquo;</p>
+      </div>
+    </div>
+    <div class="cf w-two-thirds-l w-100 center pb6">
+      <div class="fl w-50-l w-100 ph4-ns ph2 pv4 tc">
+        <img src="assets/img/bio-jon.jpg" class="mask mask-circle3 w-60 w-70-l w-30-m center tc br-100 dib nt4" alt="avatar">
+        <h3 class="text-green handwriting mb0">Alexa</h3>
+        <h4 class="mt2">Molecular Biologist</h4>
+        <p>&ldquo;I am completely sold on the whole modern cohousing model. I am so excited.&rdquo;</p>
+      </div>
+      <div class="fl w-50-l w-100 ph4-ns ph2 pv4 tc">
+        <img src="assets/img/bio-jon.jpg" class="mask mask-circle2 w-60 w-70-l w-30-m center tc br-100 dib nt4" alt="avatar">
+        <h3 class="text-blue handwriting mb0">Milhouse Van Houten</h3>
+        <h4 class="mt2">Kid</h4>
+        <p>&ldquo;Everything's coming up Milhouse!&rdquo;</p>
+      </div>
+    </div>
+  </section>
+  <section class="tc pv5 hero hero-join2">
+    <h1 class="text-white w-30-l w-90 center mb0">
+      <span class="relative dib">
+        <svg class="sketch white w2 top--3 right-1-l right--2"> <use xlink:href="#curl" /></svg>
+        <svg class="sketch white w3 left--3-l left--3 top--1-l top--2 rotate-240"> <use xlink:href="#hair" /></svg>
+        <svg class="sketch white w2 left--2-l top-3-l left--1 top-2"> <use xlink:href="#asterisks" /></svg>
+        <svg class="sketch white w2 top--3 right--2-l right-0"> <use xlink:href="#asterisks2" /></svg>
+        Join<br>Starcity
+      </span>
+    </h1>
+    <p class="text-white lead w-30-l w-90 center mb4">Become a part of our community. Take the first step by scheduling a tour.</p>
+    <a href="schedule-tour.html" class="button button-white dib mb4"><span class="text-black">Schedule a Tour</span></a>
+  </section>
+</main>
+{% endblock %}

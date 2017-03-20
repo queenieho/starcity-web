@@ -1,0 +1,99 @@
+$h1-font-size: 5rem !default;
+$h2-font-size: 2rem !default;
+$h4-font-size: .75rem !default;
+$p-font-size: 1rem !default;
+$headline-line-height: 1 !default;
+$p-line-height: 1.5 !default;
+$lead-font-size: 1.2rem !default;
+
+
+.serif {
+  font-family: 'Eczar', serif;
+}
+.handwriting {
+  font-family: 'Caveat', cursive;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.sans-serif {
+  font-family: 'Work Sans', sans-serif;
+}
+
+.fwb {
+  font-weight: 600;
+}
+
+
+body {
+  color: $black;
+  font-family: 'Work Sans', sans-serif;
+}
+
+h1, h2 {
+  font-family: 'Eczar', serif;
+  line-height: $headline-line-height;
+  font-weight: 600;
+}
+
+h1 {
+  font-size: 3rem;
+}
+
+@media screen and (min-width: 30em) {
+  h1 { font-size: $h1-font-size; }
+}
+
+h2 {
+  font-size: $h2-font-size;
+}
+
+h4 {
+  font-size: $h4-font-size;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: $gray;
+}
+
+p {
+  line-height: $p-line-height;
+  font-size: $p-font-size;
+  &.lead {
+    font-size: $lead-font-size;
+  }
+}
+
+a {
+  color: $blue;
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
+  &.no-hover:hover {
+    text-decoration: none;
+  }
+}
+
+blockquote {
+  line-height: 1.5;
+  border-left: solid 2px lighten($gray, 30%);
+  margin: 4rem 0;
+}
+
+.has-quote{
+  position: relative;
+  &:before {
+    content: "“";
+    position: absolute;
+    left: -5rem;
+    opacity: 0.3;
+    font-size: 8rem;
+  }
+}
+
+.legal {
+  li {
+    line-height: $p-line-height;
+    font-size: $p-font-size;
+  }
+}

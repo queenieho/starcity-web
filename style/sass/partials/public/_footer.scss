@@ -1,0 +1,22 @@
+footer {
+	background-color: $blue;
+  color: white;
+}
+
+.footer-nav {
+  font-size: 0.75rem;
+  font-weight: 600;
+  li {
+    margin-bottom: 1rem;
+  }
+  a {
+    text-decoration: none;
+    color: white;
+    opacity: .6;
+    transition: all 200ms;
+    -webkit-transition: all 200ms;
+    &:hover {
+      opacity: 1;
+    }
+  }
+}

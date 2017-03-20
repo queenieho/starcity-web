@@ -1,0 +1,37 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <title>Starcity &mdash; Reimagine Home</title>
+    <meta name="author" content="">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% for stylesheet in head.stylesheets %}
+    <link href="{{stylesheet}}" rel="stylesheet" type="text/css" media="screen, projection"/>
+    {% endfor %}
+    {% block fonts %}
+    <link href="https://fonts.googleapis.com/css?family=Caveat|Eczar:700|Work+Sans:400,600" rel="stylesheet">
+    {% endblock %}
+    <!-- <link href="stylesheets/ie.css" media="screen, projection" rel="stylesheet" type="text/css" /> -->
+  </head>
+  <body>
+    {% block svg %}
+    {% endblock %}
+
+    {% block header %}
+    {% include "partials/header.html" %}
+    {% endblock %}
+
+    {% block content %}
+    {% endblock %}
+
+    {% block footer %}
+    {% include "partials/footer.html" %}
+    {% endblock %}
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    {% for script in scripts %}
+    <script type="text/javascript" src="{{script}}"></script>
+    {% endfor %}
+  </body>
+</html>

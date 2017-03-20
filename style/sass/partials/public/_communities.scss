@@ -1,0 +1,32 @@
+.community-link {
+  transition: all 500ms;
+  &.soma {
+    background-image: linear-gradient(rgba(0, 0, 0, 0.50), rgba(0, 0, 0, 0.50)), url(../img/hero-soma.jpg);
+    &:hover {
+      background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url(../img/hero-soma.jpg);
+    }
+  }
+  &.mission {
+    background-image: linear-gradient(rgba(0, 0, 0, 0.50), rgba(0, 0, 0, 0.50)), url(../img/hero-mission.jpg);
+    &:hover {
+      background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url(../img/hero-mission.jpg);
+    }
+  }
+}
+
+.soma-font {
+  font-family: 'Vast Shadow', sans-serif;
+  text-transform: uppercase;
+  font-weight: normal;
+  line-height: 0.9;
+}
+
+.mission-font {
+  font-family: 'Rock Salt', sans-serif;
+  text-transform: uppercase;
+  font-weight: normal;
+}
+
+.border-left {
+  border-left: solid 2px lighten($gray, 30%);
+}

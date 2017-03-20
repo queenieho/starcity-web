@@ -1,13 +1,9 @@
 (ns starcity.controllers.landing
   (:require [ring.util.response :as response]
-            [starcity.controllers.utils :refer :all]
+            [selmer.parser :as selmer]
             [starcity.services.mailchimp :as mailchimp]
-            [starcity.views.landing :as view]
+            [starcity.views.common :refer [public-defaults]]
             [taoensso.timbre :as timbre]))
-
-;; =============================================================================
-;; Helpers
-;; =============================================================================
 
 (defn- log-subscriber-request
   [email {:keys [status body]}]
@@ -16,10 +12,6 @@
 (def ^:private url-after-newsletter-signup
   "/?newsletter=subscribed#newsletter")
 
-;; =============================================================================
-;; API
-;; =============================================================================
-
 (defn newsletter-signup [{:keys [params] :as req}]
   (if-let [email (:email params)]
     (do
@@ -27,5 +19,7 @@
       (response/redirect url-after-newsletter-signup))
     (response/redirect "/")))
 
-(def show-landing
-  (comp ok view/landing))
+(defn show
+  "Show the landing page."
+  [req]
+  (selmer/render-file "landing.html" (public-defaults req)))

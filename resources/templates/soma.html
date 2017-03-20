@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block fonts %}
+<link href="https://fonts.googleapis.com/css?family=Caveat|Eczar:700|Work+Sans:400,600|Vast+Shadow" rel="stylesheet">
+{% endblock %}
+
+<!-- SVG -->
+{% block svg %}
+{% include "soma/svg.html" %}
+{% endblock %}
+
+<!-- HEADER (to inject "active") -->
+{% block header %}
+{% with active="communities" %}{% include "partials/header.html" %}{% endwith %}
+{% endblock %}
+
+<!-- CONTENT -->
+{% block content %}
+<main class="overflow-hidden">
+  <section class="hero hero-community hero-soma pv6-l pb4 pt6 relative overflow-hidden fade-in">
+    <h1 class="soma-font text-white f-6-l f1 tc w-50-ns w-80 center mb4">West<br>SoMa</h1>
+    <p class="lead text-white tc w-50-ns w-80 center">From $1,600 to $2,100 a month</p>
+    <svg class="sketch white transform-300 right--3 db-l dn"> <use xlink:href="#texture-lines" /></svg>
+    <img class="absolute bottom-0 w-100" src="/assets/img/bg-watercolor-white.png">
+  </section>
+  <section class="cf ph4-ns pv4-ns">
+    <div class="w-40-ns w-80 w-80-m center tc pt4">
+      <h2 class="text-blue">Our first community in the SoMa neighborhood</h2>
+    </div>
+    <div class="w-50-l w-70-m w-90 center tc handwriting pv4">
+      <div class="fl w-third text-green f3">
+        <span class="relative">
+          <svg class="sketch green w2 top--3 left--2 nt2"> <use xlink:href="#stars" /></svg>
+          Safe
+          <svg class="sketch green w1 top--2 right--2 nt3"> <use xlink:href="#curl" /></svg>
+        </span>
+      </div>
+      <div class="fl w-third text-yellow f3">
+        <span class="relative">
+          <svg class="sketch yellow w4 top--3 left--2 mt1 ml2"> <use xlink:href="#burst2" /></svg>
+          Quiet
+        </span>
+      </div>
+      <div class="fl w-third text-purple f3">
+        <span class="relative">
+          <svg class="sketch purple w4 top--3 right--3 nr4 nt2"> <use xlink:href="#texture-dots" /></svg>
+          Diverse
+        </span>
+      </div>
+    </div>
+    <div class="w-40-ns w-80 w-80-m center tc pv4 relative z-3">
+      <p>This community is equipped with the latest smart-home technology, and brand new, fully-furnished rooms with warmth and personality. Every private room comes with all of the essentials — queen bed, wardrobe, sink and high ceilings with plenty of natural light.</p>
+    </div>
+  </section>
+  <section class="relative">
+    <div class="watercolor watercolor-blue4 absolute top-0 left-0 w-100 z-0 nt6"></div>
+    <div class="cf ph4-ns pt5-ns mw center relative z-3">
+      <div class="fl w-two-thirds-l w-100 ph4 pb3">
+        <img src="https://unsplash.it/900/450/?random">
+      </div>
+      <div class="fl w-third-l w-100 ph4 pb5-l pb3">
+        <img src="https://unsplash.it/1000/446/?random">
+      </div>
+      <div class="fl w-third-l w-100 ph4 pb3">
+        <img src="https://unsplash.it/1000/446/?random">
+      </div>
+    </div>
+    <div class="watercolor watercolor-blue5 absolute w-100 z-0 nt5"></div>
+  </section>
+  <section class="cf ph4-ns pv4-ns mw center relative z-2">
+    <div class="fl w-third-l w-100 ph4 pb3">
+      <img src="https://unsplash.it/800/600/?random">
+      <p>Open your door with your phone — each room is equipped with an August Lock, giving you full control and security.</p>
+    </div>
+    <div class="fl w-third-l w-100 ph4 pb3">
+      <img src="https://unsplash.it/800x/1000/?random">
+      <p>A spacious, open, state-of-the-art kitchen is the focal point of the home. With top-of-the-line appliances, polished concrete floors, and copious amounts of storage, the kitchen is accessible to both the amateur and professional foodie.</p>
+    </div>
+    <div class="fl w-third-l w-100 ph4 pb3">
+      <img src="https://unsplash.it/800/600/?random">
+      <p>Each room is designed with care to have its own unique look and feel that fits the character of the home and the eclectic SoMa neighborhood.</p>
+    </div>
+  </section>
+  <section class="cf ph4-ns pv5 tc mw center">
+    <h4 class="pv5-l pv3">Events at West SoMa</h4>
+    <div class="tc fl w-third-l w-100 ph4 pb3 relative">
+      <h3 class="handwriting text-green relative z-999">January</h3>
+      <p class="w-90 center relative z-999">Special thanks to three Michelin-star Brian Limoges Executive Sous Chef at <a href="" class="fwb text-black">Quince</a> for cooking our members a delicious dinner. A true gentleman and an excellent host.</p>
+      <svg class="sketch green z-1 left-0 nl5 db-l dn"> <use xlink:href="#texture-dots2" /></svg>
+      <div class="absolute top-0 left-50 w-70 nt4 dib-l dn">
+        <img src="/assets/img/circle-watercolor-green.jpg" class="relative z-0 left--50">
+      </div>
+    </div>
+    <div class="tc fl w-third-l w-100 ph4 pb3 relative">
+      <h3 class="handwriting text-purple relative z-999">February</h3>
+      <p class="w-90 center relative z-999">Wine club featured a great selection of red blends from the pacific Northwest. </p>
+      <svg class="sketch purple z-1 top--3 left-4 db-l dn"> <use xlink:href="#texture-brick" /></svg>
+      <div class="absolute top-0 left-50 w-70 nt4 dib-l dn">
+        <img src="/assets/img/circle-watercolor-purple.jpg" class="relative z-0 left--50">
+      </div>
+    </div>
+    <div class="tc fl w-third-l w-100 ph4 pb3 relative">
+      <h3 class="handwriting text-blue relative z-999">March</h3>
+      <p class="w-90 center relative z-999">Member offsite bowling night. </p>
+      <svg class="sketch blue z-1 left-0 db-l dn"> <use xlink:href="#texture-lines3" /></svg>
+      <div class="absolute top-0 left-50 w-70 nt4 dib-l dn">
+        <img src="/assets/img/circle-watercolor-blue.jpg" class="relative z-0 left--50">
+      </div>
+    </div>
+  </section>
+  <div class="relative">
+    <section class="relative pt6-l">
+      <div class="cf ph4-ns pt6-ns mw center relative z-2">
+        <div class="fl w-third-l w-100 ph4 pb3-l">
+          <h2 class="text-blue">The Hood</h2>
+        </div>
+        <div class="fl w-50-l w-100 ph4 pb3">
+          <p>Live in a neighborhood that is constantly evolving and growing. SoMa has grown from an industrial manufacturing hub to the headquarters of some of the most innovative companies in the world. </p>
+          <p>The character of the factories from the past has created a lasting aesthetic in the neighborhood lending to its raw and earthy streetscapes. Many of the production facilities still remain intact as the "maker culture" has made its resurgence.</p>
+        </div>
+      </div>
+      <div class="watercolor watercolor-blue3 absolute top-0 w-100 z-1"></div>
+    </section>
+
+    <section class="relative">
+      <div class="cf ph4-ns pt5-ns mw center relative z-2">
+        <svg class="sketch white z-999 transform-200 top-4 mt6"> <use xlink:href="#texture-lines2" /></svg>
+        <svg class="sketch white z-999 transform-150 right-0 top-4"> <use xlink:href="#texture-dots3" /></svg>
+        <div class="fl w-two-thirds-l w-100 ph4 pb3">
+          <img src="https://unsplash.it/900/450/?random">
+        </div>
+        <div class="fl w-third-l w-100 ph4 pb5-l pb3">
+          <img src="https://unsplash.it/1000/446/?random">
+        </div>
+        <div class="fl w-third-l w-100 ph4 pb3">
+          <img src="https://unsplash.it/1000/446/?random">
+        </div>
+      </div>
+      <div class="cf ph4-ns pt4-ns pb6-ns mw center relative z-2">
+        <div class="fl w-third-l w-100 ph4 pb3">
+          <img src="https://unsplash.it/800/600/?random">
+        </div>
+        <div class="fl w-third-l w-100 ph4 pb3">
+          <img src="https://unsplash.it/800/600/?random">
+        </div>
+        <div class="fl w-third-l w-100 ph4 pb3">
+          <img src="https://unsplash.it/800/600/?random">
+        </div>
+      </div>
+    </section>
+
+    <section class="cf ph4-ns pv4-ns relative z-2">
+      <div class="cf w-40-ns w-80 center tc pt4">
+        <h2 class="text-purple">What’s the best thing about living in <span class="handwriting">Soma?</span></h2>
+      </div>
+    </section>
+    <section class="cf ph4-ns pt4-ns mw center relative z-2">
+      <div class="w-third-l w-100 w-90-m fl ph4 mb4-l mb5">
+        <div class="w-30-ns fl pr3 pb3 tr-m">
+          <span class="relative dib">
+            <svg class="sketch blue w3 nl2"> <use xlink:href="#texture-boxes" /></svg>
+            <img src="http://unsplash.it/80/80/?random" class="br-100">
+          </span>
+        </div>
+        <div class="w-70-ns fl border-left pl3">
+          <p class="mt0">It’s close to <span class="handwriting">EVERYTHING</span> and transportation is the best in the city. You’re always a stone’s throw from a delicious restaurant or cool bar. Out partying? Home is just a short walk away.</p>
+          <p class="handwriting text-blue mb1">Josh</p>
+          <h4 class="mt0">Starcity Member</h4>
+        </div>
+      </div>
+      <div class="w-third-l w-100 w-90-m fl ph4 mb4-l mb5">
+        <div class="w-30-ns fl pr3 pb3 tr-m">
+          <span class="relative dib">
+            <svg class="sketch purple w3 top--3 right--2"> <use xlink:href="#curl3" /></svg>
+            <img src="http://unsplash.it/80/80/?random" class="br-100">
+          </span>
+        </div>
+        <div class="w-70-ns fl border-left pl3">
+          <p class="mt0">Ever been to <span class="handwriting">Folsom Street Fair? </span>You're in for a treat...and then some.</p>
+          <p class="handwriting text-purple mb1">Cheryl</p>
+          <h4 class="mt0">Owner, Citizen's Band</h4>
+        </div>
+      </div>
+      <div class="w-third-l w-100 w-90-m fl ph4 mb4-l mb5">
+        <div class="w-30-ns fl pr3 pb3 tr-m">
+          <span class="relative dib">
+            <svg class="sketch green w2 top--3"> <use xlink:href="#squiggle-triple" /></svg>
+            <img src="http://unsplash.it/80/80/?random" class="br-100">
+          </span>
+        </div>
+        <div class="w-70-ns fl border-left pl3">
+          <p class="mt0">I like that it’s close to work, and that it’s in a <span class="handwriting">safe</span> part of the city. It’s nice to come home to a quiet place after a long day at the office!</p>
+          <p class="handwriting text-green mb1">Ashley</p>
+          <h4 class="mt0">Engineer</h4>
+        </div>
+      </div>
+    </section>
+    <section class="cf ph4-ns pt4-l pb6-ns w-60-l w-100 center relative z-2">
+      <div class="w-50-l w-100 w-90-m fl ph4 mb4-l mb5">
+        <div class="w-30-ns fl pr3 pb3 tr-m">
+          <span class="relative dib">
+            <svg class="sketch yellow w4 left--2 top--1"> <use xlink:href="#line-triple" /></svg>
+            <img src="http://unsplash.it/80/80/?random/" class="br-100">
+          </span>
+        </div>
+        <div class="w-70-ns fl border-left pl3">
+          <p class="mt0">Three words. <span class="handwriting">Two-minute commute.</span></p>
+          <p class="handwriting text-yellow mb1">Strahan</p>
+          <h4 class="mt0">Starcity Member</h4>
+        </div>
+      </div>
+      <div class="w-50-l w-100 w-90-m fl ph4 mb4-l mb5">
+        <div class="w-30-ns fl pr3 pb3 tr-m">
+          <span class="relative dib">
+            <svg class="sketch blue w2 top--3 rotate-330 left--1"> <use xlink:href="#hair2" /></svg>
+            <img src="http://unsplash.it/80/80/?random" class="br-100">
+          </span>
+        </div>
+        <div class="w-70-ns fl border-left pl3">
+          <p class="mt0">It’s close to <span class="handwriting">EVERYTHING</span> and transportation is the best in the city. You’re always a stone’s throw from a delicious restaurant or cool bar. Out partying? Home is just a short walk away.</p>
+          <p class="handwriting text-blue mb1">Josh</p>
+          <h4 class="mt0">Starcity Member</h4>
+        </div>
+      </div>
+    </section>
+    <div class="map map-soma absolute w-100 z-0 bottom-0 right-0"></div>
+  </div>
+  <section class="tc pv5 hero hero-join3">
+    <h1 class="text-white w-30-l w-90 center mb0">
+      <span class="relative dib">
+        <svg class="sketch white w2 top--3 right-1-l right--2"> <use xlink:href="#curl" /></svg>
+        <svg class="sketch white w3 left--3-l left--3 top--1-l top--2 rotate-240"> <use xlink:href="#hair" /></svg>
+        <svg class="sketch white w2 left--2-l top-3-l left--1 top-2"> <use xlink:href="#asterisks" /></svg>
+        <svg class="sketch white w2 top--3 right--2-l right-0"> <use xlink:href="#asterisks2" /></svg>
+        Join<br>Starcity
+      </span>
+    </h1>
+    <p class="text-white lead w-30-l w-90 center mb4">Become a part of our community. Take the first step by scheduling a tour.</p>
+    <a href="schedule-tour.html" class="button button-white dib mb4"><span class="text-black">Schedule a Tour</span></a>
+  </section>
+</main>
+{% endblock %}

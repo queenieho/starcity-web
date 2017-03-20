@@ -1,0 +1,26 @@
+$black: #2e2b2c !default;
+$gray: #8e8e8e !default;
+$blue: #1186c9 !default;
+$green: #11c956 !default;
+$yellow: #ffb736 !default;
+$purple: #b121d5 !default;
+$dark-blue: #0f6697 !default;
+$dark-green: #388956 !default;
+$dark-yellow: #ca8d1f !default;
+$dark-purple: #811a9b !default;
+
+.text-black  { color: $black; }
+.text-white  { color: white; }
+.text-gray   { color: $gray; }
+.text-blue   { color: $blue; }
+.text-green  { color: $green; }
+.text-yellow { color: $yellow; }
+.text-purple { color: $purple; }
+
+.bg-black { background-color: $black; }
+.bg-white  { background-color: white; }
+.bg-gray   { background-color: $gray; }
+.bg-blue { background-color: $blue; }
+.bg-green  { background-color: $green; }
+.bg-yellow { background-color: $yellow; }
+.bg-purple { background-color: $purple; }

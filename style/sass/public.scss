@@ -1,0 +1,26 @@
+/* Specifies the styles for our public-facing styles. At present, we use
+different styling for our internal products. */
+
+//  Vendor
+@import "vendor/tachyons/tachyons.scss";
+@import "vendor/mixin-circle.scss";
+
+
+//  Global Styles
+@import "partials/public/_animations.scss";
+@import "partials/public/_colors.scss";
+@import "partials/public/_typography.scss";
+@import "partials/public/_images.scss";
+
+
+//  Components
+@import "partials/public/_button.scss";
+@import "partials/public/_communities.scss";
+@import "partials/public/_dropdown.scss";
+@import "partials/public/_navigation.scss";
+@import "partials/public/_hero.scss";
+@import "partials/public/_footer.scss";
+@import "partials/public/_forms.scss";
+@import "partials/public/_map.scss";
+@import "partials/public/_sketch.scss";
+@import "partials/public/_table.scss";

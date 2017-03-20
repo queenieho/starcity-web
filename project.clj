@@ -19,7 +19,8 @@
                  [cheshire "5.6.3"]
                  [ring/ring "1.5.0"]
                  [ring-middleware-format "0.7.2"]
-                 [hiccup "1.0.5"]
+                 [hiccup "1.0.5"]       ; TODO: remove
+                 [selmer "1.10.6"]
                  [buddy "1.1.0"]
                  [bouncer "1.0.0"]
                  [optimus "0.19.1"]
@@ -80,7 +81,8 @@
 
   :clean-targets ^{:protect false} ["resources/public/js/cljs" :target-path]
 
-  :cooper {"sass" ["sass" "--watch" "-E" "UTF-8" "style/sass/main.sass:resources/public/assets/css/starcity.css"]
-           "antd" ["less-watch-compiler" "style/less" "resources/public/assets/css/"]}
+  :cooper {"internal" ["sass" "--watch" "-E" "UTF-8" "style/sass/main.sass:resources/public/assets/css/starcity.css"]
+           "public"   ["sass" "--watch" "-E" "UTF-8" "style/sass/public.scss:resources/public/assets/css/public.css"]
+           "antd"     ["less-watch-compiler" "style/less" "resources/public/assets/css/"]}
 
   :main starcity.core)

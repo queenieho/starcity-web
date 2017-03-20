@@ -1,12 +1,8 @@
 (ns starcity.controllers.terms
-  (:require [starcity.views.legal.terms :as view]
-            [ring.util.response :as response]
-            [starcity.controllers.utils :refer :all]))
+  (:require [selmer.parser :as selmer]
+            [starcity.views.common :refer [public-defaults]]))
 
-;; =============================================================================
-;; API
-;; =============================================================================
-
-(defn show-terms
+(defn show
+  "Show the Terms of Service page."
   [req]
-  (ok (view/terms req)))
+  (selmer/render-file "terms.html" (public-defaults req)))

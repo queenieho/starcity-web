@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+<!-- SVG -->
+{% block svg %}
+{% include "landing/svg.html" %}
+{% endblock %}
+
+<!-- HEADER -->
+{% block header %}
+{% include "landing/header.html" %}
+{% endblock %}
+
+<!-- CONTENT -->
+{% block content %}
+<main class="overflow-hidden">
+  <section id="hero" class="hero hero-home ph5-ns pv5-ns pv6 vh-100 relative z-2 tc fade-in">
+    <div class="w-60-l w-90 h-50 overflow-auto absolute top-0 left-0 bottom-0 right-0 absolute-center">
+      <h1 class="text-white tc center mt0">Reimagine<br>
+        <span class="handwriting relative">Home
+          <svg class="sketch white top-0-ns top--2 left--3 ml3-ns w-auto-ns w5"> <use xlink:href="#burst" /></svg>
+        </span>
+      </h1>
+      <p class="f3 text-white tc w-90 center">Comfortable, community homes for those that wish to live in the heart of the city.</p>
+    </div>
+    <ul class="nav nav-home list cf pl0 absolute bottom-3 left-50">
+      <li class="fl br-pill br--left pl2"><a href="/lifestyle" class="pv2 dib"><span class="">Lifestyle</span></a></li>
+      <li class="fl">
+        <div href="#" class="pv2 dib has-dropup">
+          <span class="">Communities</span>
+          <div class="dropup">
+            <a href="west-soma.html" class="dib pt3 ph3">West Soma</a>
+            <a href="mission.html" class="dib pa3">The Mission</a>
+          </div>
+        </div>
+      </li>
+      <li class="fl"><a href="/story" class="pv2 dib"><span class="">Our Story</span></a></li>
+      <li class="fl br-pill br--right pr2"><a href="apply.html" class="pv2 dib"><span class="">Apply</span></a></li>
+    </ul>
+  </section>
+  <section class="relative">
+    <div class="watercolor watercolor-blue absolute top-0 left-0 w-100 z-0 nt6"></div>
+    <div class="cf ph4-ns pt5-ns pt4 mw center relative z-1">
+      <div class="fl w-two-thirds-ns w-100 w-100-m ph4-ns ph4 pb3">
+        <img src="assets/img/lifestyle1.jpg">
+      </div>
+      <div class="fl w-third-ns w-100 w-100-m ph4 pb3-ns pb5">
+        <h2 class="text-blue">It’s a put-your-phone-down, have a
+          <span class="handwriting relative db mt1 mb3">conversation
+            <svg class="sketch blue top--2 left-0 w4 nt2"> <use xlink:href="#line" /></svg>
+          </span> kind of place
+        </h2>
+        <p>We come from all walks of life, and all over the world, to share our experiences and values.</p>
+        <a href="/lifestyle" class="button">Life at Starcity</a>
+      </div>
+    </div>
+    <div class="cf ph4-ns pv4-ns mw center relative z-3">
+      <div class="fl w-third-ns w-100 w-100-m ph4-ns ph4 pb3">
+        <img src="assets/img/lifestyle2.jpg">
+        <h4>We Share</h4>
+        <p>We love our weekly dinners. Ideas, food, and space are shared to elevate our dedication to sustainable living. We opt-in to community events when we feel comfortable to do so. </p>
+      </div>
+      <div class="fl w-third-ns w-100 w-100-m ph4-ns ph4 pb3">
+        <img src="assets/img/lifestyle4.jpg">
+        <h4>We Love</h4>
+        <p>Hassle-free living and a diversity of perspectives! Starcity takes care of our home - we don’t worry about weekly cleaning, basic amenities, package deliveries and more. The members of our home come from different parts of the world, have different backgrounds and professions, and healthy perspectives on how to live collectively.</p>
+      </div>
+      <div class="fl w-third-ns w-100 w-100-m ph4-ns ph4 pb3">
+        <img src="assets/img/lifestyle3.jpg">
+        <h4>We Participate</h4>
+        <p>While we’re busy people, Starcity helps us give back easily by arranging volunteer opportunities with local non-profits and suggesting local small-business owners that we can support. </p>
+      </div>
+
+    </div>
+  </section>
+  <section class="relative pv0-ns pv5">
+    <div class="watercolor watercolor-yellow absolute left-0 w-100 z-0 nt2"></div>
+    <div class="cf ph4-ns mv6-ns mw center relative z-4">
+      <div class="dt fl w-third-ns w-100 w-100-m ph4 pb3-l pb5">
+        <div class="dtc-ns db v-mid w-25-ns w-100 tr-m pr4-m">
+          <span class="relative dib">
+            <svg class="sketch blue w2 bottom-0 left--1"> <use xlink:href="#stars" /></svg>
+            <img src="assets/img/bio-jon.jpg" class="img-circle img-circle-small br-100 dib pb0-ns pb0-m pb2" alt="avatar">
+            <svg class="sketch blue w1 top-0 right-0"> <use xlink:href="#star" /></svg>
+          </span>
+        </div>
+        <div class="dtc-ns db v-mid w-75-ns w-100">
+          <h4 class="mv0"><span class="f5 handwriting text-blue pr1">Eduardo,</span>Retired</h4>
+          <p class="mt2 mb0">&ldquo;Starcity is good hombres.&rdquo;</p>
+        </div>
+      </div>
+      <div class="fl w-third-ns w-100 w-100-m ph4 pb3-l pb5">
+        <div class="fl w-25-ns w-100 tr-m pr4-m">
+          <span class="relative dib">
+            <svg class="sketch green w1 top-0 rotate-150"> <use xlink:href="#hair" /></svg>
+            <svg class="sketch green w1 bottom-0 right--1 rotate-60"> <use xlink:href="#hair2" /></svg>
+            <img src="assets/img/bio-jon.jpg" class="img-circle img-circle-small br-100 dib pb0-ns pb0-m pb2" alt="avatar">
+          </span>
+        </div>
+        <div class="fl w-75-ns w-100">
+          <h4 class="mv0"><span class="f5 handwriting text-green pr1">Migerta,</span>Sommelier</h4>
+          <p class="mt2">&ldquo;I moved to San Francisco in search of work and play. I love Starcity because I have a dope kitchen, the people are fun and they take good care of me.&rdquo;</p>
+        </div>
+      </div>
+      <div class="fl w-third-ns w-100 w-100-m ph4 pb3-l pb5">
+        <div class="fl w-25-ns w-100 tr-m pr4-m">
+          <span class="relative dib">
+            <svg class="sketch purple w1 top-0 rotate-30"> <use xlink:href="#dots" /></svg>
+            <svg class="sketch purple w1 bottom-1 right-0 rotate-300"> <use xlink:href="#dots2" /></svg>
+            <img src="assets/img/bio-jon.jpg" class="img-circle img-circle-small br-100 dib pb0-ns pb0-m pb2" alt="avatar">
+          </span>
+        </div>
+        <div class="fl w-75-ns w-100">
+          <h4 class="mv0"><span class="f5 handwriting text-purple pr1">Alexa,</span>Molecular Biologist</h4>
+          <p class="mt2">&ldquo;I am completely sold on the whole modern cohousing model. I am so excited..&rdquo;</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="relative">
+    <div class="watercolor watercolor-green absolute left-0 w-100 z-0 mt5"></div>
+    <div class="cf ph4-ns pt5-ns mw center relative z-4">
+      <div class="fl w-third-ns w-100 w-100-m ph4-ns ph4 pb3">
+        <h2 class="text-green">Explore Our Communities</h2>
+        <p>Our community homes are located in vibrant neighborhoods of San Francisco. Each home is uniquely designed to integrate and reflect the neighborhood’s character and flavor.</p>
+      </div>
+      <div class="fl w-third-ns w-100 w-50-m ph4-ns ph4 pb3">
+        <div class="aspect-ratio aspect-ratio--1x1">
+          <a href="west-soma.html" class="no-hover aspect-ratio--object cover community-link soma">
+            <div class="w-100 h-75 overflow-auto absolute top-1 left-0 bottom-0 right-0 absolute-center">
+              <h2 class="pt4 text-white tc mb0">West SoMa</h2>
+              <p class="tc text-white mt1 w-60 center">
+                <span class="relative dib">
+                  <svg class="sketch white w3 top--2 left-1"> <use xlink:href="#line-double" /></svg>
+                  Available Now
+                </span>
+              </p>
+            </div>
+            <img src="assets/svg/icon-arrow.svg" class="absolute right-1  bottom-1 w3">
+          </a>
+        </div>
+      </div>
+      <div class="fl w-third-ns w-100 w-50-m ph4-ns ph4 pb3">
+        <div class="aspect-ratio aspect-ratio--1x1">
+          <a href="mission.html" class="no-hover aspect-ratio--object cover community-link mission">
+            <div class="w-100 h-75 overflow-auto absolute top-1 left-0 bottom-0 right-0 absolute-center">
+              <h2 class="pt4 text-white tc mb0">
+                <span class="relative dib">
+                  <svg class="sketch white w4 top--4 mt3 left-0 ml4"> <use xlink:href="#burst-top" /></svg>
+                  The Mission
+                </span>
+              </h2>
+              <p class="tc text-white mt1">Available Now</p>
+            </div>
+            <img src="assets/svg/icon-arrow.svg" class="absolute right-1  bottom-1 w3">
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="cf ph4-ns pv6-ns pv5 tc mw center relative z-4">
+    <div class="fl fn-m center w-25-ns w-100 w-80-m ph3-ns ph4 pb5">
+      <img src="assets/img/sketch-room.png" class="w-50 w-30-m">
+      <h4>Private Rooms</h4>
+      <p>As a Starcity member, you have your own private room to nest in. The spaces come fully-furnished yet have room to add your personality!</p>
+    </div>
+    <div class="fl fn-m center w-25-ns w-100 w-80-m ph3-ns ph4 pb5">
+      <img src="assets/img/sketch-communal.png" class="w-50 w-30-m">
+      <h4>Living Rooms &amp; Kitchens</h4>
+      <p>We create spacious living rooms and kitchens for winding down, cooking, and getting together with friends.</p>
+    </div>
+    <div class="fl fn-m center w-25-ns w-100 w-80-m ph3-ns ph4 pb5">
+      <img src="assets/img/sketch-kitchen.png" class="w-50 w-30-m">
+      <h4>Fully Equipped</h4>
+      <p>Simply pack a suitcase and move in. We provide everything you need to unlock your home’s potential. Top-of-the-line appliances, smart HDTVs, super-fast WiFi and more!</p>
+    </div>
+    <div class="fl fn-m center w-25-ns w-100 w-80-m ph3-ns ph4 pb5">
+      <img src="assets/img/sketch-equipped.png" class="w-50 w-30-m">
+      <h4>Everything's included</h4>
+      <p>One price that includes it all. Don’t worry about separate payments for utilities, weekly-cleaning or basic amenities. Oh, there’s on-site laundry, too :) Laundromats begone!</p>
+    </div>
+  </section>
+  <section class="pb6 mw center">
+    <div class="dt ph4-ns pt5-l">
+      <div class="dtc-ns db db-m v-mid w-third-ns w-100 w-100-m ph4 pb3-ns pb5 pt0-ns pt6 tl-ns tc tc-m">
+        <h2 class="text-yellow">Reviving the great cities we
+          <span class="handwriting relative">love.
+            <svg class="sketch yellow w3 left-0 top--2"> <use xlink:href="#squiggle" /></svg>
+          </span>
+        </h2>
+        <a href="" class="button button-yellow dib mb4">Our Story</a>
+      </div>
+      <div class="dtc-ns db db-m v-mid w-third-ns w-100 w-100-m ph4 pb3-ns pb5 pt0-ns pt2 tc relative">
+        <img src="assets/img/sketch-people.png" class="relative z-2 w-50 w-20-m">
+        <h4 class="relative z-2">Building for the People</h4>
+        <p class="w-90 center relative z-2">Starcity reimagines existing physical spaces to add a human element. Lorem ipsum dolor sit amet</p>
+        <div class="absolute top-0 left-50 w-100-l w-50-m w-80 nt4 db-l dn">
+          <img src="assets/img/circle-watercolor-yellow.jpg" class="relative z-0 left--50">
+        </div>
+      </div>
+      <div class="dtc-ns db db-m v-mid w-third-ns w-100 w-100-m ph4 pb3-ns pb5 pt0-ns pt2 tc">
+        <h4>Cities are rapidly growing</h4>
+        <p class="w-60 center mv0">Expected to live in urban environments by 2050</p>
+        <p class="f-5 fwb handwriting text-purple mv0 lh-solid">70<span class="f2">%</span></p>
+        <h4>Of world population</h4>
+        <h2 class="mv0 text-gray o-50">&mdash;</h2>
+        <h4 class="ttc"><a href="" class="text-purple">Source</a></h4>
+      </div>
+    </div>
+    <div class="dt ph4-ns pt5-l">
+      <div class="dtc-ns db db-m v-mid w-third-ns w-100 w-100-m ph4 pb3-ns pb5 pt0-ns pt2 tc relative">
+        <img src="assets/img/sketch-responsible.png" class="relative z-2 w-50 w-20-m">
+        <h4 class="relative z-2">Responsible Living</h4>
+        <p class="w-90 center relative z-2">Mother Earth has spoken. We must reduce our footprint and consume less. So future generations can enjoy our cities. We build and run our homes with this in mind. We design spaces to facilitate the sharing of resources and a reduction in energy consumption.</p>
+        <div class="absolute top-0 left-50 w-100-l w-50-m w-80 nt4 db-l dn">
+          <img src="assets/img/circle-watercolor-green.jpg" class="relative z-0 left--50">
+        </div>
+      </div>
+      <div class="dtc-ns db db-m v-mid w-third-ns w-100 w-100-m ph4 pb3-ns pb5 pt0-ns pt2 tc">
+        <p class="w-60 center mv0">Cities have the</p>
+        <p class="f1 fwb handwriting text-green mv0">lowest</p>
+        <h4 class="w-60 center">per capita energy consumption by household member</h4>
+        <h2 class="mv0 text-gray o-50">&mdash;</h2>
+        <h4 class="ttc"><a href="" class="text-green">Source</a></h4>
+      </div>
+      <div class="dtc-ns db db-m v-mid w-third-ns w-100 w-100-m ph4 pb3-ns pb5 pt0-ns pt2 tc relative overflow-hidden">
+        <img src="assets/img/sketch-building.png" class="relative z-2 w-50 w-20-m">
+        <h4 class="relative z-2">Revitalizing Neighborhoods</h4>
+        <p class="w-90 center relative z-2">Cities have beautiful charm and history. We want to maintain a tangible connection to the past. We take the historical fabric of a building and give it a renewed purpose.</p>
+        <div class="absolute top-0 left-50 w-100-l w-50-m w-80 nt4 db-l dn">
+          <img src="assets/img/circle-watercolor-blue.jpg" class="relative z-0 left--50">
+        </div>
+      </div>
+    </div>
+    <div class="dt ph4-ns pt5-l">
+      <div class="dtc-ns db db-m v-mid w-third-ns w-100 w-100-m ph4 pb3-ns pb5 pt0-ns pt2 tc">
+        <p class="w-60 center mv0">Starcity increases living capacity by</p>
+        <p class="f-5 fwb handwriting text-blue mv0">3x</p>
+        <h4 class="w-60 center">the normal apartment building</h4>
+        <h2 class="mv0 text-gray o-50">&mdash;</h2>
+      </div>
+      <div class="dtc-ns db db-m v-mid w-third-ns w-100 w-100-m ph4 pb3-ns pb5 pt0-ns pt2 tc relative">
+        <img src="assets/img/sketch-communities.png" class="relative z-2 w-40 w-20-m">
+        <h4 class="relative z-2">Mobilizing local communities</h4>
+        <p class="w-90 center relative z-2">We engage with local community groups and nonprofit leaders to uncover ways in which Starcity can help and be a resource. We employ local craftsmen to build our homes and foster a sense of shared purpose by bringing local artists and chefs into our spaces for events.</p>
+        <div class="absolute top-0 left-50 w-100-l w-50-m w-80 nt4 db-l dn">
+          <img src="assets/img/circle-watercolor-purple.jpg" class="relative z-0 left--50">
+        </div>
+      </div>
+      <div class="dtc-ns db db-m v-mid w-third-ns w-100 w-100-m ph4 pb3-ns pb5 pt0-ns pt2 tc">
+        <h4>Cities have amazing power</h4>
+        <p class="w-60 center mv0">30 largest US cities account for</p>
+        <p class="f-5 fwb handwriting text-yellow mv0 lh-solid">50<span class="f2">%</span></p>
+        <h4>Of GDP</h4>
+        <h2 class="mv0 text-gray o-50">&mdash;</h2>
+        <h4 class="ttc"><a href="" class="text-yellow">Source</a></h4>
+      </div>
+    </div>
+  </section>
+  <section class="tc pv5 hero hero-join">
+    <h1 class="text-white w-30-l w-90 center mb0">
+      <span class="relative dib">
+        <svg class="sketch white w2 top--3 right-1-l right--2"> <use xlink:href="#curl" /></svg>
+        <svg class="sketch white w3 left--3-l left--3 top--1-l top--2 rotate-240"> <use xlink:href="#hair" /></svg>
+        <svg class="sketch white w2 left--2-l top-3-l left--1 top-2"> <use xlink:href="#asterisks" /></svg>
+        <svg class="sketch white w2 top--3 right--2-l right-0"> <use xlink:href="#asterisks2" /></svg>
+        Join<br>Starcity
+      </span>
+    </h1>
+    <p class="text-white lead w-30-l w-90 center mb4">Become a part of our community. Take the first step by scheduling a tour.</p>
+    <a href="schedule-tour.html" class="button button-white dib mb4"><span class="text-black">Schedule a Tour</span></a>
+  </section>
+</main>
+{% endblock %}

@@ -15,7 +15,9 @@
             [starcity.services.mailgun :refer [send-email]]
             [starcity.views.signup :as view]
             [starcity.web.messages :refer [respond-with-errors]]
-            [taoensso.timbre :as timbre]))
+            [taoensso.timbre :as timbre]
+            [starcity.views.common :refer [public-defaults]]
+            [selmer.parser :as selmer]))
 
 ;; =============================================================================
 ;; Constants
@@ -100,10 +102,15 @@
 ;; Signup
 
 ;; TODO: shouldn't need to do this here...seems like a job for middleware
-(defn show-signup [req]
+#_(defn show-signup [req]
   (if (authenticated? req)
     (response/redirect "/apply")
     (ok (view/signup req))))
+
+(defn show-signup
+  "Show the signup page."
+  [req]
+  (selmer/render-file "signup.html" (public-defaults req)))
 
 (defn signup [{:keys [params] :as req}]
   (if-let [params (matching-passwords? params)]

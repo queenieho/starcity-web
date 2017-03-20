@@ -1,18 +1,13 @@
 (ns starcity.controllers.communities
-  (:require [starcity.views.communities :as view]
-            [ring.util.response :as response]
-            [starcity.controllers.utils :refer :all]
-            [datomic.api :as d]))
+  (:require [selmer.parser :as selmer]
+            [starcity.views.common :refer [public-defaults]]))
 
-;; =============================================================================
-;; API
-;; =============================================================================
+(defn show-mission
+  "Show the Mission community page."
+  [req]
+  (selmer/render-file "mission.html" (public-defaults req)))
 
-(def show-communities
-  (comp ok view/communities))
-
-(def show-mission
-  (comp ok view/mission))
-
-(def show-soma
-  (comp ok view/soma))
+(defn show-soma
+  "Show the SoMa community page."
+  [req]
+  (selmer/render-file "soma.html" (public-defaults req)))

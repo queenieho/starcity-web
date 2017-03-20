@@ -23,12 +23,16 @@
              [auth :refer [auth-backend]]
              [config :refer [config]]
              [routes :refer [app-routes]]]
+            [selmer.parser :as selmer]
             [starcity.views.error :as view]
             [taoensso.timbre :as t]
             [starcity.environment :as env]))
 
+(selmer/set-resource-path! (clojure.java.io/resource "templates"))
+
 ;; =============================================================================
-;; Handler & Middleware
+;; Middleware
+;; =============================================================================
 
 ;; TODO: This doesn't fail well when we're dealing with an api request
 (defn wrap-exception-handling
@@ -42,7 +46,7 @@
                                               :method      request-method
                                               :remote-addr remote-addr}
                                              :user (:account/email identity)))
-          {:status 500 :body (view/error "Unexpected server error.")})))))
+          {:status 500 :body "Unexpected server error!"})))))
 
 (defn wrap-logging
   "Middleware to log requests."
@@ -61,6 +65,10 @@
              :session/account (-> value :identity :db/id)})]
     (datomic-store conn :session->entity session->entity)))
 
+;; =============================================================================
+;; Ring Handler
+;; =============================================================================
+
 (def optimus-bundles
   ""
   {;;; Public Site JS
@@ -77,6 +85,7 @@
 
    ;;; Styles
    "antd.css"   ["/assets/css/antd.css"]
+   "public.css" ["/assets/css/public.css"]
    "styles.css" ["/assets/css/starcity.css"]})
 
 (defn- assemble-assets []
@@ -105,6 +114,7 @@
 
 ;; =============================================================================
 ;; API
+;; =============================================================================
 
 (defn- start-server
   [{:keys [port] :as conf}]

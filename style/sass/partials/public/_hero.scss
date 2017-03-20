@@ -1,0 +1,79 @@
+.hero {
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+}
+
+
+.hero-lifestyle {
+  background-image: url(../img/hero-lifestyle.jpg);
+  min-height: 800px;
+}
+
+.hero-team {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.50)), url(../img/hero-team.jpg);
+  background-position: center top;
+}
+
+.hero-join {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.50), rgba(0, 0, 0, 0.50)), url(../img/hero-home1.jpg);
+  background-position: center center;
+}
+
+.hero-join2 {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.50), rgba(0, 0, 0, 0.50)), url(../img/hero-home3.jpg);
+  background-position: center center;
+}
+
+.hero-join3 {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.50), rgba(0, 0, 0, 0.50)), url(../img/hero-home9.jpg);
+  background-position: center top;
+}
+
+.hero-join4 {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.50), rgba(0, 0, 0, 0.50)), url(../img/hero-home2.jpg);
+  background-position: center center;
+}
+
+.hero-home {
+  // background-image: linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.50)), url(../img/hero-home.jpg);
+  min-height: 700px;
+}
+
+.hero-soma {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.50)), url(../img/hero-soma.jpg);
+  min-height: 360px;
+}
+
+.hero-mission {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.50)), url(../img/hero-mission.jpg);
+  min-height: 360px;
+}
+
+.hero-watercolor {
+  height: 500px;
+  &-blue {
+    background-image: url(../img/hero-watercolor.jpg);
+  }
+  &-purple {
+    background-image: url(../img/hero-watercolor-purple.jpg);
+  }
+  &-yellow {
+    background-image: url(../img/hero-watercolor-yellow.jpg);
+  }
+}
+
+@media screen and (max-width: 30em) {
+  .hero-home {
+    background-position: center center;
+  }
+}
+
+@media screen and (min-width: 60em) {
+  .hero-community {
+    min-height: 600px;
+  }
+  .hero-watercolor {
+    min-height: 800px;
+  }
+}

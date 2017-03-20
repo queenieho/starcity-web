@@ -1,0 +1,115 @@
+.img-circle {
+  width: 100px;
+  height: 100px;
+  &-small {
+    width: 64px;
+    height: 64px;
+  }
+}
+
+// Image Masks
+
+.mask {
+  display: block;
+  margin: 0 auto;
+  position: relative;
+  mask-size: 100%;
+  mask-position: center center;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100%;
+  -webkit-mask-position: center center;
+  -webkit-mask-repeat: no-repeat;
+  top: -0.7em;
+  &-rectangle1 {
+    mask-image: url(../img/mask-rectangle1.png);
+    -webkit-mask-image: url(../img/mask-rectangle1.png);
+  }
+  &-rectangle2 {
+    mask-image: url(../img/mask-rectangle2.png);
+    -webkit-mask-image: url(../img/mask-rectangle2.png);
+  }
+  &-rectangle3 {
+    mask-image: url(../img/mask-rectangle3.png);
+    -webkit-mask-image: url(../img/mask-rectangle3.png);
+  }
+  &-circle1 {
+    mask-image: url(../img/mask-circle1.png);
+    -webkit-mask-image: url(../img/mask-circle1.png);
+  }
+  &-circle2 {
+    mask-image: url(../img/mask-circle2.png);
+    -webkit-mask-image: url(../img/mask-circle2.png);
+  }
+  &-circle3 {
+    mask-image: url(../img/mask-circle3.png);
+    -webkit-mask-image: url(../img/mask-circle3.png);
+  }
+}
+
+// Watercolor Backgrounds
+
+.watercolor {
+  background-repeat: no-repeat;
+  background-size: contain;
+  &-blue {
+    background-image: url(../img/bg-watercolor-blue.jpg);
+    background-position: center left;
+    height: 906px;
+  }
+  &-blue3 {
+    background-image: url(../img/bg-watercolor-blue3.jpg);
+    background-position: center right;
+    height: 492px;
+  }
+  &-blue4 {
+    background-image: url(../img/bg-watercolor-blue4.jpg);
+    background-position: center left;
+    height: 512px;
+  }
+  &-blue5 {
+    background-image: url(../img/bg-watercolor-blue5.jpg);
+    background-position: center right;
+    height: 126px;
+  }
+  &-yellow {
+    background-image: url(../img/bg-watercolor-yellow.jpg);
+    background-position: center left;
+    height: 93px;
+  }
+  &-yellow2 {
+    background-image: url(../img/bg-watercolor-yellow2.jpg);
+    background-position: center center;
+    height: 486px;
+  }
+  &-green {
+    background-image: url(../img/bg-watercolor-green.jpg);
+    background-position: center right;
+    height: 486px;
+  }
+  &-purple {
+    background-image: url(../img/bg-watercolor-purple.png);
+    background-position: center right;
+    height: 894px;
+  }
+  &-circle {
+    background-position: center center;
+    width: 402px;
+    height: 432px;
+    &-blue {
+      background-image: url(../img/circle-watercolor-blue.jpg);
+    }
+    &-green {
+      background-image: url(../img/circle-watercolor-green.jpg);
+    }
+    &-yellow {
+      background-image: url(../img/circle-watercolor-yellow.jpg);
+    }
+    &-purple {
+      background-image: url(../img/circle-watercolor-purple.jpg);
+    }
+    &-small {
+      width: 300px;
+      height: 322px;
+    }
+  }
+}

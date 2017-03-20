@@ -15,12 +15,16 @@
             [starcity.environment]
             [starcity.scheduler]
             [starcity.countries]
+            [selmer.parser]
             ;; convenience
             [starcity.datomic :refer [conn]]
             [taoensso.timbre :as timbre]
             [mount.core :as mount :refer [defstate]]))
 
 (timbre/refer-timbre)
+
+;; don't cache templates during development
+(selmer.parser/cache-off!)
 
 ;; =============================================================================
 ;; Figwheel

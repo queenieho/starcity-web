@@ -1,12 +1,8 @@
 (ns starcity.controllers.faq
-  (:require [starcity.views.faq :as view]
-            [ring.util.response :as response]
-            [starcity.controllers.utils :refer :all]))
+  (:require [selmer.parser :as selmer]
+            [starcity.views.common :refer [public-defaults]]))
 
-;; =============================================================================
-;; API
-;; =============================================================================
-
-(defn show-faq
+(defn show
+  "Show the FAQ page."
   [req]
-  (ok (view/faq req)))
+  (selmer/render-file "faq.html" (public-defaults req)))

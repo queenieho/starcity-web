@@ -1,0 +1,37 @@
+<header id="header-interior-scroll" class="header fixed mt4-l ph4-ns pv0-l pv3 flex-l justify-between-l items-center-l w-90-l z-max tc w-100">
+  <a href="/" class="absolute relative-l left-2-m left-1 left-0-l">
+    <span class="dn">Starcity</span>
+    <img src="/assets/svg/logo-wordmark.svg" class="logo db-l dn">
+    <img src="/assets/svg/logo-black.svg" class="logo dn-l db w2 nt1">
+  </a>
+  <nav class="nav">
+    <a href="/lifestyle" class={% ifequal active "lifestyle" %}active{% endifequal %}>Lifestyle</a>
+    <div class={% ifequal active "communities" %}"has-dropdown dib active"{% else %}"has-dropdown dib"{% endifequal %}>Communities
+      <div class="dropdown pa2 tl">
+        <div class="w-50 fl">
+          <a href="/communities/soma" class="dib pv3 ph3">
+            <img src="/assets/img/soma/communal/kitchen.jpg" class="mb2">
+            West Soma
+          </a>
+        </div>
+        <div class="w-50 fl">
+          <a href="/communities/mission" class="dib pv3 ph3">
+            <img src="/assets/img/mission/rooms/medium/room-13.jpg" class="mb2">
+            The Mission
+          </a>
+        </div>
+      </div>
+    </div>
+    <a href="/story" class={% ifequal active "story" %}active{% endifequal %}>Our Story</a>
+    <a href="/signup" class={% ifequal active "signup" %}active{% endifequal %}>Apply</a>
+  </nav>
+  <a href="/schedule-tour" class="button">Schedule a Tour</a>
+  <a href="#" class="menu-button db dn-l right-1 top-1 absolute nt1">Menu</a>
+  <ul class="menu db dn-l list pl0 mv0">
+    <li><a href="/communities/soma">West SoMa</a></li>
+    <li><a href="/communities/mission">Mission</a></li>
+    <li><a href="/lifestyle">Lifestyle</a></li>
+    <li><a href="/story">Our Story</a></li>
+    <li><a href="/signup">Apply</a></li>
+  </ul>
+</header>

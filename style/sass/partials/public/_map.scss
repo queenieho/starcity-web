@@ -1,0 +1,13 @@
+.map {
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: bottom right;
+  &-soma {
+    background-image: url(../img/bg-map-soma.jpg);
+    height: 1615px;
+  }
+  &-mission {
+    background-image: url(../img/bg-map-mission.jpg);
+    height: 834px;
+  }
+}

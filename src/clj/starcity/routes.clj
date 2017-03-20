@@ -16,11 +16,14 @@
              [dashboard :as dashboard]
              [faq :as faq]
              [landing :as landing]
+             [lifestyle :as lifestyle]
              [login :as login]
              [onboarding :as onboarding]
              [privacy :as privacy]
+             [schedule-tour :as schedule-tour]
              [settings :as settings]
              [signup :as signup]
+             [story :as story]
              [team :as team]
              [terms :as terms]]
             [starcity.webhooks
@@ -37,16 +40,20 @@
       (response/redirect)))
 
 ;; =============================================================================
-;; API
+;; Routes
 ;; =============================================================================
 
 (defroutes app-routes
-  (GET "/"                 [] landing/show-landing)
+  (GET  "/"                [] landing/show)
   (POST "/"                [] landing/newsletter-signup)
 
-  (GET "/faq"              [] faq/show-faq)
-  (GET "/terms"            [] terms/show-terms)
-  (GET "/privacy"          [] privacy/show-privacy)
+  (GET "/lifestyle"        [] lifestyle/show)
+  (GET "/story"            [] story/show)
+  (GET "/schedule-tour"    [] schedule-tour/show)
+
+  (GET "/faq"              [] faq/show)
+  (GET "/terms"            [] terms/show)
+  (GET "/privacy"          [] privacy/show)
   (GET "/about"            [] about/show-about)
   (GET "/team"             [] team/show-team)
 
@@ -59,7 +66,6 @@
   (ANY  "/logout"          [] auth/logout)
 
   (context "/communities" []
-           (GET "/" [] communities/show-communities)
            (GET "/soma" [] communities/show-soma)
            (GET "/mission" [] communities/show-mission))
 

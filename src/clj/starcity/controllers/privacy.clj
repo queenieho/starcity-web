@@ -1,12 +1,8 @@
 (ns starcity.controllers.privacy
-  (:require [starcity.views.legal.privacy :as view]
-            [ring.util.response :as response]
-            [starcity.controllers.utils :refer :all]))
+  (:require [selmer.parser :as selmer]
+            [starcity.views.common :refer [public-defaults]]))
 
-;; =============================================================================
-;; API
-;; =============================================================================
-
-(defn show-privacy
+(defn show
+  "Show the Privacy Policy page."
   [req]
-  (ok (view/privacy req)))
+  (selmer/render-file "privacy.html" (public-defaults req)))

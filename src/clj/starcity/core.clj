@@ -15,7 +15,6 @@
             [clojure.tools.cli :refer [parse-opts]]
             [mount.core :as mount]))
 
-
 (def cli-options
   [["-e" "--environment ENVIRONMENT" "The environment to start the server in."
     :id :env
