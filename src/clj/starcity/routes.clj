@@ -6,7 +6,7 @@
             [ring.util.response :as response]
             [starcity
              [api :as api]
-             [auth :refer [unauthenticated-user authenticated-user user-isa redirect-by-role]]]
+             [auth :refer [authenticated-user redirect-by-role unauthenticated-user user-isa]]]
             [starcity.controllers
              [about :as about]
              [admin :as admin]
@@ -18,6 +18,7 @@
              [landing :as landing]
              [lifestyle :as lifestyle]
              [login :as login]
+             [newsletter :as newsletter]
              [onboarding :as onboarding]
              [privacy :as privacy]
              [schedule-tour :as schedule-tour]
@@ -26,8 +27,7 @@
              [story :as story]
              [team :as team]
              [terms :as terms]]
-            [starcity.webhooks
-             [stripe :as stripe]]))
+            [starcity.webhooks.stripe :as stripe]))
 
 ;; =============================================================================
 ;; Routes
@@ -35,7 +35,6 @@
 
 (defroutes app-routes
   (GET  "/"                [] landing/show)
-  (POST "/"                [] landing/newsletter-signup)
 
   (GET "/lifestyle"        [] lifestyle/show)
   (GET "/story"            [] story/show)
@@ -46,6 +45,8 @@
   (GET "/privacy"          [] privacy/show)
   (GET "/about"            [] about/show-about)
   (GET "/team"             [] team/show-team)
+  (GET "/newsletter"       [] newsletter/show)
+  (POST "/newsletter"      [] newsletter/subscribe!)
 
   (context "/communities" []
            (GET "/soma" [] communities/show-soma)

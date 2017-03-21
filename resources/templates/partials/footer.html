@@ -30,10 +30,12 @@
     <div class="pa4 w-30-ns w-100 w-100-m fl">
       <h4 class="text-white o-60">Subscribe</h4>
       <p>The latest on housing and community development.</p>
-      <div class="dt">
-        <input class="dtc w-60 input-joined input-large" type="text" placeholder="Your email">
-        <a href="" class="dtc button button-white button-joined relative w-40">Subscribe</a>
-      </div>
+      <form action="/newsletter" method="POST">
+        <div class="dt">
+          <input class="dtc w-60 input-joined input-large" type="text" placeholder="Your email" name="email">
+          <button type="submit" class="dtc button button-white button-joined relative w-40">Subscribe</button>
+        </div>
+      </form>
     </div>
   </div>
 </footer>

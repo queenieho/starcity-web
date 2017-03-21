@@ -6,6 +6,10 @@
             [taoensso.nippy :as nippy]
             [toolbelt.predicates :as p]))
 
+;; =============================================================================
+;; Spec
+;; =============================================================================
+
 (s/def :cmd/key keyword?)
 (s/def :cmd/uuid uuid?)
 (s/def :cmd/params bytes?)
@@ -24,6 +28,7 @@
 
 ;; =============================================================================
 ;; Transactions
+;; =============================================================================
 
 (defn create
   "Create a new cmd."
@@ -61,9 +66,10 @@
    :cmd/status :cmd.status/pending})
 
 ;; =============================================================================
-;; Named cmds
+;; Named
+;; =============================================================================
 
-;; =====================================
+;; =============================================================================
 ;; Accounts
 
 (def create-account-key :account/create)
@@ -80,7 +86,21 @@
         :args (s/cat :email string? :password string? :first-name string? :last-name string?)
         :ret ::cmd)
 
-;; =====================================
+;; =============================================================================
+;; Newsletter
+
+(def subscribe-to-newsletter-key :newsletter/subscribe)
+
+(defn subscribe-to-newsletter
+  "`email` should be subscribed to our newsletter."
+  [email]
+  (create subscribe-to-newsletter-key :params {:email email}))
+
+(s/fdef subscribe-to-newsletter
+        :args (s/cat :email string?)
+        :ret ::cmd)
+
+;; =============================================================================
 ;; Rent
 
 (def create-rent-payments-key :rent.payments/create)
@@ -94,7 +114,7 @@
         :args (s/cat :time-period inst?)
         :ret ::cmd)
 
-;; =====================================
+;; =============================================================================
 ;; Stripe
 
 (def stripe-webhook-event-key :stripe/event)
@@ -128,7 +148,7 @@
         :args (s/cat :stripe-customer p/entity?)
         :ret ::cmd)
 
-;; =====================================
+;; =============================================================================
 ;; Session
 
 (def delete-session-key :session/delete)
@@ -141,10 +161,3 @@
 (s/fdef delete-session
         :args (s/cat :account p/entity?)
         :ret ::cmd)
-
-(comment
-  (create-rent-payments (java.util.Date.))
-
-  (update (create ::cmd :params 12345) :cmd/params nippy/thaw)
-
-  )
