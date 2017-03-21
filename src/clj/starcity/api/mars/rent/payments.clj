@@ -80,7 +80,7 @@
   "Create a charge for `payment` on Stripe."
   [conn account payment license amount]
   (if (rent-payment/unpaid? payment)
-    (let [customer (account/stripe-customer account)]
+    (let [customer (account/stripe-customer (d/db conn) account)]
       (get-in (stripe/charge (cents amount)
                              (customer/bank-account-token customer)
                              (account/email account)

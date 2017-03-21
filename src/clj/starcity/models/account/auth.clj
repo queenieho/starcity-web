@@ -7,7 +7,8 @@
             [datomic.api :as d]
             [starcity.spec.datomic]
             [starcity spec
-             [datomic :refer [conn]]]))
+             [datomic :refer [conn]]]
+            [toolbelt.predicates :as p]))
 
 (defn hash-password [password]
   (hashers/derive password {:alg :bcrypt+blake2b-512 :iterations 12}))
@@ -35,26 +36,23 @@
   "Change the password for `account` to `new-password`. `new-password` will be
   hashed before it is saved to db."
   [account new-password]
-  (:db-after
-   @(d/transact conn [{:db/id (:db/id account) :account/password (hash-password new-password)}])))
+  {:db/id (:db/id account) :account/password (hash-password new-password)})
 
 (s/fdef change-password
-        :args (s/cat :account :starcity.spec/entity
+        :args (s/cat :account p/entity?
                      :new-password string?)
-        :ret :starcity.spec.datomic/db)
+        :ret map?)
 
 (defn reset-password
   "Reset the password for `account` by generating a random password. Return the
   generated password."
   [account]
   (let [new-password (generate-random-password)]
-    (do
-      (change-password account new-password)
-      new-password)))
+    [new-password (change-password account new-password)]))
 
 (s/fdef reset-password
-        :args (s/cat :account :starcity.spec.datomic/entity)
-        :ret string?)
+        :args (s/cat :account p/entity?)
+        :ret (s/cat :new-password string? :tx-data map?))
 
 (defn is-password?
   "Does `password` the correct password for this `account`?"
@@ -63,7 +61,7 @@
     (check-password password hash)))
 
 (s/fdef is-password?
-        :args (s/cat :account :starcity.spec.datomic/entity
+        :args (s/cat :account p/entity?
                      :password string?)
         :ret boolean?)
 
@@ -81,11 +79,10 @@
 (defn authenticate
   "Return the user record found under `email` iff a user record exists for
   that email and the `password` matches."
-  [email password]
-  (when-let [acct (d/entity (d/db conn) [:account/email email])]
+  [db email password]
+  (when-let [acct (d/entity db [:account/email email])]
     (when (check-password password (:account/password acct))
       (session-data acct))))
 
 (s/fdef authenticate
-        :args (s/cat :email string? :password string?)
-        :ret :starcity.spec.datomic/entity)
+        :args (s/cat :email string? :password string?))

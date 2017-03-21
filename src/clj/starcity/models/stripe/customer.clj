@@ -152,7 +152,7 @@
 
 (defn- create-direct!*
   [account property]
-  (if-let [platform-customer (account/stripe-customer account)]
+  (if-let [platform-customer (account/stripe-customer (d/db conn) account)]
     (let [customer   (fetch platform-customer)
           managed    (property/managed-account-id property)
           bank-token (bank-account-token customer)]

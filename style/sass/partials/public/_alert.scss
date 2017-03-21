@@ -1,0 +1,10 @@
+.alert {
+  color: white;
+  border-radius: 50px;
+  padding: 12px 20px;
+  text-align: left;
+
+  &-error {
+    background-color: $red;
+  }
+}

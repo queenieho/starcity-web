@@ -15,22 +15,36 @@
       <p class="w-80 center lead text-blue">To begin your member application, you'll first need to create an account.</p>
     </div>
     <div class="ph4 pb3">
-      <form class="w-80-ns w-100 center">
+      <div class="w-80 center pb3">
+        {% include "partials/errors.html" %}
+      </div>
+      <form class="w-80-ns w-100 center" method="POST" action="/signup">
         <div class="w-50-ns w-100 fl pr2-ns ph0">
-          <input class="input-blue w-100 input-large mb3" type="text" name="name" placeholder="First name">
+          <input required
+                 class="input-blue w-100 input-large mb3"
+                 type="text"
+                 name="first-name"
+                 placeholder="First name"
+                 value="{{first-name}}">
         </div>
         <div class="w-50-ns w-100 fl pl2-ns ph0">
-          <input class="input-blue w-100 input-large mb3" type="text" name="name" placeholder="Last name">
+          <input required
+                 class="input-blue w-100 input-large mb3"
+                 type="text"
+                 name="last-name"
+                 placeholder="Last name"
+                 value="{{last-name}}">
         </div>
-        <input class="input-blue w-100 input-large mb3" type="email" name="email" placeholder="Email address">
+        <input class="input-blue w-100 input-large mb3" type="email" name="email" placeholder="Email address" value="{{email}}" >
         <div class="w-50-ns w-100 fl pr2-ns ph0">
-          <input class="input-blue w-100 input-large mb3" type="password" name="pass" placeholder="Create a password">
+          <input required class="input-blue w-100 input-large mb3" type="password" name="password-1" placeholder="Create a password">
         </div>
         <div class="w-50-ns w-100 fl pl2-ns ph0">
-          <input class="input-blue w-100 input-large mb3" type="password" name="pass=verify" placeholder="Re-enter password">
+          <input required class="input-blue w-100 input-large mb3" type="password" name="password-2" placeholder="Re-enter password">
         </div>
-        <a href="" class="button db mt4-l mt3 mb6">Create Account</a>
+        <button type="submit" class="button db mt4-l mt3 mb6">Create Account</button>
       </form>
+    </div>
   </article>
 </main>
 {% endblock %}

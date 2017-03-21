@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+<!-- CONTENT -->
+{% block content %}
+<div class="hero hero-watercolor hero-watercolor-blue z-0 absolute w-100"></div>
+<main class="w-60-ns w-100 w-100-m center z-1 relative tc fade-in">
+  <article class="ph4-ns pt6 mw center">
+    <div class="w-100 ph4-ns ph4 pb3">
+      <h1 class="f-5-ns f2 f1-m text-blue mb4">Log In</h1>
+      <p class="w-80 center lead text-blue">Log in to your account by entering your email and password.</p>
+    </div>
+    <div class="ph4 pb3">
+      <div class="w-80 center pb3">
+        {% include "partials/errors.html" %}
+      </div>
+      <form class="w-80-ns w-100 center" method="POST" action="/login">
+        <input class="input-blue w-100 input-large mb3" type="email" name="email" placeholder="Email address">
+        <input class="input-blue w-100 input-large mb3" type="password" name="password" placeholder="Password">
+        <button type="submit" class="button db mt4-l mt3 mb6">Log in</button>
+        <a href="/forgot-password" class="ml2">Forgot Password?</a>
+      </form>
+    </div>
+  </article>
+</main>
+{% endblock %}

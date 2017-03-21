@@ -117,7 +117,7 @@
 
 (defmethod charge-failed :security-deposit [conn charge tx]
   (let [deposit  (deposit/by-charge charge)
-        customer (-> charge charge/account account/stripe-customer)]
+        customer (->> charge charge/account (account/stripe-customer (d/db conn)))]
     ;; This is used to determine if this charge corresponds to the first payment
     ;; of the security deposit.
     (cond-> tx
@@ -279,10 +279,3 @@
       (throw (ex-info "License not found for subscription." {:subscription-id sub-id}))
       [(member-license/remove-subscription license)
        (msg/autopay-deactivated license)])))
-
-(comment
-  (let [account (account/by-email "member@test.com")
-        license (member-license/active starcity.datomic/conn account)]
-    (d/transact starcity.datomic/conn [(msg/autopay-deactivated license)]))
-
-  )

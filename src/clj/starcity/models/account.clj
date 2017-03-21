@@ -11,22 +11,21 @@
             [starcity.datomic :refer [conn tempid]]
             [starcity.models
              [application :refer [submitted?]]
+             [approval :as approval]
+             [cmd :as cmd]
              [member-license :as member-license]
+             [msg :as msg]
              [news :as news]
              [rent-payment :as rent-payment]
-             [security-deposit :as deposit]]
+             [security-deposit :as deposit]
+             [unit :as unit]]
             [starcity.models.account
              [auth :as auth]
              [role :as r]]
             [starcity.util.date :refer [end-of-day]]
             [toolbelt
              [core :refer [round]]
-             [predicates :as p :refer [entity?]]]
-            [starcity.models.cmd :as cmd]
-            [starcity.models.approval :as approval]
-            [starcity.models.unit :as unit]
-            [starcity.models.msg :as msg]))
-
+             [predicates :as p]]))
 
 ;; =============================================================================
 ;; Specs
@@ -85,39 +84,18 @@
     (format "%s %s %s" first-name middle-name last-name)
     (format "%s %s" first-name last-name)))
 
-;; TODO: `db` as arg
 (defn stripe-customer
   "Retrieve the `stripe-customer` that belongs to this account. Produces the
   customer that is on the Stripe master account, NOT the managed one -- the
   customer on the managed account will be used *only* for autopay."
-  [account]
+  [db account]
   (when-let [c (d/q '[:find ?e .
                       :in $ ?a
                       :where
                       [?e :stripe-customer/account ?a]
                       [(missing? $ ?e :stripe-customer/managed)]]
-                    (d/db conn) (:db/id account))]
-    (d/entity (d/db conn) c)))
-
-;; TODO: `db` as arg
-(defn created-at
-  "Find the time that this account was created at.
-
-  This is accomplished by looking at `db/txInstant` of the first transaction
-  associated with `:account/email`."
-  [account]
-  (-> (d/q '[:find [?tx-time ...]
-             :in $ ?e
-             :where
-             [?e :account/email _ ?t]
-             [?t :db/txInstant ?tx-time]]
-           (d/db conn) (:db/id account))
-      (sort)
-      (first)))
-
-(s/fdef created-at
-        :args (s/cat :account p/entity?)
-        :ret inst?)
+                    db (:db/id account))]
+    (d/entity db c)))
 
 (defn approval
   "Produces the `approval` entity for `account`."
@@ -140,9 +118,9 @@
 ;; Predicates
 ;; =============================================================================
 
-;; TODO: `db` as arg
-(defn exists? [email]
-  (d/entity (d/db conn) [:account/email email]))
+(defn exists?
+  [db email]
+  (d/entity db [:account/email email]))
 
 (defn can-approve?
   "An account can be *approved* if the application is submitted and the account
@@ -159,11 +137,14 @@
 ;; Queries
 ;; =============================================================================
 
-;; TODO: `db` as arg
-(defn by-email [email]
-  (d/entity (d/db conn) [:account/email email]))
+(defn by-email
+  "Look up an account by email."
+  [db email]
+  (d/entity db [:account/email email]))
 
-(defn by-customer-id [conn customer-id]
+(defn by-customer-id
+  "Look up an account by Stripe customer id."
+  [conn customer-id]
   (:stripe-customer/account
    (d/entity (d/db conn) [:stripe-customer/customer-id customer-id])))
 
@@ -171,40 +152,35 @@
 ;; Transactions
 ;; =============================================================================
 
-;; TODO: Don't transact here
 (defn create
-  "Create a new user record in the database, and return the user's id upon
-  successful creation."
+  "Produce the required transaction data to create a new account in the
+  database."
   [email password first-name last-name]
-  (let [acct {:account/first-name      (-> first-name trim capitalize)
-              :account/last-name       (-> last-name trim capitalize)
-              :account/email           (-> email trim lower-case)
-              :account/password        (-> password trim auth/hash-password)
-              :account/activation-hash (auth/activation-hash email)
-              :account/activated       false
-              :account/role            r/applicant}
-        tid  (tempid)
-        tx   @(d/transact conn [(assoc acct :db/id tid)])]
-    (->> (d/resolve-tempid (d/db conn) (:tempids tx) tid)
-         (d/entity (d/db conn)))))
+  {:account/first-name      (-> first-name trim capitalize)
+   :account/last-name       (-> last-name trim capitalize)
+   :account/email           (-> email trim lower-case)
+   :account/password        (-> password trim auth/hash-password)
+   :account/activation-hash (auth/activation-hash email)
+   :account/activated       false
+   :account/role            r/applicant})
 
 (s/fdef create
         :args (s/cat :email string?
                      :password string?
                      :first-name string?
                      :last-name string?)
-        :ret p/entity?)
+        :ret map?)
 
-;; TODO: Don't transact here
 (defn activate
   "Indicate that the user has successfully verified ownership over the provided
   email address."
   [account]
-  (:db-after @(d/transact conn [{:db/id             (:db/id account)
-                                 :account/activated true}])))
+  {:db/id             (:db/id account)
+   :account/activated true})
 
 (s/fdef activate
-        :args (s/cat :account p/entity?))
+        :args (s/cat :account p/entity?)
+        :ret map?)
 
 ;; =====================================
 ;; Promote to Membership

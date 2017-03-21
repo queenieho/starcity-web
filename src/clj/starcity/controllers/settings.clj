@@ -2,14 +2,18 @@
   (:require [bouncer
              [core :as b]
              [validators :as v]]
-            [starcity.auth :as auth]
             [clojure.string :as str]
+            [datomic.api :as d]
+            [starcity
+             [auth :as auth]
+             [datomic :refer [conn]]
+             [util :refer :all]]
             [starcity.controllers.utils :refer [errors-from ok valid?]]
             [starcity.models.account :as account]
-            [starcity.util :refer :all]
             [starcity.views.settings :as view]
-            [starcity.web.messages :refer [respond-with-errors
-                                           respond-with-success]]))
+            [starcity.web.messages
+             :refer
+             [respond-with-errors respond-with-success]]))
 
 ;; =============================================================================
 ;; Validation
@@ -51,7 +55,7 @@
           vresult (validate-password-params params account)]
       (if-let [{:keys [password]} (valid? vresult)]
         (do
-          (account/change-password account password)
+          @(d/transact conn [(account/change-password account password)])
           (respond-with-success req "Successfully changed your password!" view/account-settings))
         (respond-with-errors req (errors-from vresult) view/account-settings)))
     (respond-with-errors req "Your passwords must match!" view/account-settings)))

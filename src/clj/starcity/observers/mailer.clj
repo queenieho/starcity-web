@@ -1,5 +1,6 @@
 (ns starcity.observers.mailer
   (:require [datomic.api :as d]
+            [ring.util.codec :refer [url-encode]]
             [starcity.config :as config]
             [starcity.models
              [account :as account]
@@ -25,6 +26,21 @@
 ;; =============================================================================
 ;; Accounts
 ;; =============================================================================
+
+(defmethod handle msg/account-created-key
+  [conn {{email :email} :msg/params :as msg}]
+  (let [account (account/by-email (d/db conn) email)]
+    (mail/send
+     email
+     "Activate Your Account"
+     (mm/msg
+      (mm/greeting (account/first-name account))
+      (mm/p "Thanks for signing up!")
+      (mm/p (format "<a href='%s/signup/activate?email=%s&hash=%s'>Click here to activate your account</a> and apply for a home."
+                    config/hostname (url-encode email) (account/activation-hash account)))
+      (mm/signature "Meg" "Head of Community"))
+     :from ms/meg
+     :uuid (:msg/uuid msg))))
 
 ;; TODO:
 ;; The dashboard also has a services menu where you can request assistance for
@@ -52,7 +68,7 @@
       your rent payments and the remainder of your security deposit (if
       applicable). You can choose to <a href='%s/me/account/rent'>enable
       autopay</a> or make individual rent payments going forward."
-      config/hostname config/hostname))
+                    config/hostname config/hostname))
       (mm/p "Please let us know if you have any questions about the move-in
       process or need assistance navigating the dashboard.")
       (mm/signature "Meg" "Head of Community"))
@@ -220,7 +236,7 @@
 (defmethod handle msg/customer-source-updated-key
   [conn {params :msg/params :as msg}]
   (let [{:keys [customer-id]} params
-        account               (account/by-customer-id conn customer-id)]
+        account               (account/by-customer-id (d/db conn) customer-id)]
     (source-updated conn msg account)))
 
 ;; =============================================================================

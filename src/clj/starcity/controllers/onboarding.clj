@@ -3,9 +3,11 @@
              [core :as b]
              [validators :as v]]
             [compojure.core :refer [context defroutes GET POST]]
+            [datomic.api :as d]
             [ring.util.response :as response]
             [starcity
              [auth :as auth]
+             [datomic :refer [conn]]
              [util :refer :all]]
             [starcity.controllers.utils :refer [errors-from ok valid?]]
             [starcity.models
@@ -185,7 +187,9 @@
         vresult (validate-microdeposits params')]
     (if-let [{:keys [deposit-1 deposit-2]} (valid? vresult)]
       (try
-        (let [res (customer/verify-microdeposits (account/stripe-customer account) deposit-1 deposit-2)]
+        (let [res (customer/verify-microdeposits (account/stripe-customer (d/db conn) account)
+                                                 deposit-1
+                                                 deposit-2)]
           (timbre/info ::verify-microdeposits {:user        (account/email account)
                                                :customer-id (:customer res)}))
         (response/redirect "/onboarding/security-deposit/payment-method/ach/pay")

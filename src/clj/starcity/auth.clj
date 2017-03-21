@@ -46,6 +46,17 @@
   (let [account-id (get-in req [:identity :db/id])]
     (d/entity (d/db conn) account-id)))
 
+(defn redirect-by-role
+  "Redirect to the appropriate URI based on logged-in user's role."
+  [{:keys [identity] :as req}]
+  (-> (case (:account/role identity)
+        :account.role/applicant  "/apply"
+        :account.role/onboarding "/onboarding"
+        :account.role/admin      "/admin"
+        :account.role/member     "/me"
+        "/")
+      (response/redirect)))
+
 ;; =============================================================================
 ;; Access Rules
 
@@ -57,6 +68,9 @@
   (if (authenticated? req)
     true
     (throw-unauthorized)))
+
+(defn unauthenticated-user [req]
+  (not (authenticated? req)))
 
 (defn user-can
   "Given a particular action that the authenticated user desires to perform,

@@ -58,7 +58,7 @@
   "Pay requester's security deposit iff he/she has linked bank account."
   [conn account]
   (let [deposit  (deposit/by-account account)
-        customer (account/stripe-customer account)
+        customer (account/stripe-customer (d/db conn) account)
         license  (member-license/active conn account)]
     (cond
       (nil? customer)

@@ -43,8 +43,9 @@
 ;; Bank Account
 
 (defn bank-account
-  [account]
-  (when-let [customer (account/stripe-customer account)]
+  "Produce the bank account data for this account."
+  [db account]
+  (when-let [customer (account/stripe-customer db account)]
     (when (customer/has-verified-bank-account? customer)
       (let [bank-account (customer/active-bank-account customer)]
         {:bank-name (customer/account-name bank-account)

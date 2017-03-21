@@ -17,7 +17,8 @@
              [autopay :as autopay]]
             [starcity.models.stripe.customer :as customer]
             [starcity.services.plaid :as service]
-            [taoensso.timbre :as timbre]))
+            [taoensso.timbre :as timbre]
+            [datomic.api :as d]))
 
 ;;; Initialization
 
@@ -105,9 +106,11 @@
     (if-not (deposits-valid? deposits)
       (malformed {:error "Invalid deposit amounts."})
       (try
-        (let [res (customer/verify-microdeposits (account/stripe-customer account) (first deposits) (second deposits))]
+        (let [res (customer/verify-microdeposits (account/stripe-customer (d/db conn) account)
+                                                 (first deposits)
+                                                 (second deposits))]
           (timbre/info ::verify-microdeposits {:account     (account/email account)
-                                            :customer-id (:customer res)})
+                                               :customer-id (:customer res)})
           (ok {:status (autopay/setup-status conn account)}))
         (catch Exception e
           (timbre/error e ::verify-microdeposits {:account (account/email account)})

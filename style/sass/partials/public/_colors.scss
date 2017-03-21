@@ -4,6 +4,7 @@ $blue: #1186c9 !default;
 $green: #11c956 !default;
 $yellow: #ffb736 !default;
 $purple: #b121d5 !default;
+$red: #ee433b !default;
 $dark-blue: #0f6697 !default;
 $dark-green: #388956 !default;
 $dark-yellow: #ca8d1f !default;
@@ -16,6 +17,7 @@ $dark-purple: #811a9b !default;
 .text-green  { color: $green; }
 .text-yellow { color: $yellow; }
 .text-purple { color: $purple; }
+.text-red { color: $red; }
 
 .bg-black { background-color: $black; }
 .bg-white  { background-color: white; }
@@ -24,3 +26,4 @@ $dark-purple: #811a9b !default;
 .bg-green  { background-color: $green; }
 .bg-yellow { background-color: $yellow; }
 .bg-purple { background-color: $purple; }
+.bg-red { background-color: $red; }

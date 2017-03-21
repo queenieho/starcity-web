@@ -59,6 +59,17 @@
                      :move-in inst?)
         :ret ::msg)
 
+(def account-created-key :account/created)
+
+(defn account-created
+  "An account has been created."
+  [email]
+  (create account-created-key :params {:email email}))
+
+(s/fdef account-created
+        :args (s/cat :email string?)
+        :ret ::msg)
+
 (def promoted-key :account/promoted)
 
 (defn promoted

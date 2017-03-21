@@ -11,7 +11,8 @@
             [starcity.models.stripe.customer :as customer]
             [starcity.observers.cmds.stripe :as stripe]
             [starcity.services.stripe.customer :as customer-service]
-            [taoensso.timbre :as timbre]))
+            [taoensso.timbre :as timbre]
+            [starcity.models.account :as account]))
 
 ;; =============================================================================
 ;; Global
@@ -22,6 +23,16 @@
 (defmethod handle :default
   [_ cmd]
   (timbre/debug ::no-handler cmd))
+
+;; =============================================================================
+;; Accounts
+;; =============================================================================
+
+(defmethod handle cmd/create-account-key
+  [conn {{:keys [email password first-name last-name]} :cmd/params :as cmd}]
+  @(d/transact conn [(account/create email password first-name last-name)
+                     (msg/account-created email)
+                     (cmd/successful cmd)]))
 
 ;; =============================================================================
 ;; Rent

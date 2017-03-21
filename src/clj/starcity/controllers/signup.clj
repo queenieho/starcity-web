@@ -2,22 +2,20 @@
   (:require [bouncer
              [core :as b]
              [validators :as v]]
-            [buddy.auth :refer [authenticated?]]
             [clojure.string :refer [capitalize lower-case trim]]
-            [hiccup.core :refer [html]]
-            [ring.util
-             [codec :refer [url-encode]]
-             [response :as response]]
-            [starcity
-             [config :as config]]
-            [starcity.controllers.utils :refer :all]
-            [starcity.models.account :as account]
-            [starcity.services.mailgun :refer [send-email]]
-            [starcity.views.signup :as view]
-            [starcity.web.messages :refer [respond-with-errors]]
-            [taoensso.timbre :as timbre]
+            [datomic.api :as d]
+            [plumbing.core :as plumbing]
+            [ring.util.response :as response]
+            [selmer.parser :as selmer]
+            [starcity.controllers
+             [common :as common]
+             [utils :refer :all]]
+            [starcity.datomic :refer [conn]]
+            [starcity.models
+             [account :as account]
+             [cmd :as cmd]]
             [starcity.views.common :refer [public-defaults]]
-            [selmer.parser :as selmer]))
+            [taoensso.timbre :as timbre]))
 
 ;; =============================================================================
 ;; Constants
@@ -58,93 +56,64 @@
     (assoc params :password password-1)))
 
 ;; =============================================================================
-;; Activation
-
-;; TODO: 'Resend' mechanism
-(defn- show-invalid-activation
-  [req]
-  (ok (view/invalid-activation req)))
-
-(defn- activation-email-content [account]
-  (html
-   [:body
-    [:p (format "Hi %s," (account/first-name account))]
-    [:p "Thank you for signing up! "
-     [:a {:href (format "%s/signup/activate?email=%s&hash=%s"
-                        config/hostname
-                        (url-encode (account/email account))
-                        (account/activation-hash account))}
-      "Click here to activate your account"]
-     " and apply for a home."]
-    [:p "Best," [:br] [:br] "Meg" [:br] "Head of Community"]]))
-
-(def ^:private activation-email-subject
-  "Activate Your Account")
-
-(defn- send-activation-email [account]
-  (let [email (account/email account)]
-    (timbre/info ::send-activation-email {:user email})
-    (send-email email
-                activation-email-subject
-                (activation-email-content account))))
-
+;; Handlers
 ;; =============================================================================
-;; API
-;; =============================================================================
-
-;; =============================================================================
-;; Complete
-
-(defn show-complete [req]
-  (ok (view/complete req)))
 
 ;; =============================================================================
 ;; Signup
 
-;; TODO: shouldn't need to do this here...seems like a job for middleware
-#_(defn show-signup [req]
-  (if (authenticated? req)
-    (response/redirect "/apply")
-    (ok (view/signup req))))
+(defn- show-invalid-activation
+  [req]
+  (common/ok (selmer/render-file "invalid-activation.html" (public-defaults req))))
+
+(defn show-complete
+  [req]
+  (common/ok (selmer/render-file "signup-complete.html" (public-defaults req))))
+
+(defn- signup-errors
+  [req {:keys [first-name last-name email]} & errors]
+  (-> (selmer/render-file "signup.html" (-> (public-defaults req)
+                                            (assoc :errors errors)
+                                            (plumbing/assoc-when :first-name first-name
+                                                                 :last-name last-name
+                                                                 :email email)))
+      (common/malformed)))
 
 (defn show-signup
   "Show the signup page."
   [req]
-  (selmer/render-file "signup.html" (public-defaults req)))
+  (common/ok (selmer/render-file "signup.html" (public-defaults req))))
 
-(defn signup [{:keys [params] :as req}]
+(defn signup
+  [{:keys [params] :as req}]
   (if-let [params (matching-passwords? params)]
     (let [vresult (-> params clean-params validate)]
       (if-let [{:keys [email password first-name last-name]} (valid? vresult)]
-        (if-not (account/exists? email)
-          ;; SUCCESS
-          (let [account (account/create email password first-name last-name)]
-            (do
-              (timbre/info :account/created {:user       email
-                                             :first-name first-name
-                                             :last-name  last-name})
-              (send-activation-email account)
-              (response/redirect redirect-after-signup)))
+        (if-not (account/exists? (d/db conn) email)
+          (do
+            @(d/transact conn [(cmd/create-account email password first-name last-name)])
+            (response/redirect redirect-after-signup))
           ;; account already exists for email
-          (respond-with-errors req (format "An account is already registered for %s." email) view/signup))
+          (signup-errors req params (format "An account is already registered for %s." email)))
         ;; validation failure
-        (respond-with-errors req (errors-from vresult) view/signup)))
+        (apply signup-errors req params (errors-from vresult))))
     ;; passwords don't match
-    (respond-with-errors req "Those passwords do not match. Please try again." view/signup)))
+    (signup-errors req params "Those passwords do not match. Please try again.")))
 
 ;; =============================================================================
 ;; Activation
 
-(defn activate [{:keys [params session] :as req}]
+(defn activate
+  [{:keys [params session] :as req}]
   (let [{:keys [email hash]} params]
     (if (or (nil? email) (nil? hash))
       (show-invalid-activation req)
-      (let [acct (account/by-email email)]
+      (let [acct (account/by-email (d/db conn) email)]
         (if (= hash (account/activation-hash acct))
           (let [session (assoc session :identity (account/session-data acct))]
             (do
-              (account/activate acct)
-              (timbre/info :account/activated {:user email})
+              @(d/transact conn [(account/activate acct)])
+              (timbre/info :account/activated {:email email})
               (-> (response/redirect redirect-after-activation)
                   (assoc :session session))))
           ;; hashes don't match

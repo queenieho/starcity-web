@@ -284,7 +284,7 @@
 (defmethod handle msg/customer-source-updated-key
   [conn {params :msg/params :as msg}]
   (let [{:keys [customer-id]} params
-        account               (account/by-customer-id conn customer-id)]
+        account               (account/by-customer-id (d/db conn) customer-id)]
     (source-updated conn msg account)))
 
 ;; =============================================================================

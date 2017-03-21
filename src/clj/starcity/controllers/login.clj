@@ -2,19 +2,20 @@
   (:require [bouncer
              [core :as b]
              [validators :as v]]
-            [buddy.auth :refer [authenticated?]]
             [clojure.string :refer [lower-case trim]]
+            [datomic.api :as d]
             [ring.util.response :as response]
-            [starcity.controllers.utils :refer :all]
+            [selmer.parser :as selmer]
+            [starcity.controllers
+             [common :as common]
+             [utils :refer :all]]
+            [starcity.datomic :refer [conn]]
             [starcity.models.account :as account]
-            [starcity.views.login :as view]
-            [starcity.web.messages :refer [respond-with-errors]]))
+            [starcity.views.common :refer [public-defaults]]))
 
 ;; =============================================================================
 ;; Constants
 ;; =============================================================================
-
-(def redirect-after-login "/me")
 
 (def unactivated-error
   "Please click the activation link in your inbox before attempting to log in.")
@@ -40,39 +41,43 @@
   (-> (update credentials :email (comp trim lower-case))
       (update :password trim)))
 
-(defn- url-after-login [acct {:keys [params] :as req}]
+(defn- url-after-login
+  [account {:keys [params] :as req}]
   (cond
-    (not-empty (:next params)) (:next params)
-    (account/admin? acct)      "/admin"
-    (account/applicant? acct)  "/apply"
-    :otherwise                 redirect-after-login))
+    (not (empty? (:next params))) (:next params)
+    (account/admin? account)      "/admin"
+    (account/applicant? account)  "/apply"
+    (account/onboarding? account) "/onboarding"
+    :otherwise                    "/me"))
 
 ;; =============================================================================
-;; API
+;; Handlers
 ;; =============================================================================
 
-(defn show-login
-  "Respond 200 OK with the login page."
+(defn- render
+  [req & errors]
+  (selmer/render-file "login.html" (assoc (public-defaults req) :errors errors)))
+
+(defn show
+  "Show the login page."
   [req]
-  (if (authenticated? req)
-    (response/redirect "/apply")
-    (ok (view/login req))))
+  (common/ok (render req)))
 
 (defn login
   "Log a user in."
   [{:keys [params session] :as req}]
   (let [vresult (-> params clean-credentials validate-credentials)]
     (if-let [{:keys [email password]} (valid? vresult)]
-      (if-let [acct (account/authenticate email password)]
-        (if (:account/activated acct)
+      (if-let [account (account/authenticate (d/db conn) email password)]
+        (if (:account/activated account)
           ;; success
-          (let [next-url (url-after-login acct req)
-                session  (assoc session :identity acct)]
+          (let [next-url (url-after-login account req)
+                session  (assoc session :identity account)]
             (-> (response/redirect next-url)
                 (assoc :session session)))
           ;; account not activated
-          (respond-with-errors req unactivated-error view/login))
+          (common/malformed (render req unactivated-error)))
         ;; authentication failure
-        (respond-with-errors req invalid-credentials-error view/login))
+        (common/malformed (render req invalid-credentials-error)))
       ;; validation failure
-      (respond-with-errors req (errors-from vresult) view/login))))
+      (common/malformed (apply render req (errors-from vresult))))))

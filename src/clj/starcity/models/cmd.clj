@@ -64,6 +64,23 @@
 ;; Named cmds
 
 ;; =====================================
+;; Accounts
+
+(def create-account-key :account/create)
+
+(defn create-account
+  "A new account should be created."
+  [email password first-name last-name]
+  (create create-account-key :params {:email      email
+                                      :password   password
+                                      :first-name first-name
+                                      :last-name  last-name}))
+
+(s/fdef create-account
+        :args (s/cat :email string? :password string? :first-name string? :last-name string?)
+        :ret ::cmd)
+
+;; =====================================
 ;; Rent
 
 (def create-rent-payments-key :rent.payments/create)

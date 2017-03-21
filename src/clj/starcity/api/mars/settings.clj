@@ -1,17 +1,22 @@
 (ns starcity.api.mars.settings
-  (:require [compojure.core :refer [defroutes POST]]
-            [starcity.datomic :refer [conn]]
-            [starcity.auth :as auth]
-            [clojure.spec :as s]
-            [toolbelt.predicates :as p]
+  (:require [bouncer
+             [core :as b]
+             [validators :as v]]
+            [clojure
+             [spec :as s]
+             [string :as string]]
+            [compojure.core :refer [defroutes POST]]
+            [datomic.api :as d]
+            [starcity
+             [auth :as auth]
+             [datomic :refer [conn]]]
             [starcity.models.account :as account]
-            [bouncer.core :as b]
-            [bouncer.validators :as v]
-            [clojure.string :as string]
-            [toolbelt.core :as tb]
-            [starcity.util.validation :as uv]
-            [starcity.util.response :as response]
-            [datomic.api :as d]))
+            [starcity.util
+             [response :as response]
+             [validation :as uv]]
+            [toolbelt
+             [core :as tb]
+             [predicates :as p]]))
 
 ;; =============================================================================
 ;; Handlers
@@ -44,7 +49,7 @@
     (if-not (uv/valid? vresult)
       (response/transit-malformed {:message (first (uv/errors vresult))})
       (do
-        (account/change-password account (:password-1 params))
+        @(d/transact conn [(account/change-password account (:password-1 params))])
         (response/transit-ok {:result "ok"})))))
 
 (s/fdef change-password!

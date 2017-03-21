@@ -3,18 +3,19 @@
              [coerce :as c]
              [core :as t]]
             [clojure.spec :as s]
-            [starcity.spec]
+            [datomic.api :as d]
+            [starcity spec
+             [datomic :refer [conn]]]
             [starcity.models
              [account :as account]
              [member-license :as member-license]
              [property :as property]
              [unit :as unit]]
+            [starcity.models.stripe.customer :as customer]
             [starcity.services.stripe
              [plan :as plan]
              [subscription :as subscription]]
-            [starcity.models.stripe.customer :as customer]
             starcity.spec.datomic
-            [datomic.api :as d]
             [taoensso.timbre :as timbre]))
 
 ;;; Setup Status
@@ -25,7 +26,7 @@
 (defn- fetch-setup-status
   [conn account]
   (try
-    (let [c (customer/fetch (account/stripe-customer account))]
+    (let [c (customer/fetch (account/stripe-customer (d/db conn) account))]
       (cond
         (not (customer/has-bank-account? c))    "bank-needed"
         (customer/has-verified-bank-account? c) "verified"
@@ -37,7 +38,7 @@
 (defn setup-status
   "Produce the status of autopay setup for `account`."
   [conn account]
-  (if-not (account/stripe-customer account)
+  (if-not (account/stripe-customer (d/db conn) account)
     "none"
     (fetch-setup-status conn account)))
 

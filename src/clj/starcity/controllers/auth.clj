@@ -1,40 +1,42 @@
 (ns starcity.controllers.auth
   (:require [clojure.string :as str]
-            [hiccup.core :refer [html]]
+            [datomic.api :as d]
             [ring.util
              [codec :refer [url-encode]]
              [response :as response]]
-            [starcity.config :refer [hostname]]
-            [starcity.controllers.utils :refer :all]
+            [selmer.parser :as selmer]
+            [starcity
+             [config :as config]
+             [datomic :refer [conn]]]
+            [starcity.controllers.common :as common]
             [starcity.models.account :as account]
-            [starcity.services.mailgun :as mailgun]
-            [starcity.views.auth :as view]
-            [starcity.web.messages :refer [respond-with-errors]]
-            [starcity.auth :as auth]))
+            [starcity.services.mailgun :as mail]
+            [starcity.services.mailgun.message :as mm]
+            [starcity.views.common :refer [public-defaults]]))
 
 ;; =============================================================================
 ;; Helpers
 ;; =============================================================================
 
 (defn- send-password-reset-email
-  [{:keys [:account/email :account/first-name] :as acct} new-password]
-  (mailgun/send-email email "Password Reset"
-                      (html
-                       [:body
-                        [:p (format "Hi %s," first-name)]
-                        [:p "As requested, we have reset your password. Your new password is:"]
-                        [:p [:b new-password]]
-                        [:p
-                         "After logging in "
-                         [:a {:href (format "%s/login?email=%s&next=/account" hostname (url-encode email))} "here"]
-                         ", please change your password to something more memorable by clicking on "
-                         [:b "My Account"]
-                         " in the upper right-hand corner of the page."]
-                        [:p "If this was not you, please contact us by replying to this email."]
-                        mailgun/default-signature])))
+  [account new-password]
+  (let [email (account/email account)]
+    (mail/send
+     email
+     "Starcity Password Reset"
+     (mm/msg
+      (mm/greeting (account/first-name account))
+      (mm/p "As requrested, we have reset your password. Your temporary password is:")
+      (mm/p (str "<b>" new-password "</b>"))
+      (mm/p
+       (format "After logging in <a href='%s'>here</a>, please change your
+       password to something more memorable by clicking on <b>My Account</b> in the upper right-hand corner of the page."
+               (format "%s/login?email=%s&next=/account" config/hostname (url-encode email))))
+      (mm/p "If this was not you, please contact us at <a href='mailto:team@joinstarcity.com>team@joinstarcity.com</a>.")
+      (mm/signature)))))
 
 ;; =============================================================================
-;; API
+;; Handlers
 ;; =============================================================================
 
 (defn logout
@@ -47,18 +49,26 @@
       ;; same? Perhaps submit a PR?
       (assoc :session nil)))
 
-(def show-forgot-password
-  (comp ok view/forgot-password))
+(defn- forgot-password-errors
+  [req & errors]
+  (common/malformed
+   (selmer/render-file "forgot-password.html" (-> (public-defaults req)
+                                                  (assoc :errors errors)))))
+
+(defn show-forgot-password
+  [req]
+  (common/ok (selmer/render-file "forgot-password.html" (public-defaults req))))
 
 (defn forgot-password
   [{:keys [params] :as req}]
   (if-let [email (:email params)]
     (let [cleaned (-> email str/trim str/lower-case)]
-      (if-let [acct (account/by-email cleaned)]
-        (let [new-password (account/reset-password acct)
-              next         (format "/login?email=%s&reset-password=true" cleaned)]
-          (send-password-reset-email acct new-password)
+      (if-let [account (account/by-email (d/db conn) cleaned)]
+        (let [[new-password tx-data] (account/reset-password account)
+              next                   (format "/login?email=%s&reset-password=true" cleaned)]
+          @(d/transact conn [tx-data])
+          (send-password-reset-email account new-password)
           (response/redirect next))
-        (respond-with-errors req (format "We do not have an account under %s. Please try again, or create an account."
-                                         cleaned) view/forgot-password)))
-    (respond-with-errors req "Please enter your email." view/forgot-password)))
+        (forgot-password-errors req (format "We do not have an account under %s. Please try again, or create an account."
+                                            cleaned))))
+    (forgot-password-errors req "Please enter your email address.")))

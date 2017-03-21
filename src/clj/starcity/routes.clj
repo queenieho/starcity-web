@@ -6,7 +6,7 @@
             [ring.util.response :as response]
             [starcity
              [api :as api]
-             [auth :refer [authenticated-user user-isa]]]
+             [auth :refer [unauthenticated-user authenticated-user user-isa redirect-by-role]]]
             [starcity.controllers
              [about :as about]
              [admin :as admin]
@@ -29,16 +29,6 @@
             [starcity.webhooks
              [stripe :as stripe]]))
 
-(defn- redirect-by-role
-  [{:keys [identity] :as req} msg]
-  (-> (case (:account/role identity)
-        :account.role/applicant  "/apply"
-        :account.role/onboarding "/onboarding"
-        :account.role/admin      "/admin"
-        :account.role/member     "/me"
-        "/")
-      (response/redirect)))
-
 ;; =============================================================================
 ;; Routes
 ;; =============================================================================
@@ -57,30 +47,39 @@
   (GET "/about"            [] about/show-about)
   (GET "/team"             [] team/show-team)
 
-  (GET "/forgot-password"  [] auth/show-forgot-password)
-  (POST "/forgot-password" [] auth/forgot-password)
-
-  (GET  "/login"           [] login/show-login)
-  (POST "/login"           [] login/login)
-
-  (ANY  "/logout"          [] auth/logout)
-
   (context "/communities" []
            (GET "/soma" [] communities/show-soma)
            (GET "/mission" [] communities/show-mission))
 
+  (GET "/forgot-password"  [] auth/show-forgot-password)
+  (POST "/forgot-password" [] auth/forgot-password)
+
+  (context "/login" []
+           (restrict
+            (routes
+             (GET  "/"           [] login/show)
+             (POST "/"           [] login/login))
+            {:handler  unauthenticated-user
+             :on-error (fn [req _] (redirect-by-role req))}))
+
+  (ANY  "/logout"          [] auth/logout)
+
   (context "/signup" []
-           (GET   "/"         [] signup/show-signup)
-           (POST  "/"         [] signup/signup)
-           (GET   "/complete" [] signup/show-complete)
-           (GET   "/activate" [] signup/activate))
+           (restrict
+            (routes
+             (GET   "/"         [] signup/show-signup)
+             (POST  "/"         [] signup/signup)
+             (GET   "/complete" [] signup/show-complete)
+             (GET   "/activate" [] signup/activate))
+            {:handler  unauthenticated-user
+             :on-error (fn [req _] (redirect-by-role req))}))
 
   (context "/apply" []
            (restrict
             (routes
              (GET "*" [] apply/show-apply))
             {:handler  {:and [authenticated-user (user-isa :account.role/applicant)]}
-             :on-error redirect-by-role}))
+             :on-error (fn [req _] (redirect-by-role req))}))
 
   (context "/settings" []
            (restrict
@@ -90,27 +89,27 @@
              (GET "/change-password"  [] settings/show-account-settings)
              (POST "/change-password" [] settings/update-password))
             {:handler  authenticated-user
-             :on-error redirect-by-role}))
+             :on-error (fn [req _] (redirect-by-role req))}))
 
   (context "/admin" []
            (restrict
             (routes
              (GET "*" [] admin/show))
             {:handler  {:and [authenticated-user (user-isa :account.role/admin)]}
-             :on-error redirect-by-role}))
+             :on-error (fn [req _] (redirect-by-role req))}))
 
   (context "/me" []
            (restrict
             (routes
              (GET "/*" [] dashboard/show))
             {:handler  {:and [authenticated-user (user-isa :account.role/member)]}
-             :on-error redirect-by-role}))
+             :on-error (fn [req _] (redirect-by-role req))}))
 
 
   (context "/onboarding" []
            (restrict onboarding/routes
                      {:handler  {:and [authenticated-user (user-isa :account.role/onboarding)]}
-                      :on-error redirect-by-role}))
+                      :on-error (fn [req _] (redirect-by-role req))}))
 
   (context "/api/v1" [] api/routes)
 
