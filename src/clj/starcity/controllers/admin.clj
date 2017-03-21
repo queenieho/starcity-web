@@ -1,6 +1,12 @@
 (ns starcity.controllers.admin
-  (:require [starcity.views.admin :as view]
-            [starcity.controllers.utils :refer [ok]]))
+  (:require [optimus.link :as link]
+            [selmer.parser :as selmer]
+            [starcity.controllers.common :as common]
+            [starcity.views.common :refer [app-defaults]]))
 
-(def show
-  (comp ok view/admin))
+(defn show
+  "Show the Admin dashboard app."
+  [req]
+  (->> (app-defaults req "admin" :stylesheets (link/bundle-paths req ["antd.css"]))
+       (selmer/render-file "admin.html")
+       (common/ok)))

@@ -1,0 +1,11 @@
+{% extends "app.html" %}
+
+{% block navbar %}
+{% include "partials/app/navbar.html" %}
+{% endblock %}
+
+{% block content %}
+<section class="section" id="{{app-id}}">
+  {% include "partials/loading-fs.html" %}
+</section>
+{% endblock %}

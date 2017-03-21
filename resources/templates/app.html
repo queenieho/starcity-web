@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=Edge">
-    <title>Starcity &mdash; Reimagine Home</title>
+    <title>Starcity &mdash; {{title}} </title>
     <meta name="author" content="">
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -32,23 +32,28 @@
     {% endblock %}
   </head>
   <body>
-    {% block svg %}
-    {% endblock %}
 
-    {% block header %}
-    {% include "partials/header.html" %}
+    {% block navbar %}
     {% endblock %}
 
     {% block content %}
+    <div id="{{app-id}}">
+      {% include "partials/loading-fs.html" %}
+    </div>
     {% endblock %}
 
-    {% block footer %}
-    {% include "partials/footer.html" %}
-    {% endblock %}
-
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    {% for name,obj in json %}
+    <script>
+     var {{name}}={{obj|json|safe}};
+    </script>
+    {% endfor %}
     {% for script in scripts %}
     <script type="text/javascript" src="{{script}}"></script>
     {% endfor %}
+    <script>
+     window.onload = function() {
+       {{app-id}}.core.run();
+     }
+    </script>
   </body>
 </html>

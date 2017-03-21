@@ -13,6 +13,5 @@
 
 (defn ^:export run []
   (routes/app-routes)
-  ;; (clear-subscription-cache!)
   (dispatch-sync [:app/initialize])
-  (r/render [app] (.getElementById js/document "app")))
+  (r/render [app] (.getElementById js/document "mars")))

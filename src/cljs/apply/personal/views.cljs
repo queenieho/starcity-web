@@ -2,6 +2,7 @@
   (:require [apply.prompts.views :as p]
             [apply.prompts.models :as prompts]
             [starcity.states :as states]
+            [starcity.countries :refer [countries]]
             [starcity.dom :as dom]
             [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]
@@ -137,9 +138,6 @@
       ;; Last Name
       [:div.control.column
        [:input.input {:value last :on-change (-on-change :last)}]] ]]))
-
-(def countries
-  (js->clj (.parse js/JSON js/countries) :keywordize-keys true))
 
 (defn- address-group [{:keys [address] :as info}]
   (letfn [(-on-change [k]

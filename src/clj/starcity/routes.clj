@@ -8,7 +8,6 @@
              [api :as api]
              [auth :refer [authenticated-user redirect-by-role unauthenticated-user user-isa]]]
             [starcity.controllers
-             [about :as about]
              [admin :as admin]
              [apply :as apply]
              [auth :as auth]
@@ -25,7 +24,6 @@
              [settings :as settings]
              [signup :as signup]
              [story :as story]
-             [team :as team]
              [terms :as terms]]
             [starcity.webhooks.stripe :as stripe]))
 
@@ -43,8 +41,6 @@
   (GET "/faq"              [] faq/show)
   (GET "/terms"            [] terms/show)
   (GET "/privacy"          [] privacy/show)
-  (GET "/about"            [] about/show-about)
-  (GET "/team"             [] team/show-team)
   (GET "/newsletter"       [] newsletter/show)
   (POST "/newsletter"      [] newsletter/subscribe!)
 
@@ -78,7 +74,7 @@
   (context "/apply" []
            (restrict
             (routes
-             (GET "*" [] apply/show-apply))
+             (GET "*" [] apply/show))
             {:handler  {:and [authenticated-user (user-isa :account.role/applicant)]}
              :on-error (fn [req _] (redirect-by-role req))}))
 

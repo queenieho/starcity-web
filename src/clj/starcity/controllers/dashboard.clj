@@ -1,6 +1,12 @@
 (ns starcity.controllers.dashboard
-  (:require [starcity.views.dashboard :as view]
-            [starcity.controllers.utils :refer [ok]]))
+  (:require [optimus.link :as link]
+            [selmer.parser :as selmer]
+            [starcity.controllers.common :as common]
+            [starcity.views.common :refer [app-defaults]]))
 
-(def show
-  (comp ok view/mars))
+(defn show
+  "Show the member dashboard (MARS)."
+  [req]
+  (->> (app-defaults req "mars" :stylesheets (link/bundle-paths req ["antd.css"]))
+       (selmer/render-file "mars.html")
+       (common/ok)))

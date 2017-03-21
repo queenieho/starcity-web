@@ -24,7 +24,6 @@
              [config :refer [config]]
              [routes :refer [app-routes]]]
             [selmer.parser :as selmer]
-            [starcity.views.error :as view]
             [taoensso.timbre :as t]
             [starcity.environment :as env]))
 

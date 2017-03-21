@@ -1,6 +1,5 @@
 (ns starcity.auth
-  (:require [starcity.views.error :as view]
-            [ring.util.response :as response]
+  (:require [ring.util.response :as response]
             [buddy.auth :refer [authenticated? throw-unauthorized]]
             [buddy.auth.backends.session :refer [session-backend]]
             [buddy.auth.accessrules :refer [success error]]
@@ -21,8 +20,7 @@
   "Default unauthorized handler."
   [{:keys [headers] :as request} metadata]
   (cond
-    (authenticated? request) (-> (view/error "You are not authorized to view this page.")
-                                 (response/response)
+    (authenticated? request) (-> (response/response "You are not authorized to view this page.")
                                  (response/content-type "text/html; charset=utf-8")
                                  (assoc :status 403))
     :else                    (let [current-url (:uri request)]

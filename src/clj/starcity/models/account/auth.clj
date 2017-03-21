@@ -85,4 +85,5 @@
       (session-data acct))))
 
 (s/fdef authenticate
-        :args (s/cat :email string? :password string?))
+        :args (s/cat :db p/db? :email string? :password string?)
+        :ret (s/or :nothing nil? :data map?))

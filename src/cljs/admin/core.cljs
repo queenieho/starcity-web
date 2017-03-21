@@ -19,7 +19,7 @@
   (r/render
    [a/locale-provider {:locale en-US}
     [views/app]]
-   (gdom/getElement "app")))
+   (gdom/getElement "admin")))
 
 (defn ^:export run []
   (routes/hook-browser-navigation!)
