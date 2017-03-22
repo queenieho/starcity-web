@@ -87,6 +87,24 @@
         :ret ::cmd)
 
 ;; =============================================================================
+;; Collaborators
+
+(def add-collaborator-key :collaborator/add)
+
+(defn add-collaborator
+  "A collaborator has indicated that he/she is interested in getting touch."
+  [email type message]
+  (create add-collaborator-key :params {:email   email
+                                        :type    type
+                                        :message message}))
+
+(s/fdef add-collaborator
+        :args (s/cat :email string?
+                     :type #{"real-estate" "community-stakeholder" "vendor" "investor"}
+                     :message string?)
+        :ret ::cmd)
+
+;; =============================================================================
 ;; Newsletter
 
 (def subscribe-to-newsletter-key :newsletter/subscribe)

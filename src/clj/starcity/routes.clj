@@ -11,6 +11,8 @@
              [admin :as admin]
              [apply :as apply]
              [auth :as auth]
+             [careers :as careers]
+             [collaborate :as collaborate]
              [communities :as communities]
              [dashboard :as dashboard]
              [faq :as faq]
@@ -37,10 +39,15 @@
   (GET "/lifestyle"        [] lifestyle/show)
   (GET "/story"            [] story/show)
   (GET "/schedule-tour"    [] schedule-tour/show)
+  (GET "/careers"          [] careers/show)
 
   (GET "/faq"              [] faq/show)
+  (GET "/collaborate"      [] collaborate/show)
+  (POST "/collaborate"     [] collaborate/submit!)
+
   (GET "/terms"            [] terms/show)
   (GET "/privacy"          [] privacy/show)
+
   (GET "/newsletter"       [] newsletter/show)
   (POST "/newsletter"      [] newsletter/subscribe!)
 

@@ -50,7 +50,7 @@
    {:title title :title_link link}))
 
 (defn fields [& fields]
-  {:fields fields})
+  {:fields (remove nil? fields)})
 
 (defn field [title value & [short]]
   {:title title :value value :short (boolean short)})

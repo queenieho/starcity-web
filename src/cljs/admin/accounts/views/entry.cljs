@@ -142,6 +142,10 @@
     [onboarding-stats]]
    [deposit/payments]])
 
+(defmethod overview :account.role/collaborator [_]
+  [:div
+   [notes/notes]])
+
 ;; =============================================================================
 ;; Content
 

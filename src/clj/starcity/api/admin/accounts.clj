@@ -471,8 +471,7 @@
   (->> (d/q '[:find ?note ?tx-time
               :in $ ?account
               :where
-              [?account :account/notes ?note]
-              [?note :note/author _ ?tx]
+              [?account :account/notes ?note ?tx]
               [?tx :db/txInstant ?tx-time]]
             db account-id)
        (sort-by second)
@@ -491,7 +490,7 @@
 (defn create-note!
   "Create a new note under `account-id` given `params`."
   [conn account-id author {:keys [subject content notify ticket]}]
-  (let [note (note/create author subject content :ticket? ticket)]
+  (let [note (note/create subject content :ticket? ticket :author author)]
     @(d/transact conn [{:db/id         account-id
                         :account/notes note}
                        (msg/note-created note notify)])

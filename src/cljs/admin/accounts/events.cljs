@@ -116,7 +116,7 @@
 ;; Account Entry
 ;; =============================================================================
 
-(defn- dispatches-for-page [page account-id]
+#_(defn- dispatches-for-page [page account-id]
   (cond-> [[:account/fetch account-id]]
     (= page :account/notes) (conj [:notes.account/fetch account-id])))
 
@@ -124,8 +124,8 @@
  :account/navigate
  [(path db/path)]
  (fn [{:keys [db]} [_ page account-id]]
-   {:db         (db/viewing-account-id db account-id)
-    :dispatch-n (dispatches-for-page page account-id)}))
+   {:db       (db/viewing-account-id db account-id)
+    :dispatch [:account/fetch account-id]}))
 
 (reg-event-fx
  :account.viewing/refresh

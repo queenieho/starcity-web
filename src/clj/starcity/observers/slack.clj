@@ -345,7 +345,8 @@
          (sm/text (note/content note))
          (sm/fields
           (sm/field "Account" (-> note note/account account/full-name) true)
-          (sm/field "Author" (-> note note/author account/full-name) true)
+          (when-let [author (note/author note)]
+            (sm/field "Author" (account/full-name author) true))
           (sm/field "Type" (string/lower-case ntype) true))))
        :uuid (:msg/uuid msg)))))
 

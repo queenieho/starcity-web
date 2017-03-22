@@ -43,10 +43,12 @@
   member
   admin
   onboarding
+  collaborator
   applicant?
   member?
   admin?
   onboarding?
+  collaborator?
   change-role]
  [starcity.models.account.auth
   change-password
@@ -78,10 +80,17 @@
         :ret p/entity?)
 
 (defn full-name
-  "Full name of person identified by this account."
-  [{:keys [:account/first-name :account/last-name :account/middle-name]}]
-  (if (not-empty middle-name)
+  "Full name of person identified by this account, or when no name exists, the
+  `email`."
+  [{:keys [:account/first-name :account/last-name :account/middle-name] :as a}]
+  (cond
+    (or (nil? first-name) (nil? last-name))
+    (:account/email a)
+
+    (not (empty? middle-name))
     (format "%s %s %s" first-name middle-name last-name)
+
+    :otherwise
     (format "%s %s" first-name last-name)))
 
 (defn stripe-customer
@@ -170,6 +179,13 @@
                      :first-name string?
                      :last-name string?)
         :ret map?)
+
+(defn collaborator
+  "Create a new collaborator account. This is currently created for the express
+  purpose of "
+  [email]
+  {:account/email email
+   :account/role  :account.role/collaborator})
 
 (defn activate
   "Indicate that the user has successfully verified ownership over the provided

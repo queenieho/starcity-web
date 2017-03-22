@@ -119,19 +119,24 @@
   (let [viewing    (subscribe [:accounts/viewing])
         is-loading (subscribe [:notes/fetching?])
         notes      (subscribe [:notes])]
-    (fn []
-      (let [notes (get @notes @viewing)]
-        [:div.columns
-         [:div.column.is-two-thirds
-          (cond
-            @is-loading    [a/card {:loading true}]
-            (empty? notes) [a/card [:p "No notes."]]
+    (r/create-class
+     {:component-will-mount
+      (fn [_]
+        (dispatch [:notes.account/fetch @viewing]))
+      :reagent-render
+      (fn []
+        (let [notes (get @notes @viewing)]
+          [:div.columns
+           [:div.column.is-two-thirds
+            (cond
+              @is-loading    [a/card {:loading true}]
+              (empty? notes) [a/card [:p "No notes."]]
 
-            :otherwise
-            (map-indexed
-             #(with-meta [:div {:style {:margin-bottom 8}} [note/note %2]] {:key %1})
-             notes))]
-         [:div.column
-          [edit-note-form]
-          [new-note-form]
-          [controls]]]))))
+              :otherwise
+              (map-indexed
+               #(with-meta [:div {:style {:margin-bottom 8}} [note/note %2]] {:key %1})
+               notes))]
+           [:div.column
+            [edit-note-form]
+            [new-note-form]
+            [controls]]]))})))

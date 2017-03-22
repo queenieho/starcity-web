@@ -139,23 +139,23 @@
   ticket (`ticket?`), and if this note should be `assigned-to` someone. Passing
   an account for `assigned-to` will result in this note being created as a
   ticket."
-  [author subject content & {:keys [ticket? assigned-to]}]
+  [subject content & {:keys [author ticket? assigned-to]}]
   (let [status (when (or ticket? assigned-to) :ticket.status/open)]
     (plumbing/assoc-when
      {:db/id        (tempid)
-      :note/author  (:db/id author)
       :note/subject subject
       :note/content content
       :note/uuid    (d/squuid)}
+     :note/author  (:db/id author)
      :ticket/status status
      :ticket/assigned-to (:db/id assigned-to))))
 
+(s/def ::author p/entity?)
 (s/def ::assigned-to p/entity?)
 (s/fdef create
-        :args (s/cat :author p/entity?
-                     :subject :note/subject
+        :args (s/cat :subject :note/subject
                      :content :note/content
-                     :opts (s/keys* :opt-un [::ticket? ::assigned-to]))
+                     :opts (s/keys* :opt-un [::ticket? ::assigned-to ::author]))
         :ret map?)
 
 (defn update

@@ -6,7 +6,8 @@
   #{:account.role/admin
     :account.role/member
     :account.role/onboarding
-    :account.role/applicant})
+    :account.role/applicant
+    :account.role/collaborator})
 
 ;;; Roles
 
@@ -14,6 +15,7 @@
 (def onboarding :account.role/onboarding)
 (def applicant :account.role/applicant)
 (def member :account.role/member)
+(def collaborator :account.role/collaborator)
 
 ;; Role Hierarchy
 
@@ -34,6 +36,7 @@
 (def member? (partial is-role member))
 (def admin? (partial is-role admin))
 (def onboarding? (partial is-role onboarding))
+(def collaborator? (partial is-role collaborator))
 
 ;;; Transactions
 

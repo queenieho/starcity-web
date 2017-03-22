@@ -1,9 +1,28 @@
-input, select {
+input, .select {
   font-family: 'Work Sans', sans-serif;
   border-radius: 50px;
   border-width: 1px;
   padding: 9px 24px 10px;
   border-style: solid;
+  &::-webkit-input-placeholder {
+    font-family: 'Work Sans', sans-serif;
+  }
+
+  select {
+    width: 100%;
+    outline: none;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    background-image: none;
+    -webkit-appearance: none;
+  }
+}
+
+textarea {
+  border-radius: 20px;
+  padding: 12px 24px 10px;
+  resize: none;
   &::-webkit-input-placeholder {
     font-family: 'Work Sans', sans-serif;
   }
@@ -35,11 +54,15 @@ input, select {
 
 .input-joined {
   border-radius: 50px 0 0 50px;
-  margin-top: -1px; 
+  margin-top: -1px;
 }
 
 @media screen and (min-width: 60em) {
   input {
     padding: 15px 30px 16px;
+  }
+
+  select {
+    padding: 7px 8px;
   }
 }

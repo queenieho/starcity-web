@@ -12,7 +12,8 @@
             [starcity.observers.cmds.stripe :as stripe]
             [starcity.services.stripe.customer :as customer-service]
             [taoensso.timbre :as timbre]
-            [starcity.models.account :as account]))
+            [starcity.models.account :as account]
+            [starcity.models.note :as note]))
 
 ;; =============================================================================
 ;; Global
@@ -35,6 +36,27 @@
                      (cmd/successful cmd)]))
 
 ;; =============================================================================
+;; Collaborators
+;; =============================================================================
+
+(defn- collaborator-tx
+  "If a collaborator account identified by `email` exists, add `note` to it;
+  otherwise create a collaborator account and and `note` to it."
+  [conn email note]
+  (-> (if-let [account (account/by-email (d/db conn) email)]
+        [{:db/id         (:db/id account)
+          :account/notes note}]
+        [(assoc (account/collaborator email) :account/notes note)])
+      (conj (msg/note-created note true))))
+
+(defmethod handle cmd/add-collaborator-key
+  [conn {{:keys [email type message]} :cmd/params :as cmd}]
+  (let [subject (format "Collaboration request from: %s, %s" email type)
+        note    (note/create subject message)]
+    @(d/transact conn (conj (collaborator-tx conn email note)
+                            (cmd/successful cmd)))))
+
+;; =============================================================================
 ;; Newsletter
 ;; =============================================================================
 
@@ -42,7 +64,6 @@
   [conn {{email :email} :cmd/params :as cmd}]
   ;; TODO:
   @(d/transact conn [(cmd/successful cmd)]))
-
 
 ;; =============================================================================
 ;; Rent

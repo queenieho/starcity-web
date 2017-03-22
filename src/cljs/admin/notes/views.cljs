@@ -166,7 +166,8 @@
          (note-icon note)]
         [:div.media-content
          [:div.content
-          [:p [:strong (-> note :note/author :account/name)]]
+          (when-let [author (:note/author note)]
+            [:p [:strong (:account/name note)]])
           [:p (:note/content note)]
           [controls showing-comments note]]
          (when-let [comments (and @showing-comments (:note/children note))]
