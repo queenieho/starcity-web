@@ -1,4 +1,4 @@
-(defproject starcity "1.4.3-alpha1"
+(defproject starcity "1.4.3-alpha2"
   :description "The web app for https://joinstarcity.com"
   :url "https://joinstarcity.com"
   :license {:name "Eclipse Public License"
