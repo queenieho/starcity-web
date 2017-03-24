@@ -1,4 +1,4 @@
-(defproject starcity "1.4.3-SNAPSHOT"
+(defproject starcity "1.4.3-alpha1"
   :description "The web app for https://joinstarcity.com"
   :url "https://joinstarcity.com"
   :license {:name "Eclipse Public License"
@@ -34,13 +34,13 @@
                  [mount "0.1.11"]
                  ;; Datomic
                  [io.rkn/conformity "0.4.0"]
-                 [starcity-db "1.4.1-SNAPSHOT" :exclusions [com.datomic/datomic-free]]
+                 [starcity-db "1.4.1" :exclusions [com.datomic/datomic-free]]
                  [com.datomic/datomic-pro "0.9.5544" :exclusions [com.google.guava/guava]]
                  [org.postgresql/postgresql "9.4.1211"]
                  ;; CLJS
                  [cljsjs/flatpickr "2.0.0-rc.7-0"]
                  [cljsjs/stripe "2.0-0"]
-                 [starcity/ant-ui "0.1.1-SNAPSHOT" :exclusions [re-frame]]
+                 [starcity/ant-ui "0.1.1" :exclusions [re-frame]]
                  [com.andrewmcveigh/cljs-time "0.5.0-alpha2"]
                  [reagent "0.6.0"]
                  [re-frame "0.9.2" :exclusions [reagent]]
