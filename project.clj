@@ -6,7 +6,7 @@
 
   :dependencies [;; Clojure
                  [org.clojure/clojure "1.9.0-alpha14"]
-                 [org.clojure/clojurescript "1.9.494"]
+                 [org.clojure/clojurescript "1.9.293"]
                  [org.clojure/core.async "0.2.395"]
                  [org.clojure/tools.nrepl "0.2.12"]
                  [org.clojure/test.check "0.9.0"]
@@ -34,7 +34,7 @@
                  [mount "0.1.11"]
                  ;; Datomic
                  [io.rkn/conformity "0.4.0"]
-                 [starcity-db "1.4.1" :exclusions [com.datomic/datomic-free]]
+                 [starcity-db "1.4.2" :exclusions [com.datomic/datomic-free]]
                  [com.datomic/datomic-pro "0.9.5544" :exclusions [com.google.guava/guava]]
                  [org.postgresql/postgresql "9.4.1211"]
                  ;; CLJS

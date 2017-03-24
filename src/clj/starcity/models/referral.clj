@@ -20,10 +20,10 @@
   "Create a tour referral."
   [source property & [account]]
   (plumbing/assoc-when
-   {:db/id                   (tempid)
-    :referral/source         source
-    :referral/from           :referral.from/tour
-    :referral.tour/community (:db/id property)}
+   {:db/id             (tempid)
+    :referral/source   source
+    :referral/from     :referral.from/tour
+    :referral/tour-for (:db/id property)}
    :referral/account account))
 
 (s/fdef tour
