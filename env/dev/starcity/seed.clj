@@ -94,14 +94,16 @@
 
 (defn property
   [name internal-name available-on address licenses units
-   & {:keys [managed-account-id ops-fee]}]
+   & {:keys [managed-account-id ops-fee tours]
+      :or   {tours false}}]
   (assoc-when
    {:db/id                  (d/tempid part)
     :property/name          name
     :property/internal-name internal-name
     :property/available-on  available-on
     :property/licenses      licenses
-    :property/units         units}
+    :property/units         units
+    :property/tours         tours}
    :property/managed-account-id managed-account-id
    :property/ops-fee ops-fee))
 
@@ -120,7 +122,8 @@
                #inst "2017-01-01T00:00:00.000-00:00"
                (address "2072 Mission St.")
                (licenses [1 2400.0] [3 2400.0] [6 2200.0] [12 2100.0])
-               (units "2072mission" 17))]))
+               (units "2072mission" 17)
+               :tours true)]))
 
 ;; =============================================================================
 ;; Approval

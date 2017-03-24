@@ -165,7 +165,8 @@
   "Produce the required transaction data to create a new account in the
   database."
   [email password first-name last-name]
-  {:account/first-name      (-> first-name trim capitalize)
+  {:db/id                   (tempid)
+   :account/first-name      (-> first-name trim capitalize)
    :account/last-name       (-> last-name trim capitalize)
    :account/email           (-> email trim lower-case)
    :account/password        (-> password trim auth/hash-password)
@@ -184,7 +185,8 @@
   "Create a new collaborator account. This is currently created for the express
   purpose of "
   [email]
-  {:account/email email
+  {:db/id         (tempid)
+   :account/email email
    :account/role  :account.role/collaborator})
 
 (defn activate

@@ -38,10 +38,12 @@
 
   (GET "/lifestyle"        [] lifestyle/show)
   (GET "/story"            [] story/show)
-  (GET "/schedule-tour"    [] schedule-tour/show)
   (GET "/careers"          [] careers/show)
-
   (GET "/faq"              [] faq/show)
+
+  (GET "/schedule-tour"    [] schedule-tour/show)
+  (POST "/schedule-tour"   [] schedule-tour/submit!)
+
   (GET "/collaborate"      [] collaborate/show)
   (POST "/collaborate"     [] collaborate/submit!)
 

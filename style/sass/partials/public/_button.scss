@@ -49,6 +49,13 @@
     border-radius: 0 50px 50px 0;
     top: -1px;
   }
+
+  &:disabled {
+    background-color: $lightgray;
+    border-color: $lightgray;
+    cursor: default;
+    color: $gray;
+  }
 }
 
 @media screen and (min-width: 60em) {

@@ -8,9 +8,9 @@
 
 ;; TODO: Rename, perhaps context?
 (defn public-defaults
-  [req]
+  [req & {:keys [js-bundles]}]
   {:head    {:stylesheets (link/bundle-paths req ["public.css"])}
-   :scripts (link/bundle-paths req ["main.js"])})
+   :scripts (link/bundle-paths req (concat ["main.js"] js-bundles))})
 
 ;; TODO: Rename
 (defn app-defaults
@@ -18,8 +18,8 @@
                    :or   {stylesheets []
                           scripts     []
                           json        []}}]
-  {:head {:stylesheets (concat stylesheets
-                               (link/bundle-paths req ["styles.css"]))}
+  {:head    {:stylesheets (concat stylesheets
+                                  (link/bundle-paths req ["styles.css"]))}
    :scripts (concat scripts (link/bundle-paths req [(format "%s.js" app-name)]))
    :json    json
    :app-id  app-name

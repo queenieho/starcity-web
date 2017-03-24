@@ -3,19 +3,12 @@
   (:require [clojure.spec :as s]
             [starcity.models.unit :as unit]
             starcity.spec
-            [datomic.api :as d]))
-
-;; =============================================================================
-;; Selectors
-
-(def name :property/name)
-(def internal-name :property/internal-name)
-(def managed-account-id :property/managed-account-id)
-(def ops-fee :property/ops-fee)
-(def units :property/units)
+            [datomic.api :as d]
+            [toolbelt.predicates :as p]))
 
 ;; =============================================================================
 ;; Spec
+;; =============================================================================
 
 (s/def :property/name string?)
 (s/def :property/available-on :starcity.spec/date)
@@ -23,7 +16,38 @@
 (s/def :property/description string?)
 
 ;; =============================================================================
+;; Selectors
+;; =============================================================================
+
+(def name :property/name)
+(def internal-name :property/internal-name)
+(def managed-account-id :property/managed-account-id)
+(def ops-fee :property/ops-fee)
+(def units :property/units)
+
+(def accepting-tours?
+  "Is this property currently accepting tours?"
+  :property/tours)
+
+(s/fdef accepting-tours?
+        :args (s/cat :property p/entity?)
+        :ret boolean?)
+
+;; =============================================================================
+;; Lookups
+;; =============================================================================
+
+(defn by-internal-name
+  [db internal-name]
+  (d/entity db [:property/internal-name internal-name]))
+
+(s/fdef by-internal-name
+        :args (s/cat :db p/db? :internal-name string?)
+        :ret p/entity?)
+
+;; =============================================================================
 ;; Queries
+;; =============================================================================
 
 (defn occupied-units
   "Produce all units that are currently occupied."
