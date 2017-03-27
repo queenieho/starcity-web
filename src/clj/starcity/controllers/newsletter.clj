@@ -16,5 +16,5 @@
   "Subscribe the specified email address (params) to our newsletter."
   [req]
   (when-let [email (get-in req [:params :email])]
-    (d/transact conn [(cmd/subscribe-to-newsletter email)]))
+    (d/transact-async conn [(cmd/subscribe-to-newsletter email)]))
   (response/redirect "/newsletter"))

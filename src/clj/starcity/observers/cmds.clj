@@ -5,15 +5,17 @@
             [datomic.api :as d]
             [plumbing.core :as plumbing]
             [starcity.models
+             [account :as account]
              [cmd :as cmd]
              [msg :as msg]
+             [note :as note]
              [rent-payment :as rent-payment]]
             [starcity.models.stripe.customer :as customer]
             [starcity.observers.cmds.stripe :as stripe]
             [starcity.services.stripe.customer :as customer-service]
-            [taoensso.timbre :as timbre]
-            [starcity.models.account :as account]
-            [starcity.models.note :as note]))
+            [starcity.services.weebly :as weebly]
+            [starcity.util.async :refer [<!!?]]
+            [taoensso.timbre :as timbre]))
 
 ;; =============================================================================
 ;; Global
@@ -62,8 +64,15 @@
 
 (defmethod handle cmd/subscribe-to-newsletter-key
   [conn {{email :email} :cmd/params :as cmd}]
-  ;; TODO:
-  @(d/transact conn [(cmd/successful cmd)]))
+  (try
+    (let [res (<!!? (weebly/add-subscriber! email))]
+      (timbre/info cmd/subscribe-to-newsletter-key {:email email
+                                                    :uuid  (:cmd/uuid cmd)})
+      @(d/transact conn [(cmd/successful cmd)]))
+    (catch Throwable t
+      (timbre/error t cmd/subscribe-to-newsletter-key {:email email
+                                                       :uuid  (:cmd/uuid cmd)})
+      @(d/transact conn [(cmd/failed cmd)]))))
 
 ;; =============================================================================
 ;; Rent
