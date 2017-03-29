@@ -10,12 +10,6 @@ $(document).ready(function() {
         $('.menu').toggleClass('active');
     });
 
-
-    // Hero Image Randomizer
-    var images = ['hero-home3.jpg', 'hero-home6.jpg','hero-home7.jpg','hero-home4.jpg'];
-    $('#hero').css({'background-image': 'linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.50)), url(assets/img/' + images[Math.floor(Math.random() * images.length)] + ')'});
-
-
     // Home Page Header Scroll
     $(window).scroll(function() {
         var scroll = $(window).scrollTop();

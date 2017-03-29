@@ -24,7 +24,8 @@
              [config :refer [config]]
              [routes :refer [app-routes]]]
             [taoensso.timbre :as t]
-            [starcity.environment :as env]))
+            [starcity.environment :as env]
+            [clojure.string :as string]))
 
 ;; =============================================================================
 ;; Middleware
@@ -48,7 +49,9 @@
   "Middleware to log requests."
   [handler]
   (fn [{:keys [uri request-method identity remote-addr] :as req}]
-    (when-not (= uri "/favicon.ico")
+    (when-not (or (= uri "/favicon.ico")
+                  (string/starts-with? uri "/assets")
+                  (string/starts-with? uri "/bundles"))
       (t/trace ::request (assoc-when {:uri         uri
                                       :method      request-method
                                       :remote-addr remote-addr}
@@ -88,8 +91,7 @@
 (defn- assemble-assets []
   (concat
    (assets/load-bundles "public" optimus-bundles)
-   (assets/load-assets "public" [#"/assets/img/.+\.jpg"
-                                 #"/assets/img/.+\.png"])))
+   (assets/load-assets "public" [#"/assets/img/*"])))
 
 (defn app-handler [conn]
   (let [[optimize strategy]
