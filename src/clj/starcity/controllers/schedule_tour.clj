@@ -1,21 +1,28 @@
 (ns starcity.controllers.schedule-tour
-  (:require [selmer.parser :as selmer]
-            [starcity.datomic :refer [conn]]
-            [starcity.views.common :refer [public-defaults]]
-            [starcity.controllers.common :as common]
-            [starcity.models.referral :as referral]
-            [starcity.util.validation :as validation]
+  (:require [bouncer
+             [core :as b]
+             [validators :as v]]
+            [clojure
+             [spec :as s]
+             [string :as string]]
             [datomic.api :as d]
-            [clojure.spec :as s]
-            [toolbelt.predicates :as p]
-            [starcity.models.property :as property]
-            [bouncer.core :as b]
-            [bouncer.validators :as v]
+            [net.cgrand.enlive-html :as html]
+            [plumbing.core :as plumbing]
             [ring.util.response :as response]
-            [starcity.auth :as auth]))
+            [starcity
+             [auth :as auth]
+             [datomic :refer [conn]]]
+            [starcity.controllers.common :as common]
+            [starcity.models
+             [property :as property]
+             [referral :as referral]]
+            [starcity.util.validation :as validation]
+            [starcity.views.base :as base]
+            [toolbelt.predicates :as p]))
 
-(def ^:private render
-  (partial selmer/render-file "schedule-tour.html"))
+;; =============================================================================
+;; Helpers
+;; =============================================================================
 
 (def ^:private widget-ids
   "Map of property internal names to TimeKit widget ids."
@@ -44,13 +51,6 @@
                                  :internal-name string?
                                  :tours boolean?))))
 
-(defn- context
-  "Default context for the Schedule Tour page."
-  [conn {:keys [params] :as req}]
-  (-> (public-defaults req :js-bundles ["tour.js"])
-      (assoc :properties (properties conn)
-             :sources referral/sources)))
-
 (defn- validate
   [conn params]
   (b/validate
@@ -62,6 +62,58 @@
     :referral-other [[v/required
                       :message "Please elaborate upon how you found us."
                       :pre #(= "other" (:referral %))]]}))
+;; =============================================================================
+;; Views
+;; =============================================================================
+
+(def ^:private lead-1
+  "We just need a little bit of information from you and then you can schedule your tour.")
+
+(def ^:private lead-2
+  "Thanks! Choose a time below that works for you.")
+
+(defn- community-options [properties]
+  (html/html
+   (map
+    (fn [[name code tours]]
+      (let [attrs   (plumbing/assoc-when {:value code} :disabled (not tours))
+            content (if-not tours (str name " - not touring currently") name)]
+        [:option attrs content]))
+    properties)))
+
+(def ^:private referral-options
+  (html/html
+   (map (fn [s] [:option {:value s} (string/capitalize s)]) referral/sources)))
+
+(html/defsnippet referral-form "templates/schedule-tour/form.html" [:form]
+  [properties]
+  [:select#community] (html/append (community-options properties))
+  [:select#referral] (html/append referral-options))
+
+(html/defsnippet booking-widget "templates/schedule-tour/booking.html" [:#widget]
+  [widget-id]
+  [:#widget] (->> (format "window.timekitBookingConfig={widgetId: '%s'}" widget-id)
+                  (into [:script])
+                  (html/html)
+                  (html/append)))
+
+(html/defsnippet schedule-tour "templates/schedule-tour.html" [:main]
+  [properties {:keys [widget-id errors]}]
+  [:p.lead] (html/content (if-not widget-id lead-1 lead-2))
+  [:div.alerts] (base/maybe-errors errors)
+  [:#tour-content] (html/substitute
+                    (if-not widget-id
+                      (referral-form properties)
+                      (booking-widget widget-id))))
+
+(defn- view [conn req & {:as opts}]
+  (base/public-base req
+                    :main (schedule-tour (properties conn) opts)
+                    :js-bundles ["main.js" "tour.js"]))
+
+;; =============================================================================
+;; Handlers
+;; =============================================================================
 
 (defn submit!
   "Before the timekit widget is shown, a form is submitted that indicates which
@@ -72,17 +124,15 @@
       (let [source   (if (= referral "other") referral-other referral)
             property (property/by-internal-name (d/db conn) community)]
         @(d/transact conn [(if-let [a (auth/requester req)]
-                            (referral/tour source property a)
-                            (referral/tour source property))])
+                             (referral/tour source property a)
+                             (referral/tour source property))])
         (response/redirect
          (format "/schedule-tour?community=%s" community)))
-      (->> (assoc (context conn req) :errors (validation/errors vresult))
-           (selmer/render-file "schedule-tour.html")
-           (common/malformed)))))
+      (common/render-malformed
+       (view conn req :errors (validation/errors vresult))))))
 
 (defn show
   "Show the Schedule Tour page."
   [{:keys [params] :as req}]
-  (->> (assoc (context conn req) :widget-id (widget-id conn (:community params)))
-       (selmer/render-file "schedule-tour.html")
-       (common/ok)))
+  (->> (view conn req :widget-id (widget-id conn (:community params)))
+       (common/render-ok)))

@@ -20,7 +20,6 @@
                  [ring/ring "1.5.0"]
                  [ring-middleware-format "0.7.2"]
                  [hiccup "1.0.5"]       ; TODO: remove
-                 [selmer "1.10.6"]
                  [buddy "1.1.0"]
                  [bouncer "1.0.0"]
                  [optimus "0.19.1"]
@@ -56,7 +55,9 @@
                  [com.taoensso/timbre "4.8.0"]
                  [com.taoensso/nippy "2.12.2"]
                  [prismatic/plumbing "0.5.3"]
-                 [starcity/toolbelt "0.1.3" :exclusions [com.datomic/datomic-free]]]
+                 [starcity/toolbelt "0.1.3" :exclusions [com.datomic/datomic-free]]
+                 [enlive "1.1.6"]
+                 [hickory "0.7.0"]]
 
   :jvm-opts ["-server"
              "-Xmx2g"

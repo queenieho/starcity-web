@@ -15,7 +15,7 @@
             [starcity.environment]
             [starcity.scheduler]
             [starcity.countries]
-            [selmer.parser]
+            [net.cgrand.reload]
             ;; convenience
             [starcity.datomic :refer [conn]]
             [taoensso.timbre :as timbre]
@@ -23,8 +23,8 @@
 
 (timbre/refer-timbre)
 
-;; don't cache templates during development
-(selmer.parser/cache-off!)
+;; Autoreload on change during dev
+(net.cgrand.reload/auto-reload *ns*)
 
 ;; =============================================================================
 ;; Figwheel

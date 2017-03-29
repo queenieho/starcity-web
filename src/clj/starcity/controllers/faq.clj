@@ -1,8 +1,11 @@
 (ns starcity.controllers.faq
-  (:require [selmer.parser :as selmer]
-            [starcity.views.common :refer [public-defaults]]))
+  (:require [net.cgrand.enlive-html :as html]
+            [starcity.controllers.common :as common]
+            [starcity.views.base :as base]))
+
+(html/defsnippet faq "templates/faq.html" [:main] [])
 
 (defn show
   "Show the FAQ page."
   [req]
-  (selmer/render-file "faq.html" (public-defaults req)))
+  (common/render-ok (base/public-base req :main (faq))))

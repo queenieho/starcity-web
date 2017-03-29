@@ -1,41 +1,30 @@
-{% extends "base.html" %}
-
-<!-- HEADER (to inject "active") -->
-{% block header %}
-{% with active="signup" %}{% include "partials/header.html" %}{% endwith %}
-{% endblock %}
-
-<!-- CONTENT -->
-{% block content %}
-<div class="hero hero-watercolor hero-watercolor-blue z-0 absolute w-100"></div>
-<main class="w-60-ns w-100 w-100-m center z-1 relative tc fade-in">
-  <article class="ph4-ns pt6 mw center">
+<main class="w-100 w-100-m center z-1 relative tc fade-in">
+  <div class="hero hero-watercolor hero-watercolor-blue z--1 absolute w-100"></div>
+  <article class="w-60-ns ph4-ns pt6 mw center">
     <div class="w-100 ph4-ns ph4 pb3">
       <h1 class="f-5-ns f2 f1-m text-blue mb4">Sign Up</h1>
       <p class="w-80 center lead text-blue">To begin your member application, you'll first need to create an account.</p>
     </div>
     <div class="ph4 pb3">
-      <div class="w-80 center pb3">
-        {% include "partials/errors.html" %}
-      </div>
+      <div class="alerts w-80 center pb3"></div>
       <form class="w-80-ns w-100 center" method="POST" action="/signup">
         <div class="w-50-ns w-100 fl pr2-ns ph0">
           <input required
+                 id="first-name"
                  class="input-blue w-100 input-large mb3"
                  type="text"
                  name="first-name"
-                 placeholder="First name"
-                 value="{{first-name}}">
+                 placeholder="First name" >
         </div>
         <div class="w-50-ns w-100 fl pl2-ns ph0">
           <input required
+                 id="last-name"
                  class="input-blue w-100 input-large mb3"
                  type="text"
                  name="last-name"
-                 placeholder="Last name"
-                 value="{{last-name}}">
+                 placeholder="Last name">
         </div>
-        <input class="input-blue w-100 input-large mb3" type="email" name="email" placeholder="Email address" value="{{email}}" >
+        <input id="email" class="input-blue w-100 input-large mb3" type="email" name="email" placeholder="Email address">
         <div class="w-50-ns w-100 fl pr2-ns ph0">
           <input required class="input-blue w-100 input-large mb3" type="password" name="password-1" placeholder="Create a password">
         </div>
@@ -47,4 +36,3 @@
     </div>
   </article>
 </main>
-{% endblock %}

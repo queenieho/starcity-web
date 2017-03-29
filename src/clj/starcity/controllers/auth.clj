@@ -1,10 +1,10 @@
 (ns starcity.controllers.auth
   (:require [clojure.string :as str]
             [datomic.api :as d]
+            [net.cgrand.enlive-html :as html]
             [ring.util
              [codec :refer [url-encode]]
              [response :as response]]
-            [selmer.parser :as selmer]
             [starcity
              [config :as config]
              [datomic :refer [conn]]]
@@ -12,7 +12,7 @@
             [starcity.models.account :as account]
             [starcity.services.mailgun :as mail]
             [starcity.services.mailgun.message :as mm]
-            [starcity.views.common :refer [public-defaults]]))
+            [starcity.views.base :as base]))
 
 ;; =============================================================================
 ;; Helpers
@@ -36,6 +36,14 @@
       (mm/signature)))))
 
 ;; =============================================================================
+;; Views
+;; =============================================================================
+
+(html/defsnippet forgot-password-main "templates/forgot-password.html" [:main]
+  [& errors]
+  [:div.alerts] (base/maybe-errors errors))
+
+;; =============================================================================
 ;; Handlers
 ;; =============================================================================
 
@@ -51,13 +59,12 @@
 
 (defn- forgot-password-errors
   [req & errors]
-  (common/malformed
-   (selmer/render-file "forgot-password.html" (-> (public-defaults req)
-                                                  (assoc :errors errors)))))
+  (common/render-malformed
+   (base/public-base req :main (apply forgot-password-main errors))))
 
-(defn show-forgot-password
-  [req]
-  (common/ok (selmer/render-file "forgot-password.html" (public-defaults req))))
+(defn show-forgot-password [req]
+  (common/render-ok
+   (base/public-base req :main (forgot-password-main))))
 
 (defn forgot-password
   [{:keys [params] :as req}]

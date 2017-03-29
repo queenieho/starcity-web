@@ -4,9 +4,8 @@
              [validators :as v]]
             [clojure.string :refer [capitalize lower-case trim]]
             [datomic.api :as d]
-            [plumbing.core :as plumbing]
+            [net.cgrand.enlive-html :as html]
             [ring.util.response :as response]
-            [selmer.parser :as selmer]
             [starcity.controllers
              [common :as common]
              [utils :refer :all]]
@@ -14,7 +13,7 @@
             [starcity.models
              [account :as account]
              [cmd :as cmd]]
-            [starcity.views.common :refer [public-defaults]]
+            [starcity.views.base :as base]
             [taoensso.timbre :as timbre]))
 
 ;; =============================================================================
@@ -56,33 +55,48 @@
     (assoc params :password password-1)))
 
 ;; =============================================================================
+;; Views
+;; =============================================================================
+
+(html/defsnippet signup-complete "templates/signup-complete.html" [:main] [])
+(html/defsnippet invalid-activation "templates/invalid-activation.html" [:main] [])
+
+(html/defsnippet signup-main "templates/signup.html" [:main]
+  [& {:keys [errors form]}]
+  [:div.alerts] (base/maybe-errors errors)
+  [:#first-name] (html/set-attr :value (:first-name form))
+  [:#last-name] (html/set-attr :value (:last-name form))
+  [:#email] (html/set-attr :value (:email form)))
+
+(defn- signup-view
+  [req & {:keys [errors form]}]
+  (println errors form)
+  (base/public-base req
+                    :main (signup-main :errors errors :form form)
+                    :header (base/header :signup)))
+
+;; =============================================================================
 ;; Handlers
 ;; =============================================================================
 
 ;; =============================================================================
 ;; Signup
 
-(defn- show-invalid-activation
-  [req]
-  (common/ok (selmer/render-file "invalid-activation.html" (public-defaults req))))
+(defn- show-invalid-activation [req]
+  (->> (base/public-base req :main (invalid-activation))
+       (common/render-ok)))
 
-(defn show-complete
-  [req]
-  (common/ok (selmer/render-file "signup-complete.html" (public-defaults req))))
+(defn show-complete [req]
+  (->> (base/public-base req :main (signup-complete))
+       (common/render-ok)))
 
-(defn- signup-errors
-  [req {:keys [first-name last-name email]} & errors]
-  (-> (selmer/render-file "signup.html" (-> (public-defaults req)
-                                            (assoc :errors errors)
-                                            (plumbing/assoc-when :first-name first-name
-                                                                 :last-name last-name
-                                                                 :email email)))
-      (common/malformed)))
+(defn- signup-errors [req form & errors]
+  (->> (signup-view req :form form :errors errors) (common/render-malformed)))
 
 (defn show-signup
   "Show the signup page."
   [req]
-  (common/ok (selmer/render-file "signup.html" (public-defaults req))))
+  (->> (signup-view req) (common/render-ok)))
 
 (defn signup
   [{:keys [params] :as req}]

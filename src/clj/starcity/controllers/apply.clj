@@ -1,16 +1,21 @@
 (ns starcity.controllers.apply
-  (:require [selmer.parser :as selmer]
+  (:require [net.cgrand.enlive-html :as html]
             [starcity.config.stripe :refer [public-key]]
             [starcity.controllers.common :as common]
             [starcity.models.apply :refer [application-fee]]
-            [starcity.views.common :refer [app-defaults font-awesome-css]]))
+            [starcity.views.base :as base]))
+
+(html/defsnippet apply-content "templates/apply.html" [:section] []
+  [:section] (html/append (base/loading-fs)))
 
 (defn show
   "Show the Apply app."
   [req]
-  (common/ok
-   (selmer/render-file "apply.html" (app-defaults req "apply"
-                                                  :scripts ["https://checkout.stripe.com/checkout.js"]
-                                                  :json [["stripe" {:amount application-fee
-                                                                    :key    public-key}]]
-                                                  :stylesheets [font-awesome-css]))))
+  (common/render-ok
+   (base/app-base req "apply"
+                  :content (apply-content)
+                  :navbar (base/app-navbar)
+                  :scripts ["https://checkout.stripe.com/checkout.js"]
+                  :json [["stripe" {:amount application-fee
+                                    :key    public-key}]]
+                  :stylesheets [base/font-awesome])))

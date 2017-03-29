@@ -1,15 +1,18 @@
 (ns starcity.controllers.collaborate
-  (:require [selmer.parser :as selmer]
-            [starcity.datomic :refer [conn]]
-            [starcity.views.common :refer [public-defaults]]
-            [bouncer.core :as b]
-            [starcity.util.validation :as validation]
-            [bouncer.validators :as v]
+  (:require [bouncer
+             [core :as b]
+             [validators :as v]]
             [datomic.api :as d]
+            [net.cgrand.enlive-html :as html]
+            [starcity.controllers.common :as common]
+            [starcity.datomic :refer [conn]]
             [starcity.models.cmd :as cmd]
-            [starcity.controllers.common :as common]))
+            [starcity.util.validation :as validation]
+            [starcity.views.base :as base]))
 
-(def ^:private view (partial selmer/render-file "collaborate.html"))
+;; =============================================================================
+;; Helpers
+;; =============================================================================
 
 (def ^:private collaborator-types
   #{"real-estate" "community-stakeholder" "vendor" "investor"})
@@ -23,16 +26,33 @@
               [v/email :message "Please enter a valid email address."]]
     :message [[v/required :message "Please enter a message."]]}))
 
+;; =============================================================================
+;; Views
+;; =============================================================================
+
+(html/defsnippet collaborate "templates/collaborate.html" [:main]
+  [{:keys [errors messages]}]
+  [:div.alerts] (if errors
+                 (base/maybe-errors errors)
+                 (base/maybe-messages messages)))
+
+(defn- view [req & {:as opts}]
+  (base/public-base req :main (collaborate opts)))
+
+;; =============================================================================
+;; Handlers
+;; =============================================================================
+
 (defn submit!
   [{params :params :as req}]
   (let [vresult (validate params)]
     (if-let [{:keys [email type message]} (validation/valid? vresult)]
       (do
         (d/transact conn [(cmd/add-collaborator email type message)])
-        (common/ok (view (assoc (public-defaults req) :message "Thanks! We'll be in touch soon."))))
-      (common/malformed (view (assoc (public-defaults req) :errors (validation/errors vresult)))))))
+        (common/render-ok (view req :messages ["Thanks! We'll be in touch soon."])))
+      (common/render-malformed (view req :errors (validation/errors vresult))))))
 
 (defn show
   "Show the 'Collaborate with Us' page."
   [req]
-  (common/ok (view (public-defaults req))))
+  (common/render-ok (view req)))

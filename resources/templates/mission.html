@@ -1,21 +1,3 @@
-{% extends "base.html" %}
-
-{% block fonts %}
-<link href="https://fonts.googleapis.com/css?family=Caveat|Eczar:700|Work+Sans:400,600|Rock+Salt" rel="stylesheet">
-{% endblock %}
-
-<!-- HEADER (to inject "active") -->
-{% block header %}
-{% with active="communities" %}{% include "partials/header.html" %}{% endwith %}
-{% endblock %}
-
-<!-- SVG -->
-{% block svg %}
-{% include "mission/svg.html" %}
-{% endblock %}
-
-<!-- CONTENT -->
-{% block content %}
 <main class="overflow-hidden">
   <section class="hero hero-community hero-mission pv6-l pb4 pt6 relative overflow-hidden fade-in">
     <h1 class="mission-font lh-copy text-white f-5-l f1 tc w-50-ns w-80 center mb4">The Mission</h1>
@@ -239,4 +221,3 @@
     <a href="" class="button button-white dib mb4"><span class="text-black">Schedule a Tour</span></a>
   </section>
 </main>
-{% endblock %}

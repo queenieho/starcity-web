@@ -1,69 +1,15 @@
-{% extends "base.html" %}
-
-<!-- CONTENT -->
-{% block content %}
-<div class="hero hero-watercolor hero-watercolor-blue z-0 absolute w-100"></div>
-<main class="w-60-ns w-100 w-100-m center z-1 relative tc">
-  <article class="ph4-ns pt6 mw center min-vh-100">
+<main class="w-100 w-100-m center z-1 relative tc">
+  <div class="hero hero-watercolor hero-watercolor-blue z--1 absolute w-100"></div>
+  <article class="w-60-ns ph4-ns pt6 mw center min-vh-100">
     <div class="w-100 ph4-ns ph4 pb3">
       <h1 class="f-5-ns f2 f1-m text-blue mb4">Visit a Starcity community</h1>
-      <p class="w-80 center lead text-blue">
-        {% if not widget-id %}
-        We just need a little bit of information from you and then you can schedule your tour.
-        {% else %}
-        Thanks! Choose a time below that works for you.
-        {% endif %}
-      </p>
+      <p class="w-80 center lead text-blue"></p>
     </div>
 
     <div class="ph4 pb3">
-      {% if errors|not-empty %}
-      <div class="w-80 center pb3">
-        {% include "partials/errors.html" %}
-      </div>
-      {% endif %}
+      <div class="alerts w-80 center pb3"></div>
 
-      {% if not widget-id %}
-      <form id="schedule-tour" class="w-80-ns w-100 center" method="POST" action="/schedule-tour">
-        <div class="select input-blue w-100 input-large mb3">
-          <select required name="community">
-            <option selected disabled value="">Choose a community</option>
-            {% for name,code,tours in properties %}
-            <option value="{{code}}" {%if not tours %}disabled{% endif %}>
-              {% if not tours %}
-              {{name}} &mdash; not touring currently
-              {% else %}
-              {{name}}
-              {% endif %}
-            </option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="select input-blue w-100 input-large mb3">
-          <select id="referral" name="referral">
-            <option selected disabled value="">How did you hear about us?</option>
-            {% for source in sources %}
-            <option value="{{source}}">{{source|capitalize}}</option>
-            {% endfor %}
-            <option value="other">Other</option>
-          </select>
-        </div>
-        <input id="referral-other" class="dn input-blue w-100 input-large mb3" name="referral-other" type="text" placeholder="Please elaborate."/>
-        <button type="submit" class="button button-green db mt4-l mt3 mb6">Choose Date &amp; Time</button>
-      </form>
-      {% else %}
-      <div class="w-100 center">
-        <div id="bookingjs"></div>
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js" defer></script>
-        <script src="//cdn.timekit.io/booking-js/v1/booking.min.js" defer></script>
-        <script>
-         window.timekitBookingConfig = {
-           widgetId: '{{widget-id}}'
-         }
-        </script>
-      </div>
-      {% endif %}
+      <div id="tour-content"></div>
     </div>
   </article>
 </main>
-{% endblock %}

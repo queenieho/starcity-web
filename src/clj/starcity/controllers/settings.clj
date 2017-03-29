@@ -3,17 +3,8 @@
              [core :as b]
              [validators :as v]]
             [clojure.string :as str]
-            [datomic.api :as d]
-            [starcity
-             [auth :as auth]
-             [datomic :refer [conn]]
-             [util :refer :all]]
-            [starcity.controllers.utils :refer [errors-from ok valid?]]
             [starcity.models.account :as account]
-            [starcity.views.settings :as view]
-            [starcity.web.messages
-             :refer
-             [respond-with-errors respond-with-success]]))
+            [starcity.util :refer :all]))
 
 ;; =============================================================================
 ;; Validation
@@ -45,10 +36,10 @@
 ;; API
 ;; =============================================================================
 
-(def show-account-settings
+#_(def show-account-settings
   (comp ok view/account-settings))
 
-(defn update-password
+#_(defn update-password
   [{:keys [params] :as req}]
   (if-let [params (-> params scrub-password-params matching-passwords?)]
     (let [account (auth/requester req)

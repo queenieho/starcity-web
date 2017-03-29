@@ -1,8 +1,11 @@
 (ns starcity.controllers.terms
-  (:require [selmer.parser :as selmer]
-            [starcity.views.common :refer [public-defaults]]))
+  (:require [net.cgrand.enlive-html :as html]
+            [starcity.controllers.common :as common]
+            [starcity.views.base :as base]))
+
+(html/defsnippet terms "templates/terms.html" [:main] [])
 
 (defn show
   "Show the Terms of Service page."
   [req]
-  (selmer/render-file "terms.html" (public-defaults req)))
+  (common/render-ok (base/public-base req :main (terms))))

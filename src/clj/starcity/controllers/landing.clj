@@ -1,22 +1,17 @@
 (ns starcity.controllers.landing
-  (:require [selmer.parser :as selmer]
-            [starcity.views.common :refer [public-defaults]]))
+  (:require [net.cgrand.enlive-html :as html]
+            [starcity.controllers.common :as common]
+            [starcity.views.base :as base]))
 
-;; (defn- log-subscriber-request
-;;   [email {:keys [status body]}]
-;;   (timbre/info :mailchimp/new-subscriber {:email email :status status}))
+;; See https://github.com/cgrand/enlive/issues/110
+(html/set-ns-parser! base/hickory-parser)
 
-;; (def ^:private url-after-newsletter-signup
-;;   "/?newsletter=subscribed#newsletter")
-
-;; (defn newsletter-signup [{:keys [params] :as req}]
-;;   (if-let [email (:email params)]
-;;     (do
-;;       (mailchimp/add-interested-subscriber! email (partial log-subscriber-request email))
-;;       (response/redirect url-after-newsletter-signup))
-;;     (response/redirect "/")))
+(html/defsnippet svg "templates/landing/svg.html" [:svg] [])
+(html/defsnippet header "templates/landing/header.html" [:header] [])
+(html/defsnippet main "templates/landing.html" [:main] [])
 
 (defn show
   "Show the landing page."
   [req]
-  (selmer/render-file "landing.html" (public-defaults req)))
+  (->> (base/public-base req :svg (svg) :header (header) :main (main))
+       (common/render-ok)))

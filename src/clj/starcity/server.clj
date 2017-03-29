@@ -23,11 +23,8 @@
              [auth :refer [auth-backend]]
              [config :refer [config]]
              [routes :refer [app-routes]]]
-            [selmer.parser :as selmer]
             [taoensso.timbre :as t]
             [starcity.environment :as env]))
-
-(selmer/set-resource-path! (clojure.java.io/resource "templates"))
 
 ;; =============================================================================
 ;; Middleware
@@ -89,7 +86,10 @@
    "styles.css" ["/assets/css/starcity.css"]})
 
 (defn- assemble-assets []
-  (assets/load-bundles "public" optimus-bundles))
+  (concat
+   (assets/load-bundles "public" optimus-bundles)
+   (assets/load-assets "public" [#"/assets/img/.+\.jpg"
+                                 #"/assets/img/.+\.png"])))
 
 (defn app-handler [conn]
   (let [[optimize strategy]

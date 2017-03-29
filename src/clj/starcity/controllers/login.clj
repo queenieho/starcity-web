@@ -4,14 +4,14 @@
              [validators :as v]]
             [clojure.string :refer [lower-case trim]]
             [datomic.api :as d]
+            [net.cgrand.enlive-html :as html]
             [ring.util.response :as response]
-            [selmer.parser :as selmer]
             [starcity.controllers
              [common :as common]
              [utils :refer :all]]
             [starcity.datomic :refer [conn]]
             [starcity.models.account :as account]
-            [starcity.views.common :refer [public-defaults]]))
+            [starcity.views.base :as base]))
 
 ;; =============================================================================
 ;; Constants
@@ -51,17 +51,25 @@
     :otherwise                    "/me"))
 
 ;; =============================================================================
+;; Views
+;; =============================================================================
+
+(html/defsnippet login-main "templates/login.html" [:main]
+  [errors]
+  [:div.alerts] (base/maybe-errors errors))
+
+;; =============================================================================
 ;; Handlers
 ;; =============================================================================
 
-(defn- render
+(defn- view
   [req & errors]
-  (selmer/render-file "login.html" (assoc (public-defaults req) :errors errors)))
+  (base/public-base req :main (login-main errors)))
 
 (defn show
   "Show the login page."
   [req]
-  (common/ok (render req)))
+  (common/render-ok (view req)))
 
 (defn login
   "Log a user in."
@@ -76,8 +84,8 @@
             (-> (response/redirect next-url)
                 (assoc :session session)))
           ;; account not activated
-          (common/malformed (render req unactivated-error)))
+          (common/render-malformed (view req unactivated-error)))
         ;; authentication failure
-        (common/malformed (render req invalid-credentials-error)))
+        (common/render-malformed (view req invalid-credentials-error)))
       ;; validation failure
-      (common/malformed (apply render req (errors-from vresult))))))
+      (common/render-malformed (apply view req (errors-from vresult))))))

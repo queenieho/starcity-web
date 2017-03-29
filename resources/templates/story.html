@@ -1,20 +1,5 @@
-{% extends "base.html" %}
-
-<!-- HEADER (to inject "active") -->
-{% block header %}
-{% with active="story" %}{% include "partials/header.html" %}{% endwith %}
-{% endblock %}
-
-
-<!-- SVG -->
-{% block svg %}
-{% include "story/svg.html" %}
-{% endblock %}
-
-<!-- CONTENT -->
-{% block content %}
-<div class="hero hero-watercolor hero-watercolor-blue z-0 absolute w-100"></div>
 <main class="overflow-hidden relative z-1">
+  <div class="hero hero-watercolor hero-watercolor-blue absolute w-100 z--1"></div>
   <section class="hero ph5-ns pt6 pb0-ns">
     <h1 class="text-blue f1-ns f2 tc w-50-ns w-80 w-80-m center">Our mission is to make cities more accessible to<br>
       <span class="handwriting relative dib rotate-tilt mt3">
@@ -238,4 +223,3 @@
     <a href="" class="button button-white dib mb4">Contact Us</a>
   </section>
 </main>
-{% endblock %}

@@ -4,8 +4,6 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=Edge">
     <title>Starcity &mdash; Reimagine Home</title>
-    <meta name="author" content="">
-    <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="/apple-icon-57x57.png" rel="apple-touch-icon" sizes="57x57">
     <link href="/apple-icon-60x60.png" rel="apple-touch-icon" sizes="60x60">
@@ -24,32 +22,56 @@
     <meta content="#ffffff" name="msapplication-TileColor" />
     <meta content="/ms-icon-144x144.png" name="msapplication-TileImage" />
     <meta content="#ffffff" name="theme-color" />
-    {% for stylesheet in head.stylesheets %}
-    <link href="{{stylesheet}}" rel="stylesheet" type="text/css" media="screen, projection"/>
-    {% endfor %}
-    {% block fonts %}
-    <link href="https://fonts.googleapis.com/css?family=Caveat|Eczar:700|Work+Sans:400,600" rel="stylesheet">
-    {% endblock %}
   </head>
   <body>
-    {% block svg %}
-    {% endblock %}
+    <header></header>
 
-    {% block header %}
-    {% include "partials/header.html" %}
-    {% endblock %}
+    <main></main>
 
-    {% block content %}
-    {% endblock %}
-
-    {% block footer %}
-    {% include "partials/footer.html" %}
-    {% endblock %}
+    <footer class="cf ph4-ns pt5-ns pb6-ns pv4 pv4-m">
+      <div class="mw center">
+        <div class="pa4 w-20-ns w-50 w-50-m fl">
+          <ul class="footer-nav pl0 list ttu">
+            <li><span class="o-60">Communities</span>
+              <ul class="list ttu pl2 pt3">
+                <li><a href="/communities/soma">West Soma</a></li>
+                <li><a href="/communities/mission">Mission</a></li>
+              </ul>
+            </li>
+            <li><a href="/lifestyle">Lifestyle</a></li>
+            <li><a href="/story">Our Story</a></li>
+            <li><a href="/faq">FAQ</a></li>
+          </ul>
+        </div>
+        <div class="pa4 w-20-ns w-50 w-50-m fl">
+          <ul class="footer-nav pl0 list ttu">
+            <li><a href="/careers">Careers</a></li>
+            <li><a href="/collaborate">Collaborate</a></li>
+            <li><a href="https://blog.joinstarcity.com">Blog</a></li>
+            <li><a href="/login">Member Login</a></li>
+            <li><a href="/terms">Terms</a></li>
+            <li><a href="/privacy">Privacy</a></li>
+          </ul>
+        </div>
+        <div class="pa4 w-30-ns w-100 w-100-m fl">
+          <h4 class="text-white o-60">Collaborate with us</h4>
+          <p>We partner with people and organizations who want to help build and revive urban neighborhoods.</p>
+          <a href="mailto:team@joinstarcity.com" class="button button-outline-white mt2">Contact Us</a>
+        </div>
+        <div class="pa4 w-30-ns w-100 w-100-m fl">
+          <h4 class="text-white o-60">Subscribe</h4>
+          <p>The latest on housing and community development.</p>
+          <form action="/newsletter" method="POST">
+            <div class="dt">
+              <input required class="dtc w-60 input-joined input-large" type="text" placeholder="Your email" name="email">
+              <button type="submit" class="dtc button button-white button-joined relative w-40">Subscribe</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </footer>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-    {% for script in scripts %}
-    <script type="text/javascript" src="{{script}}"></script>
-    {% endfor %}
     <script>
      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),

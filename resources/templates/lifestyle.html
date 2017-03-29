@@ -1,17 +1,3 @@
-{% extends "base.html" %}
-
-<!-- HEADER (to inject "active") -->
-{% block header %}
-{% with active="lifestyle" %}{% include "partials/header.html" %}{% endwith %}
-{% endblock %}
-
-<!-- SVG -->
-{% block svg %}
-{% include "lifestyle/svg.html" %}
-{% endblock %}
-
-<!-- CONTENT -->
-{% block content %}
 <main class="overflow-hidden">
   <section class="hero hero-lifestyle ph5-ns pv6 mb5-ns mb3 fade-in">
     <h1 class="text-white tc w-50 w-80 w-100-m center">Live a more<br>
@@ -246,4 +232,3 @@
     <a href="schedule-tour.html" class="button button-white dib mb4"><span class="text-black">Schedule a Tour</span></a>
   </section>
 </main>
-{% endblock %}

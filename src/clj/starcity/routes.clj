@@ -23,7 +23,7 @@
              [onboarding :as onboarding]
              [privacy :as privacy]
              [schedule-tour :as schedule-tour]
-             [settings :as settings]
+             ;; [settings :as settings]
              [signup :as signup]
              [story :as story]
              [terms :as terms]]
@@ -87,7 +87,8 @@
             {:handler  {:and [authenticated-user (user-isa :account.role/applicant)]}
              :on-error (fn [req _] (redirect-by-role req))}))
 
-  (context "/settings" []
+  ;; TODO: Disabling until I have an idea of how to better accomplish this.
+  #_(context "/settings" []
            (restrict
             (routes
              (GET "/"          []

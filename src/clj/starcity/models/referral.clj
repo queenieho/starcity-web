@@ -14,7 +14,8 @@
    "video"
    "search"
    "employer"
-   "news"])
+   "news"
+   "other"])
 
 (defn tour
   "Create a tour referral."
