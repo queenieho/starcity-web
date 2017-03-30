@@ -4,7 +4,9 @@
                                    reg-event-db
                                    path]]
             [onboarding.routes :as routes]
-            [reagent.core :as r]))
+            [reagent.core :as r]
+            [ajax.core :as ajax]
+            [toolbelt.core :as tb]))
 
 ;; =============================================================================
 ;; Prompt-specific Initialization
@@ -90,24 +92,36 @@
 (reg-event-fx
  :prompt/save
  (fn [{:keys [db]} [_ keypath]]
-   {:db             (db/pre-save (assoc db :saving true) keypath)
-    ;; TODO: HTTP
-    :dispatch-later [{:ms 1000 :dispatch [:prompt.save/success keypath]}]}))
+   {:db         (db/pre-save (assoc db :saving true) keypath)
+    :http-xhrio {:method          :post
+                 :uri             "/api/v1/onboarding"
+                 :params          {:step keypath
+                                   :data (get-in db [keypath :data])}
+                 :format          (ajax/transit-request-format)
+                 :response-format (ajax/transit-response-format)
+                 :on-success      [:prompt.save/success keypath]
+                 :on-failure      [:prompt.save/failure keypath]}}))
 
 (reg-event-fx
  :prompt.save/success
  (fn [{:keys [db]} [_ keypath {result :result}]]
-   (let [result (get-in db [keypath :data]) ; NOTE: for development only!
+   (let [;result (get-in db [keypath :data]) ; for development
          ;; =================
          db     (-> (assoc db :saving false)
                     (assoc-in [keypath :dirty] false)
                     (update-in [:menu :complete] conj keypath)
                     (assoc-in [keypath :complete] true)
-                    (db/post-save keypath result))]
+                    (db/post-save keypath (:data result)))]
      {:db    db
       :route (routes/path-for (db/next-prompt db keypath))})))
 
-;; TODO: :prompt.save/failure
+(reg-event-fx
+ :prompt.save/failure
+ (fn [{:keys [db]} [_ keypath error]]
+   (tb/error error)
+   {:db            (assoc db :saving false)
+    :alert/message {:type    :error
+                    :content "Yikes! Server-side error."}}))
 
 ;; =============================================================================
 ;; Retreat

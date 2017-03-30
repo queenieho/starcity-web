@@ -4,7 +4,9 @@
             [onboarding.prompts.events]
             [onboarding.routes :as routes]
             [re-frame.core :refer [reg-event-fx path]]
-            [toolbelt.core :as tb]))
+            [toolbelt.core :as tb]
+            [day8.re-frame.http-fx]
+            [ajax.core :as ajax]))
 
 ;; =============================================================================
 ;; Init
@@ -47,9 +49,12 @@
 (reg-event-fx
  :app/bootstrap
  (fn [{:keys [db]} _]
-   {:db             (assoc db :bootstrapping true)
-    :dispatch-later [{:ms       1000
-                      :dispatch [:app.bootstrap/success {:result dev-payload}]}]}))
+   {:db         (assoc db :bootstrapping true)
+    :http-xhrio {:method          :get
+                 :uri             "/api/v1/onboarding"
+                 :response-format (ajax/transit-response-format)
+                 :on-success      [:app.bootstrap/success]
+                 :on-failure      [:app.bootstrap/failure]}}))
 
 ;; On success, bootstrap the app database with server-side data
 (reg-event-fx
@@ -58,6 +63,16 @@
    (let [db (db/bootstrap db result)]
      {:db    (assoc db :bootstrapping false)
       :route (routes/path-for (get-in db [:menu :active]))})))
+
+;; TODO: Update UI so that error is conveyed and option to retry is provided.
+(reg-event-fx
+ :app.bootstrap/failure
+ (fn [{:keys [db]} [_ err]]
+   (tb/error err)
+   {:alert/notify {:type     :error
+                   :duration 8
+                   :title    "Uh oh!"
+                   :content  "We couldn't fetch your progress. Please check your internet connection."}}))
 
 ;; =============================================================================
 ;; Routing
