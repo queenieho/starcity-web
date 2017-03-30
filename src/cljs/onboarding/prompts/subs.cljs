@@ -24,7 +24,13 @@
    "Need some help moving your belongings in?"
 
    :services/storage
-   "Do you have belongings that you don't use often but can't part with?"})
+   "Do you have belongings that you don't use often but can't part with?"
+
+   :services/customization
+   "Need some help adding pizazz to your room?"
+
+   :services/cleaning
+   "Would you like to have your room cleaned weekly?"})
 
 (reg-sub
  :prompt/title

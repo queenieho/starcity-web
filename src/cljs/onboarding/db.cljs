@@ -91,6 +91,8 @@
   [db keypath new-requires]
   (update-in db [:menu :items] update-in-menu keypath :requires new-requires))
 
+;; IDEA: Administrativia
+
 ;; NOTE: The `show-children` key is needed below because we use this data
 ;; structure to generate the list of all potential app (menu-based) routes.
 ;; Showing the routes is then a matter of toggling the `show-children` value.
@@ -114,45 +116,50 @@
                   :requires #{:deposit/method}
                   :label    "Make Payment"}]}
      #_{:key      :profile
-      :label    "Member Profile"
-      :children [{:key      :about
-                  :requires #{:deposit/pay}
-                  :label    "About You"}
-                 {:key      :avatar
-                  :requires #{:deposit/pay}
-                  :label    "Upload Avatar"}]}
+        :label    "Member Profile"
+        :children [{:key      :about
+                    :requires #{:deposit/pay}
+                    :label    "About You"}
+                   {:key      :avatar
+                    :requires #{:deposit/pay}
+                    :label    "Upload Avatar"}]}
      {:key      :services
       :label    "Move-in Services"
-      :children [{:key      :moving
-                  :requires #{:deposit/pay}
-                  :label    "Moving Assistance"}
+      :children [{:key   :moving
+                  :label "Moving Assistance"}
                  {:key      :storage
-                  :requires #{:deposit/pay}
+                  :requires #{:services/moving}
                   :label    "Storage Options"}
                  {:key      :customization
-                  :requires #{:deposit/pay}
+                  :requires #{:services/storage}
                   :label    "Room Customization"}
                  {:key      :cleaning
-                  :requires #{:deposit/pay}}]}
+                  :label    "Room Cleaning"
+                  :requires #{:services/customization}}
+                 ]}
      {:key      :finish
       :children [{:key      :pay
-                  :requires #{:services/moving :services/storage
-                              :services/customization :services/cleaning}
-                  :label    "Review &amp; Pay"}]}]))
+                  :requires #{:deposit/pay
+                              :services/moving
+                              :services/storage
+                              :services/customization
+                              :services/cleaning}
+                  :label    "Review Services"}]}]))
 
 ;; =============================================================================
 ;; Default Db
 ;; =============================================================================
 
 (def default-value
-  {:menu           {:active   :deposit/method
-                    :default  :overview/start
-                    :items    menu
-                    :complete #{}}
+  {:menu             {:active   :deposit/method
+                      :default  :overview/start
+                      :items    menu
+                      :complete #{}}
    ;; Starts off as being bootstrapped
-   :bootstrapping  true
+   :bootstrapping    true
    ;; Always complete, since there's nothing to do
-   :overview/start {:complete true}})
+   :overview/start   {:complete true}
+   :services/storage {:data {:small 0 :large 0}}})
 
 (defn can-navigate-to?
   [db keypath]
@@ -281,6 +288,21 @@
     (or (false? needed)
         (and needed date time))))
 
+(defmethod can-advance? :services/storage [{data :data}]
+  (let [{:keys [needed small large additional]} data]
+    (or (false? needed)
+        (or (> small 0) (> large 0) (not (string/blank? additional))))))
+
+(defmethod can-advance? :services/customization [{data :data}]
+  (let [{:keys [needed furniture design]} data]
+    (or (false? needed)
+        (or (not (string/blank? furniture))
+            (not (string/blank? design))))))
+
+(defmethod can-advance? :services/cleaning [{data :data}]
+  (let [needed (:needed data)]
+    (or (false? needed) (true? needed))))
+
 ;; =============================================================================
 
 (defmulti ^:private next-prompt*
@@ -343,11 +365,11 @@
 (defmethod previous-prompt :default [db keypath]
   nil)
 
-(defmethod previous-prompt :deposit/method [_ _]
-  :overview/start)
-
-(defmethod previous-prompt :deposit.method/bank [_ _]
-  :deposit/method)
+(defmethod previous-prompt :deposit/method [_ _] :overview/start)
+(defmethod previous-prompt :deposit.method/bank [_ _] :deposit/method)
+(defmethod previous-prompt :services/storage [_ _] :services/moving)
+(defmethod previous-prompt :services/customization [_ _] :services/storage)
+(defmethod previous-prompt :services/cleaning [_ _] :services/customization)
 
 (defmethod previous-prompt :deposit/pay [db _]
   (when (= (get-in db [:deposit/method :data :method]) "check")

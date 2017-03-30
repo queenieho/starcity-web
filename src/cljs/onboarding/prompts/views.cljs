@@ -7,6 +7,9 @@
             [onboarding.prompts.deposit.pay]
             [onboarding.prompts.services.moving]
             [onboarding.prompts.services.storage]
+            [onboarding.prompts.services.customization]
+            ;; [onboarding.prompts.services.laundry]
+            [onboarding.prompts.services.cleaning]
             [re-frame.core :refer [dispatch subscribe]]))
 
 (def ^:private advisor-image

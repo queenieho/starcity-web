@@ -17,24 +17,31 @@
     :dispatch [:app/bootstrap]}))
 
 (def ^:private dev-payload
-  {:deposit/method        {:complete true
-                           :data     {:method "ach"}}
-   :deposit.method/bank   {:complete true
-                           :data     {:name           "Josh Lehman"
-                                      :routing-number "110000000"
-                                      :account-number "000123456879"}}
-   :deposit.method/verify {:complete true
-                           :data     {:amount-1 1 :amount-2 2}}
-   :deposit/pay           {:complete    true
-                           :rent-amount 2200
-                           :data        {:method "partial"}}
-   :services/moving       (let [d (.add (js/moment.) 2 "w")]
-                            {:complete     true
-                             :commencement d
-                             :data         {:needed true
-                                            :date   d
-                                            :time   (-> d (.hours 12) (.minutes 0))}})
-   :services/storage      {:data {:needed true}}})
+  {}
+  #_{:deposit/method         {:complete true
+                            :data     {:method "ach"}}
+   :deposit.method/bank    {:complete true
+                            :data     {:name           "Josh Lehman"
+                                       :routing-number "110000000"
+                                       :account-number "000123456879"}}
+   :deposit.method/verify  {:complete true
+                            :data     {:amount-1 1 :amount-2 2}}
+   :deposit/pay            {:complete    true
+                            :rent-amount 2200
+                            :data        {:method "partial"}}
+   :services/moving        (let [d (.add (js/moment.) 2 "w")]
+                             {:complete     true
+                              :commencement d
+                              :data         {:needed true
+                                             :date   d
+                                             :time   (-> d (.hours 12) (.minutes 0))}})
+   :services/storage       {:data     {:needed false
+                                       :small  0
+                                       :large  0}
+                            :complete true}
+   :services/customization {:data     {:needed false}
+                            :complete true}
+   })
 
 ;; Fetch the server-side progress
 (reg-event-fx
