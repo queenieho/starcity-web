@@ -14,11 +14,12 @@
 ;; GOOD: 1, 2, 6, 7
 ;; OK: 3 (!2), 8
 ;; BAD: 4, 5 (weird expr), 9 (weird expr)
+;; 4 - Kate
 
 (def ^:private hero-image-names
   (map
    (partial str "/assets/img/")
-   ["hero-home3.jpg" "hero-home6.jpg" "hero-home7.jpg" "hero-home4.jpg"]))
+   ["hero-home2.jpg" "hero-home6.jpg" "hero-home7.jpg" "hero-home10.jpg"]))
 
 (defn- hero-images [req]
   (map (partial link/file-path req) hero-image-names))
