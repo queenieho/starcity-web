@@ -2,7 +2,7 @@
        :plugins      [[lein-figwheel "0.5.8" :exclusions [org.clojure/clojure org.clojure/core.async]]
                       [lein-cooper "1.2.2" :exclusions [org.clojure/clojure]]]
        :dependencies [[figwheel-sidecar "0.5.8"]
-                      [binaryage/devtools "0.8.2"]]
+                      [binaryage/devtools "0.9.2"]]
        :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}}
 
  :uberjar {:aot          :all
