@@ -1,21 +1,3 @@
-{% extends "base.html" %}
-
-{% block fonts %}
-<link href="https://fonts.googleapis.com/css?family=Caveat|Eczar:700|Work+Sans:400,600|Vast+Shadow" rel="stylesheet">
-{% endblock %}
-
-<!-- SVG -->
-{% block svg %}
-{% include "soma/svg.html" %}
-{% endblock %}
-
-<!-- HEADER (to inject "active") -->
-{% block header %}
-{% with active="communities" %}{% include "partials/header.html" %}{% endwith %}
-{% endblock %}
-
-<!-- CONTENT -->
-{% block content %}
 <main class="overflow-hidden">
   <section class="hero hero-community hero-soma pv6-l pb4 pt6 relative overflow-hidden fade-in">
     <h1 class="soma-font text-white f-6-l f1 tc w-50-ns w-80 center mb4">West<br>SoMa</h1>
@@ -236,7 +218,6 @@
       </span>
     </h1>
     <p class="text-white lead w-30-l w-90 center mb4">Become a part of our community. Take the first step by scheduling a tour.</p>
-    <a href="schedule-tour.html" class="button button-white dib mb4"><span class="text-black">Schedule a Tour</span></a>
+    <a href="/schedule-tour" class="button button-white dib mb4"><span class="text-black">Schedule a Tour</span></a>
   </section>
 </main>
-{% endblock %}
