@@ -11,11 +11,6 @@
 ;; See https://github.com/cgrand/enlive/issues/110
 (html/set-ns-parser! base/hickory-parser)
 
-;; GOOD: 1, 2, 6, 7
-;; OK: 3 (!2), 8
-;; BAD: 4, 5 (weird expr), 9 (weird expr)
-;; 4 - Kate
-
 (def ^:private hero-image-names
   (map
    (partial str "/assets/img/")
