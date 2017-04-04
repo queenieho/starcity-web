@@ -3,6 +3,7 @@
             [re-frame.core :refer [reg-event-fx
                                    reg-event-db
                                    path]]
+            [starcity.fx.stripe]
             [onboarding.routes :as routes]
             [reagent.core :as r]
             [ajax.core :as ajax]
@@ -58,45 +59,74 @@
     [:br]
     [:p "TODO:"]]))
 
-(def ^:private modals
-  {:deposit/pay {:fx      :ant.modal/confirm
-                 :title   "Payment Confirmation"
-                 :content deposit-modal-content
-                 :ok-text "Pay Now"
-                 :on-ok   [:prompt/save :deposit/pay]}
+(defmulti begin-save
+  "Used to determine how to proceed after a successful press of the 'Continue'
+  button. In most cases we'll simply send the form data directly to the
+  server (see the `:default` case), but in some cases other client-side steps
+  may need to be performed."
+  (fn [db keypath] keypath))
 
-   :deposit.method/bank {:fx      :ant.modal/info
-                         :title   "Microdeposit Lag-time"
-                         :content bank-info-modal-content
-                         :on-ok   [:prompt/save :deposit.method/bank]}})
+(defmethod begin-save :default [db keypath]
+  {:dispatch [:prompt/save keypath (get-in db [keypath :data])]})
 
-(defn- has-modal?
-  [keypath]
-  (contains? modals keypath))
+(defmethod begin-save :deposit/pay [db keypath]
+  {:ant.modal/confirm {:title   "Payment Confirmation"
+                       :content deposit-modal-content
+                       :ok-text "Pay Now"
+                       :on-ok   [:prompt/save keypath (get-in db [keypath :data])]}})
+
+(defmethod begin-save :deposit.method/bank [_ keypath]
+  {:ant.modal/info {:title   "Microdeposit Lag-time"
+                    :content bank-info-modal-content
+                    :on-ok   [:deposit.method.bank/submit keypath]}})
+
+(reg-event-fx
+ :deposit.method.bank/submit
+ (fn [{:keys [db]} [_ keypath]]
+   (let [{:keys [name routing-number account-number]} (get-in db [keypath :data])]
+     (tb/log (get-in db [keypath :data]))
+     {:db (db/pre-save (assoc db :saving true) keypath)
+      :stripe.bank-account/create-token
+      {:country             "US"
+       :currency            "USD"
+       :account-holder-type "individual"
+       :key                 (.-key js/stripe)
+       :account-holder-name name
+       :routing-number      routing-number
+       :account-number      account-number
+       :on-success          [:stripe.bank-account.create-token/success keypath]
+       :on-failure          [:stripe.bank-account.create-token/failure]}})))
+
+(reg-event-fx
+ :stripe.bank-account.create-token/success
+ (fn [_ [_ keypath res]]
+   {:dispatch [:prompt/save keypath {:stripe-token (:id res)}]}))
+
+(reg-event-fx
+ :stripe.bank-account.create-token/failure
+ (fn [{:keys [db]} [_ error]]
+   (tb/error "Failed to create Stripe Token:" error)
+   {:db           (assoc db :saving false)
+    :alert/notify {:type     :error
+                   :duration 8
+                   :title    "Error!"
+                   :content  "Something went wrong while submitting your bank information. Please check the account and routing number and try again."}}))
 
 (reg-event-fx
  :prompt/continue
  (fn [{:keys [db]} [_ keypath]]
    (let [dirty (get-in db [keypath :dirty])]
-     (cond
-       (and dirty (has-modal? keypath))
-       (let [modal (modals keypath)]
-         {(:fx modal) modal})
-
-       dirty
-       {:dispatch [:prompt/save keypath]}
-
-       :otherwise
+     (if dirty
+       (begin-save db keypath)
        {:route (routes/path-for (db/next-prompt db keypath))}))))
 
 (reg-event-fx
  :prompt/save
- (fn [{:keys [db]} [_ keypath]]
+ (fn [{:keys [db]} [_ keypath data]]
    {:db         (db/pre-save (assoc db :saving true) keypath)
     :http-xhrio {:method          :post
                  :uri             "/api/v1/onboarding"
-                 :params          {:step keypath
-                                   :data (get-in db [keypath :data])}
+                 :params          {:step keypath :data data}
                  :format          (ajax/transit-request-format)
                  :response-format (ajax/transit-response-format)
                  :on-success      [:prompt.save/success keypath]
@@ -119,9 +149,13 @@
  :prompt.save/failure
  (fn [{:keys [db]} [_ keypath error]]
    (tb/error error)
-   {:db            (assoc db :saving false)
-    :alert/message {:type    :error
-                    :content "Yikes! Server-side error."}}))
+   (-> (if-let [errors (get-in error [:response :errors])]
+         {:alert/notify {:type    :error
+                         :title   "Error!"
+                         :content (first errors)}}
+         {:alert/message {:type    :error
+                          :content "Yikes! A server-side error was encountered."}})
+       (merge {:db (assoc db :saving false)}))))
 
 ;; =============================================================================
 ;; Retreat
