@@ -119,12 +119,12 @@
 ;; 2. Bank Verification has not failed for this customer
 (defmethod complete? :deposit.method/bank
   [conn account _]
-  (when-let [customer (account/stripe-customer account)]
+  (when-let [customer (account/stripe-customer (d/db conn) account)]
     (not (customer/verification-failed? (customer/fetch customer)))))
 
 (defmethod complete? :deposit.method/verify
   [conn account _]
-  (let [customer (account/stripe-customer account)]
+  (let [customer (account/stripe-customer (d/db conn) account)]
     (and (:stripe-customer/bank-account-token customer)
          (customer/has-verified-bank-account?
           (customer/fetch customer)))))
@@ -234,7 +234,7 @@
 
 (defmethod save! :deposit.method/verify
   [conn account _ {:keys [amount-1 amount-2]}]
-  (let [customer (account/stripe-customer account)]
+  (let [customer (account/stripe-customer (d/db conn) account)]
     (customer/verify-microdeposits customer amount-1 amount-2)))
 
 (defn- charge-amount
@@ -246,7 +246,7 @@
 
 (defn- create-charge
   [account deposit method]
-  (let [customer (account/stripe-customer account)]
+  (let [customer (account/stripe-customer (d/db conn) account)]
     (stripe/create-charge! (:db/id account)
                            (charge-amount method deposit)
                            (:stripe-customer/bank-account-token customer)
