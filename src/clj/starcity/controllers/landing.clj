@@ -2,7 +2,13 @@
   (:require [net.cgrand.enlive-html :as html]
             [starcity.controllers.common :as common]
             [starcity.views.base :as base]
-            [optimus.link :as link]))
+            [starcity.datomic :refer [conn]]
+            [optimus.link :as link]
+            [starcity.models.property :as property]
+            [datomic.api :as d]
+            [clj-time.format :as f]
+            [clj-time.core :as t]
+            [clj-time.coerce :as c]))
 
 ;; =============================================================================
 ;; Helpers
@@ -23,14 +29,25 @@
   (format "background-image: linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.50)), url(%s)"
           img-url))
 
+(def ^:private formatter (f/formatter "MMMM d, yyyy"))
+
+(defn- availability
+  [conn internal-name]
+  (let [property     (property/by-internal-name (d/db conn) internal-name)
+        available-on (c/to-date-time (property/available-on property))]
+    (if (t/after? (t/now) available-on)
+      "Now"
+      (f/unparse formatter available-on))))
+
 ;; =============================================================================
 ;; Snippets
 ;; =============================================================================
 
 (html/defsnippet svg "templates/landing/svg.html" [:svg] [])
 (html/defsnippet header "templates/landing/header.html" [:header] [])
-(html/defsnippet main "templates/landing.html" [:main] [hero-img]
-  [:#hero] (html/set-attr :style (bg-img hero-img)))
+(html/defsnippet main "templates/landing.html" [:main] [conn hero-img]
+  [:#hero] (html/set-attr :style (bg-img hero-img))
+  [:#mission-card :.availability] (html/content (format "Available %s" (availability conn "2072mission"))))
 
 ;; =============================================================================
 ;; Handlers
@@ -44,4 +61,4 @@
      (base/public-base req
                        :svg (svg)
                        :header (header)
-                       :main (main hero)))))
+                       :main (main conn hero)))))

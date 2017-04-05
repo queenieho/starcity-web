@@ -25,6 +25,10 @@
 (def ops-fee :property/ops-fee)
 (def units :property/units)
 
+(def available-on
+  "Date that property is available on."
+  :property/available-on)
+
 (def accepting-tours?
   "Is this property currently accepting tours?"
   :property/tours)
