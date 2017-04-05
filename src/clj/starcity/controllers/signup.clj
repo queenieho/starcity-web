@@ -70,7 +70,6 @@
 
 (defn- signup-view
   [req & {:keys [errors form]}]
-  (println errors form)
   (base/public-base req
                     :main (signup-main :errors errors :form form)
                     :header (base/header :signup)))
