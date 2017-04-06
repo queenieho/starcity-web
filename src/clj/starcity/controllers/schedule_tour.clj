@@ -26,7 +26,8 @@
 
 (def ^:private widget-ids
   "Map of property internal names to TimeKit widget ids."
-  {"2072mission" "c126820e-5558-4df2-ab7b-1dfe6427e99c"})
+  {"2072mission" "f78e3497-5555-43de-aa75-8bc5f0e0aa80"
+   "52gilbert"   "e8b4ba3d-f305-4d5d-9674-5e2a6fec4f5a"})
 
 (defn- widget-id
   "Produce the TimeKit widget-id given then `internal-name` of a property."
