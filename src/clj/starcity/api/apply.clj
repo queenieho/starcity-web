@@ -15,6 +15,7 @@
              [countries :as countries]
              [datomic :refer [conn]]]
             [starcity.api.common :as api]
+            [starcity.util.validation :as validation]
             [starcity.models
              [account :as account]
              [application :as application]
@@ -41,19 +42,6 @@
 
 ;; =============================================================================
 ;; Helpers
-
-(defn errors-from
-  "Extract errors from a bouncer error map."
-  [[errors _]]
-  (reduce (fn [acc [_ es]] (concat acc es)) [] errors))
-
-(defn valid?
-  ([vresult]
-   (valid? vresult identity))
-  ([[errors result] transform-after]
-   (if (nil? errors)
-     (transform-after result)
-     false)))
 
 (defmulti ^:private validate (fn [_ _ k] k))
 
@@ -165,7 +153,7 @@
       ;; there's an application, and it's not in-progress
       (and app
            (not (application/in-progress? app))) (api/unprocessable {:errors [submitted-msg]})
-      (not (valid? vresult))                     (api/malformed {:errors (errors-from vresult)})
+      (not (validation/valid? vresult))          (api/malformed {:errors (validation/errors vresult)})
       :otherwise                                 (try
                                                    (apply/update (:data params) (:db/id account) path)
                                                    (api/ok (apply/progress (:db/id account)))

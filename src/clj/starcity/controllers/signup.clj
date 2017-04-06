@@ -6,9 +6,8 @@
             [datomic.api :as d]
             [net.cgrand.enlive-html :as html]
             [ring.util.response :as response]
-            [starcity.controllers
-             [common :as common]
-             [utils :refer :all]]
+            [starcity.controllers.common :as common]
+            [starcity.util.validation :as validation]
             [starcity.datomic :refer [conn]]
             [starcity.models
              [account :as account]
@@ -34,12 +33,12 @@
   [params]
   (b/validate
    params
-   {:email      [(required "An email address is required.")
+   {:email      [[v/required :message "An email address is required."]
                  [v/email :message "That email address is invalid."]]
-    :password   [(required "A password is required.")
+    :password   [[v/required :message "A password is required."]
                  [v/min-count 8 :message "Your password should be at least 8 characters long."]]
-    :first-name [(required "Please enter your first name.")]
-    :last-name  [(required "Please enter your last name.")]}))
+    :first-name [[v/required :message "Please enter your first name."]]
+    :last-name  [[v/required :message "Please enter your last name."]]}))
 
 (defn- clean-params
   [params]
@@ -101,7 +100,7 @@
   [{:keys [params] :as req}]
   (if-let [params (matching-passwords? params)]
     (let [vresult (-> params clean-params validate)]
-      (if-let [{:keys [email password first-name last-name]} (valid? vresult)]
+      (if-let [{:keys [email password first-name last-name]} (validation/valid? vresult)]
         (if-not (account/exists? (d/db conn) email)
           (do
             @(d/transact conn [(cmd/create-account email password first-name last-name)])
@@ -109,7 +108,7 @@
           ;; account already exists for email
           (signup-errors req params (format "An account is already registered for %s." email)))
         ;; validation failure
-        (apply signup-errors req params (errors-from vresult))))
+        (apply signup-errors req params (validation/errors vresult))))
     ;; passwords don't match
     (signup-errors req params "Those passwords do not match. Please try again.")))
 

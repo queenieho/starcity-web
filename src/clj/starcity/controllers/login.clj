@@ -6,9 +6,8 @@
             [datomic.api :as d]
             [net.cgrand.enlive-html :as html]
             [ring.util.response :as response]
-            [starcity.controllers
-             [common :as common]
-             [utils :refer :all]]
+            [starcity.controllers.common :as common]
+            [starcity.util.validation :as validation]
             [starcity.datomic :refer [conn]]
             [starcity.models.account :as account]
             [starcity.views.base :as base]))
@@ -75,7 +74,7 @@
   "Log a user in."
   [{:keys [params session] :as req}]
   (let [vresult (-> params clean-credentials validate-credentials)]
-    (if-let [{:keys [email password]} (valid? vresult)]
+    (if-let [{:keys [email password]} (validation/valid? vresult)]
       (if-let [account (account/authenticate (d/db conn) email password)]
         (if (:account/activated account)
           ;; success
@@ -88,4 +87,4 @@
         ;; authentication failure
         (common/render-malformed (view req invalid-credentials-error)))
       ;; validation failure
-      (common/render-malformed (apply view req (errors-from vresult))))))
+      (common/render-malformed (apply view req (validation/errors vresult))))))
