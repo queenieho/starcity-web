@@ -20,7 +20,7 @@
 (def ^:private hero-image-names
   (map
    (partial str "/assets/img/")
-   ["hero-home2.jpg" "hero-home6.jpg" "hero-home7.jpg" "hero-home10.jpg"]))
+   ["hero-home2.jpg" "hero-home7.jpg" "hero-home10.jpg"]))
 
 (defn- hero-images [req]
   (map (partial link/file-path req) hero-image-names))
