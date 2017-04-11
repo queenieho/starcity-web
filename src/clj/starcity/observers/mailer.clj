@@ -32,14 +32,14 @@
   (let [account (account/by-email (d/db conn) email)]
     (mail/send
      email
-     "Activate Your Account"
+     "Starcity: Activate Your Account"
      (mm/msg
       (mm/greeting (account/first-name account))
       (mm/p "Thanks for signing up!")
       (mm/p (format "<a href='%s/signup/activate?email=%s&hash=%s'>Click here to activate your account</a> and apply for a home."
                     config/hostname (url-encode email) (account/activation-hash account)))
-      (mm/signature "Meg" "Head of Community"))
-     :from ms/meg
+      (mm/signature))
+     :from ms/noreply
      :uuid (:msg/uuid msg))))
 
 ;; TODO:
