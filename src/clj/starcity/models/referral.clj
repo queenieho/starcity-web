@@ -25,7 +25,7 @@
     :referral/source   source
     :referral/from     :referral.from/tour
     :referral/tour-for (:db/id property)}
-   :referral/account account))
+   :referral/account (:db/id account)))
 
 (s/fdef tour
         :args (s/cat :source string?
