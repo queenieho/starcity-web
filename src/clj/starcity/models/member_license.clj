@@ -110,7 +110,7 @@
 (defn grace-period-over?
   "Has the maximum number of allowed late payments been exceeded?"
   [conn license]
-  (> (total-late-payments conn license) 1))
+  (>= (total-late-payments conn license) max-late-payments))
 
 (defn- payments-within
   [conn member-license date]
