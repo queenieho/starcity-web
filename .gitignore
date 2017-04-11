@@ -11,7 +11,6 @@ pom.xml.asc
 .hg/
 /data
 .sass-cache/
-/resources/public/assets/bower
 /resources/public/assets/css
 /resources/public/js/cljs
 *.log            # TODO: move to /logs

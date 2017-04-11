@@ -4,7 +4,7 @@ different styling for our internal products. */
 //  Vendor
 @import "vendor/tachyons/tachyons.scss";
 @import "vendor/mixin-circle.scss";
-
+@import "../../node_modules/spinkit/scss/spinners/2-double-bounce.scss";
 
 //  Global Styles
 @import "partials/public/_animations.scss";
@@ -25,4 +25,5 @@ different styling for our internal products. */
 @import "partials/public/_map.scss";
 @import "partials/public/_sketch.scss";
 @import "partials/public/_table.scss";
+@import "partials/public/_spinkit.scss";
 @import "partials/zindex";

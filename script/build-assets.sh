@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 mkdir resources/public/assets/css
-echo "Installing external JS & CSS dependencies via Bower..."
-bower install
 echo "Installing NPM dependencies..."
 npm install
 echo "Compiling ant design LESS..."

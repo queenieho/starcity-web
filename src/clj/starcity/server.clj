@@ -74,7 +74,7 @@
    "main.js"       ["/js/main.js"]
    "tour.js"       ["/js/tour.js"]
    ;; TODO: Phase these out...
-   "bank-info.js"  ["/assets/bower/jquery-validation/dist/jquery.validate.js"
+   "bank-info.js"  ["/js/jquery.validate.js"
                     "/js/bank-info.js"]
    "pay-by-ach.js" ["/js/pay-by-ach.js"]
 
