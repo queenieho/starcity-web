@@ -1,6 +1,6 @@
 (ns starcity.test.datomic
   (:require [datomic.api :as d]
-            [starcity-db.core :as starcity-db]))
+            [blueprints.core :as blueprints]))
 
 ;; =============================================================================
 ;; Connection Fixture
@@ -13,7 +13,7 @@
         db-uri  (str "datomic:mem://" db-name)]
     (d/create-database db-uri)
     (let [conn (d/connect db-uri)]
-      (starcity-db/conform-schema conn)
+      (blueprints/conform-schema conn)
       conn)))
 
 (defn release-conn [conn]

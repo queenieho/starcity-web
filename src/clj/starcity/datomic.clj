@@ -3,7 +3,7 @@
             [mount.core :as mount :refer [defstate]]
             [starcity.environment :as env]
             [starcity.config.datomic :as config]
-            [starcity-db.core :as db]
+            [blueprints.core :as db]
             [taoensso.timbre :as timbre]
             [clojure.core.async :as a]))
 

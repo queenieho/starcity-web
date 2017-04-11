@@ -5,7 +5,7 @@
             [datomic.api :as d]
             [io.rkn.conformity :as cf]
             [plumbing.core :refer [assoc-when]]
-            [starcity-db.core :refer [part]]
+            [blueprints.core :refer [part]]
             [starcity.datomic :refer [conn]]
             [starcity.models
              [account :as account]
