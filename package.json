@@ -1,27 +1,28 @@
 {
-  "name": "starcity-web",
-  "version": "1.0.0",
-  "description": "Starcity Web",
-  "main": "index.js",
-  "directories": {
-    "doc": "doc",
-    "test": "test"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/starcity-properties/starcity-web.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/starcity-properties/starcity-web/issues"
-  },
-  "homepage": "https://joinstarcity.com",
-  "dependencies": {
-    "less-plugin-clean-css": "^1.5.1",
-    "spinkit": "^1.2.5"
-  }
+    "name": "starcity-web",
+    "version": "1.0.0",
+    "description": "Starcity Web",
+    "main": "index.js",
+    "directories": {
+        "doc": "doc",
+        "test": "test"
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/starcity-properties/starcity-web.git"
+    },
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/starcity-properties/starcity-web/issues"
+    },
+    "homepage": "https://joinstarcity.com",
+    "dependencies": {
+        "antd": "^2.8.0",
+        "less-plugin-clean-css": "^1.5.1",
+        "spinkit": "^1.2.5"
+    }
 }
