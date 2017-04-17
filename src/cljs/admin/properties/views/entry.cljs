@@ -74,7 +74,7 @@
     {:class         "variable__control"
      :min           0
      :max           100
-     :default-value (:property/ops-fee property)
+     :default-value (or (:property/ops-fee property) 0)
      :onChange      #(dispatch [:property.update/ops-fee (:db/id property) %])}]])
 
 (defn- license [property-id license-price]
@@ -85,7 +85,7 @@
     [a/input-number
      {:min           0
       :step          50
-      :default-value (:license-price/price license-price)
+      :default-value (or (:license-price/price license-price) 0)
       :onChange      #(dispatch [:property.update/license property-id
                                  (assoc license-price :license-price/price %)])}]]])
 
