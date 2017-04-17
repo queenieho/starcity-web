@@ -207,9 +207,9 @@
 (defn- to-bool [yes-or-no]
   (= yes-or-no "yes"))
 
-(defn- has-pet-control [{has-pet :has-pet}]
+(defn- has-dog-control [{has-pet :has-pet}]
   [:div.form-group
-   [:label.label "Do you have a pet?"]
+   [:label.label "Do you have a dog?"]
    [:p.control
     (doall
      (for [[label value] [["Yes" "yes"] ["No" "no"]]]
@@ -220,21 +220,6 @@
                  :checked   (= has-pet (to-bool value))
                  :value     value
                  :on-change #(dispatch [:logistics.pets/has-pet (-> % dom/val to-bool)])}]
-        label]))]])
-
-(defn- pet-type-control [{pet-type :pet-type}]
-  [:div.form-group
-   [:label.label "What kind of pet do you have?"]
-   [:p.control
-    (doall
-     (for [[label value] [["Dog" "dog"] ["Cat" "cat"]]]
-       ^{:key label}
-       [:label.radio
-        [:input {:type      "radio"
-                 :name      "pet-type"
-                 :checked   (= pet-type value)
-                 :value     value
-                 :on-change #(dispatch [:logistics.pets/choose-type (dom/val %)])}]
         label]))]])
 
 (defn- dog-controls [{weight :weight, breed :breed}]
@@ -259,15 +244,16 @@
          :on-change   (-on-change :weight js/parseInt)}]
        [:a.button.is-disabled "lbs"]]]]))
 
+(def ^:private pets-desc
+  "Most of our communities are dog-friendly, but we unfortunately do not allow dogs. Let us know if a pet will be moving with you, and if so what type.")
+
 (defn- pets-content
   [{:keys [has-pet] :as pet-info}]
   (let [has-dog? (and has-pet (#{"dog"} (:pet-type pet-info)))]
     [:div.content
-     [:p "Most of our communities are pet-friendly. Let us know if a pet will be moving with you, and if so what type."]
+     [:p pets-desc]
      [:div.form-container
-      [has-pet-control pet-info]
-      (when has-pet
-        [pet-type-control pet-info])
+      [has-dog-control pet-info]
       (when has-dog?
         [dog-controls pet-info])]]))
 

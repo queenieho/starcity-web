@@ -31,12 +31,8 @@
 (reg-event-db
  :logistics.pets/has-pet
  (fn [db [_ has-pet]]
-   (assoc-in db [:logistics/pets :local :has-pet] has-pet)))
-
-(reg-event-db
- :logistics.pets/choose-type
- (fn [db [_ pet-type]]
-   (assoc-in db [:logistics/pets :local :pet-type] pet-type)))
+   (-> (assoc-in db [:logistics/pets :local :has-pet] has-pet)
+       (assoc-in [:logistics/pets :local :pet-type] "dog"))))
 
 (reg-event-db
  :logistics.pets/weight
