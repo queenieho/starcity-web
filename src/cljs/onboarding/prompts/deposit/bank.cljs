@@ -40,7 +40,7 @@
          [:p [:em [:b "Note: "] "At this time we can only accept payment from US-based bank accounts."]]
 
          [a/card
-          [:div.control.is-grouped
+          [:div.field.is-grouped
            [:div.control.is-expanded
             [:label.label "Account Holder's Name"]
             [a/input {:type      :text

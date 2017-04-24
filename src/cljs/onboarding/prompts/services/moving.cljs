@@ -9,34 +9,35 @@
 
 (defn- form
   [keypath commencement {:keys [needed date time]}]
-  [a/card
-   [:div.control
-    [:label.label "Do you need help moving in?"]
-    [a/radio-group
-     {:on-change #(dispatch [:prompt/update keypath :needed (= (.. % -target -value) "yes")])
-      :value     (cond (true? needed) "yes" (false? needed) "no" :otherwise nil)}
-     [a/radio {:value "yes"} "Yes"]
-     [a/radio {:value "no"} "No"]]]
-   (when needed
-     [:div
-      [:div.control
-       [:label.label "What date will you be moving in on?"]
-       [a/date-picker
-        {:value         date
-         :on-change     #(dispatch [:prompt/update keypath :date %])
-         :disabled-date #(.isBefore % commencement)
-         :allow-clear   false
-         :format        "MM-DD-YYYY"}]]
-      [:div.control
-       [:label.label "At what time will you be moving in?"]
-       [time-picker
-        {:value                 time
-         :on-change             #(dispatch [:prompt/update keypath :time %])
-         :format                "HH:mm"
-         :disabled-hours        #(concat (range 0 9) (range 20 24))
-         :disabled-minutes      (fn [] (remove #(= (mod % 30) 0) (range 0 61)))
-         :disabled-seconds      #(range 0 61)
-         :hide-disabled-options true}]]])])
+  (let [commencement (js/moment. commencement)]
+    [a/card
+     [:div.control
+      [:label.label "Do you need help moving in?"]
+      [a/radio-group
+       {:on-change #(dispatch [:prompt/update keypath :needed (= (.. % -target -value) "yes")])
+        :value     (cond (true? needed) "yes" (false? needed) "no" :otherwise nil)}
+       [a/radio {:value "yes"} "Yes"]
+       [a/radio {:value "no"} "No"]]]
+     (when needed
+       [:div
+        [:div.control
+         [:label.label "What date will you be moving in on?"]
+         [a/date-picker
+          {:value         (js/moment. date)
+           :on-change     #(dispatch [:prompt/update keypath :date (.toDate %)])
+           :disabled-date #(.isBefore % commencement)
+           :allow-clear   false
+           :format        "MM-DD-YYYY"}]]
+        [:div.control
+         [:label.label "At what time will you be moving in?"]
+         [time-picker
+          {:value                 (when time (js/moment. time))
+           :on-change             #(dispatch [:prompt/update keypath :time (.toDate %)])
+           :format                "HH:mm"
+           :disabled-hours        #(concat (range 0 9) (range 20 24))
+           :disabled-minutes      (fn [] (remove #(= (mod % 30) 0) (range 0 61)))
+           :disabled-seconds      #(range 0 61)
+           :hide-disabled-options true}]]])]))
 
 (defmethod content/content :services/moving
   [{:keys [keypath commencement data] :as item}]

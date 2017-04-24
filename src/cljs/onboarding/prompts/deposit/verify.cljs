@@ -16,9 +16,9 @@
       "If you do not yet see the transactions , it's probably because they have not yet been made!"]
 
      [a/card
-      [:div.control.is-grouped
+      [:div.field.is-grouped
        {:style {:justify-content "center"}}
-       [:div.control
+       [:div.control {:style {:min-width 110 :text-align "center"}}
         [:label.label "First Deposit"]
         [a/input-number {:min       1
                          :step      1
@@ -27,7 +27,7 @@
                          :formatter #(str "¢ " %)
                          :value     (or amount-1 0)
                          :on-change (on-change keypath :amount-1)}]]
-       [:div.control
+       [:div.control {:style {:min-width 130 :text-align "center"}}
         [:label.label "Second Deposit"]
         [a/input-number {:min       1
                          :step      1

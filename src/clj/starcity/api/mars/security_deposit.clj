@@ -28,7 +28,7 @@
   "Fetch requester's security deposit information."
   [req]
   (let [account (auth/requester req)]
-    (resp/json-ok {:result (-> account
+    (resp/json-ok {:result (->> account
                                deposit/by-account
                                clientize-security-deposit)})))
 

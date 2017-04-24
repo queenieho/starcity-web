@@ -3,17 +3,31 @@
             [optimus.link :as link]
             [starcity.controllers.common :as common]
             [starcity.config.stripe :refer [public-key]]
-            [starcity.views.base :as base]))
+            [starcity.views.base :as base]
+            [starcity.models.approval :as approval]
+            [starcity.auth :as auth]
+            [starcity.models.security-deposit :as deposit]))
 
 (html/defsnippet content "templates/onboarding.html" [:section] []
   [:section] (html/append (base/loading-fs)))
 
+(def ^:private move-in
+  (comp approval/move-in approval/by-account))
+
+(def ^:private full-deposit
+  (comp deposit/required deposit/by-account))
+
 (defn show
   "Show the Onboarding app."
   [req]
-  (common/render-ok
-   (base/app-base req "onboarding"
-                  :content (content)
-                  :navbar (base/app-navbar)
-                  :json [["stripe" {:key public-key}]]
-                  :stylesheets (link/bundle-paths req ["antd.css"]))))
+  (let [account (auth/requester req)]
+    (-> (base/app-base req "onboarding"
+                       :content (content)
+                       :navbar (base/app-navbar)
+                       :json [["stripe" {:key public-key}]
+                              ["account" {:move-in      (move-in account)
+                                          :full-deposit (full-deposit account)}]]
+                       :stylesheets (concat
+                                     (link/bundle-paths req ["antd.css"])
+                                     [base/font-awesome]))
+        (common/render-ok))))

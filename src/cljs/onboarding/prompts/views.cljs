@@ -7,9 +7,9 @@
             [onboarding.prompts.deposit.pay]
             [onboarding.prompts.services.moving]
             [onboarding.prompts.services.storage]
-            [onboarding.prompts.services.customization]
-            ;; [onboarding.prompts.services.laundry]
+            [onboarding.prompts.services.customize]
             [onboarding.prompts.services.cleaning]
+            [onboarding.prompts.services.upgrades]
             [re-frame.core :refer [dispatch subscribe]]))
 
 (def ^:private advisor-image
@@ -63,10 +63,8 @@
        [:div.column.has-text-left
         [previous-button active]])
      [:div.column
-      [:div.is-grouped.control
-       {:style {:justify-content "flex-end"}}
-       ;; [:p.control [save-button]]
-       [:p.control [next-button]]]]]))
+      [:div.is-pulled-right
+       [next-button]]]]))
 
 (defn prompt []
   (let [active (subscribe [:prompt/active])]

@@ -7,7 +7,8 @@
              [msg :as msg]
              [security-deposit :as deposit]
              [unit :as unit]]
-            [toolbelt.predicates :as p]))
+            [toolbelt.predicates :as p]
+            [starcity.models.onboard :as onboard]))
 
 ;; =============================================================================
 ;; Lookups
@@ -57,6 +58,14 @@
         :args (s/cat :approval p/entity?)
         :ret p/entity?)
 
+(def property
+  "The property that approval is for."
+  (comp unit/property unit))
+
+(s/fdef property
+        :args (s/cat :approval p/entity?)
+        :ret p/entity?)
+
 ;; =============================================================================
 ;; Transactions
 ;; =============================================================================
@@ -99,6 +108,7 @@
    ;; Change role
    {:db/id (:db/id approvee) :account/role :account.role/onboarding}
    (deposit/create approvee (int (unit/rate unit license)))
+   (onboard/create approvee)
    (app/change-status (:account/application approvee)
                       :application.status/approved)
    (msg/approved approver approvee unit license move-in)

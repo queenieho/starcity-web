@@ -1,7 +1,7 @@
 (ns starcity.models.security-deposit
   (:require [clojure.spec :as s]
             [datomic.api :as d]
-            [starcity.datomic :refer [conn tempid]]
+            [starcity.datomic :refer [tempid]]
             [starcity.models
              [check :as check]
              [stripe :as stripe]]
@@ -187,21 +187,21 @@
 
 
 ;; =============================================================================
-;; Queries
+;; Lookups
 ;; =============================================================================
 
-;; TODO: conn as arg
-(defn by-account [account]
-  (->> (d/q '[:find ?e .
-              :in $ ?a
-              :where [?e :security-deposit/account ?a]]
-            (d/db conn) (:db/id account))
-       (d/entity (d/db conn))))
+(def by-account
+  "Retrieve `security-deposit` given the owning `account`."
+  (comp first :security-deposit/_account))
 
-;; TODO: conn as arg
-(defn by-charge [charge]
-  (->> (d/q '[:find ?e .
-              :in $ ?c
-              :where [?e :security-deposit/charges ?c]]
-            (d/db conn) (:db/id charge))
-       (d/entity (d/db conn))))
+(s/fdef by-account
+        :args (s/cat :account p/entity?)
+        :ret p/entity?)
+
+(def by-charge
+  "Produce the security deposit given `charge`."
+  :security-deposit/_charges)
+
+(s/fdef by-charge
+        :args (s/cat :charge p/entity?)
+        :ret p/entity?)

@@ -15,9 +15,9 @@
   (timbre/info ::connecting {:uri uri})
   (d/create-database uri)
   (let [conn (d/connect uri)]
-    (db/conform-schema conn)
+    (db/conform-schema conn config/partition)
     (try
-      (db/conform-migrations conn)
+      (db/conform-migrations conn config/partition)
       (catch Throwable t
         (timbre/error t "Error encountered while attempting to run migrations.")
         (when-not (env/is-development?)

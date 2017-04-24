@@ -126,7 +126,7 @@
 
 (html/defsnippet loading-fs "templates/partials/loading-fs.html" [:section] [])
 
-(html/defsnippet app-navbar "templates/partials/app/navbar.html" [:header] [])
+(html/defsnippet app-navbar "templates/partials/app/navbar.html" [:nav] [])
 
 (html/defsnippet header "templates/partials/header.html" [:header]
   [& [active]]

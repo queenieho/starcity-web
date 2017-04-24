@@ -2,7 +2,8 @@
   (:require [clojure.set :as set]
             [plumbing.core :as plumbing]
             [clojure.string :as string]
-            [toolbelt.core :as tb]))
+            [toolbelt.core :as tb]
+            [cljs.spec :as s]))
 
 ;; =============================================================================
 ;; Menu
@@ -33,7 +34,7 @@
    (with-keypaths menu []))
   ([menu path]
    (reduce
-    (fn [menu {:keys [key children] :as item}]
+    (fn [menu {:keys [key children skip] :as item}]
       (let [path (conj path key)]
         (conj menu (-> (assoc item :keypath (apply keypath path))
                        (assoc :children (with-keypaths children path))))))
@@ -91,8 +92,6 @@
   [db keypath new-requires]
   (update-in db [:menu :items] update-in-menu keypath :requires new-requires))
 
-;; IDEA: Administrativia
-
 ;; NOTE: The `show-children` key is needed below because we use this data
 ;; structure to generate the list of all potential app (menu-based) routes.
 ;; Showing the routes is then a matter of toggling the `show-children` value.
@@ -124,26 +123,29 @@
                     :requires #{:deposit/pay}
                     :label    "Upload Avatar"}]}
      {:key      :services
-      :label    "Move-in Services"
+      :label    "Services"
       :children [{:key   :moving
                   :label "Moving Assistance"}
                  {:key      :storage
                   :requires #{:services/moving}
                   :label    "Storage Options"}
-                 {:key      :customization
+                 {:key      :customize
                   :requires #{:services/storage}
                   :label    "Room Customization"}
                  {:key      :cleaning
-                  :label    "Room Cleaning"
-                  :requires #{:services/customization}}
-                 ]}
+                  :label    "Cleaning &amp; Laundry"
+                  :requires #{:services/customize}}
+                 {:key      :upgrades
+                  :label    "Room Upgrades"
+                  :requires #{:services/cleaning}}]}
      {:key      :finish
       :children [{:key      :pay
                   :requires #{:deposit/pay
                               :services/moving
                               :services/storage
-                              :services/customization
-                              :services/cleaning}
+                              :services/customize
+                              :services/cleaning
+                              :services/upgrades}
                   :label    "Review Services"}]}]))
 
 ;; =============================================================================
@@ -158,8 +160,7 @@
    ;; Starts off as being bootstrapped
    :bootstrapping    true
    ;; Always complete, since there's nothing to do
-   :overview/start   {:complete true}
-   :services/storage {:data {:small 0 :large 0}}})
+   :overview/start   {:complete true}})
 
 (defn can-navigate-to?
   [db keypath]
@@ -183,14 +184,13 @@
     (fn [acc {:keys [keypath children] :as item}]
       (let [v   (get data keypath)
             acc (cond
-                  (:complete v)           (update acc :complete conj keypath)
-                  (contains? v :complete) (update acc :incomplete conj keypath)
-                  :otherwise              acc)]
+                  (:complete v)          (update acc :complete conj keypath)
+                  (false? (:complete v)) (update acc :incomplete conj keypath)
+                  :otherwise             acc)]
         (keypath-progress children data acc)))
     acc
     menu-items)))
 
-;; TODO: Do we need a notion of "incomplete"-ness?
 (defn- active-item
   "Produce the `keypath` of the active menu item."
   [db data]
@@ -200,16 +200,50 @@
         (next-prompt db (last complete))
         (get-in db [:menu :default]))))
 
-(defn bootstrap [db data]
-  (let [new-db (reduce
-                (fn [acc [k v]]
-                  (let [acc (-> (assoc acc k v) (post-save k (:data v)))]
-                    (if (:complete v)
-                      (update-in acc [:menu :complete] conj k)
-                      acc)))
-                db
-                data)]
-    (assoc-in new-db [:menu :active] (active-item new-db data))))
+(defn- init-prompts
+  "Populate the `db` with prompt `data` from the server "
+  [db data]
+  (reduce
+   (fn [acc [k v]]
+     (let [acc (-> (assoc acc k v) (post-save k (:data v)))]
+       (if (:complete v)
+         (update-in acc [:menu :complete] conj k)
+         acc)))
+   db
+   data))
+
+(defn- preprocess-catalogues
+  "For all items in catalogues present in `data`, produce the sequence of user
+  input fields. Creates a 'synthetic' field type out of the `:variants` when
+  present."
+  [db data]
+  (letfn [(-variants->fields [{:as item :keys [fields variants]}]
+            (if (empty? variants)
+              item
+              (let [variants (sort-by :price < variants)]
+                (-> (update item :fields conj {:type     :variants
+                                               :key      :variant
+                                               :variants variants})
+                    (assoc :variants variants)))))]
+    (reduce
+     (fn [acc [k v]]
+       (if (get-in v [:data :catalogue])
+         (update-in acc [k :data :catalogue :items] #(map -variants->fields %))
+         acc))
+     db
+     data)))
+
+(defn- init-active-item
+  "Set the menu's active item."
+  [db data]
+  (assoc-in db [:menu :active] (active-item db data)))
+
+(defn bootstrap
+  "Bootstrap the application database `db` with server-side `data`."
+  [db data]
+  (-> (init-prompts db data)
+      (preprocess-catalogues data)
+      (init-active-item data)))
 
 ;; =============================================================================
 ;; Save
@@ -288,21 +322,6 @@
     (or (false? needed)
         (and needed date time))))
 
-(defmethod can-advance? :services/storage [{data :data}]
-  (let [{:keys [needed small large additional]} data]
-    (or (false? needed)
-        (or (> small 0) (> large 0) (not (string/blank? additional))))))
-
-(defmethod can-advance? :services/customization [{data :data}]
-  (let [{:keys [needed furniture design]} data]
-    (or (false? needed)
-        (or (not (string/blank? furniture))
-            (not (string/blank? design))))))
-
-(defmethod can-advance? :services/cleaning [{data :data}]
-  (let [needed (:needed data)]
-    (or (false? needed) (true? needed))))
-
 ;; =============================================================================
 
 (defmulti ^:private next-prompt*
@@ -334,12 +353,15 @@
   :services/storage)
 
 (defmethod next-prompt* :services/storage [_ _]
-  :services/customization)
+  :services/customize)
 
-(defmethod next-prompt* :services/customization [_ _]
+(defmethod next-prompt* :services/customize [_ _]
   :services/cleaning)
 
 (defmethod next-prompt* :services/cleaning [_ _]
+  :services/upgrades)
+
+(defmethod next-prompt* :services/upgrades [_ _]
   :finish/pay)
 
 (defn next-prompt
@@ -368,8 +390,9 @@
 (defmethod previous-prompt :deposit/method [_ _] :overview/start)
 (defmethod previous-prompt :deposit.method/bank [_ _] :deposit/method)
 (defmethod previous-prompt :services/storage [_ _] :services/moving)
-(defmethod previous-prompt :services/customization [_ _] :services/storage)
-(defmethod previous-prompt :services/cleaning [_ _] :services/customization)
+(defmethod previous-prompt :services/customize [_ _] :services/storage)
+(defmethod previous-prompt :services/cleaning [_ _] :services/customize)
+(defmethod previous-prompt :services/upgrades [_ _] :services/cleaning)
 
 (defmethod previous-prompt :deposit/pay [db _]
   (when (= (get-in db [:deposit/method :data :method]) "check")

@@ -13,28 +13,50 @@
 ;; Prompt-specific Initialization
 ;; =============================================================================
 
-;; We'll need this for:
-;; 1. Fetching rent amount on :deposit/pay
-;; 2. TBD
+(defmulti init-prompt (fn [db keypath] keypath))
+
+(defmethod init-prompt :default
+  [db _]
+  db)
+
+(defmethod init-prompt :services/moving
+  [db _]
+  (let [move-in (aget js/account "move-in")
+        moving  {:commencement move-in
+                 :data         {:date move-in}}]
+    (-> (assoc-in db [:services/moving :commencement] move-in)
+        (update-in [:services/moving :data :date] #(or % move-in)))))
+
+(defn- enforce-seen
+  [db keypath]
+  (let [seen (get-in db [keypath :data :seen])]
+    (if seen
+      db
+      (-> (assoc-in db [keypath :data :seen] true)
+          (assoc-in [keypath :dirty] true)))))
+
+;; Only enforces that this prompt is seen at least once
+(defmethod init-prompt :services/storage [db keypath]
+  (enforce-seen db keypath))
+
+(defmethod init-prompt :services/customize [db keypath]
+  (enforce-seen db keypath))
+
+(defmethod init-prompt :services/cleaning [db keypath]
+  (enforce-seen db keypath))
+
+(defmethod init-prompt :services/upgrades [db keypath]
+  (enforce-seen db keypath))
 
 (reg-event-fx
  :prompt/init
  (fn [{:keys [db]} [_ keypath]]
-   {:db       (if-let [prompt (get db keypath)]
-                db
-                (assoc db keypath {:initialized false}))
-    :dispatch [:prompt/fetch keypath]}))
-
-(reg-event-fx
- :prompt/fetch
- (fn [{:keys [db]} [_ keypath]]
-   {:db             db
-    :dispatch-later [{:ms 1000 :dispatch [:prompt.fetch/success keypath]}]}))
-
-(reg-event-fx
- :prompt.fetch/success
- (fn [{:keys [db]} [_ keypath {result :result}]]
-   {:db (assoc-in db [keypath :initialized] true)}))
+   {:db       (init-prompt db keypath)
+    #_(if-let [prompt (get db keypath)]
+        db
+        (assoc db keypath {:initialized false}))
+    ;; :dispatch [:prompt/fetch keypath]
+    }))
 
 ;; =============================================================================
 ;; Navigation
@@ -46,7 +68,7 @@
 (def ^:private deposit-modal-content
   (r/as-element
    [:p "By pressing the " [:b "Pay Now"] " button below, I authorize Starcity to
-   electronically debit my account and,if necessary, electronically credit my
+   electronically debit my account and, if necessary, electronically credit my
    account to correct erroneous debits."]))
 
 (def ^:private bank-info-modal-content
@@ -54,10 +76,8 @@
    [:div
     [:p {:dangerouslySetInnerHTML {:__html "Over the next <b>24-48 hours</b>,
      two small deposits will be made in your account with the statement
-     description <b>VERIFICATION</b> &mdash; enter them below to verify that you
-     are the owner of this bank account."}}]
-    [:br]
-    [:p "TODO:"]]))
+     description <b>VERIFICATION</b> &mdash; enter them in the next step to
+     verify that you are the owner of this bank account."}}]]))
 
 (defmulti begin-save
   "Used to determine how to proceed after a successful press of the 'Continue'
@@ -80,11 +100,26 @@
                     :content bank-info-modal-content
                     :on-ok   [:deposit.method.bank/submit keypath]}})
 
+(defn- remove-catalogue [db keypath]
+  {:dispatch [:prompt/save keypath (-> (get-in db [keypath :data])
+                                       (dissoc :catalogue))]})
+
+(defmethod begin-save :services/storage [db keypath]
+  (remove-catalogue db keypath))
+
+(defmethod begin-save :services/customize [db keypath]
+  (remove-catalogue db keypath))
+
+(defmethod begin-save :services/cleaning [db keypath]
+  (remove-catalogue db keypath))
+
+(defmethod begin-save :services/upgrades [db keypath]
+  (remove-catalogue db keypath))
+
 (reg-event-fx
  :deposit.method.bank/submit
  (fn [{:keys [db]} [_ keypath]]
    (let [{:keys [name routing-number account-number]} (get-in db [keypath :data])]
-     (tb/log (get-in db [keypath :data]))
      {:db (db/pre-save (assoc db :saving true) keypath)
       :stripe.bank-account/create-token
       {:country             "US"
@@ -179,3 +214,24 @@
  :prompt/update
  (fn [db [_ keypath k v]]
    (update-prompt (assoc-in db [keypath :dirty] true) keypath k v)))
+
+(reg-event-fx
+ :prompt.orders/select
+ (fn [{:keys [db]} [_ keypath {:keys [service fields variants] :as item}]]
+   (let [defaults {:quantity 1 :desc "" :variants (:id (first variants))}
+         init     (reduce #(assoc %1 (:key %2) (get defaults (:type %2))) {} fields)]
+     {:dispatch [:prompt.orders/update keypath [service init]]})))
+
+(reg-event-fx
+ :prompt.orders/update
+ (fn [{:keys [db]} [_ keypath [service params]]]
+   (let [orders   (-> (get-in db [keypath :data :orders])
+                      (assoc service params))]
+     {:dispatch [:prompt/update keypath :orders orders]})))
+
+(reg-event-fx
+ :prompt.orders/remove
+ (fn [{:keys [db]} [_ keypath service]]
+   (let [orders (-> (get-in db [keypath :data :orders])
+                    (dissoc service))]
+     {:dispatch [:prompt/update keypath :orders orders]})))

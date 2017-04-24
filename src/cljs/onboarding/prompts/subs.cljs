@@ -26,11 +26,14 @@
    :services/storage
    "Do you have belongings that you don't use often but can't part with?"
 
-   :services/customization
-   "Need some help adding pizazz to your room?"
+   :services/customize
+   "Would you like to customize your room to reflect your tastes?"
 
    :services/cleaning
-   "Would you like to have your room cleaned weekly?"})
+   "No time for chores? Let us take care of the dirty work."
+
+   :services/upgrades
+   "Something else you need? We can add it on."})
 
 (reg-sub
  :prompt/title
@@ -97,4 +100,4 @@
 (reg-sub
  :deposit.pay/amount
  (fn [db _]
-   (get-in db [:deposit/pay :rent-amount])))
+   (aget js/account "full-deposit")))
