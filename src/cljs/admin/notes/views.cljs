@@ -58,7 +58,7 @@
        [a/checkbox
         {:checked   notify
          :on-change #(dispatch [:note.comment/update note-id :notify (.. % -target -checked)])}
-        "Send Slack notifications to subscribers"]]
+        "Notify in Slack"]]
 
       [:p.control
        [a/button

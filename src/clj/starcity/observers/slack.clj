@@ -340,7 +340,7 @@
     (let [ntype (if (note/ticket? note) "Ticket" "Note")]
       (slack/crm
        (sm/msg
-        (sm/success
+        (sm/info
          (sm/title (note/subject note) (note-url note))
          (sm/text (note/content note))
          (sm/fields
@@ -350,24 +350,25 @@
           (sm/field "Type" (string/lower-case ntype) true))))
        :uuid (:msg/uuid msg)))))
 
-(defn- notify-handles [note]
-  (let [parent-note (note/parent note)
-        handles     (->> (conj (note/children parent-note) parent-note)
-                         (map (comp account/slack-handle note/author))
-                         (remove nil?)
-                         (set))]
-    (set/difference handles #{(-> note note/author account/slack-handle)})))
+#_(defn- notify-handles [note]
+    (let [parent-note (note/parent note)
+          handles     (->> (conj (note/children parent-note) parent-note)
+                           (map (comp account/slack-handle note/author))
+                           (remove nil?)
+                           (set))]
+      (set/difference handles #{(-> note note/author account/slack-handle)})))
 
 (defmethod handle msg/note-comment-created-key
   [conn {{:keys [comment/uuid notify?]} :msg/params :as msg}]
   (when-let [note (and notify? (note/by-uuid (d/db conn) uuid))]
-    (doseq [handle (notify-handles note)]
-      (slack/send
-       {:channel handle}
+    (let [parent (note/parent note)]
+      (slack/crm
        (sm/msg
         (sm/info
-         (sm/title (format "%s commented on a note that you are subscribed to:"
-                           (-> note note/author account/full-name))
+         (sm/title (format "%s commented on a note." (-> note note/author account/full-name))
                    (note-url (note/parent note)))
-         (sm/text (format "_%s_" (note/content note)))))
+         (sm/text (format "_%s_" (note/content note)))
+         (sm/fields
+          (sm/field "Parent" (note/subject parent))
+          (sm/field "Account" (-> parent note/account account/full-name)))))
        :uuid (:msg/uuid msg)))))
