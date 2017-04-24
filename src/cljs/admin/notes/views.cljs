@@ -167,7 +167,7 @@
         [:div.media-content
          [:div.content
           (when-let [author (:note/author note)]
-            [:p [:strong (:account/name note)]])
+            [:p [:strong (:account/name author)]])
           [:p (:note/content note)]
           [controls showing-comments note]]
          (when-let [comments (and @showing-comments (:note/children note))]
