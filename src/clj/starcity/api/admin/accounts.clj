@@ -445,7 +445,7 @@
       (some nil? [account unit license])
       (response/transit-malformed {:message "Invalid account, unit or license."})
 
-      (unit/occupied? (d/db conn) unit)
+      (not (unit/available? (d/db conn) unit move-in))
       (resp-err unit-occupied-error)
 
       (not (account/can-approve? account))
