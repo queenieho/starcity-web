@@ -245,7 +245,7 @@
        [:a.button.is-disabled "lbs"]]]]))
 
 (def ^:private pets-desc
-  "Most of our communities are dog-friendly, but we unfortunately do not allow dogs. Let us know if a pet will be moving with you, and if so what type.")
+  "Most of our communities are dog-friendly, but we unfortunately do not allow cats. If you have a dog, please let us know what breed and weight.")
 
 (defn- pets-content
   [{:keys [has-pet] :as pet-info}]
