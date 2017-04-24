@@ -47,17 +47,17 @@
       [:div.control.is-expanded
        [:label.label "Subject"]
        [a/input
-        {:type      "text"
-         :value     (:subject @form-data)
-         :on-change #(dispatch [:note.add/update :subject (.. % -target -value)])}]]
+        {:type          "text"
+         :default-value (:subject @form-data)
+         :on-change     #(dispatch [:note.add/update :subject (.. % -target -value)])}]]
 
       [:div.control.is-expanded
        [:label.label "Content"]
        [a/input
-        {:type      "textarea"
-         :rows      3
-         :value     (:content @form-data)
-         :on-change #(dispatch [:note.add/update :content (.. % -target -value)])}]]
+        {:type          "textarea"
+         :rows          3
+         :default-value (:content @form-data)
+         :on-change     #(dispatch [:note.add/update :content (.. % -target -value)])}]]
 
       [:div.control.is-grouped
        [:div.control
@@ -66,7 +66,7 @@
           :on-change #(dispatch [:note.add/update :ticket (.. % -target -checked)])}
          "This note is a ticket"]
         [a/checkbox
-         {:checked (:notify @form-data)
+         {:checked   (:notify @form-data)
           :on-change #(dispatch [:note.add/update :notify (.. % -target -checked)])}
          "Send Slack notification upon creation"]]]]]))
 
@@ -99,17 +99,17 @@
       [:div.control.is-expanded
        [:label.label "Subject"]
        [a/input
-        {:type      "text"
-         :value     (:subject @form-data)
-         :on-change #(dispatch [:note.edit/update :subject (.. % -target -value)])}]]
+        {:type          "text"
+         :default-value (:subject @form-data)
+         :on-change     #(dispatch [:note.edit/update :subject (.. % -target -value)])}]]
 
       [:div.control.is-expanded
        [:label.label "Content"]
        [a/input
-        {:type      "textarea"
-         :rows      3
-         :value     (:content @form-data)
-         :on-change #(dispatch [:note.edit/update :content (.. % -target -value)])}]]]]))
+        {:type          "textarea"
+         :rows          3
+         :default-value (:content @form-data)
+         :on-change     #(dispatch [:note.edit/update :content (.. % -target -value)])}]]]]))
 
 ;; =============================================================================
 ;; Entrypoint

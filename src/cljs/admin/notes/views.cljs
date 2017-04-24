@@ -49,10 +49,10 @@
      [:div.media-content
       [:p.control
        [a/input
-        {:type        "textarea"
-         :placeholder "Add your comment here..."
-         :on-change   #(dispatch [:note.comment/update note-id :content (.. % -target -value)])
-         :value       content}]]
+        {:type          "textarea"
+         :placeholder   "Add your comment here..."
+         :on-change     #(dispatch [:note.comment/update note-id :content (.. % -target -value)])
+         :default-value content}]]
 
       [:p.control
        [a/checkbox
