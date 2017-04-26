@@ -153,9 +153,9 @@
 
 (defn by-customer-id
   "Look up an account by Stripe customer id."
-  [conn customer-id]
+  [db customer-id]
   (:stripe-customer/account
-   (d/entity (d/db conn) [:stripe-customer/customer-id customer-id])))
+   (d/entity db [:stripe-customer/customer-id customer-id])))
 
 ;; =============================================================================
 ;; Transactions
