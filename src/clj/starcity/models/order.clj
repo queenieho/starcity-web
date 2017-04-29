@@ -1,15 +1,26 @@
 (ns starcity.models.order
   (:refer-clojure :exclude [update])
-  (:require [datomic.api :as d]
-            [starcity.datomic :refer [tempid]]
-            [clojure.spec :as s]
-            [toolbelt.predicates :as p]
+  (:require [clojure
+             [spec :as s]
+             [string :as string]]
+            [datomic.api :as d]
             [plumbing.core :as plumbing]
-            [taoensso.timbre :as timbre]))
+            [starcity.datomic :refer [tempid]]
+            [starcity.models.service :as service]
+            [toolbelt.predicates :as p]))
 
 ;; =============================================================================
 ;; Selectors
 ;; =============================================================================
+
+(defn price
+  "The price of this `order`."
+  [order]
+  (:order/price order))
+
+(s/fdef price
+        :args (s/cat :order p/entity?)
+        :ret (s/or :nothing nil? :price float?))
 
 (defn quantity
   "The number of `service` ordered."
@@ -61,6 +72,16 @@
   "Does `account` have an order for `service`?"
   (comp p/entity? by-account))
 
+(defn orders
+  "All of `account`'s orders."
+  [db account]
+  (->> (d/q '[:find [?o ...]
+              :in $ ?a
+              :where
+              [?o :order/account ?a]]
+            db (:db/id account))
+       (map (partial d/entity db))))
+
 ;; =============================================================================
 ;; Transactions
 ;; =============================================================================
@@ -71,14 +92,17 @@
 (s/def ::opts (s/keys :opt-un [::quantity ::desc ::variant]))
 
 (defn create
-  [account service {:keys [quantity desc variant] :as opts}]
-  (plumbing/assoc-when
-   {:db/id         (tempid)
-    :order/service (:db/id service)
-    :order/account (:db/id account)}
-   :order/variant variant
-   :order/quantity quantity
-   :order/desc desc))
+  ([account service]
+   (create account service {}))
+  ([account service {:keys [quantity desc variant] :as opts}]
+   (plumbing/assoc-when
+    {:db/id         (tempid)
+     :order/uuid    (d/squuid)
+     :order/service (:db/id service)
+     :order/account (:db/id account)}
+    :order/variant variant
+    :order/quantity quantity
+    :order/desc desc)))
 
 (s/fdef create
         :args (s/cat :account p/entity?
@@ -107,3 +131,26 @@
 
 (s/fdef remove-existing
         :args (s/cat :db p/db? :account p/entity? :service p/entity?))
+
+;; =============================================================================
+;; Clientize
+;; =============================================================================
+
+(defn- variant-name [order]
+  (-> order :order/variant :svc-variant/name))
+
+(defn clientize
+  [order]
+  (let [service (:order/service order)
+        name    (if-let [vn (variant-name order)]
+                  (str (service/name service) " - " (string/capitalize vn))
+                  (service/name service))]
+    {:id       (:db/id order)
+     :name     name
+     :desc     (or (desc order) (service/desc service))
+     :price    (or (price order)
+                   (-> order :order/variant :svc-variant/price)
+                   (service/price service))
+     :rental   (service/rental service)
+     :quantity (quantity order)
+     :billed   (-> service :service/billed clojure.core/name keyword)}))

@@ -6,7 +6,8 @@
             [starcity.views.base :as base]
             [starcity.models.approval :as approval]
             [starcity.auth :as auth]
-            [starcity.models.security-deposit :as deposit]))
+            [starcity.models.security-deposit :as deposit]
+            [starcity.models.property :as property]))
 
 (html/defsnippet content "templates/onboarding.html" [:section] []
   [:section] (html/append (base/loading-fs)))
@@ -17,6 +18,9 @@
 (def ^:private full-deposit
   (comp deposit/required deposit/by-account))
 
+(def ^:private llc
+  (comp property/llc approval/property approval/by-account))
+
 (defn show
   "Show the Onboarding app."
   [req]
@@ -26,7 +30,8 @@
                        :navbar (base/app-navbar)
                        :json [["stripe" {:key public-key}]
                               ["account" {:move-in      (move-in account)
-                                          :full-deposit (full-deposit account)}]]
+                                          :full-deposit (full-deposit account)
+                                          :llc          (llc account)}]]
                        :stylesheets (concat
                                      (link/bundle-paths req ["antd.css"])
                                      [base/font-awesome]))

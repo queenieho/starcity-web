@@ -10,7 +10,9 @@
             [onboarding.prompts.services.customize]
             [onboarding.prompts.services.cleaning]
             [onboarding.prompts.services.upgrades]
-            [re-frame.core :refer [dispatch subscribe]]))
+            [onboarding.prompts.review]
+            [re-frame.core :refer [dispatch subscribe]]
+            [onboarding.db :as db]))
 
 (def ^:private advisor-image
   [:img.is-circular
@@ -30,41 +32,33 @@
              :size      :large
              :icon      :left
              :html-type :button
-             :on-click  #(dispatch [:prompt/previous active])}
+             :on-click  #(dispatch [:prompt/previous (:keypath active)])}
    "Previous"])
 
-(defn- next-button []
-  (let [dirty       (subscribe [:prompt/dirty?])
-        can-advance (subscribe [:prompt/can-advance?])
-        is-saving   (subscribe [:prompt/saving?])]
-    [a/button {:type      :primary
-               :size      :large
-               :disabled  (not @can-advance)
-               :loading   @is-saving
-               :html-type :submit}
-     (if @dirty
-       [:span {:dangerouslySetInnerHTML {:__html "Save &amp; Continue"}}]
-       "Continue")]))
-
-;; (defn- save-button []
-;;   (let [dirty     (subscribe [:prompt/dirty?])
-;;         is-saving (subscribe [:prompt/saving?])]
-;;     [a/button {:type     :ghost
-;;                :size     :large
-;;                :disabled (not @dirty)
-;;                :loading  @is-saving
-;;                :on-click #(dispatch [:prompt/save ])}
-;;      "Save"]))
+(defn- save-button []
+  (let [dirty     (subscribe [:prompt/dirty?])
+        is-saving (subscribe [:prompt/saving?])
+        prompt    (subscribe [:prompt/active])]
+    [a/button {:type     :ghost
+               :size     :large
+               :style {:margin-right 5}
+               :disabled (not @dirty)
+               :loading  @is-saving
+               :on-click #(dispatch [:prompt/save (:keypath @prompt) (:data @prompt) {:nav false}])}
+     "Save"]))
 
 (defn prompt-footer [active]
-  (let [has-previous (subscribe [:prompt/has-previous?])]
+  (let [has-previous (subscribe [:prompt/has-previous?])
+        can-save     (subscribe [:prompt/can-save?])]
     [:div.columns.is-mobile.prompt-controls
      (when @has-previous
        [:div.column.has-text-left
         [previous-button active]])
      [:div.column
       [:div.is-pulled-right
-       [next-button]]]]))
+       (when @can-save
+         [save-button])
+       [content/next-button active]]]]))
 
 (defn prompt []
   (let [active (subscribe [:prompt/active])]
@@ -76,4 +70,4 @@
       [prompt-header]
       [:div.prompt-content
        (content/content @active)]
-      [prompt-footer (:keypath @active)]]]))
+      [prompt-footer @active]]]))

@@ -1,17 +1,19 @@
 (ns starcity.models.stripe.customer
   (:require [clojure.spec :as s]
             [datomic.api :as d]
+            [plumbing.core :refer [assoc-when]]
             [starcity
              [datomic :refer [conn]]
              [util :refer [find-by]]]
             [starcity.datomic.partition :refer [tempid]]
-            [starcity.models.account :as account]
+            [starcity.models
+             [account :as account]
+             [member-license :as member-license]
+             [property :as property]]
             [starcity.services.stripe :as service]
             [starcity.services.stripe.connect :as connect]
             starcity.spec.datomic
-            [plumbing.core :refer [assoc-when]]
-            [starcity.models.property :as property]
-            [starcity.models.member-license :as member-license]))
+            [taoensso.timbre :as timbre]))
 
 ;; =============================================================================
 ;; API
@@ -143,10 +145,10 @@
   [customer account & [property]]
   (let [tid (tempid)
         tx  @(d/transact conn [(assoc-when
-                                {:db/id                              tid
-                                 :stripe-customer/customer-id        (id customer)
-                                 :stripe-customer/account            (:db/id account)
-                                 :stripe-customer/bank-account-token (bank-account-token customer)}
+                                {:db/id                       tid
+                                 :stripe-customer/customer-id (id customer)
+                                 :stripe-customer/account     (:db/id account)}
+                                :stripe-customer/bank-account-token (bank-account-token customer)
                                 :stripe-customer/managed (:db/id property))])]
     (d/entity (d/db conn) (d/resolve-tempid (d/db conn) (:tempids tx) tid))))
 

@@ -229,7 +229,7 @@
 (defn member-licenses-tx [conn]
   (let [admin  (d/entity (d/db conn) [:account/email "admin@test.com"])
         member (d/entity (d/db conn) [:account/email "member@test.com"])]
-    (remove #(contains? % :msg/uuid) (account/promote admin member))))
+    (remove #(contains? % :msg/uuid) (account/promote member))))
 
 ;; =============================================================================
 ;; Rent Payments
@@ -301,7 +301,8 @@
     :service/billed :service.billed/monthly}
    {:db/id          (tempid)
     :service/code   "moving,move-in"
-    :service/desc   "hourly rate for onsite move-in assistance"
+    :service/name   "Move-in Assistance"
+    :service/desc   "Movers to help move your things into your room on move-in day."
     :service/price  50.0
     :service/billed :service.billed/once}
    {:db/id          (tempid)

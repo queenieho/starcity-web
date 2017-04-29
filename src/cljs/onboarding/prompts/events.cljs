@@ -17,23 +17,23 @@
 
 (defmethod init-prompt :default
   [db _]
-  db)
+  {:db db})
 
 (defmethod init-prompt :services/moving
   [db _]
   (let [move-in (aget js/account "move-in")
         moving  {:commencement move-in
                  :data         {:date move-in}}]
-    (-> (assoc-in db [:services/moving :commencement] move-in)
-        (update-in [:services/moving :data :date] #(or % move-in)))))
+    {:db (-> (assoc-in db [:services/moving :commencement] move-in)
+             (update-in [:services/moving :data :date] #(or % move-in)))}))
 
 (defn- enforce-seen
   [db keypath]
-  (let [seen (get-in db [keypath :data :seen])]
-    (if seen
-      db
-      (-> (assoc-in db [keypath :data :seen] true)
-          (assoc-in [keypath :dirty] true)))))
+  {:db (let [seen (get-in db [keypath :data :seen])]
+         (if seen
+           db
+           (-> (assoc-in db [keypath :data :seen] true)
+               (assoc-in [keypath :dirty] true))))})
 
 ;; Only enforces that this prompt is seen at least once
 (defmethod init-prompt :services/storage [db keypath]
@@ -48,15 +48,42 @@
 (defmethod init-prompt :services/upgrades [db keypath]
   (enforce-seen db keypath))
 
+(defmethod init-prompt :finish/review [db keypath]
+  (let [db (if (empty? (get-in db [keypath :orders]))
+             (assoc-in db [keypath :orders-loading] true)
+             db)]
+    {:db       db
+     :dispatch [:orders/fetch keypath]}))
+
+(reg-event-fx
+ :orders/fetch
+ (fn [_ _]
+   {:http-xhrio {:method          :get
+                 :uri             "/api/v1/orders"
+                 :response-format (ajax/transit-response-format)
+                 :on-success      [:orders.fetch/success]
+                 :on-failure      [:orders.fetch/failure]}}))
+
+(reg-event-db
+ :orders.fetch/success
+ (fn [db [_ {orders :result}]]
+   (-> (assoc db :orders/loading false)
+       (assoc :orders/list orders)
+       (assoc :orders.fetch/error false))))
+
+(reg-event-fx
+ :orders.fetch/failure
+ (fn [{:keys [db]} [_ keypath error]]
+   (tb/error error)
+   {:db            (-> (assoc-in db [keypath :orders-loading] false)
+                       (assoc-in [keypath :error] true))
+    :alert/message {:type    :error
+                    :content "Failed to fetch your orders."}}))
+
 (reg-event-fx
  :prompt/init
  (fn [{:keys [db]} [_ keypath]]
-   {:db       (init-prompt db keypath)
-    #_(if-let [prompt (get db keypath)]
-        db
-        (assoc db keypath {:initialized false}))
-    ;; :dispatch [:prompt/fetch keypath]
-    }))
+   (init-prompt db keypath)))
 
 ;; =============================================================================
 ;; Navigation
@@ -100,22 +127,6 @@
                     :content bank-info-modal-content
                     :on-ok   [:deposit.method.bank/submit keypath]}})
 
-(defn- remove-catalogue [db keypath]
-  {:dispatch [:prompt/save keypath (-> (get-in db [keypath :data])
-                                       (dissoc :catalogue))]})
-
-(defmethod begin-save :services/storage [db keypath]
-  (remove-catalogue db keypath))
-
-(defmethod begin-save :services/customize [db keypath]
-  (remove-catalogue db keypath))
-
-(defmethod begin-save :services/cleaning [db keypath]
-  (remove-catalogue db keypath))
-
-(defmethod begin-save :services/upgrades [db keypath]
-  (remove-catalogue db keypath))
-
 (reg-event-fx
  :deposit.method.bank/submit
  (fn [{:keys [db]} [_ keypath]]
@@ -150,35 +161,34 @@
 (reg-event-fx
  :prompt/continue
  (fn [{:keys [db]} [_ keypath]]
-   (let [dirty (get-in db [keypath :dirty])]
-     (if dirty
-       (begin-save db keypath)
-       {:route (routes/path-for (db/next-prompt db keypath))}))))
+   (if (get-in db [keypath :dirty])
+     (begin-save db keypath)
+     {:route (routes/path-for (db/next-prompt db keypath))})))
 
 (reg-event-fx
  :prompt/save
- (fn [{:keys [db]} [_ keypath data]]
+ (fn [{:keys [db]} [_ keypath data opts]]
    {:db         (db/pre-save (assoc db :saving true) keypath)
     :http-xhrio {:method          :post
                  :uri             "/api/v1/onboarding"
-                 :params          {:step keypath :data data}
+                 :params          {:step keypath :data (dissoc data :catalogue)}
                  :format          (ajax/transit-request-format)
                  :response-format (ajax/transit-response-format)
-                 :on-success      [:prompt.save/success keypath]
+                 :on-success      [:prompt.save/success keypath opts]
                  :on-failure      [:prompt.save/failure keypath]}}))
 
 (reg-event-fx
  :prompt.save/success
- (fn [{:keys [db]} [_ keypath {result :result}]]
-   (let [;result (get-in db [keypath :data]) ; for development
-         ;; =================
-         db     (-> (assoc db :saving false)
-                    (assoc-in [keypath :dirty] false)
-                    (update-in [:menu :complete] conj keypath)
-                    (assoc-in [keypath :complete] true)
-                    (db/post-save keypath (:data result)))]
-     {:db    db
-      :route (routes/path-for (db/next-prompt db keypath))})))
+ (fn [{:keys [db]} [_ keypath {:keys [nav] :or {nav true}} {result :result}]]
+   (let [db (-> (assoc db :saving false)
+                (assoc-in [keypath :dirty] false)
+                (update-in [:menu :complete] conj keypath)
+                (assoc-in [keypath :complete] true)
+                (db/post-save keypath (:data result)))]
+     (if nav
+       {:db    db
+        :route (routes/path-for (db/next-prompt db keypath))}
+       {:db db}))))
 
 (reg-event-fx
  :prompt.save/failure
@@ -193,7 +203,7 @@
        (merge {:db (assoc db :saving false)}))))
 
 ;; =============================================================================
-;; Retreat
+;; Previous
 
 (reg-event-fx
  :prompt/previous
@@ -235,3 +245,89 @@
    (let [orders (-> (get-in db [keypath :data :orders])
                     (dissoc service))]
      {:dispatch [:prompt/update keypath :orders orders]})))
+
+;; =============================================================================
+;; Orders
+;; =============================================================================
+
+(reg-event-fx
+ :order/delete
+ (fn [{:keys [db]} [_ order-id]]
+   {:db         (assoc db :orders/loading true)
+    :http-xhrio {:method          :delete
+                 :uri             (str "/api/v1/orders/" order-id)
+                 :format          (ajax/transit-request-format)
+                 :response-format (ajax/transit-response-format)
+                 :on-success      [:order.delete/success order-id]
+                 :on-failure      [:order.delete/failure]}}))
+
+(reg-event-fx
+ :order.delete/success
+ (fn [{:keys [db]} [_ order-id]]
+   {:db       (-> (update db :orders/list #(remove (comp #{order-id} :id) %))
+                  (assoc :orders/loading false))
+    ;; TODO: Fetch a specific step instead
+    :dispatch [:app/bootstrap {:show-loading false}]}))
+
+(reg-event-fx
+ :order.delete/failure
+ (fn [{:keys [db]} [_ error]]
+   (tb/error error)
+   {:db            (assoc db :orders/loading false)
+    :alert/message {:type    :error
+                    :content "Failed to remove order."}}))
+
+;; =============================================================================
+;; Finish/Credit Card
+;; =============================================================================
+
+(reg-event-db
+ :finish.review.cc/toggle
+ (fn [db [_ show]]
+   (assoc db :finish.review.cc-modal/showing show)))
+
+(defn- finish-req [& [token]]
+  {:method          :post
+   :uri             "/api/v1/onboarding/finish"
+   :params          {:token token}
+   :format          (ajax/transit-request-format)
+   :response-format (ajax/transit-response-format)
+   :on-success      [:finish.review.cc.submit/success]
+   :on-failure      [:finish.review.cc.submit/failure]})
+
+(reg-event-fx
+ :finish.review.cc/submit!
+ (fn [{:keys [db]} [_ data]]
+   (let [token (.. data -token -id)]
+     {:db         (assoc db :finishing true)
+      :http-xhrio (finish-req token)})))
+
+(reg-event-fx
+ :finish.review.cc.submit/success
+ (fn [{:keys [db]} [_ result]]
+   (tb/log result)
+   {:db       (assoc db :finishing false)
+    :dispatch [::reload]}))
+
+(reg-event-fx
+ :finish.review.cc.submit/failure
+ (fn [{:keys [db]} [_ error]]
+   (tb/error error)
+   {:db           (assoc db :finishing false)
+    :alert/notify {:type  :error
+                   :title "Whoops!"
+                   :content "Something went wrong. Please try again."}}))
+
+(reg-event-fx
+ ::reload
+ (fn [_ _]
+   (.reload js/window.location)))
+
+;; =============================================================================
+;; Stripe
+;; =============================================================================
+
+(reg-event-fx
+ :stripe/load-scripts
+ (fn [_ [_ version]]
+   {:load-scripts [(str "https://js.stripe.com/" (or version "v2") "/")]}))

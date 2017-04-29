@@ -21,8 +21,8 @@
 ;; Fetch the server-side progress
 (reg-event-fx
  :app/bootstrap
- (fn [{:keys [db]} _]
-   {:db         (assoc db :bootstrapping true)
+ (fn [{:keys [db]} [_ {:keys [show-loading] :or {show-loading true}}]]
+   {:db         (assoc db :bootstrapping show-loading)
     :http-xhrio {:method          :get
                  :uri             "/api/v1/onboarding"
                  :response-format (ajax/transit-response-format)
@@ -59,7 +59,7 @@
  (fn [{:keys [db]} [_ keypath params]]
    (when-not (:bootstrapping db)
      (if (db/can-navigate-to? db keypath)
-       {:db       (assoc-in db [:menu :active] #_:services/storage keypath)
+       {:db       (assoc-in db [:menu :active] keypath)
         :dispatch [:prompt/init keypath]}
        {:route         (routes/path-for (get-in db [:menu :default]))
         :alert/message {:type    :warning

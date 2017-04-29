@@ -5,19 +5,23 @@
             [clj-time
              [coerce :as c]
              [core :as t]]
-            [clojure.spec :as s]
+            [clojure
+             [set :as set]
+             [spec :as s]]
             [compojure.core :refer [defroutes GET POST]]
             [datomic.api :as d]
             [plumbing.core :as plumbing]
             [starcity
              [auth :as auth]
-             [datomic :refer [conn tempid]]]
+             [datomic :refer [conn]]
+             [util :refer [beginning-of-day]]]
             [starcity.models
              [account :as account]
              [approval :as approval]
              [catalogue :as catalogue]
              [charge :as charge]
              [msg :as msg]
+             [news :as news]
              [onboard :as onboard]
              [order :as order]
              [property :as property]
@@ -26,14 +30,13 @@
              [stripe :as stripe]
              [unit :as unit]]
             [starcity.models.stripe.customer :as customer]
-            [starcity.util :refer [beginning-of-day]]
+            [starcity.services.stripe.sources :as sources]
             [starcity.util
-             [response :refer [transit-malformed transit-ok]]
+             [request :as req]
+             [response :as res :refer [transit-malformed transit-ok]]
              [validation :as validation]]
             [taoensso.timbre :as timbre]
-            [toolbelt.predicates :as p]
-            [clojure.string :as string]
-            [clojure.set :as set]))
+            [toolbelt.predicates :as p]))
 
 ;; NOTE: Do we want to deal with dependencies like we do on the client? This may
 ;; make sense, since certain steps are moot in the absense of satisfied
@@ -140,9 +143,12 @@
 ;; 2. Bank Verification has not failed for this customer
 (defmethod complete? :deposit.method/bank
   [conn account _]
-  (if-let [customer (account/stripe-customer (d/db conn) account)]
-    (not (customer/verification-failed? (customer/fetch customer)))
-    false))
+  (if (= (-> account deposit/by-account deposit/method)
+         :security-deposit.payment-method/check)
+    nil
+    (if-let [customer (account/stripe-customer (d/db conn) account)]
+      (not (customer/verification-failed? (customer/fetch customer)))
+      false)))
 
 (defmethod complete? :deposit.method/verify
   [conn account _]
@@ -154,9 +160,8 @@
 (defmethod complete? :deposit/pay
   [conn account _]
   (let [deposit (deposit/by-account account)]
-    (boolean (and (:security-deposit/payment-type deposit)
-                  (or (some charge/is-pending? (deposit/charges deposit))
-                      (> (deposit/received deposit) 0))))))
+    (boolean (or (some charge/is-pending? (deposit/charges deposit))
+                 (> (deposit/received deposit) 0)))))
 
 (defmethod complete? :services/moving
   [conn account _]
@@ -406,8 +411,7 @@
 (defn- update-orders
   "Update all orders for services in `params` that are also in `existing`."
   [db account params existing]
-  (->> (reduce (fn [acc [k v]] (if (empty? v) (dissoc acc k) acc)) params params) ; remove keys w/ null vals
-       (into #{})
+  (->> (reduce (fn [acc [k v]] (if (empty? v) acc (conj acc k))) #{} params) ; remove keys w/ null vals
        (set/intersection (set existing))
        ;; find tuples of [order service] given service-ids to update
        (d/q '[:find ?o ?s
@@ -421,6 +425,7 @@
         (fn [[order-id service-id]]
           (let [{:keys [quantity desc variant] :as params} (get params service-id)
                 order                                      (d/entity db order-id)]
+            (timbre/debug "update params:" order-id params)
             (->> (plumbing/assoc-when
                   {}
                   :quantity (when-let [q quantity] (float q))
@@ -569,6 +574,44 @@
 ;; Routes & Handlers
 ;; =============================================================================
 
+(defn- is-finished? [db account]
+  (let [deposit (deposit/by-account account)
+        onboard (onboard/by-account account)]
+    (and (boolean (or (some charge/is-pending? (deposit/charges deposit))
+                      (> (deposit/received deposit) 0)))
+         (onboard/seen-cleaning? onboard)
+         (onboard/seen-customize? onboard)
+         (onboard/seen-moving? onboard)
+         (onboard/seen-storage? onboard)
+         (onboard/seen-upgrades? onboard))))
+
+(defn- finish! [conn account {token :token}]
+  (if-let [customer (account/stripe-customer (d/db conn) account)]
+    (sources/create! (customer/id customer) token)
+    (customer/create-platform! account token))
+  @(d/transact conn (conj (account/promote account)
+                          (news/welcome account)
+                          (news/autopay account)
+                          (msg/promoted account))))
+
+(defn finish-handler
+  [{:keys [params session] :as req}]
+  (let [account  (req/requester (d/db conn) req)
+        finished (is-finished? (d/db conn) account)
+        orders   (order/orders (d/db conn) account)]
+    (cond
+      (not finished)
+      (res/transit-unprocessable {:error "Cannot submit; onboarding is unfinished."})
+
+      ;; If there are orders, ensure that a token has been passed along.
+      (and (> (count orders) 0) (not (:token params)))
+      (res/transit-malformed {:error "Your credit card details are required."})
+
+      :otherwise (let [session (assoc-in session [:identity :account/role] account/member)]
+                   (finish! conn account params)
+                   (-> (res/transit-ok {:message "ok"})
+                       (assoc :session session))))))
+
 (defroutes routes
   (GET "/" []
        (fn [req]
@@ -577,15 +620,17 @@
   (POST "/" []
         (fn [{:keys [params] :as req}]
           (let [{:keys [step data]} params
-                account             (auth/requester req)]
+                account             (req/requester (d/db conn) req)]
             (timbre/debug "PARAMS:" params)
             (if-let [errors (validate conn account step data)]
               (transit-malformed {:errors errors})
               (try
                 (save! conn account step data)
-                (transit-ok {:result (fetch conn account step)})
+                (transit-ok {:result (fetch conn (d/entity (d/db conn) (:db/id account)) step)})
                 (catch Exception e
-                  (on-error conn account step e))))))))
+                  (on-error conn account step e)))))))
+
+  (POST "/finish" [] finish-handler))
 
 (comment
   (fetch-all conn (account/by-email (d/db conn) "onboarding@test.com"))

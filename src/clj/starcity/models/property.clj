@@ -37,6 +37,12 @@
         :args (s/cat :property p/entity?)
         :ret boolean?)
 
+;; TODO: Schema
+(defn llc [property]
+  (get {"52gilbert"   "52 Gilbert LLC"
+        "2072mission" "2072-2074 Mission LLC"}
+       (internal-name property)))
+
 ;; =============================================================================
 ;; Lookups
 ;; =============================================================================

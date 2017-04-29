@@ -75,19 +75,16 @@
     (sm/link url (account/full-name account))))
 
 (defmethod handle msg/promoted-key
-  [conn {params :msg/params :as msg}]
-  (let [{:keys [promoter-id account-id]} params
-        promoter (d/entity (d/db conn) promoter-id)
-        account  (d/entity (d/db conn) account-id)
-        license  (member-license/active conn account)]
+  [conn {{account-id :account-id} :msg/params :as msg}]
+  (let [account (d/entity (d/db conn) account-id)
+        license (member-license/active conn account)]
     (slack/community
      (sm/msg
       (sm/info
        (sm/text (format "*%s* is now a member!" (account/full-name account)))
        (sm/fields
         (sm/field "Account" (account-link account) true)
-        (sm/field "Unit" (unit-link (member-license/unit license)) true)
-        (sm/field "Promoted By" (account/full-name promoter) true))))
+        (sm/field "Unit" (unit-link (member-license/unit license)) true))))
      :uuid (:msg/uuid msg))))
 
 ;; =============================================================================

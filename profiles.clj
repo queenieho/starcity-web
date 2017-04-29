@@ -21,6 +21,7 @@
                                      :asset-path       "/js/cljs/admin/out"
                                      :output-dir       "resources/public/js/cljs/admin/out"
                                      :output-to        "resources/public/js/cljs/admin.js"
+                                     :externs          ["externs/stripe.ext.js"]
                                      :closure-warnings {:externs-validation :off
                                                         :non-standard-jsdoc :off}}}
                      {:id           "apply"
@@ -34,6 +35,7 @@
                                      :asset-path       "/js/cljs/apply/out"
                                      :output-dir       "resources/public/js/cljs/apply/out"
                                      :output-to        "resources/public/js/cljs/apply.js"
+                                     :externs          ["externs/stripe.ext.js"]
                                      :closure-warnings {:externs-validation :off
                                                         :non-standard-jsdoc :off}}}
                      {:id           "mars"
@@ -47,6 +49,7 @@
                                      :asset-path       "/js/cljs/mars/out"
                                      :output-dir       "resources/public/js/cljs/mars/out"
                                      :output-to        "resources/public/js/cljs/mars.js"
+                                     :externs          ["externs/stripe.ext.js"]
                                      :closure-warnings {:externs-validation :off
                                                         :non-standard-jsdoc :off}}}
 
@@ -61,5 +64,6 @@
                                      :asset-path       "/js/cljs/onboarding/out"
                                      :output-dir       "resources/public/js/cljs/onboarding/out"
                                      :output-to        "resources/public/js/cljs/onboarding.js"
+                                     :externs          ["externs/stripe.ext.js"]
                                      :closure-warnings {:externs-validation :off
                                                         :non-standard-jsdoc :off}}}]}}}

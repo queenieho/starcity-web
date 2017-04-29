@@ -1,17 +1,8 @@
 (ns onboarding.prompts.deposit.bank
   (:require [ant-ui.core :as a]
             [onboarding.prompts.content :as content]
-            [re-frame.core :refer [dispatch subscribe reg-event-fx]]
+            [re-frame.core :refer [dispatch]]
             [reagent.core :as r]))
-
-;; =============================================================================
-;; Event Handlers
-;; =============================================================================
-
-(reg-event-fx
- :deposit.bank/will-mount
- (fn [_ _]
-   {:load-scripts ["https://js.stripe.com/v2/"]}))
 
 ;; =============================================================================
 ;; Helpers
@@ -28,7 +19,7 @@
   (r/create-class
    {:component-will-mount
     (fn [_]
-      (dispatch [:deposit.bank/will-mount]))
+      (dispatch [:stripe/load-scripts]))
     :reagent-render
     (fn [keypath data]
       (let [{:keys [name account-number routing-number]} data]

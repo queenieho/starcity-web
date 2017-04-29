@@ -48,12 +48,10 @@
 ;; design.
 
 (defmethod handle msg/promoted-key
-  [conn {params :msg/params :as msg}]
-  (let [{:keys [promoter-id account-id]} params
-        promoter                         (d/entity (d/db conn) promoter-id)
-        account                          (d/entity (d/db conn) account-id)
-        license                          (member-license/active conn account)
-        property                         (-> license member-license/unit unit/property)]
+  [conn {{account-id :account-id} :msg/params :as msg}]
+  (let [account  (d/entity (d/db conn) account-id)
+        license  (member-license/active conn account)
+        property (-> license member-license/unit unit/property)]
     (mail/send
      (account/email account)
      (format "Welcome to %s!" (property/name property))

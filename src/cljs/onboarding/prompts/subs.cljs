@@ -33,7 +33,10 @@
    "No time for chores? Let us take care of the dirty work."
 
    :services/upgrades
-   "Something else you need? We can add it on."})
+   "Something else you need? We can add it on."
+
+   :finish/review
+   "You're almost done with Onboarding!"})
 
 (reg-sub
  :prompt/title
@@ -65,6 +68,18 @@
  (fn [prompt _]
    (:dirty prompt)))
 
+(reg-sub
+ :prompt/final?
+ :<- [:prompt/active]
+ (fn [prompt _]
+   (= db/final-prompt (:keypath prompt))))
+
+(reg-sub
+ :prompt/can-save?
+ :<- [:prompt/active]
+ (fn [prompt _]
+   (db/can-save? prompt (:keypath prompt))))
+
 ;; =============================================================================
 ;; Navigation
 ;; =============================================================================
@@ -92,6 +107,9 @@
 ;; Prompt-specific
 ;; =============================================================================
 
+;; =============================================================================
+;; Security Deposit
+
 (reg-sub
  :deposit/payment-method
  (fn [db _]
@@ -101,3 +119,39 @@
  :deposit.pay/amount
  (fn [db _]
    (aget js/account "full-deposit")))
+
+(reg-sub
+ :deposit.pay/llc
+ (fn [db _]
+   (aget js/account "llc")))
+
+;; =============================================================================
+;; Orders
+
+(reg-sub
+ :orders
+ (fn [db _]
+   (:orders/list db)))
+
+(reg-sub
+ :orders/loading?
+ (fn [db _]
+   (boolean (:orders/loading db))))
+
+(reg-sub
+ :orders/error?
+ (fn [db _]
+   (:orders.fetch/error db)))
+
+;; =============================================================================
+;; Review
+
+(reg-sub
+ :finish.review.cc/showing?
+ (fn [db _]
+   (:finish.review.cc-modal/showing db)))
+
+(reg-sub
+ :finish.review/finishing?
+ (fn [db _]
+   (:finishing db)))

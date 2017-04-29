@@ -34,7 +34,7 @@
    (with-keypaths menu []))
   ([menu path]
    (reduce
-    (fn [menu {:keys [key children skip] :as item}]
+    (fn [menu {:keys [key children save skip] :as item}]
       (let [path (conj path key)]
         (conj menu (-> (assoc item :keypath (apply keypath path))
                        (assoc :children (with-keypaths children path))))))
@@ -125,6 +125,7 @@
      {:key      :services
       :label    "Services"
       :children [{:key   :moving
+                  :save  true
                   :label "Moving Assistance"}
                  {:key      :storage
                   :requires #{:services/moving}
@@ -139,14 +140,16 @@
                   :label    "Room Upgrades"
                   :requires #{:services/cleaning}}]}
      {:key      :finish
-      :children [{:key      :pay
+      :children [{:key      :review
+                  :label    "Review &amp; Complete"
                   :requires #{:deposit/pay
                               :services/moving
                               :services/storage
                               :services/customize
                               :services/cleaning
-                              :services/upgrades}
-                  :label    "Review Services"}]}]))
+                              :services/upgrades}}]}]))
+
+(def final-prompt :finish/review)
 
 ;; =============================================================================
 ;; Default Db
@@ -290,7 +293,7 @@
   (disable-steps db :deposit.method/verify))
 
 (defmethod post-save :deposit/pay [db keypath result]
-  (disable-steps db :deposit/pay))
+  (disable-steps db :deposit/pay :deposit/method))
 
 ;; =============================================================================
 ;; Advancement
@@ -362,7 +365,7 @@
   :services/upgrades)
 
 (defmethod next-prompt* :services/upgrades [_ _]
-  :finish/pay)
+  :finish/review)
 
 (defn next-prompt
   "Given the current app-state (`db`) and current `keypath`, determine the
@@ -397,3 +400,13 @@
 (defmethod previous-prompt :deposit/pay [db _]
   (when (= (get-in db [:deposit/method :data :method]) "check")
     :deposit/method))
+
+;; =============================================================================
+;; Can Save
+
+(defn can-save? [_ keypath]
+  (boolean (#{:services/moving
+              :services/storage
+              :services/customize
+              :services/cleaning
+              :services/upgrades} keypath)))

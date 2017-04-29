@@ -118,7 +118,7 @@
             (routes
              (GET "*" [] onboarding/show))
             {:handler  {:and [authenticated-user (user-isa :account.role/onboarding)]}
-             :on-error redirect-by-role})
+             :on-error (fn [req _] (redirect-by-role req))})
 
            #_(restrict onboarding/routes
                        {:handler  {:and [authenticated-user (user-isa :account.role/onboarding)]}

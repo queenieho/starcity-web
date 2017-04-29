@@ -51,7 +51,7 @@
       (ok {:status (autopay/setup-status conn account)}))
     (catch Exception e
       (timbre/error e :stripe.customer/create {:plaid   true
-                                                :account (account/email account)})
+                                               :account (account/email account)})
       (throw e))))
 
 (defn plaid-verify
@@ -76,13 +76,13 @@
     (if-let [token (:stripe-token params)]
       (try
         (let [{:keys [customer entity]} (customer/create-platform! account token)]
-          (timbre/info :stripe.customer/create {:token token
+          (timbre/info :stripe.customer/create {:token    token
                                                 :customer (:id customer)
                                                 :entity   (:db/id entity)
                                                 :account  (account/email account)})
           (ok {:status (autopay/setup-status conn account)}))
         (catch Exception e
-          (timbre/error e :stripe.customer/create {:token    token
+          (timbre/error e :stripe.customer/create {:token   token
                                                    :account (account/email account)})
           (throw e)))
       (malformed {:error "No token submitted."}))))

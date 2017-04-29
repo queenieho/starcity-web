@@ -6,7 +6,7 @@
 
   :dependencies [;; Clojure
                  [org.clojure/clojure "1.9.0-alpha14"]
-                 [org.clojure/clojurescript "1.9.494"]
+                 [org.clojure/clojurescript "1.9.293"]
                  [org.clojure/core.async "0.2.395"]
                  [org.clojure/tools.nrepl "0.2.12"]
                  [org.clojure/test.check "0.9.0"]
@@ -38,7 +38,6 @@
                  [org.postgresql/postgresql "9.4.1211"]
                  ;; CLJS
                  [cljsjs/flatpickr "2.0.0-rc.7-0"]
-                 [cljsjs/stripe "2.0-0"]
                  [starcity/ant-ui "0.1.1" :exclusions [re-frame]]
                  [com.andrewmcveigh/cljs-time "0.5.0-alpha2"]
                  [reagent "0.6.0"]

@@ -1,29 +1,36 @@
 (ns starcity.api
-  (:require [compojure.core :refer [context defroutes GET POST]]
-            [buddy.auth.accessrules :refer [restrict]]
-            [starcity.auth :refer [user-isa authenticated-user]]
+  (:require [buddy.auth.accessrules :refer [restrict]]
+            [compojure.core :refer [context defroutes]]
             [starcity.api
-             [mars :as mars]
              [admin :as admin]
-             [onboarding :as onboarding]
              [apply :as apply]
-             [common :refer :all]]))
+             [mars :as mars]
+             [onboarding :as onboarding]
+             [orders :as orders]]
+            [starcity.auth :refer [authenticated-user user-isa]]))
 
-(defn- restrictions
+(defn- app-restrictions
   [required-role]
   {:handler  {:and [authenticated-user (user-isa required-role)]}
+   :on-error (fn [_ _] {:status 403 :body "You are not authorized."})})
+
+(def ^:private authenticated-restrictions
+  {:handler  authenticated-user
    :on-error (fn [_ _] {:status 403 :body "You are not authorized."})})
 
 (defroutes routes
 
   (context "/apply" []
-    (restrict apply/routes (restrictions :account.role/applicant)))
+    (restrict apply/routes (app-restrictions :account.role/applicant)))
 
   (context "/mars" []
-    (restrict mars/routes (restrictions :account.role/member)))
+    (restrict mars/routes (app-restrictions :account.role/member)))
 
   (context "/admin" []
-    (restrict admin/routes (restrictions :account.role/admin)))
+    (restrict admin/routes (app-restrictions :account.role/admin)))
 
   (context "/onboarding" []
-    (restrict onboarding/routes (restrictions :account.role/onboarding))))
+    (restrict onboarding/routes (app-restrictions :account.role/onboarding)))
+
+  (context "/orders" []
+    (restrict orders/routes authenticated-restrictions)))

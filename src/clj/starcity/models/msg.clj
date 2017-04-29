@@ -73,14 +73,12 @@
 (def promoted-key :account/promoted)
 
 (defn promoted
-  "An `account` has been promoted by `promoter`."
-  [promoter account]
-  (create promoted-key :params {:promoter-id (:db/id promoter)
-                                :account-id  (:db/id account)}))
+  "An `account` has been promoted to membership status."
+  [account]
+  (create promoted-key :params {:account-id (:db/id account)}))
 
 (s/fdef promoted
-        :args (s/cat :promoter p/entity?
-                     :account p/entity?)
+        :args (s/cat :account p/entity?)
         :ret ::msg)
 
 ;; =============================================================================

@@ -22,8 +22,7 @@
                                        :or   {on-delete identity}}]
   [:span.tag
    {:class (if selected "is-success" "is-light")}
-   (str (price-text item)
-        (if (:rental item) " (rental)" ""))
+   (price-text item)
    (when selected
      [:button.delete.is-small
       {:type     :button
@@ -95,15 +94,15 @@
 
 (defn card
   "Render a service as a card."
-  [{:keys [name desc] :as item} opts]
+  [{:keys [name desc rental] :as item} opts]
   [a/card {:class "svc" :bodyStyle {:padding "10px 16px"}}
-   [:div.level
+   [:div.level.is-mobile
     {:style {:margin-bottom "0.75em"}}
     [:div.level-left
      [:div.level-item
       [:h4.svc-title
        {:style                   {:font-weight 600 :margin-bottom 0}
-        :dangerouslySetInnerHTML {:__html name}}]]]
+        :dangerouslySetInnerHTML {:__html (str name (if rental "<i> (rental)</i>" ""))}}]]]
     [:div.level-right.has-text-right
      [:div.level-item
       (price item opts)]]]

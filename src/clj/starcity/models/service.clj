@@ -1,4 +1,5 @@
 (ns starcity.models.service
+  (:refer-clojure :exclude [name])
   (:require [datomic.api :as d]
             [clojure.spec :as s]
             [toolbelt.predicates :as p]))
@@ -14,6 +15,47 @@
 (s/fdef code
         :args (s/cat :service p/entity?)
         :ret string?)
+
+(def name
+  "The human-friendly name of this service."
+  :service/name)
+
+(s/fdef name
+        :args (s/cat :service p/entity?)
+        :ret string?)
+
+(def desc
+  "The human-friendly description of this service."
+  :service/desc)
+
+(s/fdef desc
+        :args (s/cat :service p/entity?)
+        :ret string?)
+
+(def price
+  "The price fo this service."
+  :service/price)
+
+(s/fdef price
+        :args (s/cat :service p/entity?)
+        :ret (s/or :nothing nil? :price float?))
+
+(defn rental
+  "Is this service a rental?"
+  [service]
+  (get service :service/rental false))
+
+(s/fdef rental
+        :args (s/cat :service p/entity?)
+        :ret boolean?)
+
+(def billed
+  "Billing method of this service."
+  :service/billed)
+
+(s/fdef billed
+        :args (s/cat :service p/entity?)
+        :ret #{:service.billed/once :service.billed/monthly})
 
 ;; =============================================================================
 ;; Queries
