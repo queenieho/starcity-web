@@ -7,8 +7,8 @@
 
 (defn property [property]
   [a/card {:style {:margin-bottom 16}}
-   [:div.level
-    [:div.level-item
+   [:div.columns
+    [:div.column
      [:p.title
       [:a {:href (routes/path-for :property :property-id (:db/id property))}
        [:b (:property/name property)]]]]

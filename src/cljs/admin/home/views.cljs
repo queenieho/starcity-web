@@ -4,8 +4,7 @@
             [admin.content :refer [app-content]]
             [admin.util :as u]
             [ant-ui.core :as a]
-            [re-frame.core :refer [dispatch subscribe]]
-            [toolbelt.core :as tb]))
+            [re-frame.core :refer [dispatch subscribe]]))
 
 (defn- date-val [data k]
   (when-let [d (get data k)] (u/date->input-format d)))
@@ -23,21 +22,23 @@
                      (dispatch [:home.metrics/update! @controls]))
        :style     {:margin-top 16}}
 
-      [:div.control
-         [:label.label "From"]
-         [a/input {:type      "date"
-                   :class     "ant-input"
-                   :value     (date-val @controls :from)
-                   :on-change (on-change :from)}]]
+      [:div.field
+       [:label.label "From"]
+       [:p.control
+        [a/input {:type      "date"
+                  :class     "ant-input"
+                  :value     (date-val @controls :from)
+                  :on-change (on-change :from)}]]]
 
-      [:div.control
-         [:label.label "To"]
-         [a/input {:type      "date"
-                   :class     "ant-input"
-                   :value     (date-val @controls :to)
-                   :on-change (on-change :to)}]]
+      [:div.field
+       [:label.label "To"]
+       [:p.control
+        [a/input {:type      "date"
+                  :class     "ant-input"
+                  :value     (date-val @controls :to)
+                  :on-change (on-change :to)}]]]
 
-      [:div.control
+      [:div.field
        [a/button
         {:type      :primary
          :html-type :submit}
@@ -48,11 +49,11 @@
         metrics (subscribe [:home/metrics])]
     (println @metrics)
     [a/card {:loading @loading}
-     [:div.level
-      [:div.level-item.has-text-centered
+     [:div.columns
+      [:div.column.has-text-centered
        [:p.heading "Accounts Created"]
        [:p.subtitle.is-1 (:accounts/created @metrics)]]
-      [:div.level-item.has-text-centered
+      [:div.column.has-text-centered
        [:p.heading "Applications Created"]
        [:p.subtitle.is-1 (:applications/created @metrics)]]]]))
 

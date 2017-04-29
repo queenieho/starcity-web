@@ -78,16 +78,14 @@
      :onChange      #(dispatch [:property.update/ops-fee (:db/id property) %])}]])
 
 (defn- license [property-id license-price]
-  [:div.columns.is-mobile {:style {:width "50%"}}
-   [:div.column.is-half {:style {:margin-right 8}}
-    [:b (str (:license-price/term license-price) " Month")]]
-   [:div.column
-    [a/input-number
-     {:min           0
-      :step          50
-      :default-value (or (:license-price/price license-price) 0)
-      :onChange      #(dispatch [:property.update/license property-id
-                                 (assoc license-price :license-price/price %)])}]]])
+  [:div.control.is-expanded
+   [:label.label (str (:license-price/term license-price) " Month")]
+   [a/input-number
+    {:min           0
+     :step          50
+     :default-value (or (:license-price/price license-price) 0)
+     :onChange      #(dispatch [:property.update/license property-id
+                                (assoc license-price :license-price/price %)])}]])
 
 (defn- licenses [property]
   [:div.variable
@@ -97,9 +95,10 @@
     [:em "except"]
     " for units that have their own prices set. At the very least, they serve to tell"
     " applicants roughly how much they'll be paying in rent."]
-   (map-indexed
-    #(with-meta (license (:db/id property) %2) {:key %1})
-    (:property/licenses property))])
+   [:div.field.is-grouped
+    (map-indexed
+     #(with-meta (license (:db/id property) %2) {:key %1})
+     (:property/licenses property))]])
 
 (defn- variables [property]
   [a/card {:title "Variables"}

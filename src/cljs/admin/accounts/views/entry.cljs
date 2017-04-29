@@ -172,7 +172,7 @@
   (let [contact (subscribe [:account/contact])]
     (fn [role]
       (let [{:keys [:account/phone :account/email]} @contact]
-        [:div.level
+        [:nav.level
          [:div.level-left
           [:div.level-item
            [:strong.contact-item

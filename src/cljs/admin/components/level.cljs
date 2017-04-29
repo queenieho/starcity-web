@@ -4,7 +4,7 @@
 
 (defn- render-overview-item
   [{:keys [title content format] :or {format identity}}]
-  [:div.level-item.has-text-centered
+  [:div.column.has-text-centered
    (when-not (string/blank? title)
      [:p.heading title])
    (if (vector? content)
@@ -13,7 +13,7 @@
 
 (defn overview
   [& items]
-  [:div.level
+  [:div.columns
    (->> items
         (remove nil?)
         (map-indexed #(with-meta (render-overview-item %2) {:key %1})))])
