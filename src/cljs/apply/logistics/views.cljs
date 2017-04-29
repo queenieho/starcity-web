@@ -228,20 +228,22 @@
              (-on-change k identity))
             ([k tf]
              #(dispatch [(keyword "logistics.pets" (name k)) (tf (dom/val %))])))]
-    [:div.form-group
-     [:label.label "Please tell us a bit about your dog."]
-     [:div.control.columns
-      [:div.column.control
-       [:input.input
-        {:placeholder "What breed?"
-         :value       breed
-         :on-change   (-on-change :breed)}]]
-      [:div.column.control.has-addons
-       [:input.input.is-expanded
-        {:type        "number"
-         :placeholder "How much does he/she weigh?"
-         :value       weight
-         :on-change   (-on-change :weight js/parseInt)}]
+    [:div.field.is-grouped
+     [:div.control.is-expanded
+      [:label.label "What breed?"]
+      [:input.input
+       {:placeholder "breed"
+        :value       breed
+        :on-change   (-on-change :breed)}]]
+     [:div.control.is-expanded
+      [:label.label "How much does he/she weigh?"]
+      [:div.field.has-addons.has-addons-right
+       [:p.control.is-expanded
+        [:input.input
+         {:type        "number"
+          :placeholder "weight"
+          :value       weight
+          :on-change   (-on-change :weight js/parseInt)}]]
        [:a.button.is-disabled "lbs"]]]]))
 
 (def ^:private pets-desc

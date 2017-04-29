@@ -47,12 +47,10 @@
       [:div.columns.is-mobile.prompt-controls
        (when @previous-prompt
          [:div.column.has-text-left [previous-button @previous-prompt]])
-       [:div.column
-        [:div.is-grouped.control
-         {:style {:justify-content "flex-end"}}
-         (when (prompts/complete? @complete)
-           [:p.control [save-button @curr-prompt @complete]])
-         [:p.control [next-button @curr-prompt @complete]]]]])))
+       [:div.column.has-text-right
+        (when (prompts/complete? @complete)
+          [:span {:style {:margin-right 8}} [save-button @curr-prompt @complete]])
+        [next-button @curr-prompt @complete]]])))
 
 (defn- advisor-image [hover]
   [:img.is-circular
