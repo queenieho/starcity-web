@@ -29,8 +29,7 @@
       {:on-submit #(do
                      (.preventDefault %)
                      (dispatch [:account.settings/change-password! @form-data]))}
-      [:div.control.is-grouped
-
+      [:div.field.is-grouped
        [:div.control.is-expanded
         [:label.label "Old Password"]
         [a/input (attrs form-data :old-password)]]
@@ -42,7 +41,6 @@
        [:div.control.is-expanded
         [:label.label "Repeat New Password"]
         [a/input (attrs form-data :password-2)]]]
-
       [:div.pull-right
        {:style {:padding-bottom 10}}
        [a/button

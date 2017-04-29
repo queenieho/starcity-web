@@ -13,11 +13,11 @@
    number])
 
 (defn- payment-source [bank-account]
-  [:div.level.is-mobile
-   [:div.level-item.has-text-centered
+  [:div.columns.is-mobile
+   [:div.column.has-text-centered
     [:p.heading "Bank Name"]
     (bank-name (:bank-name bank-account))]
-   [:div.level-item.has-text-centered
+   [:div.column.has-text-centered
     [:p.heading "Account"]
     (bank-number (:number bank-account))]])
 

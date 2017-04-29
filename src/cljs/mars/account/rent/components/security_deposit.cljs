@@ -40,14 +40,14 @@
 
 (defmethod content :pending [{:keys [received pending due-by]}]
   [:div
-   [:div.level
-    [:div.level-item.has-text-centered
+   [:div.columns
+    [:div.column.has-text-centered
      [:p.heading "Paid"]
      [:p.subtitle.is-5 (str "$" received)]]
-    [:div.level-item.has-text-centered
+    [:div.column.has-text-centered
      [:p.heading "Pending"]
      [:p.subtitle.is-5 (str "$" pending)]]
-    [:div.level-item.has-text-centered
+    [:div.column.has-text-centered
      [:p.heading "Due By"]
      [:p.subtitle.is-5 (f/unparse date-formatter due-by)]]]])
 
@@ -63,12 +63,12 @@
 (defmethod content :unpaid
   [{:keys [due-by] :as sd} bank-linked]
   [:div
-   [:div.level
-    [:div.level-item.has-text-centered
+   [:div.columns
+    [:div.column.has-text-centered
      [:p.heading "Amount Due"]
      [:p.subtitle.is-5 (str "$" (payment-amount sd))]]
     (when due-by
-      [:div.level-item.has-text-centered
+      [:div.column.has-text-centered
        [:p.heading "Due By"]
        [:p.subtitle.is-5 (f/unparse date-formatter due-by)]])]
 

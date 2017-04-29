@@ -11,11 +11,11 @@
   [a/card {:title   "Your Rent"
            :loading loading
            :class   "upcoming"}
-   [:div.level.is-mobile
-    [:div.level-item.has-text-centered
+   [:div.columns.is-mobile
+    [:div.column.has-text-centered
      [:p.heading "amount"]
      [:p.subtitle.is-5 (->> (:amount payment) int (str "$"))]]
-    [:div.level-item.has-text-centered
+    [:div.column.has-text-centered
      [:p.heading "due by"]
      [:p.subtitle.is-5
       (when-let [due-by (:due-by payment)]
