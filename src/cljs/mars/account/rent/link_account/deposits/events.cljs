@@ -51,13 +51,12 @@
                         :content  "Submitting bank details..."
                         :duration :indefinite}
         :stripe.bank-account/create-token
-        {:country             (:country form-data)
-         :currency            (:currency form-data)
+        {:country             "US"
+         :currency            "USD"
+         :account-holder-type "individual"
          :routing-number      (:routing-number form-data)
          :account-number      (:account-number form-data)
          :account-holder-name (:account-holder form-data)
-         ;; NOTE: may need to parameterize this at some point
-         :account-holder-type "individual"
          :key                 (db/stripe-key db)
          :on-success          [:autopay.create-token/success]
          :on-failure          [:autopay.create-token/failure]}}

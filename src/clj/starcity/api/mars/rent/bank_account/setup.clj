@@ -18,7 +18,22 @@
             [starcity.models.stripe.customer :as customer]
             [starcity.services.plaid :as service]
             [taoensso.timbre :as timbre]
-            [datomic.api :as d]))
+            [datomic.api :as d]
+            [starcity.services.stripe.sources :as sources]))
+
+;;; Helpers
+
+(defn- add-bank-account! [conn account token]
+  (try
+    (if-let [customer (account/stripe-customer (d/db conn) account)]
+      (do
+        (sources/create! (customer/id customer) token)
+        @(d/transact conn [{:db/id                              (:db/id customer)
+                            :stripe-customer/bank-account-token token}]))
+      (customer/create-platform! account token))
+    (catch Exception e
+      (timbre/error e ::add-account {:account (account/email account)})
+      (throw e))))
 
 ;;; Initialization
 
@@ -39,21 +54,6 @@
   (get-in (service/exchange-token public-token :account-id account-id)
           [:body :stripe_bank_account_token]))
 
-(defn- create-customer [account public-token bank-account-id]
-  (try
-    (let [bank-token                (public-token->bank-token public-token bank-account-id)
-          {:keys [customer entity]} (customer/create-platform! account bank-token)]
-      (timbre/info :stripe.customer/create {:token bank-token
-                                            :plaid    true
-                                            :customer (:id customer)
-                                            :entity   (:db/id entity)
-                                            :account  (account/email account)})
-      (ok {:status (autopay/setup-status conn account)}))
-    (catch Exception e
-      (timbre/error e :stripe.customer/create {:plaid   true
-                                               :account (account/email account)})
-      (throw e))))
-
 (defn plaid-verify
   "Handler used to verify a bank account using Plaid."
   [{:keys [params] :as req}]
@@ -62,7 +62,9 @@
     (cond
       (str/blank? account-id)   (malformed {:error "A bank account id is required."})
       (str/blank? public-token) (malformed {:error "A public token is requred."})
-      :otherwise                (create-customer account public-token account-id))))
+      :otherwise                (let [token (public-token->bank-token public-token account-id)]
+                                  (add-bank-account! conn account token)
+                                  (ok {:status (autopay/setup-status conn account)})))))
 
 ;;; Manual verification w/ Microdeposits
 
@@ -74,17 +76,9 @@
   [{:keys [params] :as req}]
   (let [account (auth/requester req)]
     (if-let [token (:stripe-token params)]
-      (try
-        (let [{:keys [customer entity]} (customer/create-platform! account token)]
-          (timbre/info :stripe.customer/create {:token    token
-                                                :customer (:id customer)
-                                                :entity   (:db/id entity)
-                                                :account  (account/email account)})
-          (ok {:status (autopay/setup-status conn account)}))
-        (catch Exception e
-          (timbre/error e :stripe.customer/create {:token   token
-                                                   :account (account/email account)})
-          (throw e)))
+      (do
+        (add-bank-account! conn account token)
+        (ok {:status (autopay/setup-status conn account)}))
       (malformed {:error "No token submitted."}))))
 
 ;; TODO: Duplicated in starcity.controllers.onboarding

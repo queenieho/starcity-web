@@ -28,7 +28,7 @@
   (try
     (let [c (customer/fetch (account/stripe-customer (d/db conn) account))]
       (cond
-        (not (customer/has-bank-account? c))    "bank-needed"
+        (not (customer/has-bank-account? c))    "init"
         (customer/has-verified-bank-account? c) "verified"
         :otherwise                              "unverified"))
     (catch Exception e

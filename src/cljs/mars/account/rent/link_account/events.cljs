@@ -8,7 +8,8 @@
             [mars.api :as api]
             [day8.re-frame.http-fx]
             [starcity.log :as l]
-            [ajax.core :as ajax]))
+            [ajax.core :as ajax]
+            [toolbelt.core :as tb]))
 
 (reg-event-fx
  :rent.link-account/bootstrap

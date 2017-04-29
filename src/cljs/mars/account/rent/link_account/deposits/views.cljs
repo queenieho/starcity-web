@@ -7,76 +7,41 @@
 (defn- update! [key evt]
   (dispatch [:rent.link-account.deposits.bank-info/update key (dom/val evt)]))
 
-(defn- country-select [country]
-  (let [countries (subscribe [:rent.link-account.deposits/countries])]
-    (fn [country]
-      [:div.column.control
-       [:label.label "Country"]
-       [:span.select.is-fullwidth
-        [:select
-         {:required  true
-          :value     country
-          :on-change (partial update! :country)}
-         (doall
-          (for [{:keys [name code]} @countries]
-            ^{:key code} [:option {:value code} name]))]]])))
-
-(defn- currency-select [currency]
-  (let [currencies (subscribe [:rent.link-account.deposits/currencies])]
-    (fn [currency]
-      [:div.column.control
-       [:label.label "Currency"]
-       [:span.select.is-fullwidth
-        {:required  true
-         :value     currency
-         :on-change (partial update! :currency)}
-        [:select
-         (doall
-          (for [c @currencies]
-            ^{:key c} [:option {:value c} c]))]]])))
-
-(defn- top-row [data]
-  (let [currencies (subscribe [:rent.link-account.deposits/currencies])]
-    (fn [data]
-      (let [{:keys [account-holder country currency]} data]
-        [:div.columns.control {:style {:margin-bottom 0}}
-         [:div.column.control.is-half
-          [:label.label "Account Holder's Name"]
-          [:input.input
-           {:type      "text"
-            :required  true
-            :value     account-holder
-            :on-change (partial update! :account-holder)}]]
-         [country-select country]
-         [currency-select]]))))
-
-(defn- bottom-row [data]
-  (let [errors (subscribe [:rent.link-account.deposits.bank-info/errors])]
-    (fn [data]
-      (let [{:keys [routing-number account-number]} data]
-        [:div.columns.control
-         [:div.column.control
-          [:label.label "Routing Number"]
-          [:input.input
-           {:required    true
-            :placeholder "e.g. 110000000"
-            :type        "number"
-            :step        "1"
-            :value       routing-number
-            :on-change   (partial update! :routing-number)}]
-          (when-let [e (:routing-number @errors)]
-            [:span.help.is-danger e])]
-         [:div.column.control
-          [:label.label "Account Number"]
-          [:input.input
-           {:required    true
-            :placeholder "e.g. 000123456789"
-            :value       account-number
-            :type        "number"
-            :step        "1"
-            :on-change   (partial update! :account-number)}]
-          (when-let [e (:account-number @errors)]
-            [:span.help.is-danger e])]]))))
+(defn- form-fields [data]
+  (let [{:keys [account-holder routing-number account-number]}
+        data
+        ;;
+        errors (subscribe [:rent.link-account.deposits.bank-info/errors])]
+    [:div.field.is-grouped
+     [:div.control.is-expanded
+      [:label.label "Account Holder's Name"]
+      [a/input
+       {:type      "text"
+        :required  true
+        :value     account-holder
+        :on-change (partial update! :account-holder)}]]
+     [:div.control.is-expanded
+      [:label.label "Routing Number"]
+      [a/input
+       {:required    true
+        :placeholder "e.g. 110000000"
+        :type        "number"
+        :step        1
+        :value       routing-number
+        :on-change   (partial update! :routing-number)}]
+      (when-let [e (:routing-number @errors)]
+        [:span.help.is-danger e])]
+     [:div.control.is-expanded
+      [:label.label "Account Number"]
+      [a/input
+       {:required    true
+        :placeholder "e.g. 000123456789"
+        :value       account-number
+        :type        "number"
+        :step        1
+        :on-change   (partial update! :account-number)}]
+      (when-let [e (:account-number @errors)]
+        [:span.help.is-danger e])]]))
 
 (defn- collect-bank-info []
   (let [form-data  (subscribe [:rent.link-account.deposits.bank-info/form-data])
@@ -96,11 +61,7 @@
          [:form {:on-submit #(do
                                (.preventDefault %)
                                (dispatch [:rent.link-account.deposits.bank-info/submit]))}
-          ;; Name, Country, Currency
-          [top-row @form-data]
-          ;; Account number, Routing number
-          [bottom-row @form-data]
-          ;; TODO: Wrap in div w/ controls class
+          [form-fields @form-data]
           [a/button {:html-type "button"
                      :type      "ghost"
                      :size      "large"
@@ -134,20 +95,22 @@
          {:style {:margin-top "8px"}}
          [:div.column.control
           [:label.label "First deposit"]
-          [:input.input
+          [a/input
            (merge {:required    true
                    :type        "number"
                    :placeholder "e.g. 32"
                    :value       amount-1
+                   :step        1
                    :on-change   #(dispatch [:rent.link-account.deposits.amounts/update 0 (dom/val %)])}
                   attrs)]]
          [:div.column.control
           [:label.label "Second deposit"]
-          [:input.input
+          [a/input
            (merge {:required    true
                    :type        "number"
                    :placeholder "e.g. 45"
                    :value       amount-2
+                   :step        1
                    :on-change   #(dispatch [:rent.link-account.deposits.amounts/update 1 (dom/val %)])}
                   attrs)]]]))))
 
