@@ -47,24 +47,6 @@
 ;; Content
 ;; =============================================================================
 
-(defn- can-promote? [{:keys [deposit/received deposit/pending]}]
-  (or (> received 0) (> pending 0)))
-
-;; =============================================================================
-;; Stats
-
-(defn- promote [deposit]
-  (let [is-promoting (subscribe [:account/promoting?])]
-    [a/popconfirm
-     {:title       "Are you sure? This cannot be undone!"
-      :ok-text     "Yes"
-      :cancel-text "No"
-      :on-confirm  #(dispatch [:account/promote!])}
-     [a/button {:type     :primary
-                :disabled (not (can-promote? deposit))
-                :loading  @is-promoting}
-     "Promote"]]))
-
 (defn deposit-overview-items
   [{:keys [deposit/received deposit/required deposit/due-date deposit/method]
     :as   deposit}]
@@ -100,7 +82,7 @@
                 (level/overview-item "Move-in Date" move-in date/short-date)
                 (level/overview-item "Term" term #(str % " months"))
                 (level/overview-item "Unit" (:unit/name unit))
-                (conj (deposit-overview-items @deposit) (level/overview-item [promote @deposit])))]))))
+                (deposit-overview-items @deposit))]))))
 
 ;; =============================================================================
 ;; Overview

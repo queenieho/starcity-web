@@ -248,26 +248,6 @@
    (unit/rate unit license)
    :member-license.status/active))
 
-(comment
-  (defn promote
-    "Promote `account` to membership status."
-    [promoter account]
-    (assert (approval/by-account account)
-            "`account` must be approved before it can be promoted!")
-    (let [base           (change-role account r/member)
-          approval       (approval/by-account account)
-          member-license (approval->member-license approval)
-          payment        (prorated-payment (approval/move-in approval)
-                                           (member-license/rate member-license))]
-      [(->> (plumbing/assoc-when member-license :member-license/rent-payments payment)
-            (assoc base :account/license))
-       (security-deposit-due-date account (approval/move-in approval))
-       (news/welcome account)
-       (news/autopay account)
-       ;; Log `account` out
-       (cmd/delete-session account)
-       (msg/promoted promoter account)])))
-
 (defn promote
   "Promote `account` to membership status."
   [account]

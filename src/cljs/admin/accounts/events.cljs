@@ -292,41 +292,6 @@
                                 "An unknown error occurred.")}}))
 
 ;; =============================================================================
-;; Promote
-;; =============================================================================
-
-(reg-event-fx
- :account/promote!
- [(path db/path)]
- (fn [{:keys [db]} _]
-   (let [account-id (:viewing db)]
-     {:db         (db/is-promoting db)
-      :http-xhrio {:method          :post
-                   :uri             (str "/api/v1/admin/accounts/" account-id "/promote")
-                   :format          (ajax/transit-request-format)
-                   :response-format (ajax/transit-response-format)
-                   :on-success      [:account.promote/success account-id]
-                   :on-failure      [:account.promote/failure]}})))
-
-(reg-event-fx
- :account.promote/success
- [(path db/path)]
- (fn [{:keys [db]} [_ account-id]]
-   {:db            (db/done-promoting db)
-    :alert/message {:type :success :content "Promoted!"}
-    :dispatch      [:account/fetch account-id]}))
-
-(reg-event-fx
- :account.promote/failure
- [(path db/path)]
- (fn [{:keys [db]} [_ {res :response :as error}]]
-   (tb/error error)
-   {:db           (db/done-promoting db)
-    :alert/notify {:type    :error
-                   :title   "Failed to promote!"
-                   :content (or (:message res) "An unknown error occurred.")}}))
-
-;; =============================================================================
 ;; Navigation
 ;; =============================================================================
 

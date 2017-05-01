@@ -535,18 +535,6 @@
                               (:license-id params)
                               (:move-in params)))))
 
-  (POST "/:account-id/promote" [account-id]
-        (fn [req]
-          (let [promoter (auth/requester req)
-                account  (d/entity (d/db conn) (str->int account-id))]
-            (if (and (account/onboarding? account)
-                     (deposit/partially-paid? (account/security-deposit account)))
-              (do
-                @(d/transact conn (account/promote promoter account))
-                (response/transit-ok {:result "ok"}))
-              (response/transit-unprocessable
-               {:message "Only onboarding accounts with paid security deposits may be approved."})))))
-
   ;; =====================================
   ;; Notes
 
