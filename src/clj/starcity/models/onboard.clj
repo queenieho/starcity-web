@@ -7,7 +7,7 @@
   information required to join the community."
   (:require [datomic.api :as d]
             [clojure.spec :as s]
-            [starcity.datomic :refer [tempid]]
+            [starcity.datomic.partition :refer [tempid]]
             [toolbelt.predicates :as p]))
 
 (s/def ::sel-args (s/cat :onboard p/entity?))

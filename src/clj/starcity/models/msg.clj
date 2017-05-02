@@ -1,7 +1,7 @@
 (ns starcity.models.msg
   (:require [clojure.spec :as s]
             [datomic.api :as d]
-            [starcity.datomic :refer [tempid]]
+            [starcity.datomic.partition :refer [tempid]]
             [taoensso.nippy :as nippy]
             [toolbelt.predicates :as p]))
 

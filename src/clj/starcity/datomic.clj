@@ -3,6 +3,7 @@
             [mount.core :as mount :refer [defstate]]
             [starcity.environment :as env]
             [starcity.config.datomic :as config]
+            [starcity.datomic.seed :as seed]
             [blueprints.core :as db]
             [taoensso.timbre :as timbre]
             [clojure.core.async :as a]))
@@ -16,6 +17,7 @@
   (d/create-database uri)
   (let [conn (d/connect uri)]
     (db/conform-db conn config/partition)
+    (seed/seed conn env/environment)
     conn))
 
 (defn- disconnect [{:keys [uri]} conn]

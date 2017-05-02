@@ -2,7 +2,7 @@
   (:require [clojure.spec :as s]
             [datomic.api :as d]
             [plumbing.core :refer [assoc-when]]
-            [starcity.datomic :refer [tempid]]
+            [starcity.datomic.partition :refer [tempid]]
             [taoensso.nippy :as nippy]
             [toolbelt.predicates :as p]))
 

@@ -8,7 +8,6 @@
             [starcity.server]
             [starcity.observers]
             [starcity.seed :as seed]
-            [starcity.datomic :as datomic]
             [starcity.log]
             [starcity.nrepl]
             [starcity.config]
@@ -45,8 +44,8 @@
 
 (defstate seed
   :start (when (in-memory-db?)
-           (timbre/debug "seeding in-memory Datomic database...")
-           (seed/seed datomic/conn)))
+           (timbre/debug "seeding dev database...")
+           (seed/seed conn)))
 
 (def start mount/start)
 

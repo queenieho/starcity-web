@@ -376,9 +376,10 @@
     50000))
 
 (defn- create-charge
-  [account deposit method]
+  [conn account deposit method]
   (let [customer (account/stripe-customer (d/db conn) account)]
-    (stripe/create-charge! (:db/id account)
+    (stripe/create-charge! conn
+                           (:db/id account)
                            (charge-amount method deposit)
                            (:stripe-customer/bank-account-token customer)
                            :description (format "'%s' security deposit payment" method)
@@ -398,7 +399,7 @@
 (defmethod save! :deposit/pay
   [conn account step {method :method}]
   (let [deposit (deposit/by-account account)
-        charge  (d/entity (d/db conn) (create-charge account deposit method))]
+        charge  (d/entity (d/db conn) (create-charge conn account deposit method))]
     (if (complete? conn account step)
       (throw (ex-info "Cannot charge customer for security deposit twice!"
                       {:account (:db/id account)}))

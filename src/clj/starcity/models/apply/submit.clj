@@ -94,7 +94,7 @@
   errors that occur, then rethrowing."
   [account token]
   (try
-    (let [charge-id (stripe/create-charge! (:db/id account) application-fee token
+    (let [charge-id (stripe/create-charge! conn (:db/id account) application-fee token
                                            :description "member application fee")]
       (t/info ::application-fee {:charge-id    charge-id
                                  :user         (account/email account)

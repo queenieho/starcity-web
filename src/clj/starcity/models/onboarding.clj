@@ -158,7 +158,7 @@
 
 (defn- create-ach-charge
   [progress payment-choice]
-  (stripe/create-charge! (account-id progress)
+  #_(stripe/create-charge! (account-id progress)
                          (charge-amount progress payment-choice)
                          (bank-account-token progress)
                          :description (format "'%s' security deposit payment" payment-choice)

@@ -1,6 +1,6 @@
 (ns starcity.models.approval
   (:require [clojure.spec :as s]
-            [starcity.datomic :refer [tempid]]
+            [starcity.datomic.partition :refer [tempid]]
             [starcity.models
              [application :as app]
              [cmd :as cmd]

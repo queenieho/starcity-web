@@ -49,13 +49,7 @@
    (account "member@test.com" "Member" "User" "2345678910" :account.role/member)
    (account "onboarding@test.com" "Onboarding" "User" "2345678910" :account.role/onboarding)
    (account "admin@test.com" "Admin" "User" "2345678910" :account.role/admin)
-   (account "josh@joinstarcity.com" "Josh" "Lehman" "2345678910" :account.role/admin "@josh")
-   ;; Testing Accounts
-   (account "jon@test.com" "Jon" "Dishotsky" "2345678910" :account.role/onboarding)
-   (account "jesse@test.com" "Jesse" "Suarez" "2345678910" :account.role/onboarding)
-   (account "mo@test.com" "Mo" "Sakrani" "2345678910" :account.role/onboarding)
-   (account "meg@test.com" "Meg" "Bell" "2345678910" :account.role/onboarding)
-   (account "jp@test.com" "Josh" "Petersen" "2345678910" :account.role/onboarding)])
+   (account "josh@joinstarcity.com" "Josh" "Lehman" "2345678910" :account.role/admin "@josh")])
 
 ;; =============================================================================
 ;; Approval
@@ -83,7 +77,7 @@
    (approve
     (d/entity (d/db conn) [:account/email "admin@test.com"])
     (d/entity (d/db conn) [:account/email "onboarding@test.com"])
-    (unit/by-name (d/db conn) "2072mission-10")
+    (unit/by-name (d/db conn) "2072mission-1")
     (license/by-term conn 3)
     (c/to-date (t/plus (t/now) (t/months 1))))))
 
@@ -133,26 +127,6 @@
                 :license (:db/id (license/by-term conn 3))
                 :status :application.status/approved
                 :properties [[:property/internal-name "52gilbert"]])))
-
-;; =============================================================================
-;; Security Deposits
-
-(defn- create-security-deposit [account]
-  {:db/id                            (tempid)
-   :security-deposit/account         account
-   :security-deposit/amount-required 2000
-   :security-deposit/amount-received 500
-   :security-deposit/payment-method  :security-deposit.payment-method/ach
-   :security-deposit/payment-type    :security-deposit.payment-type/partial})
-
-(defn security-deposits-tx []
-  (map
-   (comp create-security-deposit (partial conj [:account/email]))
-   ["jon@test.com"
-    "jesse@test.com"
-    "mo@test.com"
-    "meg@test.com"
-    "jp@test.com"]))
 
 ;; =============================================================================
 ;; Member Licenses
@@ -220,8 +194,6 @@
    conn
    {:seed/accounts          {:txes [(accounts-tx)]}
     :seed/applications      {:txes     [(applications-tx conn)]
-                             :requires [:seed/accounts]}
-    :seed/security-deposits {:txes     [(security-deposits-tx)]
                              :requires [:seed/accounts]}
     :seed/stripe-customers  {:txes     [(stripe-customers-tx)]
                              :requires [:seed/accounts]}

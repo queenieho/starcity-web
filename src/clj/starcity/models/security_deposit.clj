@@ -1,7 +1,7 @@
 (ns starcity.models.security-deposit
   (:require [clojure.spec :as s]
             [datomic.api :as d]
-            [starcity.datomic :refer [tempid]]
+            [starcity.datomic.partition :refer [tempid]]
             [starcity.models
              [check :as check]
              [stripe :as stripe]]
