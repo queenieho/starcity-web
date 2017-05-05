@@ -100,7 +100,7 @@
                    (.then p (fn [result]
                               (if-let [error (.-error result)]
                                 (aset errors "textContent" (.-message error))
-                                (dispatch [:finish.review.cc/submit! result]))))))
+                                (dispatch [:finish.review/submit! (.. result -token -id)]))))))
                (.addEventListener submit-btn "click"))))
       :reagent-render
       (fn []
@@ -133,13 +133,23 @@
 ;; TODO: Button action when no orders are selected
 (defmethod content/next-button :finish/review [prompt]
   (let [dirty     (subscribe [:prompt/dirty?])
-        is-saving (subscribe [:prompt/saving?])]
+        is-saving (subscribe [:prompt/saving?])
+        orders    (subscribe [:orders])]
     [a/button {:type      :primary
                :size      :large
                :loading   @is-saving
-               :on-click  #(dispatch [:finish.review.cc/toggle true])
+               :on-click  #(if (empty? @orders)
+                             (dispatch [:finish.review/submit!])
+                             (dispatch [:finish.review.cc/toggle true]))
                :html-type :button}
      "Finish"]))
+
+(def ^:private nothing-ordered
+  [:div
+   [:p "Thanks for paying your deposit and taking a look at our premium services!"]
+   [:p "After you press the " [:b "Finish"] " button below you'll be taken to your "
+    [:b "member dashboard"] " where you can sign up for autopay, manage your payment methods "
+    "and account settings, and lots more."]])
 
 (defn- content* [{keypath :keypath}]
   (let [orders     (subscribe [:orders])
@@ -156,7 +166,7 @@
          (when @show-modal [cc-modal])
          (cond
            @error                                (fetch-error keypath @loading)
-           (and (empty? @orders) (not @loading)) [:p "TODO: copy when nothing is ordered"]
+           (and (empty? @orders) (not @loading)) nothing-ordered
            :otherwise                            [review @loading @orders])])})))
 
 (defmethod content/content :finish/review [prompt]

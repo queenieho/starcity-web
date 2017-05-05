@@ -149,8 +149,6 @@
                               :services/cleaning
                               :services/upgrades}}]}]))
 
-(def final-prompt :finish/review)
-
 ;; =============================================================================
 ;; Default Db
 ;; =============================================================================
@@ -163,7 +161,8 @@
    ;; Starts off as being bootstrapped
    :bootstrapping    true
    ;; Always complete, since there's nothing to do
-   :overview/start   {:complete true}})
+   ;; :overview/start   {:complete true}
+   })
 
 (defn can-navigate-to?
   [db keypath]
@@ -175,7 +174,7 @@
 ;; Prompts
 ;; =============================================================================
 
-(declare post-save next-prompt)
+(declare post-save next-prompt can-navigate-to?)
 
 (defn- keypath-progress
   "Given the server-side progress (`data`) and the menu, accumulate a map of
@@ -199,9 +198,11 @@
   [db data]
   (let [{:keys [complete incomplete] :as kp}
         (keypath-progress (get-in db [:menu :items]) data)]
-    (or (first incomplete)
-        (next-prompt db (last complete))
-        (get-in db [:menu :default]))))
+    (if (empty? complete)
+      :overview/start
+      (or (first incomplete)
+          (next-prompt db (last complete))
+          (get-in db [:menu :default])))))
 
 (defn- init-prompts
   "Populate the `db` with prompt `data` from the server "

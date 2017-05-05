@@ -8,7 +8,10 @@
 ;; =============================================================================
 
 (def ^:private titles
-  {:deposit/method
+  {:overview/start
+   "Welcome to the Starcity community!"
+
+   :deposit/method
    "How would you like to pay your security deposit?"
 
    :deposit.method/bank
@@ -36,7 +39,7 @@
    "Something else you need? We can add it on."
 
    :finish/review
-   "You're almost done with Onboarding!"})
+   "You're almost a Starcity member!"})
 
 (reg-sub
  :prompt/title
@@ -67,12 +70,6 @@
  :<- [:prompt/active]
  (fn [prompt _]
    (:dirty prompt)))
-
-(reg-sub
- :prompt/final?
- :<- [:prompt/active]
- (fn [prompt _]
-   (= db/final-prompt (:keypath prompt))))
 
 (reg-sub
  :prompt/can-save?

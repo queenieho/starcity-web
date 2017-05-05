@@ -88,7 +88,7 @@
      (if @bootstrapping
        (l/fill-container "Figuring out where you left off...")
        [:div.columns
-        [:div.column.is-one-quarter.is-hidden-mobile
+        [:div.column.is-one-quarter;.is-hidden-mobile
          [menu]]
         [:div.column
          [prompt/prompt]]])]))

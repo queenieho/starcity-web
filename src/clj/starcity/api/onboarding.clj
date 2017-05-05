@@ -587,9 +587,10 @@
          (onboard/seen-upgrades? onboard))))
 
 (defn- finish! [conn account {token :token}]
-  (if-let [customer (account/stripe-customer (d/db conn) account)]
-    (sources/create! (customer/id customer) token)
-    (customer/create-platform! account token))
+  (when token
+    (if-let [customer (account/stripe-customer (d/db conn) account)]
+      (sources/create! (customer/id customer) token)
+      (customer/create-platform! account token)))
   @(d/transact conn (conj (account/promote account)
                           (news/welcome account)
                           (news/autopay account)
@@ -622,7 +623,6 @@
         (fn [{:keys [params] :as req}]
           (let [{:keys [step data]} params
                 account             (req/requester (d/db conn) req)]
-            (timbre/debug "PARAMS:" params)
             (if-let [errors (validate conn account step data)]
               (transit-malformed {:errors errors})
               (try

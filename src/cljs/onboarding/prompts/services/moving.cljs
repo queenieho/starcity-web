@@ -13,7 +13,7 @@
     [a/card
      [:div.field
       [:label.label "Do you need help moving in?"]
-      [:p.control
+      [:div.control
        [a/radio-group
         {:on-change #(dispatch [:prompt/update keypath :needed (= (.. % -target -value) "yes")])
          :value     (cond (true? needed) "yes" (false? needed) "no" :otherwise nil)}
@@ -23,7 +23,7 @@
        [:div
         [:div.field
          [:label.label "What date will you be moving in on?"]
-         [:p.control
+         [:div.control
           [a/date-picker
            {:value         (js/moment. date)
             :on-change     #(dispatch [:prompt/update keypath :date (.toDate %)])
@@ -32,7 +32,7 @@
             :format        "MM-DD-YYYY"}]]]
         [:div.field
          [:label.label "At what time will you be moving in?"]
-         [:p.control
+         [:div.control
           [time-picker
            {:value                 (when time (js/moment. time))
             :on-change             #(dispatch [:prompt/update keypath :time (.toDate %)])

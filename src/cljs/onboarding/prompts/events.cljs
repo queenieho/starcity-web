@@ -287,30 +287,31 @@
    (assoc db :finish.review.cc-modal/showing show)))
 
 (defn- finish-req [& [token]]
-  {:method          :post
-   :uri             "/api/v1/onboarding/finish"
-   :params          {:token token}
-   :format          (ajax/transit-request-format)
-   :response-format (ajax/transit-response-format)
-   :on-success      [:finish.review.cc.submit/success]
-   :on-failure      [:finish.review.cc.submit/failure]})
+  (let [req {:method          :post
+             :uri             "/api/v1/onboarding/finish"
+             :format          (ajax/transit-request-format)
+             :response-format (ajax/transit-response-format)
+             :on-success      [:finish.review.submit/success]
+             :on-failure      [:finish.review.submit/failure]}]
+    (if token
+      (assoc req :params {:token token})
+      req)))
 
 (reg-event-fx
- :finish.review.cc/submit!
- (fn [{:keys [db]} [_ data]]
-   (let [token (.. data -token -id)]
-     {:db         (assoc db :finishing true)
-      :http-xhrio (finish-req token)})))
+ :finish.review/submit!
+ (fn [{:keys [db]} [_ token]]
+   {:db         (assoc db :finishing true)
+    :http-xhrio (finish-req token)}))
 
 (reg-event-fx
- :finish.review.cc.submit/success
+ :finish.review.submit/success
  (fn [{:keys [db]} [_ result]]
    (tb/log result)
    {:db       (assoc db :finishing false)
     :dispatch [::reload]}))
 
 (reg-event-fx
- :finish.review.cc.submit/failure
+ :finish.review.submit/failure
  (fn [{:keys [db]} [_ error]]
    (tb/error error)
    {:db           (assoc db :finishing false)
