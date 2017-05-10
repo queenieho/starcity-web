@@ -40,16 +40,18 @@
                       :on-change (on-change keypath :name)}]]
            [:div.control.is-expanded
             [:label.label "Routing Number"]
-            [a/input {:type      :text
-                      :required  true
-                      :value     routing-number
-                      :on-change (on-change keypath :routing-number)}]]
+            [a/input {:type        :text
+                      :required    true
+                      :value       routing-number
+                      :placeholder "e.g. 110000000"
+                      :on-change   (on-change keypath :routing-number)}]]
            [:div.control.is-expanded
             [:label.label "Account Number"]
-            [a/input {:type      :text
-                      :required  true
-                      :value     account-number
-                      :on-change (on-change keypath :account-number)}]]]]]))}))
+            [a/input {:type        :text
+                      :required    true
+                      :value       account-number
+                      :placeholder "e.g. 000123456789"
+                      :on-change   (on-change keypath :account-number)}]]]]]))}))
 
 (defmethod content/content :deposit.method/bank
   [{:keys [keypath data] :as item}]
