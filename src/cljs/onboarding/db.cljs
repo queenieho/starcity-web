@@ -100,28 +100,6 @@
     [{:key      :overview
       :children [{:key   :start
                   :label "Get Started"}]}
-     {:key      :deposit
-      :label    "Security Deposit"
-      :children [{:key           :method
-                  :label         "Payment Method"
-                  :show-children false
-                  :children      [{:key      :bank
-                                   :requires #{:deposit/method}
-                                   :label    "Bank Information"}
-                                  {:key      :verify
-                                   :requires #{:deposit.method/bank}
-                                   :label    "Verification"}]}
-                 {:key      :pay
-                  :requires #{:deposit/method}
-                  :label    "Make Payment"}]}
-     #_{:key      :profile
-        :label    "Member Profile"
-        :children [{:key      :about
-                    :requires #{:deposit/pay}
-                    :label    "About You"}
-                   {:key      :avatar
-                    :requires #{:deposit/pay}
-                    :label    "Upload Avatar"}]}
      {:key      :services
       :label    "Services"
       :children [{:key   :moving
@@ -139,6 +117,20 @@
                  {:key      :upgrades
                   :label    "Room Upgrades"
                   :requires #{:services/cleaning}}]}
+     {:key      :deposit
+      :label    "Security Deposit"
+      :children [{:key           :method
+                  :label         "Payment Method"
+                  :show-children false
+                  :children      [{:key      :bank
+                                   :requires #{:deposit/method}
+                                   :label    "Bank Information"}
+                                  {:key      :verify
+                                   :requires #{:deposit.method/bank}
+                                   :label    "Verification"}]}
+                 {:key      :pay
+                  :requires #{:deposit/method}
+                  :label    "Make Payment"}]}
      {:key      :finish
       :children [{:key      :review
                   :label    "Review &amp; Complete"
@@ -154,7 +146,7 @@
 ;; =============================================================================
 
 (def default-value
-  {:menu             {:active   :deposit/method
+  {:menu             {:active   :overview/start
                       :default  :overview/start
                       :items    menu
                       :complete #{}}
@@ -335,22 +327,6 @@
   (get-in db [:menu :default]))
 
 (defmethod next-prompt* :overview/start [_ _]
-  :deposit/method)
-
-(defmethod next-prompt* :deposit/method [db _]
-  (let [method (get-in db [:deposit/method :data :method])]
-    (if (= method "ach")
-      :deposit.method/bank
-      :deposit/pay)))
-
-(defmethod next-prompt* :deposit.method/bank [_ _]
-  :deposit.method/verify)
-
-(defmethod next-prompt* :deposit.method/verify [_ _]
-  :deposit/pay)
-
-(defmethod next-prompt* :deposit/pay [_ _]
-  #_:profile/about
   :services/moving)
 
 (defmethod next-prompt* :services/moving [_ _]
@@ -366,6 +342,21 @@
   :services/upgrades)
 
 (defmethod next-prompt* :services/upgrades [_ _]
+  :deposit/method)
+
+(defmethod next-prompt* :deposit/method [db _]
+  (let [method (get-in db [:deposit/method :data :method])]
+    (if (= method "ach")
+      :deposit.method/bank
+      :deposit/pay)))
+
+(defmethod next-prompt* :deposit.method/bank [_ _]
+  :deposit.method/verify)
+
+(defmethod next-prompt* :deposit.method/verify [_ _]
+  :deposit/pay)
+
+(defmethod next-prompt* :deposit/pay [_ _]
   :finish/review)
 
 (defn next-prompt
@@ -391,12 +382,13 @@
 (defmethod previous-prompt :default [db keypath]
   nil)
 
-(defmethod previous-prompt :deposit/method [_ _] :overview/start)
-(defmethod previous-prompt :deposit.method/bank [_ _] :deposit/method)
+(defmethod previous-prompt :services/moving [_ _] :overview/start)
 (defmethod previous-prompt :services/storage [_ _] :services/moving)
 (defmethod previous-prompt :services/customize [_ _] :services/storage)
 (defmethod previous-prompt :services/cleaning [_ _] :services/customize)
 (defmethod previous-prompt :services/upgrades [_ _] :services/cleaning)
+(defmethod previous-prompt :deposit/method [_ _] :services/upgrades)
+(defmethod previous-prompt :deposit.method/bank [_ _] :deposit/method)
 
 (defmethod previous-prompt :deposit/pay [db _]
   (when (= (get-in db [:deposit/method :data :method]) "check")

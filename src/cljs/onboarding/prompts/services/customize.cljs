@@ -3,8 +3,8 @@
             [onboarding.prompts.content :as content]))
 
 (def ^:private description
-  "Starcity provides fully furnished suites. If you want to make your suite a
-  reflection of your personality and design it to accomodate your needs, we're here to help.")
+  "If you'd like to make a few changes to help you feel more at home, let us
+  know what you'd like to do and we'll do our best to accommodate.")
 
 (defmethod content/content :services/customize
   [{:keys [keypath data] :as item}]
