@@ -156,6 +156,7 @@
   [security-deposit check]
   (let [amount-received (new-amount-received security-deposit check)]
     {:db/id                            (:db/id security-deposit)
+     :security-deposit/payment-method  :security-deposit.payment-method/check
      :security-deposit/checks          check
      :security-deposit/amount-received amount-received}))
 
