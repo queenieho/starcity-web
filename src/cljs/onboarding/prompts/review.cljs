@@ -50,6 +50,21 @@
 ;; Components
 ;; =============================================================================
 
+(defn- total-prices [orders]
+  (->> orders
+       (map #(* (or (:quantity %) 1) (:price %)))
+       (reduce +)))
+
+(defn footer [orders]
+  (let [grp (->> orders
+                 (remove (comp nil? :price))
+                 (group-by :billed))]
+    [:div.has-text-right
+     {:style {:padding-right 8}}
+     [:p {:style {:margin-bottom 0}} "One-time service subtotal: " [:strong "$" (->> grp :once total-prices)]]
+     [:p {:style {:margin-bottom 0}} "Monthly service subtotal: " [:strong "$" (->> grp :monthly total-prices)]]
+     [:small "(prices of items requiring quotes are not included)"]]))
+
 (defn- review [loading orders]
   [:div
    [:p {:dangerouslySetInnerHTML {:__html "Below are the services that you selected&mdash;please ensure that these are the services that you selected and that all information is correct."}}]
@@ -59,7 +74,8 @@
               :loading    loading
               :size       :small
               :columns    columns
-              :pagination false}]]])
+              :pagination false
+              :footer     #(r/as-element [footer orders])}]]])
 
 (defn- fetch-error [keypath loading]
   [:div
@@ -130,7 +146,6 @@
 ;; Entrypoint
 ;; =============================================================================
 
-;; TODO: Button action when no orders are selected
 (defmethod content/next-button :finish/review [prompt]
   (let [dirty     (subscribe [:prompt/dirty?])
         is-saving (subscribe [:prompt/saving?])
