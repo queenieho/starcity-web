@@ -4,11 +4,10 @@
              [validators :as v]]
             [clojure.string :as str]
             [compojure.core :refer [defroutes GET POST]]
+            [datomic.api :as d]
             [starcity
-             [auth :as auth]
              [countries :as countries]
              [datomic :refer [conn]]]
-            [starcity.api.common :refer :all]
             [starcity.config
              [plaid :as pc]
              [stripe :as sc]]
@@ -17,9 +16,11 @@
              [autopay :as autopay]]
             [starcity.models.stripe.customer :as customer]
             [starcity.services.plaid :as service]
-            [taoensso.timbre :as timbre]
-            [datomic.api :as d]
-            [starcity.services.stripe.sources :as sources]))
+            [starcity.services.stripe.sources :as sources]
+            [starcity.util
+             [request :as req]
+             [response :as res]]
+            [taoensso.timbre :as timbre]))
 
 ;;; Helpers
 
@@ -41,12 +42,12 @@
   "Provides required information for the client to bootstrap itself depending on
   requesting user's account info."
   [req]
-  (let [account (auth/requester req)]
-    (ok {:stripe    {:public-key sc/public-key}
-         :plaid     {:env        pc/env
-                     :public-key pc/public-key}
-         :countries countries/countries
-         :setup     (autopay/setup conn account)})))
+  (let [account (req/requester (d/db conn) req)]
+    (res/json-ok {:stripe    {:public-key sc/public-key}
+                  :plaid     {:env        pc/env
+                              :public-key pc/public-key}
+                  :countries countries/countries
+                  :setup     (autopay/setup conn account)})))
 
 ;;; Plaid Verification
 
@@ -57,14 +58,14 @@
 (defn plaid-verify
   "Handler used to verify a bank account using Plaid."
   [{:keys [params] :as req}]
-  (let [account                           (auth/requester req)
+  (let [account                           (req/requester (d/db conn) req)
         {:keys [public-token account-id]} params]
     (cond
-      (str/blank? account-id)   (malformed {:error "A bank account id is required."})
-      (str/blank? public-token) (malformed {:error "A public token is requred."})
+      (str/blank? account-id)   (res/json-malformed {:error "A bank account id is required."})
+      (str/blank? public-token) (res/json-malformed {:error "A public token is requred."})
       :otherwise                (let [token (public-token->bank-token public-token account-id)]
                                   (add-bank-account! conn account token)
-                                  (ok {:status (autopay/setup-status conn account)})))))
+                                  (res/json-ok {:status (autopay/setup-status conn account)})))))
 
 ;;; Manual verification w/ Microdeposits
 
@@ -74,12 +75,12 @@
   will later be verified once the microdeposits have been made and submitted by
   customer."
   [{:keys [params] :as req}]
-  (let [account (auth/requester req)]
+  (let [account (req/requester (d/db conn) req)]
     (if-let [token (:stripe-token params)]
       (do
         (add-bank-account! conn account token)
-        (ok {:status (autopay/setup-status conn account)}))
-      (malformed {:error "No token submitted."}))))
+        (res/json-ok {:status (autopay/setup-status conn account)}))
+      (res/json-malformed {:error "No token submitted."}))))
 
 ;; TODO: Duplicated in starcity.controllers.onboarding
 ;; Need a better validation workflow.
@@ -95,17 +96,17 @@
 
 (defn verify-deposits
   [{:keys [params] :as req}]
-  (let [account  (auth/requester req)
+  (let [account  (req/requester (d/db conn) req)
         deposits (:deposits params)]
     (if-not (deposits-valid? deposits)
-      (malformed {:error "Invalid deposit amounts."})
+      (res/json-malformed {:error "Invalid deposit amounts."})
       (try
         (let [res (customer/verify-microdeposits (account/stripe-customer (d/db conn) account)
                                                  (first deposits)
                                                  (second deposits))]
           (timbre/info ::verify-microdeposits {:account     (account/email account)
                                                :customer-id (:customer res)})
-          (ok {:status (autopay/setup-status conn account)}))
+          (res/json-ok {:status (autopay/setup-status conn account)}))
         (catch Exception e
           (timbre/error e ::verify-microdeposits {:account (account/email account)})
           (throw e))))))

@@ -6,8 +6,8 @@
              [auth :as auth]
              [datomic :refer [conn]]
              [util :refer :all]]
-            [starcity.api.common :refer :all]
-            [starcity.models.news :as news]))
+            [starcity.models.news :as news]
+            [starcity.util.response :as res]))
 
 (defn- clientize-news-item [news]
   (assoc-when
@@ -33,8 +33,8 @@
   "Retrieve requester's news."
   [req]
   (let [account (auth/requester req)]
-    (ok {:news (->> (query-news conn account)
-                    (map clientize-news-item))})))
+    (res/json-ok {:news (->> (query-news conn account)
+                             (map clientize-news-item))})))
 
 (defn dismiss-news
   "Dismiss news item identified by `news-id`."
@@ -42,7 +42,7 @@
   (fn [req]
     (let [news (d/entity (d/db conn) (str->int news-id))]
       @(d/transact conn [(news/dismiss news)])
-      (ok {:result "ok"}))))
+      (res/json-ok {:result "ok"}))))
 
 (defroutes routes
   (GET "/" [] fetch-news)

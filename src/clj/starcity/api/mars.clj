@@ -1,10 +1,10 @@
 (ns starcity.api.mars
-  (:require [compojure.core :refer [context defroutes GET POST]]
-            [starcity.api.mars.rent :as rent]
-            [starcity.api.mars.news :as news]
-            [starcity.api.mars.settings :as settings]
-            [starcity.api.mars.security-deposit :as security-deposit]
-            [starcity.api.common :refer :all]))
+  (:require [compojure.core :refer [context defroutes]]
+            [starcity.api.mars
+             [news :as news]
+             [rent :as rent]
+             [security-deposit :as security-deposit]
+             [settings :as settings]]))
 
 (defroutes routes
   (context "/news" [] news/routes)
