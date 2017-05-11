@@ -10,12 +10,9 @@
             [datomic.api :as d]
             [me.raynes.fs :as fs]
             [starcity
-             [auth :as auth]
              [config :refer [data-dir]]
              [countries :as countries]
              [datomic :refer [conn]]]
-            [starcity.api.common :as api]
-            [starcity.util.validation :as validation]
             [starcity.models
              [account :as account]
              [application :as application]
@@ -23,6 +20,10 @@
              [income-file :as income-file]
              [license :as license]
              [property :as property]]
+            [starcity.util
+             [request :as req]
+             [response :as res]
+             [validation :as validation]]
             [taoensso.timbre :as timbre]))
 
 ;; =============================================================================
@@ -32,9 +33,9 @@
 (defn initialize-handler
   "Produce the requesting user's application progress."
   [req]
-  (let [account-id (api/account-id req)]
-    (api/ok (merge (apply/progress account-id)
-                   (apply/initial-data conn)))))
+  (let [account-id (:db/id (req/requester (d/db conn) req))]
+    (res/json-ok (merge (apply/progress account-id)
+                        (apply/initial-data conn)))))
 
 ;; =============================================================================
 ;; Update
@@ -145,48 +146,43 @@
 (defn update-handler
   "Handle an update of user's application."
   [{:keys [params] :as req}]
-  (let [account (auth/requester req)
+  (let [account (req/requester (d/db conn) req)
         app     (application/by-account conn account)
         path    (path->key (:path params))
         vresult (validate conn (:data params) path)]
     (cond
       ;; there's an application, and it's not in-progress
       (and app
-           (not (application/in-progress? app))) (api/unprocessable {:errors [submitted-msg]})
-      (not (validation/valid? vresult))          (api/malformed {:errors (validation/errors vresult)})
-      :otherwise                                 (try
+           (not (application/in-progress? app))) (res/json-unprocessable {:errors [submitted-msg]})
+      (not (validation/valid? vresult))          (res/json-malformed {:errors (validation/errors vresult)})
+      :otherwise                                 (do
                                                    (apply/update (:data params) (:db/id account) path)
-                                                   (api/ok (apply/progress (:db/id account)))
-                                                   (catch Exception e
-                                                     (timbre/error e ::update {:user   (account/email account)
-                                                                               :path   path
-                                                                               :params params})
-                                                     (api/server-error))))))
+                                                   (res/json-ok (apply/progress (:db/id account)))))))
 
 (defn- write-income-file!
-    "Write a an income file to the filesystem and add an entity that points to the
+  "Write a an income file to the filesystem and add an entity that points to the
   account and file path."
   [account {:keys [filename content-type tempfile size]}]
-    (try
-      (let [output-dir  (format "%s/income-uploads/%s" data-dir (:db/id account))
-            output-path (str output-dir "/" filename)]
-        (do
-          (when-not (fs/exists? output-dir)
-            (fs/mkdirs output-dir))
-          (io/copy tempfile (java.io.File. output-path))
-          @(d/transact conn [(income-file/create account content-type output-path size)])
-          (timbre/info ::write {:user         (account/email account)
-                                :filename     filename
-                                :content-type content-type
-                                :size         size})
-          output-path))
-      ;; catch to log, then rethrow
-      (catch Exception e
-        (timbre/error e ::write {:user         (account/email account)
-                                 :filename     filename
-                                 :content-type content-type
-                                 :size         size})
-        (throw e))))
+  (try
+    (let [output-dir  (format "%s/income-uploads/%s" data-dir (:db/id account))
+          output-path (str output-dir "/" filename)]
+      (do
+        (when-not (fs/exists? output-dir)
+          (fs/mkdirs output-dir))
+        (io/copy tempfile (java.io.File. output-path))
+        @(d/transact conn [(income-file/create account content-type output-path size)])
+        (timbre/info ::write {:user         (account/email account)
+                              :filename     filename
+                              :content-type content-type
+                              :size         size})
+        output-path))
+    ;; catch to log, then rethrow
+    (catch Exception e
+      (timbre/error e ::write {:user         (account/email account)
+                               :filename     filename
+                               :content-type content-type
+                               :size         size})
+      (throw e))))
 
 (defn create-income-files!
   "Save the income files for a given account."
@@ -195,45 +191,37 @@
 
 (defn income-files-handler
   [{:keys [params] :as req}]
-  (let [account    (auth/requester req)
-        account-id (api/account-id req)]
+  (let [account (req/requester (d/db conn) req)]
     (if-let [file-or-files (:files params)]
-      (try
-        (let [files (if (map? file-or-files) [file-or-files] file-or-files)
-              paths (create-income-files! account files)]
-          (api/ok (apply/progress account-id)))
-        (catch Exception e
-          (timbre/error e ::income-upload {:user (account/email account)})
-          (api/server-error "Something went wrong while uploading your proof of income. Please try again.")))
-      (api/malformed {:errors ["You must choose at least one file to upload."]}))))
+      (let [files (if (map? file-or-files) [file-or-files] file-or-files)
+            paths (create-income-files! account files)]
+        (res/json-ok (apply/progress (:db/id account))))
+      (res/json-malformed {:errors ["You must choose at least one file to upload."]}))))
 
 (defn- can-pay? [account-id token]
   (and token (apply/is-payment-allowed? (apply/progress account-id))))
 
 (defn payment-handler
   [{:keys [params] :as req}]
-  (let [token      (:token params)
-        account    (auth/requester req)
-        account-id (:db/id account)]
-    (if (can-pay? account-id token)
-      (try
+  (let [token   (:token params)
+        account (req/requester (d/db conn) req)]
+    (if (can-pay? (:db/id account) token)
+      (do
         (apply/submit! account token)
         (timbre/info :application/submit {:user (account/email account)})
-        (api/ok {})
-        (catch Exception e
-          (timbre/error e :application/submit {:user (account/email account)})
-          (api/server-error "Whoops! Something went wrong while processing your payment. Please try again.")))
-      (api/malformed {:errors ["You must submit payment."]}))))
+        (res/json-ok {}))
+      (res/json-malformed {:errors ["You must submit payment."]}))))
 
 (defn help-handler
   "Handles requests for help from the community advisor."
   [{:keys [params] :as req}]
-  (let [{:keys [question sent-from]} params]
+  (let [{:keys [question sent-from]} params
+        account (req/requester (d/db conn) req)]
     (if-not (empty? question)
       (do
-        (apply/ask-question (api/account-id req) question (path->key sent-from))
-        (api/ok {}))
-      (api/malformed {:errors ["Your question didn't go through. Try again?'"]}))))
+        (apply/ask-question (:db/id account) question (path->key sent-from))
+        (res/json-ok {}))
+      (res/json-malformed {:errors ["Your question didn't go through. Try again?'"]}))))
 
 ;; =============================================================================
 ;; Routes
