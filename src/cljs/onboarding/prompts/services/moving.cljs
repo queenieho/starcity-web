@@ -5,8 +5,6 @@
             [cljsjs.moment]
             [reagent.core :as r]))
 
-(def time-picker (r/adapt-react-class (.-TimePicker js/window.antd)))
-
 (defn- form
   [keypath commencement {:keys [needed date time]}]
   (let [commencement (js/moment. commencement)]
@@ -33,12 +31,12 @@
         [:div.field
          [:label.label "At what time will you be moving in?"]
          [:div.control
-          [time-picker
+          [a/time-picker
            {:value                 (when time (js/moment. time))
             :on-change             #(dispatch [:prompt/update keypath :time (.toDate %)])
             :format                "HH:mm"
             :disabled-hours        #(concat (range 0 9) (range 20 24))
-            :disabled-minutes      (fn [] (remove #(= (mod % 30) 0) (range 0 61)))
+            :disabled-minutes      (fn [] (range 1 61))
             :disabled-seconds      #(range 0 61)
             :hide-disabled-options true}]]]])]))
 
