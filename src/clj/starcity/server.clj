@@ -73,11 +73,6 @@
   {;;; Public Site JS
    "main.js"       ["/js/main.js"]
 
-   ;; TODO: Phase these out...
-   "bank-info.js"  ["/js/jquery.validate.js"
-                    "/js/bank-info.js"]
-   "pay-by-ach.js" ["/js/pay-by-ach.js"]
-
    ;;; CLJS apps
    "admin.js"      ["/js/cljs/admin.js"]
    "apply.js"      ["/js/cljs/apply.js"]
