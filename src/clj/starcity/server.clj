@@ -71,7 +71,8 @@
 (def optimus-bundles
   ""
   {;;; Public Site JS
-   "main.js"       ["/js/main.js"]
+   "main.js" ["/js/main.js"]
+   "tour.js" ["/js/tour.js"]
 
    ;;; CLJS apps
    "admin.js"      ["/js/cljs/admin.js"]
