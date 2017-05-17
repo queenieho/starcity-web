@@ -153,12 +153,16 @@
 (defn- contact [role]
   (let [contact (subscribe [:account/contact])]
     (fn [role]
-      (let [{:keys [:account/phone :account/email]} @contact]
+      (let [{:keys [:account/phone :account/email :account/dob]} @contact]
         [:nav.level
          [:div.level-left
           [:div.level-item
            [:strong.contact-item
             [a/icon {:type "user"}] role]]
+          (when dob
+            [:div.level-item
+             [:p.contact-item
+              [a/icon {:type "gift"}] dob]])
           (when phone
             [:div.level-item
              [:p.contact-item

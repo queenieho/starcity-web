@@ -25,6 +25,12 @@
 (def ops-fee :property/ops-fee)
 (def units :property/units)
 
+;; TODO: Actually store this in the DB.
+(defn time-zone
+  "Produce the time zone that `property` is in."
+  [property]
+  "US/Pacific")
+
 (def available-on
   "Date that property is available on."
   :property/available-on)

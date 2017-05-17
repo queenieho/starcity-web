@@ -33,7 +33,8 @@
             [bouncer.core :as b]
             [bouncer.validators :as v]
             [starcity.util.validation :as uv]
-            [starcity.models.msg :as msg]))
+            [starcity.models.msg :as msg]
+            [clj-time.format :as f]))
 
 ;; =============================================================================
 ;; Common
@@ -114,7 +115,9 @@
 
 (defn- contact [account]
   {:account/email (:account/email account)
-   :account/phone (:account/phone-number account)})
+   :account/phone (:account/phone-number account)
+   :account/dob   (when-let [dob (:account/dob account)]
+                    (f/unparse (f/formatter "M/d") (c/to-date-time dob)))})
 
 (defmulti clientize-account
   "Produce a map of `client-data` based on the role of the account. This is

@@ -8,7 +8,8 @@
             [starcity.util :refer :all]
             [plumbing.core :refer [assoc-when]]
             [starcity.models.check :as check]
-            [toolbelt.predicates :as p]))
+            [toolbelt.predicates :as p]
+            [starcity.models.property :as property]))
 
 ;; =============================================================================
 ;; Constants
@@ -96,11 +97,15 @@
   [payment]
   (#{:rent-payment.status/paid} (status payment)))
 
-(defn past-due?
-  [payment]
-  (let [due-date (-> payment due-date c/to-date-time)]
+(defn past-due? [payment]
+  (let [due-date (-> payment due-date c/to-date-time)
+        property (-> payment member-license :member-license/unit :property/_units)
+        tz       (t/time-zone-for-id (property/time-zone property))]
     (and (unpaid? payment)
-         (t/after? (t/now) due-date))))
+         (t/after? (t/to-time-zone (t/now) tz)
+                   ;; Pretends that the UTC time stored is in the time zone that
+                   ;; we want. This seems kind of hacky, but it works.
+                   (t/from-time-zone due-date tz)))))
 
 ;; =============================================================================
 ;; Transactions
