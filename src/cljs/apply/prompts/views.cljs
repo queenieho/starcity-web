@@ -58,37 +58,6 @@
     :alt   "community advisor headshot"
     :class (when hover "community-advisor")}])
 
-(defn- contact-modal []
-  (let [question (subscribe [:prompt.help/form-data])
-        showing  (subscribe [:prompt.help/showing?])
-        can-send (subscribe [:prompt.help/can-send?])
-        loading  (subscribe [:prompt.help/loading?])]
-    (fn []
-      [:div.modal {:class (when @showing "is-active")}
-       [:div.modal-background
-        {:on-click #(dispatch [:prompt.help/toggle])}]
-       [:div.modal-content
-        [:div.box
-         [:div.media
-          [:figure.media-left
-           [:p.image.is-96x96 (advisor-image false)]]
-          [:div.media-content
-           [:form {:on-submit #(do (.preventDefault %)
-                                   (dispatch [:prompt.help/send]))}
-            [:p.title.is-5 "How can I help?"]
-            [:p.control
-             [:textarea.textarea
-              {:placeholder "Enter your question here."
-               :value       @question
-               :on-change   #(dispatch [:prompt.help/change (dom/val %)])}]]
-            [:p.control
-             [:button.button.is-info
-              {:type  "submit"
-               :class (str (when-not @can-send "is-disabled")
-                           (when @loading " is-loading"))}
-              "Send"]]]]]]]
-       [:button.modal-close {:on-click #(dispatch [:prompt.help/toggle])}]])))
-
 ;; =============================================================================
 ;; API
 ;; =============================================================================
@@ -98,8 +67,7 @@
   [:header
    [:figure.image.is-64x64
     [:a {:on-click #(dispatch [:prompt.help/toggle])} (advisor-image true)]]
-   [:h3.prompt-title.title.is-4 title]
-   [contact-modal]])
+   [:h3.prompt-title.title.is-4 title]])
 
 (defn content [content]
   [:div.prompt-content

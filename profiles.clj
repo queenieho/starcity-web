@@ -35,7 +35,8 @@
                                      :asset-path       "/js/cljs/apply/out"
                                      :output-dir       "resources/public/js/cljs/apply/out"
                                      :output-to        "resources/public/js/cljs/apply.js"
-                                     :externs          ["externs/stripe.ext.js"]
+                                     :externs          ["externs/stripe.ext.js"
+                                                        "externs/chatlio.ext.js"]
                                      :closure-warnings {:externs-validation :off
                                                         :non-standard-jsdoc :off}}}
                      {:id           "mars"
@@ -64,6 +65,7 @@
                                      :asset-path       "/js/cljs/onboarding/out"
                                      :output-dir       "resources/public/js/cljs/onboarding/out"
                                      :output-to        "resources/public/js/cljs/onboarding.js"
-                                     :externs          ["externs/stripe.ext.js"]
+                                     :externs          ["externs/stripe.ext.js"
+                                                        "externs/chatlio.ext.js"]
                                      :closure-warnings {:externs-validation :off
                                                         :non-standard-jsdoc :off}}}]}}}

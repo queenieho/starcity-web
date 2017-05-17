@@ -53,42 +53,7 @@
          {:keys [local remote]} (get db curr-prompt)]
      (not= local remote))))
 
-;; TODO: Not the best name
-;; consider :prompt/payment-allowed?
 (reg-sub
  :prompt/payment-allowed?
  (fn [db _]
    (get db :prompt/all-complete)))
-
-;; =============================================================================
-;; Help
-;; =============================================================================
-
-(reg-sub
- :prompt/help
- (fn [db _]
-   (get db :prompt/help)))
-
-(reg-sub
- :prompt.help/form-data
- :<- [:prompt/help]
- (fn [{question :question} _]
-   question))
-
-(reg-sub
- :prompt.help/loading?
- :<- [:prompt/help]
- (fn [{loading :loading} _]
-   loading))
-
-(reg-sub
- :prompt.help/can-send?
- :<- [:prompt/help]
- (fn [{question :question} _]
-   (> (count question) 0)))
-
-(reg-sub
- :prompt.help/showing?
- :<- [:prompt/help]
- (fn [{showing :showing} _]
-   showing))
