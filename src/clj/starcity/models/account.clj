@@ -275,12 +275,13 @@
 (defn clientize
   "Produce a client-suitable representation of an `account` entity."
   [account]
-  {:db/id        (:db/id account)
-   :account/name (full-name account)})
+  {:db/id         (:db/id account)
+   :account/name  (full-name account)
+   :account/email (email account)})
 
 (s/fdef clientize
         :args (s/cat :account p/entity?)
-        :ret (s/keys :req [:db/id :account/name]))
+        :ret (s/keys :req [:db/id :account/name] :opt [:account/email]))
 
 ;; =============================================================================
 ;; Metrics

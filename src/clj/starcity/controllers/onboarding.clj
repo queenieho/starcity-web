@@ -1,13 +1,15 @@
 (ns starcity.controllers.onboarding
   (:require [net.cgrand.enlive-html :as html]
             [optimus.link :as link]
-            [starcity.controllers.common :as common]
-            [starcity.config.stripe :refer [public-key]]
-            [starcity.views.base :as base]
-            [starcity.models.approval :as approval]
             [starcity.auth :as auth]
-            [starcity.models.security-deposit :as deposit]
-            [starcity.models.property :as property]))
+            [starcity.config.stripe :refer [public-key]]
+            [starcity.controllers.common :as common]
+            [starcity.models
+             [account :as account]
+             [approval :as approval]
+             [property :as property]
+             [security-deposit :as deposit]]
+            [starcity.views.base :as base]))
 
 (html/defsnippet content "templates/onboarding.html" [:section] []
   [:section] (html/append (base/loading-fs)))
@@ -28,10 +30,13 @@
     (-> (base/app-base req "onboarding"
                        :content (content)
                        :navbar (base/app-navbar)
+                       :chatlio? true
                        :json [["stripe" {:key public-key}]
                               ["account" {:move-in      (move-in account)
                                           :full-deposit (full-deposit account)
-                                          :llc          (llc account)}]]
+                                          :llc          (llc account)
+                                          :name         (account/full-name account)
+                                          :email        (account/email account)}]]
                        :stylesheets (concat
                                      (link/bundle-paths req ["antd.css"])
                                      [base/font-awesome]))

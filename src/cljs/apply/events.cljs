@@ -10,13 +10,15 @@
             [apply.db :refer [default-value]]
             [apply.api :as api]
             [day8.re-frame.http-fx]
+            [starcity.fx.chatlio]
             [re-frame.core :refer [reg-event-db
                                    reg-event-fx
                                    reg-fx]]
             [ajax.core :as ajax]
             [starcity.utils :refer [remove-at]]
             [starcity.log :as l]
-            [apply.notifications :as n]))
+            [apply.notifications :as n]
+            [toolbelt.core :as tb]))
 
 ;; =============================================================================
 ;; App Events
@@ -45,10 +47,17 @@
 (reg-event-fx
  :app.initialize.fetch/success
  (fn [{:keys [db]} [_ {:keys [properties stripe licenses] :as result}]]
-   {:db       (merge db {:app/properties   (sort-by :property/available-on properties)
-                         :app/licenses     (sort-by :license/term > licenses)
-                         :app/initializing false})
-    :dispatch [:app/parse result]}))
+   {:db            (merge db {:app/properties   (sort-by :property/available-on properties)
+                              :app/licenses     (sort-by :license/term > licenses)
+                              :app/initializing false})
+    :chatlio/ready [:init-chatlio result]
+    :dispatch      [:app/parse result]}))
+
+(reg-event-fx
+ :init-chatlio
+ (fn [_ [_ {account :account}]]
+   {:chatlio/show     false
+    :chatlio/identify [(:account/email account) {:name (:account/name account)}]}))
 
 (reg-event-fx
  :app/parse
