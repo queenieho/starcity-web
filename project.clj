@@ -38,7 +38,7 @@
                  [org.postgresql/postgresql "9.4.1211"]
                  ;; CLJS
                  [cljsjs/flatpickr "2.0.0-rc.7-0"]
-                 [starcity/ant-ui "0.1.1" :exclusions [re-frame]]
+                 [starcity/ant-ui "0.1.2" :exclusions [re-frame]]
                  [com.andrewmcveigh/cljs-time "0.5.0-alpha2"]
                  [reagent "0.6.0"]
                  [re-frame "0.9.2" :exclusions [reagent]]
