@@ -124,6 +124,15 @@
 (def font-awesome
   "https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css")
 
+(def chatlio
+  (html/html
+   [:script "window._chatlio = window._chatlio||[];
+     !function(){ var t=document.getElementById('chatlio-widget-embed');if(t&&window.ChatlioReact&&_chatlio.init)return void _chatlio.init(t,ChatlioReact);for(var e=function(t){return function(){_chatlio.push([t].concat(arguments)) }},i=['configure','identify','track','show','hide','isShown','isOnline'],a=0;a<i.length;a++)_chatlio[i[a]]||(_chatlio[i[a]]=e(i[a]));var n=document.createElement('script'),c=document.getElementsByTagName('script')[0];n.id='chatlio-widget-embed',n.src='https://w.chatlio.com/w.chatlio-widget.js',n.async=!0,n.setAttribute('data-embed-version','2.1');
+       n.setAttribute('data-widget-id','245bd50d-a161-4f3b-58fd-3168c7006512');
+       n.setAttribute('data-start-hidden', true);
+       c.parentNode.insertBefore(n,c);
+     }();"]))
+
 (html/defsnippet loading-fs "templates/partials/loading-fs.html" [:section] [])
 
 (html/defsnippet app-navbar "templates/partials/app/navbar.html" [:nav] [])
@@ -151,7 +160,7 @@
   [:img] #(update-in % [:attrs :src] (optify req "/assets/img/")))
 
 (deftemplate app-base "templates/app.html"
-  [req app-name & {:keys [stylesheets navbar json scripts content fonts]
+  [req app-name & {:keys [stylesheets navbar json scripts content fonts chatlio?]
                    :or   {fonts [default-fonts]}}]
   [:head :title] (html/content (str "Starcity - " (string/capitalize app-name)))
   [:head] (html/do->
@@ -166,7 +175,8 @@
              (concat
               (js* scripts)
               (js-bundles* req [(str app-name ".js")])
-              [[:script (format "window.onload=function(){%s.core.run();}" app-name)]]))))
+              [[:script (format "window.onload=function(){%s.core.run();}" app-name)]])))
+           (maybe-append (when chatlio? chatlio)))
   [:#app] (if content
             (html/substitute content)
             (html/set-attr :id app-name))

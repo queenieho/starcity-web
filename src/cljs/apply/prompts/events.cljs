@@ -144,50 +144,7 @@
 ;; Help
 ;; =============================================================================
 
-(reg-event-db
+(reg-event-fx
  :prompt.help/toggle
- (fn [db _]
-   (update-in db [:prompt/help :showing] not)))
-
-(reg-event-db
- :prompt.help/change
- (fn [db [_ new-question]]
-   (assoc-in db [:prompt/help :question] new-question)))
-
-(reg-event-fx
- :prompt.help/send
- (fn [{:keys [db]} [_]]
-   (let [question (get-in db [:prompt/help :question])
-         prompt   (:prompt/current db)]
-     {:db         (assoc db :prompt.help/loading true)
-      :http-xhrio {:method          :post
-                   :uri             "/api/v1/apply/help"
-                   :params          {:question  question
-                                     :sent-from [(namespace prompt) (name prompt)]}
-                   :format          (ajax/json-request-format)
-                   :response-format (ajax/json-response-format {:keywords? true})
-                   :on-success      [:prompt.help/success]
-                   :on-failure      [:prompt.help/failure]}})))
-
-(def ^:private help-fail-msg
-  "Something went wrong while sending your message. Please try again.")
-
-(reg-event-fx
- :prompt.help/failure
- (fn [{:keys [db]} [_ err]]
-   (l/log err)
-   {:db         (assoc-in db [:prompt/help :loading] false)
-    :dispatch-n [[:app/notify (n/error help-fail-msg)]
-                 [:prompt.help/toggle]]}))
-
-(def ^:private help-success-msg
-  "Thanks for getting in touch! I'll respond soon by email.")
-
-(reg-event-fx
- :prompt.help/success
- (fn [{:keys [db]} _]
-   {:db             (-> (assoc-in db [:prompt/help :question] "")
-                        (assoc-in [:prompt/help :loading] false))
-    :dispatch-later [{:ms 4000 :dispatch [:notification/clear-all]}]
-    :dispatch-n     [[:app/notify (n/success help-success-msg)]
-                     [:prompt.help/toggle]]}))
+ (fn [_ _]
+   {:chatlio/show true}))

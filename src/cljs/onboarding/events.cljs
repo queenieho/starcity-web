@@ -4,6 +4,7 @@
             [onboarding.prompts.events]
             [onboarding.routes :as routes]
             [re-frame.core :refer [reg-event-fx path]]
+            [starcity.fx.chatlio]
             [toolbelt.core :as tb]
             [day8.re-frame.http-fx]
             [ajax.core :as ajax]))
@@ -34,8 +35,17 @@
  :app.bootstrap/success
  (fn [{:keys [db]} [_ {result :result}]]
    (let [db (db/bootstrap db result)]
-     {:db    (assoc db :bootstrapping false)
-      :route (routes/path-for (get-in db [:menu :active]))})))
+     {:db            (assoc db :bootstrapping false)
+      :chatlio/ready [:init-chatlio]
+      :route         (routes/path-for (get-in db [:menu :active]))})))
+
+(reg-event-fx
+ :init-chatlio
+ (fn [_ _]
+   (let [email (aget js/window "account" "email")
+         name  (aget js/window "account" "name")]
+     {:chatlio/show     false
+      :chatlio/identify [email {:name name}]})))
 
 ;; TODO: Update UI so that error is conveyed and option to retry is provided.
 (reg-event-fx
@@ -46,6 +56,11 @@
                    :duration 8
                    :title    "Uh oh!"
                    :content  "We couldn't fetch your progress. Please check your internet connection."}}))
+
+(reg-event-fx
+ :help/toggle
+ (fn [_ _]
+   {:chatlio/show true}))
 
 ;; =============================================================================
 ;; Routing

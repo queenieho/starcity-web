@@ -1,7 +1,8 @@
 (ns starcity.models.apply.initialize
   (:require [starcity.models.license :as license]
             [datomic.api :as d]
-            [starcity.models.property :as property]))
+            [starcity.models.property :as property]
+            [starcity.models.account :as account]))
 
 (defn- properties [conn]
   (d/q '[:find [?e ...] :where [?e :property/name _]] (d/db conn)))
@@ -23,10 +24,11 @@
 
 (defn initial-data
   "Required information to the application client."
-  [conn]
+  [conn account]
   (letfn [(clientize [l]
             {:license/term (:license/term l)
              :db/id        (:db/id l)})]
     {:properties (map (partial clientize-property conn) (properties conn))
      :licenses   (->> (license/licenses conn)
-                      (map clientize))}))
+                      (map clientize))
+     :account    (account/clientize account)}))

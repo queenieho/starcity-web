@@ -8,6 +8,8 @@
 (html/defsnippet apply-content "templates/apply.html" [:section] []
   [:section] (html/append (base/loading-fs)))
 
+(apply-content)
+
 (defn show
   "Show the Apply app."
   [req]
@@ -15,6 +17,7 @@
    (base/app-base req "apply"
                   :content (apply-content)
                   :navbar (base/app-navbar)
+                  :chatlio? true
                   :scripts ["https://checkout.stripe.com/checkout.js"]
                   :json [["stripe" {:amount application-fee
                                     :key    public-key}]]

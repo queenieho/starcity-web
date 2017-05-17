@@ -35,7 +35,7 @@
   [req]
   (let [account-id (:db/id (req/requester (d/db conn) req))]
     (res/json-ok (merge (apply/progress account-id)
-                        (apply/initial-data conn)))))
+                        (apply/initial-data conn (req/requester (d/db conn) req))))))
 
 ;; =============================================================================
 ;; Update
@@ -212,17 +212,6 @@
         (res/json-ok {}))
       (res/json-malformed {:errors ["You must submit payment."]}))))
 
-(defn help-handler
-  "Handles requests for help from the community advisor."
-  [{:keys [params] :as req}]
-  (let [{:keys [question sent-from]} params
-        account (req/requester (d/db conn) req)]
-    (if-not (empty? question)
-      (do
-        (apply/ask-question (:db/id account) question (path->key sent-from))
-        (res/json-ok {}))
-      (res/json-malformed {:errors ["Your question didn't go through. Try again?'"]}))))
-
 ;; =============================================================================
 ;; Routes
 ;; =============================================================================
@@ -235,7 +224,5 @@
   (POST "/update" [] update-handler)
 
   (POST "/verify-income" [] income-files-handler)
-
-  (POST "/help" [] help-handler)
 
   (POST "/submit-payment" [] payment-handler))
