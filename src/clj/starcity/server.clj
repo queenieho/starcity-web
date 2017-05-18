@@ -13,7 +13,7 @@
              [resource :refer [wrap-resource]]
              [session :refer [wrap-session]]]
             [ring.middleware.format :refer [wrap-restful-format]]
-            [ring.middleware.session.datomic :refer [datomic-store]]
+            [ring.middleware.session.datomic :refer [datomic-store session->entity]]
             [optimus.prime :as optimus]
             [optimus.assets :as assets]
             [optimus.optimizations :as optimizations]
@@ -58,12 +58,6 @@
                                      :user (:account/email identity))))
     (handler req)))
 
-(defn- datomic-session-store [conn]
-  (letfn [(session->entity [value]
-            {:session/value   value
-             :session/account (-> value :identity :db/id)})]
-    (datomic-store conn :session->entity session->entity)))
-
 ;; =============================================================================
 ;; Ring Handler
 ;; =============================================================================
@@ -106,7 +100,8 @@
         (wrap-params)
         (wrap-multipart-params)
         (wrap-resource "public")
-        (wrap-session {:store (datomic-session-store conn)})
+        (wrap-session {:store        (datomic-store conn :session->entity session->entity)
+                       :cookie-attrs {:secure (not (env/is-development?))}})
         (wrap-exception-handling)
         (wrap-content-type)
         (wrap-not-modified))))

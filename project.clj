@@ -23,6 +23,7 @@
                  [buddy "1.1.0"]
                  [bouncer "1.0.0"]
                  [optimus "0.19.1"]
+                 [starcity/datomic-session-store "0.1.0"]
                  ;; HTTP APIs
                  [nilenso/mailgun "0.2.3"]
                  [org.apache.httpcomponents/httpclient "4.5.2"] ; dep resolution?
