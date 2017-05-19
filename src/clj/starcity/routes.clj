@@ -3,10 +3,9 @@
             [compojure
              [core :refer [ANY context defroutes GET POST routes]]
              [route :as route]]
+            [customs.access :as access]
             [ring.util.response :as response]
-            [starcity
-             [api :as api]
-             [auth :refer [authenticated-user redirect-by-role unauthenticated-user user-isa]]]
+            [starcity.api :as api]
             [starcity.controllers
              [admin :as admin]
              [apply :as apply]
@@ -23,7 +22,6 @@
              [onboarding :as onboarding]
              [privacy :as privacy]
              [schedule-tour :as schedule-tour]
-             ;; [settings :as settings]
              [signup :as signup]
              [story :as story]
              [terms :as terms]]
@@ -32,6 +30,17 @@
 ;; =============================================================================
 ;; Routes
 ;; =============================================================================
+
+(defn redirect-by-role
+  "Redirect to the appropriate URI based on logged-in user's role."
+  [{:keys [identity] :as req}]
+  (-> (case (:account/role identity)
+        :account.role/applicant  "/apply"
+        :account.role/onboarding "/onboarding"
+        :account.role/admin      "/admin"
+        :account.role/member     "/me"
+        "/")
+      (response/redirect)))
 
 (defroutes app-routes
   (GET  "/"                [] landing/show)
@@ -65,7 +74,7 @@
             (routes
              (GET  "/"           [] login/show)
              (POST "/"           [] login/login))
-            {:handler  unauthenticated-user
+            {:handler  access/unauthenticated-user
              :on-error (fn [req _] (redirect-by-role req))}))
 
   (ANY  "/logout"          [] auth/logout)
@@ -77,14 +86,14 @@
              (POST  "/"         [] signup/signup)
              (GET   "/complete" [] signup/show-complete)
              (GET   "/activate" [] signup/activate))
-            {:handler  unauthenticated-user
+            {:handler  access/unauthenticated-user
              :on-error (fn [req _] (redirect-by-role req))}))
 
   (context "/apply" []
            (restrict
             (routes
              (GET "*" [] apply/show))
-            {:handler  {:and [authenticated-user (user-isa :account.role/applicant)]}
+            {:handler  {:and [access/authenticated-user (access/user-isa :account.role/applicant)]}
              :on-error (fn [req _] (redirect-by-role req))}))
 
   ;; TODO: Disabling until I have an idea of how to better accomplish this.
@@ -102,14 +111,14 @@
            (restrict
             (routes
              (GET "*" [] admin/show))
-            {:handler  {:and [authenticated-user (user-isa :account.role/admin)]}
+            {:handler  {:and [access/authenticated-user (access/user-isa :account.role/admin)]}
              :on-error (fn [req _] (redirect-by-role req))}))
 
   (context "/me" []
            (restrict
             (routes
              (GET "/*" [] dashboard/show))
-            {:handler  {:and [authenticated-user (user-isa :account.role/member)]}
+            {:handler  {:and [access/authenticated-user (access/user-isa :account.role/member)]}
              :on-error (fn [req _] (redirect-by-role req))}))
 
 
@@ -117,7 +126,7 @@
            (restrict
             (routes
              (GET "*" [] onboarding/show))
-            {:handler  {:and [authenticated-user (user-isa :account.role/onboarding)]}
+            {:handler  {:and [access/authenticated-user (access/user-isa :account.role/onboarding)]}
              :on-error (fn [req _] (redirect-by-role req))})
 
            #_(restrict onboarding/routes

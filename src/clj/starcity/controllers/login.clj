@@ -3,14 +3,15 @@
              [core :as b]
              [validators :as v]]
             [clojure.string :refer [lower-case trim]]
+            [customs.auth :as auth]
             [datomic.api :as d]
+            [facade.core :as facade]
             [net.cgrand.enlive-html :as html]
             [ring.util.response :as response]
             [starcity.controllers.common :as common]
-            [starcity.util.validation :as validation]
             [starcity.datomic :refer [conn]]
             [starcity.models.account :as account]
-            [starcity.views.base :as base]))
+            [starcity.util.validation :as validation]))
 
 ;; =============================================================================
 ;; Constants
@@ -55,7 +56,7 @@
 
 (html/defsnippet login-main "templates/login.html" [:main]
   [errors]
-  [:div.alerts] (base/maybe-errors errors))
+  [:div.alerts] (facade/maybe-errors errors))
 
 ;; =============================================================================
 ;; Handlers
@@ -63,7 +64,10 @@
 
 (defn- view
   [req & errors]
-  (base/public-base req :main (login-main errors)))
+  (facade/public req
+                 :css-bundles ["public.css"]
+                 :js-bundles ["main.js"]
+                 :main (login-main errors)))
 
 (defn show
   "Show the login page."
@@ -75,7 +79,7 @@
   [{:keys [params session] :as req}]
   (let [vresult (-> params clean-credentials validate-credentials)]
     (if-let [{:keys [email password]} (validation/valid? vresult)]
-      (if-let [account (account/authenticate (d/db conn) email password)]
+      (if-let [account (auth/authenticate (d/db conn) email password)]
         (if (:account/activated account)
           ;; success
           (let [next-url (url-after-login account req)

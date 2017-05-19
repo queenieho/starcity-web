@@ -1,12 +1,11 @@
 (ns starcity.controllers.admin
-  (:require [optimus.link :as link]
-            [starcity.controllers.common :as common]
-            [starcity.views.base :as base]))
+  (:require [facade.core :as facade]
+            [starcity.controllers.common :as common]))
 
 (defn show
   "Show the Admin dashboard app."
   [req]
   (common/render-ok
-   (base/app-base req "admin"
-                  :stylesheets (link/bundle-paths req ["antd.css"])
-                  :fonts [base/lato-fonts])))
+   (facade/app req "admin"
+               :css-bundles ["styles.css" "antd.css"]
+               :fonts [facade/lato-fonts])))

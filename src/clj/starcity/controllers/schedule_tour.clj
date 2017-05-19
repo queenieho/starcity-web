@@ -6,6 +6,7 @@
              [spec :as s]
              [string :as string]]
             [datomic.api :as d]
+            [facade.core :as facade]
             [net.cgrand.enlive-html :as html]
             [plumbing.core :as plumbing]
             [ring.util.response :as response]
@@ -17,7 +18,6 @@
              [property :as property]
              [referral :as referral]]
             [starcity.util.validation :as validation]
-            [starcity.views.base :as base]
             [toolbelt.predicates :as p]))
 
 ;; =============================================================================
@@ -101,16 +101,17 @@
 (html/defsnippet schedule-tour "templates/schedule-tour.html" [:main]
   [properties {:keys [widget-id errors]}]
   [:p.lead] (html/content (if-not widget-id lead-1 lead-2))
-  [:div.alerts] (base/maybe-errors errors)
+  [:div.alerts] (facade/maybe-errors errors)
   [:#tour-content] (html/substitute
                     (if-not widget-id
                       (referral-form properties)
                       (booking-widget widget-id))))
 
 (defn- view [conn req & {:as opts}]
-  (base/public-base req
-                    :main (schedule-tour (properties conn) opts)
-                    :js-bundles ["main.js" "tour.js"]))
+  (facade/public req
+                 :main (schedule-tour (properties conn) opts)
+                 :css-bundles ["public.css"]
+                 :js-bundles ["main.js" "tour.js"]))
 
 ;; =============================================================================
 ;; Handlers

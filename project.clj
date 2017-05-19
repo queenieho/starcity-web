@@ -24,6 +24,8 @@
                  [bouncer "1.0.0"]
                  [optimus "0.19.1"]
                  [starcity/datomic-session-store "0.1.0"]
+                 [starcity/customs "0.1.0-SNAPSHOT"]
+                 [starcity/facade "0.1.0-SNAPSHOT"]
                  ;; HTTP APIs
                  [nilenso/mailgun "0.2.3"]
                  [org.apache.httpcomponents/httpclient "4.5.2"] ; dep resolution?
@@ -57,7 +59,6 @@
                  [prismatic/plumbing "0.5.3"]
                  [starcity/toolbelt "0.1.3" :exclusions [com.datomic/datomic-free]]
                  [enlive "1.1.6"]
-                 [hickory "0.7.0"]
                  [cljsjs/moment "2.17.1-0"]]
 
   :jvm-opts ["-server"
