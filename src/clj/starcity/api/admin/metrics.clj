@@ -8,8 +8,9 @@
             [starcity.models
              [account :as account]
              [application :as app]]
-            [starcity.util.response :as response]
-            [taoensso.timbre :as timbre]
+            [starcity.util
+             [date :as date]
+             [response :as response]]
             [toolbelt.predicates :as p]))
 
 ;; =============================================================================
@@ -42,6 +43,6 @@
        (fn [{params :params}]
          (let [{:keys [pstart pend]} (format-params params)
                now                   (java.util.Date.)
-               pstart                (or pstart (beginning-of-month now))
-               pend                  (or pend (end-of-month now))]
+               pstart                (or pstart (date/beginning-of-month now))
+               pend                  (or pend (date/end-of-month now))]
            (response/transit-ok {:result (overview conn pstart pend)})))))
