@@ -11,20 +11,12 @@
 (defmethod content :overview/start
   [_]
   [:div.content
-   [:p "Before you can move in we need to collect your " [:b "security deposit"]
-    "; luckily, our process is both simple and flexible."]
-   [:p "Starcity offers two options for paying your security deposit. You can either:"]
-   [:ul
-    [:li "Pay " [:b "$500"] " towards your deposit now, and the rest "
-     [:b "at the end of your first month"] ", or"]
-    [:li "Pay the entire amount up front."]]
-   [:p "You can pay your deposit online by linking your bank account " [:i "or"]
-    " the traditional way by giving us a check."]
-   [:p "Starcity also offers a variety of " [:b "premium services"]
-    " that can help to simplify your move-in experience, trick out your room and more."]
-   [:p "Complete each prompt using the blue " [:b "Continue"] " button in the bottom right "
-    "corner of the screen, or jump around using the menu at left. After you have completed "
-    "all of the prompts, you'll officially become a Starcity member."]
+   [:p "We're thrilled that you're joining the community and can't wait to get to know you better. Each member here is integral to the health and prosperity of our community" [:span {:dangerouslySetInnerHTML {:__html "&mdash;"}}] "we firmly believe that the whole is greater than the sum of its parts."]
+
+   [:p "We remove the hassles from your home life experience and want to make sure your move-in process is as easy and convenient as possible. The following steps will introduce you to the premium services we offer to help you with moving and getting settled in."]
+
+   [:p "Complete each prompt using the blue " [:b "Continue"] " button in the bottom right corner of the screen, or jump around using the menu at left. After you have completed all of the prompts you'll officially become a Starcity member."]
+
    [:p "Let's get started!"]])
 
 (defmulti next-button :keypath)
