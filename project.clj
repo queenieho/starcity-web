@@ -1,4 +1,4 @@
-(defproject starcity "1.6.4-SNAPSHOT"
+(defproject starcity "1.6.4"
   :description "The web app for https://joinstarcity.com"
   :url "https://joinstarcity.com"
   :license {:name "Eclipse Public License"
@@ -24,8 +24,8 @@
                  [bouncer "1.0.0"]
                  [optimus "0.19.1"]
                  [starcity/datomic-session-store "0.1.0"]
-                 [starcity/customs "0.1.0-SNAPSHOT"]
-                 [starcity/facade "0.1.0-SNAPSHOT"]
+                 [starcity/customs "0.1.0"]
+                 [starcity/facade "0.1.0"]
                  ;; HTTP APIs
                  [nilenso/mailgun "0.2.3"]
                  [org.apache.httpcomponents/httpclient "4.5.2"] ; dep resolution?
