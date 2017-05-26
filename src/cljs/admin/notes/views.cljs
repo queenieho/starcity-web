@@ -25,6 +25,9 @@
      [:p [:strong (:note/subject @note)]]
      [:p (:note/content @note)]]))
 
+(defn- newlines->line-breaks [s]
+  (string/replace s #"\n" "<br>"))
+
 ;; =============================================================================
 ;; Comments
 ;; =============================================================================
@@ -36,7 +39,7 @@
    [:div.media-content
     [:div.content
      [:p [:strong (-> note :note/author :account/name)]]
-     [:p (:note/content note)]
+     [:p {:dangerouslySetInnerHTML {:__html (newlines->line-breaks (:note/content note))}}]
      [:small {:style {:font-size "10px"}}
       (date/short-date-time (:note/created-at note))]]]])
 
@@ -168,7 +171,7 @@
          [:div.content
           (when-let [author (:note/author note)]
             [:p [:strong (:account/name author)]])
-          [:p (:note/content note)]
+          [:p {:dangerouslySetInnerHTML {:__html (newlines->line-breaks (:note/content note))}}]
           [controls showing-comments note]]
          (when-let [comments (and @showing-comments (:note/children note))]
            (map-indexed #(with-meta (note-comment %2) {:key %1}) comments))
