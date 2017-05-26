@@ -3,16 +3,19 @@
              [core :as b]
              [validators :as v]]
             [clojure.string :refer [capitalize lower-case trim]]
+            [customs.auth :as auth]
             [datomic.api :as d]
+            [facade
+             [core :as facade]
+             [snippets :as snippets]]
             [net.cgrand.enlive-html :as html]
             [ring.util.response :as response]
             [starcity.controllers.common :as common]
-            [starcity.util.validation :as validation]
             [starcity.datomic :refer [conn]]
             [starcity.models
              [account :as account]
              [cmd :as cmd]]
-            [starcity.views.base :as base]
+            [starcity.util.validation :as validation]
             [taoensso.timbre :as timbre]))
 
 ;; =============================================================================
@@ -62,16 +65,18 @@
 
 (html/defsnippet signup-main "templates/signup.html" [:main]
   [& {:keys [errors form]}]
-  [:div.alerts] (base/maybe-errors errors)
+  [:div.alerts] (facade/maybe-errors errors)
   [:#first-name] (html/set-attr :value (:first-name form))
   [:#last-name] (html/set-attr :value (:last-name form))
   [:#email] (html/set-attr :value (:email form)))
 
 (defn- signup-view
   [req & {:keys [errors form]}]
-  (base/public-base req
-                    :main (signup-main :errors errors :form form)
-                    :header (base/header :signup)))
+  (facade/public req
+                 :main (signup-main :errors errors :form form)
+                 :css-bundles ["public.css"]
+                 :js-bundles ["main.js"]
+                 :header (snippets/public-header :signup)))
 
 ;; =============================================================================
 ;; Handlers
@@ -81,11 +86,17 @@
 ;; Signup
 
 (defn- show-invalid-activation [req]
-  (->> (base/public-base req :main (invalid-activation))
+  (->> (facade/public req
+                      :css-bundles ["public.css"]
+                      :js-bundles ["main.js"]
+                      :main (invalid-activation))
        (common/render-ok)))
 
 (defn show-complete [req]
-  (->> (base/public-base req :main (signup-complete))
+  (->> (facade/public req
+                      :css-bundles ["public.css"]
+                      :js-bundles ["main.js"]
+                      :main (signup-complete))
        (common/render-ok)))
 
 (defn- signup-errors [req form & errors]
@@ -122,9 +133,9 @@
       (show-invalid-activation req)
       (let [acct (account/by-email (d/db conn) email)]
         (if (= hash (account/activation-hash acct))
-          (let [session (assoc session :identity (account/session-data acct))]
+          (let [session (assoc session :identity (auth/session-data acct))]
             (do
-              @(d/transact conn [(account/activate acct)])
+              @(d/transact conn [(auth/activate acct)])
               (timbre/info :account/activated {:email email})
               (-> (response/redirect redirect-after-activation)
                   (assoc :session session))))

@@ -5,23 +5,19 @@
             [clojure
              [spec :as s]
              [string :refer [capitalize lower-case trim]]]
+            [customs.auth :as auth]
             [datomic.api :as d]
             [plumbing.core :as plumbing]
             [potemkin :refer [import-vars]]
-            [starcity.datomic :refer [conn tempid]]
+            [starcity.datomic :refer [tempid]]
             [starcity.models
              [application :refer [submitted?]]
              [approval :as approval]
-             [cmd :as cmd]
              [member-license :as member-license]
-             [msg :as msg]
-             [news :as news]
              [rent-payment :as rent-payment]
              [security-deposit :as deposit]
              [unit :as unit]]
-            [starcity.models.account
-             [auth :as auth]
-             [role :as r]]
+            [starcity.models.account.role :as r]
             [starcity.util.date :refer [end-of-day]]
             [toolbelt
              [core :refer [round]]
@@ -49,13 +45,7 @@
   admin?
   onboarding?
   collaborator?
-  change-role]
- [starcity.models.account.auth
-  change-password
-  reset-password
-  authenticate
-  session-data
-  is-password?])
+  change-role])
 
 ;; =============================================================================
 ;; Selectors
@@ -161,6 +151,9 @@
 ;; Transactions
 ;; =============================================================================
 
+;; =============================================================================
+;; Create
+
 (defn create
   "Produce the required transaction data to create a new account in the
   database."
@@ -170,7 +163,7 @@
    :account/last-name       (-> last-name trim capitalize)
    :account/email           (-> email trim lower-case)
    :account/password        (-> password trim auth/hash-password)
-   :account/activation-hash (auth/activation-hash email)
+   :account/activation-hash (auth/make-activation-hash email)
    :account/activated       false
    :account/role            r/applicant})
 
@@ -188,17 +181,6 @@
   {:db/id         (tempid)
    :account/email email
    :account/role  :account.role/collaborator})
-
-(defn activate
-  "Indicate that the user has successfully verified ownership over the provided
-  email address."
-  [account]
-  {:db/id             (:db/id account)
-   :account/activated true})
-
-(s/fdef activate
-        :args (s/cat :account p/entity?)
-        :ret map?)
 
 ;; =====================================
 ;; Promote to Membership

@@ -1,7 +1,9 @@
 (ns starcity.controllers.communities
-  (:require [net.cgrand.enlive-html :as html]
-            [starcity.controllers.common :as common]
-            [starcity.views.base :as base]))
+  (:require [facade
+             [core :as facade]
+             [snippets :as snippets]]
+            [net.cgrand.enlive-html :as html]
+            [starcity.controllers.common :as common]))
 
 ;; =============================================================================
 ;; Views
@@ -26,19 +28,23 @@
 (defn show-mission
   "Show the Mission community page."
   [req]
-  (->> (base/public-base req
-                         :svg (mission-svg)
-                         :header (base/header :communities)
-                         :main (mission-main)
-                         :fonts [mission-fonts])
+  (->> (facade/public req
+                      :svg (mission-svg)
+                      :header (snippets/public-header :communities)
+                      :css-bundles ["public.css"]
+                      :js-bundles ["main.js"]
+                      :main (mission-main)
+                      :fonts [mission-fonts])
        (common/render-ok)))
 
 (defn show-soma
   "Show the SoMa community page."
   [req]
-  (->> (base/public-base req
-                         :svg (soma-svg)
-                         :header (base/header :communities)
-                         :main (soma-main)
-                         :fonts [soma-fonts])
+  (->> (facade/public req
+                      :svg (soma-svg)
+                      :header (snippets/public-header :communities)
+                      :css-bundles ["public.css"]
+                      :js-bundles ["main.js"]
+                      :main (soma-main)
+                      :fonts [soma-fonts])
        (common/render-ok)))

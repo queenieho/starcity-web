@@ -1,4 +1,4 @@
-(defproject starcity "1.6.3"
+(defproject starcity "1.6.4"
   :description "The web app for https://joinstarcity.com"
   :url "https://joinstarcity.com"
   :license {:name "Eclipse Public License"
@@ -23,6 +23,9 @@
                  [buddy "1.1.0"]
                  [bouncer "1.0.0"]
                  [optimus "0.19.1"]
+                 [starcity/datomic-session-store "0.1.0"]
+                 [starcity/customs "0.1.0"]
+                 [starcity/facade "0.1.0"]
                  ;; HTTP APIs
                  [nilenso/mailgun "0.2.3"]
                  [org.apache.httpcomponents/httpclient "4.5.2"] ; dep resolution?
@@ -38,7 +41,7 @@
                  [org.postgresql/postgresql "9.4.1211"]
                  ;; CLJS
                  [cljsjs/flatpickr "2.0.0-rc.7-0"]
-                 [starcity/ant-ui "0.1.1" :exclusions [re-frame]]
+                 [starcity/ant-ui "0.1.2" :exclusions [re-frame]]
                  [com.andrewmcveigh/cljs-time "0.5.0-alpha2"]
                  [reagent "0.6.0"]
                  [re-frame "0.9.2" :exclusions [reagent]]
@@ -56,7 +59,6 @@
                  [prismatic/plumbing "0.5.3"]
                  [starcity/toolbelt "0.1.3" :exclusions [com.datomic/datomic-free]]
                  [enlive "1.1.6"]
-                 [hickory "0.7.0"]
                  [cljsjs/moment "2.17.1-0"]]
 
   :jvm-opts ["-server"

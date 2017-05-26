@@ -1,7 +1,9 @@
 (ns starcity.controllers.story
-  (:require [net.cgrand.enlive-html :as html]
-            [starcity.controllers.common :as common]
-            [starcity.views.base :as base]))
+  (:require [facade
+             [core :as facade]
+             [snippets :as snippets]]
+            [net.cgrand.enlive-html :as html]
+            [starcity.controllers.common :as common]))
 
 (html/defsnippet svg "templates/story/svg.html" [:svg] [])
 (html/defsnippet main "templates/story.html" [:main] [])
@@ -9,8 +11,10 @@
 (defn show
   "Show the story page."
   [req]
-  (->> (base/public-base req
-                         :main (main)
-                         :svg (svg)
-                         :header (base/header :story))
+  (->> (facade/public req
+                      :main (main)
+                      :css-bundles ["public.css"]
+                      :js-bundles ["main.js"]
+                      :svg (svg)
+                      :header (snippets/public-header :story))
        (common/render-ok)))

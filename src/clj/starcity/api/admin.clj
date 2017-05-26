@@ -7,7 +7,8 @@
              [licenses :as licenses]
              [metrics :as metrics]
              [notes :as notes]
-             [properties :as properties]]
+             [properties :as properties]
+             [referrals :as referrals]]
             [starcity.auth :as auth]
             [starcity.util.response :as response]
             [starcity.models.account :as account]))
@@ -24,4 +25,5 @@
   (context "/licenses" [] licenses/routes)
   (context "/metrics" [] metrics/routes)
   (context "/notes" [] notes/routes)
-  (context "/properties" [] properties/routes))
+  (context "/properties" [] properties/routes)
+  (context "/referrals" [] referrals/routes))
