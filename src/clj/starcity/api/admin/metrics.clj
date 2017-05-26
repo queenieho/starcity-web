@@ -1,21 +1,16 @@
 (ns starcity.api.admin.metrics
-  (:require [clojure.spec :as s]
-            [compojure.core :refer [defroutes POST GET DELETE PUT]]
+  (:require [clj-time.coerce :as c]
+            [clojure.spec :as s]
+            [compojure.core :refer [defroutes GET]]
             [datomic.api :as d]
-            [starcity
-             [datomic :refer [conn]]]
+            [plumbing.core :as plumbing]
+            [starcity.datomic :refer [conn]]
             [starcity.models
              [account :as account]
              [application :as app]]
-            [starcity.util :refer :all]
-            [starcity.util
-             [response :as response]]
-            [toolbelt
-             [predicates :as p]]
-            [clj-time.core :as t]
-            [clj-time.coerce :as c]
+            [starcity.util.response :as response]
             [taoensso.timbre :as timbre]
-            [plumbing.core :as plumbing]))
+            [toolbelt.predicates :as p]))
 
 ;; =============================================================================
 ;; Handlers

@@ -1,5 +1,6 @@
 (ns admin.db
   (:require [admin.accounts.db :as accounts]
+            [admin.home.db :as home]
             [admin.licenses.db :as licenses]
             [admin.notes.db :as notes]
             [admin.properties.db :as properties]
@@ -15,7 +16,8 @@
          licenses/default-value
          notes/default-value
          properties/default-value
-         units/default-value))
+         units/default-value
+         home/default-value))
 
 (defn page->key [page]
   (get {:accounts   "1"
