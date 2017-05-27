@@ -25,8 +25,9 @@
 (defn- clientize [db [referral created]]
   (let [referral (d/entity db referral)]
     (merge
-     {:source (:referral/source referral)
-      :from   (:referral/from referral)}
+     {:source  (:referral/source referral)
+      :from    (:referral/from referral)
+      :created created}
      (when-let [account (:referral/account referral)]
        {:account {:id    (:db/id account)
                   :email (account/email account)
@@ -51,6 +52,9 @@
                      {:db/id            (d/tempid :db.part/starcity)
                       :referral/source  "instagram"
                       :referral/from    :referral.from/tour
-                      :referral/account [:account/email "member@test.com"]}])
+                      :referral/account [:account/email "member@test.com"]}
+                     {:db/id            (d/tempid :db.part/starcity)
+                      :referral/source  "instagram"
+                      :referral/from    :referral.from/tour}])
 
   )
