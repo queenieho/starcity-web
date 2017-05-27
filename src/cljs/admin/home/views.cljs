@@ -77,11 +77,19 @@
    (tbl/column "from" :render #(r/as-element [:span (name (:from %2))]))
    (tbl/column "account"
                :render
-               #(r/as-element [:a {:href (routes/path-for :account :account-id (:id %))} (:name %)]))
+               #(r/as-element
+                 (if (some? %)
+                   [:a {:href (routes/path-for :account :account-id (:id %))} (:name %)]
+                   "N/A")))
    (tbl/column "email"
                :render
                #(let [account (:account %2)]
-                  (r/as-element [:a {:href (routes/path-for :account :account-id (:id account))} (:email account)])))])
+                  (if (some? account)
+                    (r/as-element [:a {:href (routes/path-for :account :account-id (:id account))} (:email account)])
+                    "N/A")))
+   (tbl/column "created"
+               :render
+               #(r/as-element (.format (js/moment. %) "MM/DD/YY")))])
 
 (defn referral-footer [referrals]
   (let [stats (->> (group-by :source referrals)
