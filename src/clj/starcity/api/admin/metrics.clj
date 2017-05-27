@@ -1,21 +1,17 @@
 (ns starcity.api.admin.metrics
-  (:require [clojure.spec :as s]
-            [compojure.core :refer [defroutes POST GET DELETE PUT]]
+  (:require [clj-time.coerce :as c]
+            [clojure.spec :as s]
+            [compojure.core :refer [defroutes GET]]
             [datomic.api :as d]
-            [starcity
-             [datomic :refer [conn]]]
+            [plumbing.core :as plumbing]
+            [starcity.datomic :refer [conn]]
             [starcity.models
              [account :as account]
              [application :as app]]
-            [starcity.util :refer :all]
             [starcity.util
+             [date :as date]
              [response :as response]]
-            [toolbelt
-             [predicates :as p]]
-            [clj-time.core :as t]
-            [clj-time.coerce :as c]
-            [taoensso.timbre :as timbre]
-            [plumbing.core :as plumbing]))
+            [toolbelt.predicates :as p]))
 
 ;; =============================================================================
 ;; Handlers
@@ -47,6 +43,6 @@
        (fn [{params :params}]
          (let [{:keys [pstart pend]} (format-params params)
                now                   (java.util.Date.)
-               pstart                (or pstart (beginning-of-month now))
-               pend                  (or pend (end-of-month now))]
+               pstart                (or pstart (date/beginning-of-month now))
+               pend                  (or pend (date/end-of-month now))]
            (response/transit-ok {:result (overview conn pstart pend)})))))

@@ -1,21 +1,22 @@
 (ns starcity.controllers.landing
-  (:require [net.cgrand.enlive-html :as html]
-            [starcity.controllers.common :as common]
-            [starcity.views.base :as base]
-            [starcity.datomic :refer [conn]]
-            [optimus.link :as link]
-            [starcity.models.property :as property]
+  (:require [clj-time
+             [coerce :as c]
+             [core :as t]
+             [format :as f]]
             [datomic.api :as d]
-            [clj-time.format :as f]
-            [clj-time.core :as t]
-            [clj-time.coerce :as c]))
+            [facade.core :as facade]
+            [net.cgrand.enlive-html :as html]
+            [optimus.link :as link]
+            [starcity.controllers.common :as common]
+            [starcity.datomic :refer [conn]]
+            [starcity.models.property :as property]))
 
 ;; =============================================================================
 ;; Helpers
 ;; =============================================================================
 
 ;; See https://github.com/cgrand/enlive/issues/110
-(html/set-ns-parser! base/hickory-parser)
+(html/set-ns-parser! facade/hickory-parser)
 
 (def ^:private hero-image-names
   (map
@@ -58,7 +59,9 @@
   [req]
   (let [hero (rand-nth (hero-images req))]
     (common/render-ok
-     (base/public-base req
-                       :svg (svg)
-                       :header (header)
-                       :main (main conn hero)))))
+     (facade/public req
+                    :svg (svg)
+                    :css-bundles ["public.css"]
+                    :js-bundles ["main.js"]
+                    :header (header)
+                    :main (main conn hero)))))

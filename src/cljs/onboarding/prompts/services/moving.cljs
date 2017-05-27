@@ -34,10 +34,9 @@
           [a/time-picker
            {:value                 (when time (js/moment. time))
             :on-change             #(dispatch [:prompt/update keypath :time (.toDate %)])
-            :format                "HH:mm"
-            :disabled-hours        #(concat (range 0 9) (range 20 24))
+            :format                "h:mm A"
+            :use12Hours            true
             :disabled-minutes      (fn [] (range 1 61))
-            :disabled-seconds      #(range 0 61)
             :hide-disabled-options true}]]]])]))
 
 (defmethod content/content :services/moving

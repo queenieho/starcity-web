@@ -1,6 +1,8 @@
 (ns starcity.controllers.auth
   (:require [clojure.string :as str]
+            [customs.auth :as auth]
             [datomic.api :as d]
+            [facade.core :as facade]
             [net.cgrand.enlive-html :as html]
             [ring.util
              [codec :refer [url-encode]]
@@ -11,8 +13,7 @@
             [starcity.controllers.common :as common]
             [starcity.models.account :as account]
             [starcity.services.mailgun :as mail]
-            [starcity.services.mailgun.message :as mm]
-            [starcity.views.base :as base]))
+            [starcity.services.mailgun.message :as mm]))
 
 ;; =============================================================================
 ;; Helpers
@@ -41,7 +42,7 @@
 
 (html/defsnippet forgot-password-main "templates/forgot-password.html" [:main]
   [& errors]
-  [:div.alerts] (base/maybe-errors errors))
+  [:div.alerts] (facade/maybe-errors errors))
 
 ;; =============================================================================
 ;; Handlers
@@ -60,18 +61,24 @@
 (defn- forgot-password-errors
   [req & errors]
   (common/render-malformed
-   (base/public-base req :main (apply forgot-password-main errors))))
+   (facade/public req
+                  :css-bundles ["public.css"]
+                  :js-bundles ["main.js"]
+                  :main (apply forgot-password-main errors))))
 
 (defn show-forgot-password [req]
   (common/render-ok
-   (base/public-base req :main (forgot-password-main))))
+   (facade/public req
+                  :css-bundles ["public.css"]
+                  :js-bundles ["main.js"]
+                  :main (forgot-password-main))))
 
 (defn forgot-password
   [{:keys [params] :as req}]
   (if-let [email (:email params)]
     (let [cleaned (-> email str/trim str/lower-case)]
       (if-let [account (account/by-email (d/db conn) cleaned)]
-        (let [[new-password tx-data] (account/reset-password account)
+        (let [[new-password tx-data] (auth/reset-password account)
               next                   (format "/login?email=%s&reset-password=true" cleaned)]
           @(d/transact conn [tx-data])
           (send-password-reset-email account new-password)

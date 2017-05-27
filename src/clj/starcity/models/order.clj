@@ -108,7 +108,7 @@
         :args (s/cat :account p/entity?
 
                      :service p/entity?
-                     :opts    ::opts)
+                     :opts    (s/? ::opts))
         :ret map?)
 
 (defn update

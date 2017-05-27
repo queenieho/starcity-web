@@ -3,12 +3,12 @@
              [core :as b]
              [validators :as v]]
             [datomic.api :as d]
+            [facade.core :as facade]
             [net.cgrand.enlive-html :as html]
             [starcity.controllers.common :as common]
             [starcity.datomic :refer [conn]]
             [starcity.models.cmd :as cmd]
-            [starcity.util.validation :as validation]
-            [starcity.views.base :as base]))
+            [starcity.util.validation :as validation]))
 
 ;; =============================================================================
 ;; Helpers
@@ -33,11 +33,14 @@
 (html/defsnippet collaborate "templates/collaborate.html" [:main]
   [{:keys [errors messages]}]
   [:div.alerts] (if errors
-                 (base/maybe-errors errors)
-                 (base/maybe-messages messages)))
+                  (facade/maybe-errors errors)
+                  (facade/maybe-messages messages)))
 
 (defn- view [req & {:as opts}]
-  (base/public-base req :main (collaborate opts)))
+  (facade/public req
+                 :main (collaborate opts)
+                 :css-bundles ["public.css"]
+                 :js-bundles ["main.js"]))
 
 ;; =============================================================================
 ;; Handlers

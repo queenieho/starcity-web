@@ -1,6 +1,8 @@
 (ns starcity.controllers.onboarding
-  (:require [net.cgrand.enlive-html :as html]
-            [optimus.link :as link]
+  (:require [facade
+             [core :as facade]
+             [snippets :as snippets]]
+            [net.cgrand.enlive-html :as html]
             [starcity.auth :as auth]
             [starcity.config.stripe :refer [public-key]]
             [starcity.controllers.common :as common]
@@ -8,11 +10,10 @@
              [account :as account]
              [approval :as approval]
              [property :as property]
-             [security-deposit :as deposit]]
-            [starcity.views.base :as base]))
+             [security-deposit :as deposit]]))
 
 (html/defsnippet content "templates/onboarding.html" [:section] []
-  [:section] (html/append (base/loading-fs)))
+  [:section] (html/append (snippets/loading-fullscreen)))
 
 (def ^:private move-in
   (comp approval/move-in approval/by-account))
@@ -27,17 +28,16 @@
   "Show the Onboarding app."
   [req]
   (let [account (auth/requester req)]
-    (-> (base/app-base req "onboarding"
-                       :content (content)
-                       :navbar (base/app-navbar)
-                       :chatlio? true
-                       :json [["stripe" {:key public-key}]
-                              ["account" {:move-in      (move-in account)
-                                          :full-deposit (full-deposit account)
-                                          :llc          (llc account)
-                                          :name         (account/full-name account)
-                                          :email        (account/email account)}]]
-                       :stylesheets (concat
-                                     (link/bundle-paths req ["antd.css"])
-                                     [base/font-awesome]))
+    (-> (facade/app req "onboarding"
+                    :content (content)
+                    :navbar (snippets/app-navbar)
+                    :chatlio? true
+                    :json [["stripe" {:key public-key}]
+                           ["account" {:move-in      (move-in account)
+                                       :full-deposit (full-deposit account)
+                                       :llc          (llc account)
+                                       :name         (account/full-name account)
+                                       :email        (account/email account)}]]
+                    :css-bundles ["antd.css" "styles.css"]
+                    :stylesheets [facade/font-awesome])
         (common/render-ok))))

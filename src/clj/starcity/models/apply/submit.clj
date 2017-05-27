@@ -74,7 +74,7 @@
 (defn notify-us
   [account]
   (let [title (format "%s's application" (account/full-name account))
-        link  (format "%s/admin/applications/%s" config/hostname (:db/id (:account/member-application account)))]
+        link  (format "%s/admin/accounts/%s" config/hostname (:db/id (:account/member-application account)))]
     (slack/rich-message title "View it here on the admin dashboard."
                         :channel "#community"
                         :opts {:pretext    (format "%s! Someone signed up! :partyparrot:"

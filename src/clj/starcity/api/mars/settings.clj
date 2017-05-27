@@ -6,12 +6,11 @@
              [spec :as s]
              [string :as string]]
             [compojure.core :refer [defroutes POST]]
+            [customs.auth :as auth]
             [datomic.api :as d]
-            [starcity
-             [auth :as auth]
-             [datomic :refer [conn]]]
-            [starcity.models.account :as account]
+            [starcity.datomic :refer [conn]]
             [starcity.util
+             [request :as req]
              [response :as response]
              [validation :as uv]]
             [toolbelt
@@ -25,7 +24,7 @@
 (defn- validate-password-params
   [params account]
   (letfn [(matching-password? [password]
-            (account/is-password? account password))
+            (auth/is-password? account password))
           (same-passwords? [_]
             (= (:password-1 params) (:password-2 params)))]
     (b/validate
@@ -49,7 +48,7 @@
     (if-not (uv/valid? vresult)
       (response/transit-malformed {:message (first (uv/errors vresult))})
       (do
-        @(d/transact conn [(account/change-password account (:password-1 params))])
+        @(d/transact conn [(auth/change-password account (:password-1 params))])
         (response/transit-ok {:result "ok"})))))
 
 (s/fdef change-password!
@@ -67,5 +66,5 @@
 (defroutes routes
   (POST "/change-password" []
         (fn [{params :params :as req}]
-          (let [requester (auth/requester req)]
+          (let [requester (req/requester (d/db conn) req)]
             (change-password! conn requester params)))))

@@ -44,14 +44,14 @@
               :footer    (r/as-element [new-note-footer])
               :on-cancel #(dispatch [:note.add/hide])}
      [:div
-      [:div.control.is-expanded
+      [:div.field
        [:label.label "Subject"]
        [a/input
         {:type          "text"
          :default-value (:subject @form-data)
          :on-change     #(dispatch [:note.add/update :subject (.. % -target -value)])}]]
 
-      [:div.control.is-expanded
+      [:div.field
        [:label.label "Content"]
        [a/input
         {:type          "textarea"
@@ -96,14 +96,14 @@
               :footer    (r/as-element [edit-note-footer])
               :on-cancel #(dispatch [:note.edit/hide])}
      [:div
-      [:div.control.is-expanded
+      [:div.field
        [:label.label "Subject"]
        [a/input
         {:type          "text"
          :default-value (:subject @form-data)
          :on-change     #(dispatch [:note.edit/update :subject (.. % -target -value)])}]]
 
-      [:div.control.is-expanded
+      [:div.field
        [:label.label "Content"]
        [a/input
         {:type          "textarea"
