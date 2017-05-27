@@ -8,7 +8,7 @@
          :metrics/loading      false
          :referrals/loading    false
          :controls             {:from (.date (js/moment.) 1)
-                                :to   (.add (js/moment.) 1 "days")}
+                                :to   (.add (js/moment.) 2 "days")}
          :referrals            []}})
 
 (defn metrics-loading? [db]
