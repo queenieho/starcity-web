@@ -17,7 +17,8 @@
             [starcity.services.slack :as slack]
             [starcity.services.slack.message :as sm]
             [taoensso.timbre :as timbre]
-            [toolbelt.date :as td]))
+            [toolbelt.date :as td]
+            [starcity.models.application :as application]))
 
 (defmulti handle (fn [_ msg] (:msg/key msg)))
 
@@ -64,6 +65,28 @@
         (sm/field "Unit" (unit-link unit) true)
         (sm/field "Move-in" (td/short-date move-in) true)
         (sm/field "Term" (format "%s months" (:license/term license)) true))))
+     :uuid (:msg/uuid msg))))
+
+;; =============================================================================
+;; Applications
+;; =============================================================================
+
+(defn- rand-doge []
+  (let [phrases ["Such marketing" "Wow" "Much victory"
+                 "Great success" "Very amazing"
+                 "Dope" "So skilled"]]
+    (->> phrases count rand-int (get phrases))))
+
+(defmethod handle :application/submitted
+  [conn {{id :application-id} :msg/data :as msg}]
+  (let [account (-> (d/entity (d/db conn) id) application/account)
+        title   (format "%s's application" (account/full-name account))
+        link    (format "%s/admin/accounts/%s" config/hostname (:db/id account))]
+    (slack/community
+     (sm/msg
+      (sm/success
+       (sm/title title link)
+       (sm/text (format "%s! Someone signed up! :partyparrot:" (rand-doge)))))
      :uuid (:msg/uuid msg))))
 
 ;; =============================================================================

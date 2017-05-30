@@ -1,9 +1,11 @@
 (ns starcity.observers.mailer
   (:require [datomic.api :as d]
+            [hiccup.core :refer [html]]
             [ring.util.codec :refer [url-encode]]
             [starcity.config :as config]
             [starcity.models
              [account :as account]
+             [application :as application]
              [charge :as charge]
              [member-license :as member-license]
              [msg :as msg]
@@ -69,6 +71,29 @@
                     config/hostname config/hostname))
       (mm/p "Please let us know if you have any questions about the move-in
       process or need assistance navigating the dashboard.")
+      (mm/signature "Meg" "Head of Community"))
+     :from ms/meg
+     :uuid (:msg/uuid msg))))
+
+;; =============================================================================
+;; Applications
+;; =============================================================================
+
+(defmethod handle :application/submitted
+  [conn {{id :application-id} :msg/data :as msg}]
+  (let [application (d/entity (d/db conn) id)
+        account     (application/account application)]
+    (mail/send
+     (account/email account)
+     "We are Reviewing Your Application"
+     (mm/msg
+      (mm/greeting (account/first-name account))
+      (mm/p "Thank you for completing Starcity's membership application. Next:")
+      (html
+       [:ol
+        [:li "We'll process your application (community safety and financial checks) to pre-qualify you for the community,"]
+        [:li "and then notify you as soon as you're pre-qualified."]])
+      (mm/p "Stay tuned and thanks for your patience!")
       (mm/signature "Meg" "Head of Community"))
      :from ms/meg
      :uuid (:msg/uuid msg))))
