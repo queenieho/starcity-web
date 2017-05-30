@@ -4,7 +4,6 @@
             [clojure.spec :as s]
             [datomic.api :as d]
             [figwheel-sidecar.repl-api :as ra]
-            [figwheel-sidecar.system :refer [fetch-config]]
             [starcity.server]
             [starcity.observers]
             [starcity.seed :as seed]
