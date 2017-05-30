@@ -47,7 +47,7 @@
            (catch Throwable t
              (timbre/error t "observer error!")))
          ;; NOTE: The recur MUST happen inside of the when-let. Otherwise the
-         ;; go-loop indefinitely recurs after teh channel closes, hogging CPU.
+         ;; go-loop indefinitely recurs after the channel closes, hogging CPU.
          (recur)))
      (a/tap listener c)
      c)))
