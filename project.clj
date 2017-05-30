@@ -48,7 +48,6 @@
                  [secretary "1.2.3"]    ; phasing out (bidi)
                  [venantius/accountant "0.1.7"]
                  [day8.re-frame/http-fx "0.1.2"]
-                 [hiccups "0.3.0"]
                  ;; Utility
                  [dire "0.5.4"]
                  [potemkin "0.4.3"]
