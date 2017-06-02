@@ -24,21 +24,6 @@
                                      :externs          ["externs/stripe.ext.js"]
                                      :closure-warnings {:externs-validation :off
                                                         :non-standard-jsdoc :off}}}
-                     {:id           "apply"
-                      :source-paths ["src/cljs/apply" "src/cljs/starcity"]
-                      :jar          true
-                      :compiler     {:main             apply.core
-                                     :optimizations    :advanced
-                                     :elide-asserts    true
-                                     :pretty-print     false
-                                     :parallel-build   true
-                                     :asset-path       "/js/cljs/apply/out"
-                                     :output-dir       "resources/public/js/cljs/apply/out"
-                                     :output-to        "resources/public/js/cljs/apply.js"
-                                     :externs          ["externs/stripe.ext.js"
-                                                        "externs/chatlio.ext.js"]
-                                     :closure-warnings {:externs-validation :off
-                                                        :non-standard-jsdoc :off}}}
                      {:id           "mars"
                       :source-paths ["src/cljs/mars" "src/cljs/starcity"]
                       :jar          true

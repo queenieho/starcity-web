@@ -47,7 +47,7 @@
            (catch Throwable t
              (timbre/error t "observer error!")))
          ;; NOTE: The recur MUST happen inside of the when-let. Otherwise the
-         ;; go-loop indefinitely recurs after teh channel closes, hogging CPU.
+         ;; go-loop indefinitely recurs after the channel closes, hogging CPU.
          (recur)))
      (a/tap listener c)
      c)))
@@ -63,27 +63,53 @@
 ;; =============================================================================
 
 ;; =============================================================================
+;; Middleware
+
+(defn- wrap-mapify
+  "Converts an event (`cmd` or `msg`) into a map with `ks`."
+  [f & ks]
+  (fn [evt]
+    (f (select-keys evt ks))))
+
+(defn- wrap-log
+  "Logs event `evt` using the event key found under `log-key`, and logs that
+  data found by extracting keys `ks`."
+  [f log-key & ks]
+  (fn [evt]
+    (do
+      (timbre/trace (get evt log-key) (select-keys evt ks))
+      (f evt))))
+
+;; TODO: Remove after cmds and msgs are converted to use of `data` and `ctx`
+;; over `params` and `meta`
+(defn- wrap-thaw
+  "Thaws the values in `evt` under `ks`."
+  [f & ks]
+  (fn [evt]
+    (let [thaw? (set ks)]
+      (f (reduce
+          (fn [acc [k v]]
+            (if (thaw? k)
+              (update-in-when acc [k] nippy/thaw)
+              (assoc acc k v)))
+          evt
+          evt)))))
+
+(defn- wrap-deserialize
+  "Deserializes the values in `evt` under `ks`."
+  [f & ks]
+  (fn [evt]
+    (let [deserialize? (set ks)]
+      (f (reduce
+          (fn [acc [k v]]
+            (if (deserialize? k)
+              (update-in-when acc [k] read-string)
+              (assoc acc k v)))
+          evt
+          evt)))))
+
+;; =============================================================================
 ;; cmd
-
-(defn- wrap-thaw-cmd [f]
-  (fn [cmd]
-    (-> (select-keys cmd [:db/id :cmd/key :cmd/uuid :cmd/meta :cmd/id :cmd/params
-                          :cmd/status])
-        (update-in-when [:cmd/params] nippy/thaw)
-        (update-in-when [:cmd/meta] nippy/thaw)
-        f)))
-
-(defn- log-cmds [cmd]
-  (timbre/trace (:cmd/key cmd)
-                (select-keys cmd [:db/id :cmd/uuid :cmd/id :cmd/params :cmd/status
-                                  :cmd/meta])))
-
-(defstate cmd-logger
-  "Logs all `cmd`s as they're received."
-  :start (make-observer! listener
-                         (partial extract-by-attr :cmd/key)
-                         (wrap-thaw-cmd log-cmds))
-  :stop (close-observer! listener cmd-logger))
 
 (defn- pending-cmds [txr]
   (let [cmd-status-attr-id (d/entid (:db-after txr) :cmd/status)
@@ -99,7 +125,14 @@
   "Processes incoming cmds with status `:cmd.status/pending`."
   :start (make-observer! listener
                          pending-cmds
-                         (wrap-thaw-cmd (partial cmds/handle conn))
+                         (-> (partial cmds/handle conn)
+                             (wrap-log :cmd/key :cmd/uuid :cmd/data :cmd/ctx
+                                       :cmd/params :cmd/meta)
+                             (wrap-thaw :cmd/params :cmd/meta)
+                             (wrap-deserialize :cmd/data :cmd/ctx)
+                             (wrap-mapify :db/id :cmd/key :cmd/uuid :cmd/meta
+                                          :cmd/id :cmd/params :cmd/status
+                                          :cmd/data :cmd/ctx))
                          8192)
   :stop (close-observer! listener cmd-processor))
 
@@ -117,25 +150,26 @@
 
 (def msg-extractor (partial extract-by-attr :msg/key))
 
-(defstate msg-logger
-  "Logs all `msg`s as they're received."
-  :start (make-observer! listener
-                         msg-extractor
-                         (wrap-thaw-msg log-msgs))
-  :stop (close-observer! listener msg-logger))
+(defn wrap-msg [handler]
+  (-> handler
+      (wrap-log :msg/key :msg/uuid :msg/data
+                :msg/params)
+      (wrap-thaw :msg/params)
+      (wrap-deserialize :msg/data)
+      (wrap-mapify :db/id :msg/key :msg/uuid :msg/data :msg/params)))
 
 (defstate slack
   "Sends Slack messages for matching `msg`."
   :start (make-observer! listener
                          msg-extractor
-                         (wrap-thaw-msg (partial slack/handle conn)))
+                         (wrap-msg (partial slack/handle conn)))
   :stop (close-observer! listener slack))
 
 (defstate mailer
   "Sends emails for matching `msg`."
   :start (make-observer! listener
                          msg-extractor
-                         (wrap-thaw-msg (partial mailer/handle conn)))
+                         (wrap-msg (partial mailer/handle conn)))
   :stop (close-observer! listener mailer))
 
 (comment

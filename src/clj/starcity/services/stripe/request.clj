@@ -1,7 +1,7 @@
 (ns starcity.services.stripe.request
   (:require [cheshire.core :as json]
             [org.httpkit.client :as http]
-            [starcity.config.stripe :as config]
+            [starcity.config :as config :refer [config]]
             [starcity.services.codec :refer [form-encode]]
             [plumbing.core :refer [assoc-when]]
             [taoensso.timbre :as t]))
@@ -54,7 +54,7 @@
                      :headers    (assoc-when
                                   {"Accept" "application/json"}
                                   "Stripe-Account" managed-account)
-                     :basic-auth [config/secret-key ""]}
+                     :basic-auth [(config/stripe-private-key config) ""]}
          [k params] (params-for method params)]
      (if cb
        ;; NOTE: The error handling doesn't work here, since the exception is

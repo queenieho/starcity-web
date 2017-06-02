@@ -6,16 +6,21 @@
             [plumbing.core :as plumbing]
             [starcity.models
              [account :as account]
+             [address :as address]
+             [application :as application]
              [cmd :as cmd]
              [msg :as msg]
              [note :as note]
              [rent-payment :as rent-payment]]
             [starcity.models.stripe.customer :as customer]
             [starcity.observers.cmds.stripe :as stripe]
+            [starcity.services
+             [community-safety :as community-safety]
+             [weebly :as weebly]]
             [starcity.services.stripe.customer :as customer-service]
-            [starcity.services.weebly :as weebly]
             [starcity.util.async :refer [<!!?]]
-            [taoensso.timbre :as timbre]))
+            [taoensso.timbre :as timbre]
+            [clojure.string :as string]))
 
 ;; =============================================================================
 ;; Global
@@ -36,6 +41,40 @@
   @(d/transact conn [(account/create email password first-name last-name)
                      (msg/account-created email)
                      (cmd/successful cmd)]))
+
+;; =============================================================================
+;; Application
+;; =============================================================================
+
+(defn- background-check! [account]
+  (let [address     (-> account account/member-application application/address)
+        middle-name (account/middle-name account)]
+    (community-safety/background-check (:db/id account)
+                                       (account/first-name account)
+                                       (account/last-name account)
+                                       (account/email account)
+                                       (account/dob account)
+                                       (plumbing/assoc-when
+                                        {:address     {:city        (address/city address)
+                                                       :state       (address/state address)
+                                                       :postal-code (address/postal-code address)}}
+                                        :middle-name (if (string/blank? middle-name) nil middle-name)))))
+
+(defmethod handle :application/submit
+  [conn {{id :application-id} :cmd/data :as cmd}]
+  (try
+    (let [application (d/entity (d/db conn) id)
+          account     (application/account application)
+          check       (background-check! account)]
+      (timbre/info :application.submit/community-safety {:application id
+                                                         :account     (account/email account)})
+      @(d/transact conn [{:db/id                       (d/tempid :db.part/starcity)
+                          :community-safety/account    (:db/id account)
+                          :community-safety/report-url (community-safety/report-url check)}
+                         (cmd/successful cmd)]))
+    (catch Throwable t
+      (timbre/error t :application.submit/community-safety {:application id})
+      @(d/transact conn [(cmd/failed cmd)]))))
 
 ;; =============================================================================
 ;; Collaborators
@@ -136,7 +175,7 @@
     (let [stripe-customer (d/entity (d/db conn) stripe-customer-id)]
       ;; NOTE: This is synchronous right now, so this is ok -- when it becomes
       ;; async, well, you know.
-      (customer-service/delete! (customer/id stripe-customer))
+      (customer-service/delete! (:stripe-customer/customer-id stripe-customer))
       @(d/transact conn [(cmd/successful cmd)
                          [:db.fn/retractEntity stripe-customer-id]]))
     (catch Throwable t

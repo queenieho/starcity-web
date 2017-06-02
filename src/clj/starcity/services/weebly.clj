@@ -2,8 +2,7 @@
   (:require [clojure.core.async :refer [chan put! close!]]
             [org.httpkit.client :as http]
             [cheshire.core :as json]
-            [starcity.config.weebly :as config]
-            [starcity.environment :as env]))
+            [starcity.config :as config :refer [config]]))
 
 (defn- cb [c]
   (fn [{body :body}]
@@ -18,15 +17,15 @@
   NOTE: This is NOT a public api, and is likely to break at some point."
   [email]
   (let [c (chan 1)]
-    (if (env/is-production?)
+    (if (config/is-production? config)
       (http/post (format "https://promote.weebly.com/site/%s/leadForm/%s/lead"
-                         config/site-id config/form-id)
+                         (config/weebly-site-id config) (config/weebly-form-id config))
                  {:headers {"Accept"       "application/json"
                             "Content-Type" "application/json"}
                   :body    (json/encode {:email   email
-                                         :form_id config/form-id
+                                         :form_id (config/weebly-form-id config)
                                          :optIn   false
-                                         :site_id config/site-id})}
+                                         :site_id (config/weebly-site-id config)})}
                  (cb c))
       ;; It's not production, so succeed immediately
       (put! c {:message "TEST"}))
