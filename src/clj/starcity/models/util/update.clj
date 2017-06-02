@@ -9,16 +9,6 @@
 ;; Helpers
 ;; =============================================================================
 
-(defn- gen-tx
-  [params txfns]
-  (->> (keys params)
-       (reduce (fn [fns k]
-                 (if (contains? params k)
-                   (conj fns (get txfns k))
-                   fns))
-               [])
-       (apply juxt)))
-
 (defn- ents->ids
   [entities]
   (set
@@ -31,22 +21,13 @@
 ;; API
 ;; =============================================================================
 
-(defn make-update-fn
-  "TODO: documentation"
-  [txfns]
-  (fn [entity-id params]
-    (let [tx (->> ((gen-tx params txfns) (one (d/db conn) entity-id) params)
-                  (apply concat))]
-      @(d/transact conn (vec tx))
-      entity-id)))
-
 (defn replace-unique
   "Given an entity-id, cardinality many attribute and new values, generate a
-  transact to remove all values that are not present in `new-values' and add
+  transaction to remove all values that are not present in `new-values' and add
   any values that were not already present."
   [conn entity-id attribute new-values]
   (let [ent        (one (d/db conn) entity-id)
-        old-values (ents->ids (get ent attribute))
+        old-values (set (map :db/id (get ent attribute)))
         to-remove  (set/difference old-values (->> new-values
                                                    (map (comp :db/id (partial d/entity (d/db conn))))
                                                    set))]

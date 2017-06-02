@@ -8,8 +8,6 @@
 
  :nrepl {:port 7889}
 
- :session {:key "notactualsecret!"}
-
  :plaid {:env "tartan"}
 
  :mailchimp {:data-center "us13"

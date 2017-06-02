@@ -6,6 +6,7 @@
             [customs.access :as access]
             [ring.util.response :as response]
             [starcity.api :as api]
+            [starcity.config :as config]
             [starcity.controllers
              [admin :as admin]
              [apply :as apply]
@@ -35,7 +36,7 @@
   "Redirect to the appropriate URI based on logged-in user's role."
   [{:keys [identity] :as req}]
   (-> (case (:account/role identity)
-        :account.role/applicant  "/apply"
+        :account.role/applicant  config/apply-hostname
         :account.role/onboarding "/onboarding"
         :account.role/admin      "/admin"
         :account.role/member     "/me"

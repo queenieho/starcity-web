@@ -89,6 +89,7 @@
   "The application fee in cents."
   2500)
 
+;; TODO: Stripe Library!
 (defn- charge-application-fee!
   "Try to charge the user the $25 application fee, catching and logging any
   errors that occur, then rethrowing."

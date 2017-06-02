@@ -7,6 +7,8 @@
 
  :hostname "https://staging.joinstarcity.com"
 
+ :apply-hostname "https://apply.staging.joinstarcity.com"
+
  :plaid    {:webhook "https://staging.joinstarcity.com/webhooks/plaid"}
 
  :mailgun  {:domain "sandboxeec004e4d33845edaef9b962843713a7.mailgun.org"

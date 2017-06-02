@@ -95,12 +95,7 @@
                                        (response/content-type "text/html; charset=utf-8")
                                        (assoc :status 403))
     :else                          (let [current-url (:uri request)]
-                                     ;; NOTE: Treat /application as a special case,
-                                     ;; since it'll be triggered from the landing page
-                                     ;; most frequently
-                                     (if (= current-url "/apply")
-                                       (response/redirect "/signup")
-                                       (response/redirect (format "/login?next=%s" current-url))))))
+                                     (response/redirect (format "/login?next=%s" current-url)))))
 
 (defn app-handler [conn]
   (let [[optimize strategy]
@@ -119,7 +114,13 @@
         (wrap-multipart-params)
         (wrap-resource "public")
         (wrap-session {:store        (datomic-store conn :session->entity session->entity)
-                       :cookie-attrs {:secure (not (env/is-development?))}})
+                       :cookie-name  "starcity-session" ; TODO: config
+                       :cookie-attrs {:secure (env/is-production?)
+                                      :domain (cond
+                                                (env/is-production?) ".joinstarcity.com"
+                                                ;; TODO: This will break local builds!
+                                                (env/is-staging?)    ".staging.joinstarcity.com"
+                                                :else                "localhost")}})
         (wrap-exception-handling)
         (wrap-content-type)
         (wrap-not-modified))))

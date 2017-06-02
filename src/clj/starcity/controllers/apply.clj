@@ -10,8 +10,6 @@
 (html/defsnippet apply-content "templates/apply.html" [:section] []
   [:section] (html/append (snippets/loading-fullscreen)))
 
-(apply-content)
-
 (defn show
   "Show the Apply app."
   [req]
