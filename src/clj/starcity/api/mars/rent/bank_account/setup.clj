@@ -6,11 +6,9 @@
             [compojure.core :refer [defroutes GET POST]]
             [datomic.api :as d]
             [starcity
+             [config :as config :refer [config]]
              [countries :as countries]
              [datomic :refer [conn]]]
-            [starcity.config
-             [plaid :as pc]
-             [stripe :as sc]]
             [starcity.models
              [account :as account]
              [autopay :as autopay]]
@@ -43,9 +41,9 @@
   requesting user's account info."
   [req]
   (let [account (req/requester (d/db conn) req)]
-    (res/json-ok {:stripe    {:public-key sc/public-key}
-                  :plaid     {:env        pc/env
-                              :public-key pc/public-key}
+    (res/json-ok {:stripe    {:public-key (config/stripe-public-key config)}
+                  :plaid     {:env        (config/plaid-env config)
+                              :public-key (config/plaid-public-key config)}
                   :countries countries/countries
                   :setup     (autopay/setup conn account)})))
 

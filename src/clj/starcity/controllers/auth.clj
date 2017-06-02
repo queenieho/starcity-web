@@ -8,7 +8,7 @@
              [codec :refer [url-encode]]
              [response :as response]]
             [starcity
-             [config :as config]
+             [config :as config :refer [config]]
              [datomic :refer [conn]]]
             [starcity.controllers.common :as common]
             [starcity.models.account :as account]
@@ -32,7 +32,7 @@
       (mm/p
        (format "After logging in <a href='%s'>here</a>, please change your
        password to something more memorable by clicking on <b>My Account</b> in the upper right-hand corner of the page."
-               (format "%s/login?email=%s&next=/account" config/hostname (url-encode email))))
+               (format "%s/login?email=%s&next=/account" (config/hostname config) (url-encode email))))
       (mm/p "If this was not you, please contact us at <a href='mailto:team@joinstarcity.com>team@joinstarcity.com</a>.")
       (mm/signature)))))
 

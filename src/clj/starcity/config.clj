@@ -1,52 +1,197 @@
 (ns starcity.config
-  (:require [clojure.java.io :as io]
-            [clojure.edn :as edn]
-            [me.raynes.fs :as fs]
-            [taoensso.timbre :as timbre :refer [warn info]]
-            [starcity.environment :refer [environment]]
-            [mount.core :as mount :refer [defstate]]))
+  (:require [aero.core :as aero]
+            [clojure.java.io :as io]
+            [mount.core :as mount :refer [defstate]]
+            [toolbelt.core :as tb]))
 
 ;; =============================================================================
-;; Constants
+;; Config Loader/State
+;; =============================================================================
 
-(def ^:private +config-dir+ "config/")
-(def ^:private +secrets-file+ "~/.starcity-web-secrets.edn")
+(defstate config
+  :start (-> (io/resource "config.edn")
+             (aero/read-config {:resolver aero/root-resolver
+                                :profile  (:env (mount/args))})))
 
 ;; =============================================================================
-;; Helpers
+;; Selectors
+;; =============================================================================
 
-(defn- config-file [filename]
-  (str +config-dir+ filename))
+(defn is-development?
+  [config]
+  (= :dev (:env (mount/args))))
 
-(defn- config-for-environment [environment]
-  (config-file (str (name environment) ".edn")))
-
-(defn- read-config [filename]
-  (-> filename io/resource slurp edn/read-string))
-
-(defn- read-secrets [secrets-file]
-  (let [filename (fs/expand-home secrets-file)
-        f        (fs/file filename)]
-    (info "Attempting to read secrets from file:" filename)
-    (try
-      (edn/read-string (slurp f))
-      (catch Exception e
-        (warn "Exception encountered while attempting to read secrets file! Does it exist?" e)
-        {}))))
-
-(defn- load-config [environment]
-  (assert (#{:production :development :staging} environment)
-          (format "Environment must be one of #{:production :development :staging}, not %s!" environment))
-  (let [defaults (read-config (config-file "config.edn"))]
-    (-> (merge-with merge
-                    defaults
-                    (read-config (config-for-environment environment))
-                    (read-secrets +secrets-file+))
-        (assoc :environment environment))))
+(defn is-production?
+  [config]
+  (= :prod (:env (mount/args))))
 
 ;; =============================================================================
-;; API
+;; Webserver
 
-(defstate config :start (load-config environment) :stop :noop)
-(defstate hostname :start (:hostname config) :stop :noop)
-(defstate data-dir :start (:data-dir config) :stop :noop)
+(defn webserver-port
+  "Port to start the webserver on."
+  [config]
+  (tb/str->int (get-in config [:webserver :port])))
+
+(defn session-name
+  "The name of the session cookie."
+  [config]
+  (get-in config [:webserver :session :name]))
+
+(defn secure-sessions?
+  "Should sessions be secure?"
+  [config]
+  (get-in config [:webserver :session :secure]))
+
+(defn session-domain
+  "The domain for the session cookie."
+  [config]
+  (get-in config [:webserver :session :domain]))
+
+;; =============================================================================
+;; Datomic
+
+(defn ^{:deprecated "1.7.0"} datomic-part
+  "The Datomic partition.
+
+  DEPRECATED: will remove after the transactor specifies our desired partition
+  as its default."
+  [config]
+  (get-in config [:datomic :part]))
+
+(defn datomic-uri
+  "URI of the Datomic database connection."
+  [config]
+  (get-in config [:datomic :uri]))
+
+;; =============================================================================
+;; nrepl
+
+(defn nrepl-port
+  "Port to start the nrepl server on."
+  [config]
+  (tb/str->int (get-in config [:nrepl :port])))
+
+;; =============================================================================
+;; Hosts
+
+(defn hostname
+  "The hostname of this server."
+  [config]
+  (get-in config [:hosts :this]))
+
+(defn apply-hostname
+  "The hostname of the apply service."
+  [config]
+  (get-in config [:hosts :apply]))
+
+;; =============================================================================
+;; Logs
+
+(defn log-level
+  [config]
+  (get-in config [:log :level]))
+
+(defn log-appender
+  "The timbre appender to use."
+  [config]
+  (get-in config [:log :appender]))
+
+(defn log-file
+  "The file to log to."
+  [config]
+  (get-in config [:log :file]))
+
+;; =============================================================================
+;; Stripe
+
+(defn stripe-public-key
+  [config]
+  (get-in config [:secrets :stripe :public-key]))
+
+(defn stripe-private-key
+  [config]
+  (get-in config [:secrets :stripe :secret-key]))
+
+;; =============================================================================
+;; Weebly
+
+(defn weebly-site-id
+  [config]
+  (get-in config [:secrets :weebly :site-id]))
+
+(defn weebly-form-id
+  [config]
+  (get-in config [:secrets :weebly :form-id]))
+
+;; =============================================================================
+;; Slack
+
+(defn slack-client-id
+  [config]
+  (get-in config [:secrets :slack :client-id]))
+
+(defn slack-secret-key
+  [config]
+  (get-in config [:secrets :slack :client-secret]))
+
+(defn slack-webhook-url
+  [config]
+  (get-in config [:secrets :slack :webhook]))
+
+(defn slack-username
+  [config]
+  (get-in config [:slack :username]))
+
+;; =============================================================================
+;; Community Safety
+
+(defn community-safety-api-key
+  [config]
+  (get-in config [:secrets :community-safety :api-key]))
+
+;; =============================================================================
+;; Mailgun
+
+(defn mailgun-domain
+  [config]
+  (get-in config [:mailgun :domain]))
+
+(defn mailgun-sender
+  [config]
+  (get-in config [:mailgun :sender]))
+
+(defn mailgun-api-key
+  [config]
+  (get-in config [:mailgun :api-key]))
+
+;; =============================================================================
+;; Plaid
+
+(defn plaid-env
+  [config]
+  (get-in config [:plaid :env]))
+
+(defn plaid-webhook-url
+  [config]
+  (get-in config [:plaid :webhook]))
+
+(defn plaid-client-id
+  [config]
+  (get-in config [:plaid :client-id]))
+
+(defn plaid-secret-key
+  [config]
+  (get-in config [:plaid :secret-key]))
+
+(defn plaid-public-key
+  [config]
+  (get-in config [:plaid :public-key]))
+
+;; =============================================================================
+;; Misc
+
+(defn file-data-dir
+  "The directory to store file data."
+  [config]
+  (get-in config [:data-dir]))

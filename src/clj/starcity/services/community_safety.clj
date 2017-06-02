@@ -1,12 +1,14 @@
 (ns starcity.services.community-safety
-  (:require [starcity.config.community-safety :as config]
+  (:require [cheshire.core :as json]
+            [clj-time
+             [coerce :as c]
+             [core :as t]]
+            [clojure
+             [spec :as s]
+             [string :as string]]
             [org.httpkit.client :as http]
-            [cheshire.core :as json]
-            [plumbing.core :refer [assoc-when]]
-            [clj-time.coerce :as c]
-            [clj-time.core :as t]
-            [starcity.spec]
-            [clojure.spec :as s]))
+            [plumbing.core :as plumbing]
+            [starcity.config :as config :refer [config]]))
 
 ;; =============================================================================
 ;; Helpers
@@ -17,7 +19,7 @@
   (-> @(http/post (format "https://api.communitysafety.goodhire.com/v1/%s" endpoint)
                   {:body    (json/generate-string params)
                    :headers {"Content-Type"  "application/json"
-                             "Authorization" (format "ApiKey %s" config/api-key)}})
+                             "Authorization" (format "ApiKey %s" (config/community-safety-api-key config))}})
       (update-in [:body] json/parse-string true)))
 
 (s/fdef community-safety-request
@@ -31,13 +33,14 @@
      :BirthDay   (t/day dt)}))
 
 ;; =============================================================================
-;; API
+;; Actions
 ;; =============================================================================
 
-(s/def ::middle-name :starcity.spec/non-empty-string)
-(s/def ::city :starcity.spec/non-empty-string)
-(s/def ::state :starcity.spec/non-empty-string)
-(s/def ::postal-code :starcity.spec/non-empty-string)
+(s/def ::non-empty-string (s/and string? (comp not string/blank?)))
+(s/def ::middle-name ::non-empty-string)
+(s/def ::city ::non-empty-string)
+(s/def ::state ::non-empty-string)
+(s/def ::postal-code ::non-empty-string)
 (s/def ::address
   (s/keys :req-un [::city ::state ::postal-code]))
 (s/def ::background-check-opts
@@ -54,15 +57,25 @@
                                               :LastName  last-name
                                               :Email     email}
                                              (merge (dob-params dob))
-                                             (assoc-when :MiddleName middle-name
-                                                         :City city
-                                                         :State state
-                                                         :ZipCode postal-code))))))
+                                             (plumbing/assoc-when
+                                              :MiddleName middle-name
+                                              :City city
+                                              :State state
+                                              :ZipCode postal-code))))))
 
 (s/fdef background-check
         :args (s/cat :account-id integer?
-                     :first-name :starcity.spec/non-empty-string
-                     :last-name :starcity.spec/non-empty-string
-                     :email :starcity.spec/non-empty-string
-                     :dob :starcity.spec/date
+                     :first-name ::non-empty-string
+                     :last-name ::non-empty-string
+                     :email ::non-empty-string
+                     :dob inst?
                      :opts ::background-check-opts))
+
+;; =============================================================================
+;; Selectors
+;; =============================================================================
+
+(defn report-url
+  "The URL of the background check report."
+  [background-check-response]
+  (get-in background-check-response [:headers :location]))

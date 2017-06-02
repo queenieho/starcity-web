@@ -1,4 +1,4 @@
-(defproject starcity "1.6.5"
+(defproject starcity "1.7.0-SNAPSHOT"
   :description "The web app for https://joinstarcity.com"
   :url "https://joinstarcity.com"
   :license {:name "Eclipse Public License"
@@ -36,7 +36,7 @@
                  [mount "0.1.11"]
                  ;; Datomic
                  [io.rkn/conformity "0.4.0"]
-                 [starcity/blueprints "1.5.0" :exclusions [com.datomic/datomic-free]]
+                 [starcity/blueprints "1.6.0" :exclusions [com.datomic/datomic-free]]
                  [com.datomic/datomic-pro "0.9.5544" :exclusions [com.google.guava/guava]]
                  [org.postgresql/postgresql "9.4.1211"]
                  ;; CLJS
@@ -48,8 +48,8 @@
                  [secretary "1.2.3"]    ; phasing out (bidi)
                  [venantius/accountant "0.1.7"]
                  [day8.re-frame/http-fx "0.1.2"]
-                 [hiccups "0.3.0"]
                  ;; Utility
+                 [aero "1.1.2"]
                  [dire "0.5.4"]
                  [potemkin "0.4.3"]
                  [me.raynes/fs "1.4.6"]
