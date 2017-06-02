@@ -5,8 +5,7 @@
             [mailgun.mail :as mail]
             [org.httpkit.client :as http]
             [plumbing.core :refer [assoc-when]]
-            [starcity.config.mailgun :as config]
-            [starcity.environment :refer [environment]]
+            [starcity.config :as config :refer [config]]
             [taoensso.timbre :as timbre]
             [clojure.spec :as s]
             [toolbelt.predicates :as p]))
@@ -36,10 +35,11 @@
 ;; =============================================================================
 
 (defn ^{:deprecated "1.2.0"} send-email
-  [to subject content & {:keys [from cb] :or {from config/default-sender}}]
-  (let [creds   {:key config/api-key :domain config/domain}
+  [to subject content & {:keys [from cb] :or {from (config/mailgun-sender config)}}]
+  (let [creds   {:key    (config/mailgun-api-key config)
+                 :domain (config/mailgun-domain config)}
         payload {:from    from
-                 :to      (if (= environment :production) to "josh@joinstarcity.com")
+                 :to      (if (config/is-production? config) to "josh@joinstarcity.com")
                  :subject subject
                  :html    content}]
     (if cb
@@ -78,9 +78,10 @@
   "Send an email asynchronously."
   [to subject msg & {:keys [from uuid]}]
   (let [out-c (chan 1)
-        creds {:key config/api-key :domain config/domain}
-        data  {:from    (or from config/default-sender)
-               :to      (if (= environment :production) to "josh@joinstarcity.com")
+        creds {:key    (config/mailgun-api-key config)
+               :domain (config/mailgun-domain config)}
+        data  {:from    (or from (config/mailgun-sender config))
+               :to      (if (config/is-production? config) to "josh@joinstarcity.com")
                :subject subject
                :html    msg}]
     (send-mail-async creds data

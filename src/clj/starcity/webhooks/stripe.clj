@@ -2,10 +2,9 @@
   (:require [cheshire.core :as json]
             [datomic.api :as d]
             [org.httpkit.client :as http]
+            [starcity.config :as config :refer [config]]
             [ring.util.response :as response]
-            [starcity
-             [datomic :refer [conn]]
-             [environment :refer [is-production?]]]
+            [starcity.datomic :refer [conn]]
             [starcity.models.cmd :as cmd]))
 
 ;; =============================================================================
@@ -17,7 +16,7 @@
   (let [{:keys [id type livemode user_id]} params]
     (when-not (d/entity (d/db conn) [:cmd/id id])
       ;; If we're in production...
-      (if (is-production?)
+      (if (config/is-production? config)
         ;; Only accept events that are sent in `livemode`
         (when livemode
           @(d/transact conn [(cmd/stripe-webhook-event id type user_id)]))

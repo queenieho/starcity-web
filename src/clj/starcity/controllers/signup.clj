@@ -11,7 +11,7 @@
             [net.cgrand.enlive-html :as html]
             [ring.util.response :as response]
             [starcity.controllers.common :as common]
-            [starcity.config :as config]
+            [starcity.config :as config :refer [config]]
             [starcity.datomic :refer [conn]]
             [starcity.models
              [account :as account]
@@ -137,7 +137,7 @@
             (do
               @(d/transact conn [(auth/activate acct)])
               (timbre/info :account/activated {:email email})
-              (-> (response/redirect config/apply-hostname)
+              (-> (response/redirect (config/apply-hostname config))
                   (assoc :session session))))
           ;; hashes don't match
           (show-invalid-activation req))))))

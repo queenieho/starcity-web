@@ -24,9 +24,8 @@
             [ring.middleware.session.datomic :refer [datomic-store session->entity]]
             [ring.util.response :as response]
             [starcity
-             [config :refer [config]]
+             [config :as config :refer [config]]
              [datomic :refer [conn]]
-             [environment :as env]
              [routes :refer [app-routes]]]
             [taoensso.timbre :as t]))
 
@@ -73,7 +72,6 @@
 
    ;;; CLJS apps
    "admin.js"      ["/js/cljs/admin.js"]
-   "apply.js"      ["/js/cljs/apply.js"]
    "mars.js"       ["/js/cljs/mars.js"]
    "onboarding.js" ["/js/cljs/onboarding.js"]
 
@@ -99,7 +97,7 @@
 
 (defn app-handler [conn]
   (let [[optimize strategy]
-        (if (env/is-development?)
+        (if (config/is-development? config)
           [optimizations/none strategies/serve-live-assets]
           [optimizations/all strategies/serve-frozen-assets])]
     (-> app-routes
@@ -114,13 +112,9 @@
         (wrap-multipart-params)
         (wrap-resource "public")
         (wrap-session {:store        (datomic-store conn :session->entity session->entity)
-                       :cookie-name  "starcity-session" ; TODO: config
-                       :cookie-attrs {:secure (env/is-production?)
-                                      :domain (cond
-                                                (env/is-production?) ".joinstarcity.com"
-                                                ;; TODO: This will break local builds!
-                                                (env/is-staging?)    ".staging.joinstarcity.com"
-                                                :else                "localhost")}})
+                       :cookie-name  (config/session-name config)
+                       :cookie-attrs {:secure (config/secure-sessions? config)
+                                      :domain (config/session-domain config)}})
         (wrap-exception-handling)
         (wrap-content-type)
         (wrap-not-modified))))
@@ -129,16 +123,14 @@
 ;; API
 ;; =============================================================================
 
-(defn- start-server
-  [{:keys [port] :as conf}]
+(defn- start-server [port]
   (t/info ::start {:port port})
   (run-server (app-handler conn) {:port port :max-body (* 20 1024 1024)}))
 
-(defn- stop-server
-  [server]
+(defn- stop-server [server]
   (t/info ::stop)
   (server))
 
 (defstate web-server
-  :start (start-server (:webserver config))
+  :start (start-server (config/webserver-port config))
   :stop  (stop-server web-server))

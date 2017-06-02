@@ -6,10 +6,9 @@
             [customs.access :as access]
             [ring.util.response :as response]
             [starcity.api :as api]
-            [starcity.config :as config]
+            [starcity.config :as config :refer [config]]
             [starcity.controllers
              [admin :as admin]
-             [apply :as apply]
              [auth :as auth]
              [careers :as careers]
              [collaborate :as collaborate]
@@ -36,7 +35,7 @@
   "Redirect to the appropriate URI based on logged-in user's role."
   [{:keys [identity] :as req}]
   (-> (case (:account/role identity)
-        :account.role/applicant  config/apply-hostname
+        :account.role/applicant  (config/apply-hostname config)
         :account.role/onboarding "/onboarding"
         :account.role/admin      "/admin"
         :account.role/member     "/me"
@@ -88,13 +87,6 @@
              (GET   "/complete" [] signup/show-complete)
              (GET   "/activate" [] signup/activate))
             {:handler  access/unauthenticated-user
-             :on-error (fn [req _] (redirect-by-role req))}))
-
-  (context "/apply" []
-           (restrict
-            (routes
-             (GET "*" [] apply/show))
-            {:handler  {:and [access/authenticated-user (access/user-isa :account.role/applicant)]}
              :on-error (fn [req _] (redirect-by-role req))}))
 
   ;; TODO: Disabling until I have an idea of how to better accomplish this.

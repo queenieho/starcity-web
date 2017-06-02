@@ -3,7 +3,7 @@
              [set :as set]
              [string :as string]]
             [datomic.api :as d]
-            [starcity.config :as config]
+            [starcity.config :as config :refer [config]]
             [starcity.models
              [account :as account]
              [charge :as charge]
@@ -33,13 +33,13 @@
 (defn- unit-link [unit]
   (let [property (unit/property unit)
         url      (format "%s/admin/properties/%s/units/%s"
-                         config/hostname
+                         (config/hostname config)
                          (:db/id property)
                          (:db/id unit))]
     (sm/link url (:unit/name unit))))
 
 (defn- property-link [property]
-  (let [url (format "%s/admin/properties/%s" config/hostname (:db/id property))]
+  (let [url (format "%s/admin/properties/%s" (config/hostname config) (:db/id property))]
     (sm/link url (property/name property))))
 
 (defmethod handle msg/approved-key
@@ -81,7 +81,7 @@
   [conn {{id :application-id} :msg/data :as msg}]
   (let [account (-> (d/entity (d/db conn) id) application/account)
         title   (format "%s's application" (account/full-name account))
-        link    (format "%s/admin/accounts/%s" config/hostname (:db/id account))]
+        link    (format "%s/admin/accounts/%s" (config/hostname config) (:db/id account))]
     (slack/community
      (sm/msg
       (sm/success
@@ -94,7 +94,7 @@
 ;; =============================================================================
 
 (defn- account-link [account]
-  (let [url (format "%s/admin/accounts/%s" config/hostname (:db/id account))]
+  (let [url (format "%s/admin/accounts/%s" (config/hostname config) (:db/id account))]
     (sm/link url (account/full-name account))))
 
 (defmethod handle msg/promoted-key
@@ -352,7 +352,7 @@
 ;; =============================================================================
 
 (defn- note-url [note]
-  (format "%s/admin/accounts/%s/notes" config/hostname (-> note note/account :db/id)))
+  (format "%s/admin/accounts/%s/notes" (config/hostname config) (-> note note/account :db/id)))
 
 (defmethod handle msg/note-created-key
   [conn {{:keys [note/uuid notify?]} :msg/params :as msg}]

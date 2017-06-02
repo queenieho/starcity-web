@@ -2,7 +2,7 @@
   (:require [datomic.api :as d]
             [hiccup.core :refer [html]]
             [ring.util.codec :refer [url-encode]]
-            [starcity.config :as config]
+            [starcity.config :as config :refer [config]]
             [starcity.models
              [account :as account]
              [application :as application]
@@ -39,7 +39,7 @@
       (mm/greeting (account/first-name account))
       (mm/p "Thanks for signing up!")
       (mm/p (format "<a href='%s/signup/activate?email=%s&hash=%s'>Click here to activate your account</a> and apply for a home."
-                    config/hostname (url-encode email) (account/activation-hash account)))
+                    (config/hostname config) (url-encode email) (account/activation-hash account)))
       (mm/signature))
      :from ms/noreply
      :uuid (:msg/uuid msg))))
@@ -68,7 +68,7 @@
       your rent payments and the remainder of your security deposit (if
       applicable). You can choose to <a href='%s/me/account/rent'>enable
       autopay</a> or make individual rent payments going forward."
-                    config/hostname config/hostname))
+                    (config/hostname config) (config/hostname config)))
       (mm/p "Please let us know if you have any questions about the move-in
       process or need assistance navigating the dashboard.")
       (mm/signature "Meg" "Head of Community"))
@@ -110,7 +110,7 @@
     (mm/greeting (account/first-name account))
     (mm/p "It's that time again! Your rent payment is <b>due by the 5th</b>.")
     (mm/p "Please log into your member dashboard "
-          [:a {:href (str config/hostname "/me/account/rent")} "here"]
+          [:a {:href (str (config/hostname config) "/me/account/rent")} "here"]
           " to pay your rent with ACH. <b>If you'd like to stop getting these reminders, sign up for autopay while you're there!</b>")
     (mm/signature))
    :from ms/noreply
@@ -195,10 +195,10 @@
       ;; in onboarding.
       (if (deposit/partially-paid? deposit)
         (mm/p "Please log back in to your member dashboard by clicking "
-              [:a {:href (format "%s/me/account/rent" config/hostname)} "this link"]
+              [:a {:href (format "%s/me/account/rent" (config/hostname config))} "this link"]
               " to retry your payment.")
         (mm/p "Please log back in to Starcity by clicking "
-              [:a {:href (format "%s/onboarding" config/hostname)} "this link"]
+              [:a {:href (format "%s/onboarding" (config/hostname config))} "this link"]
               " to re-enter your bank account information."))
       (mm/signature))
      :from ms/noreply
@@ -213,7 +213,7 @@
       (mm/greeting (account/first-name account))
       (mm/p "Unfortunately your rent payment has failed to go through.")
       (mm/p (format "Please log back into your <a href='%s/me/account/rent'>member dashboard</a> and try your payment again."
-                    config/hostname))
+                    (config/hostname config)))
       (mm/signature))
      :from ms/noreply
      :uuid uuid)))
@@ -228,8 +228,8 @@
 
 (defn- link [account]
   (cond
-    (account/onboarding? account) (format "%s/onboarding" config/hostname)
-    (account/member? account)     (format "%s/me/account/rent" config/hostname)
+    (account/onboarding? account) (format "%s/onboarding" (config/hostname config))
+    (account/member? account)     (format "%s/me/account/rent" (config/hostname config))
     :otherwise                    (throw (ex-info "Wrong role."
                                                   {:role (account/role account)}))))
 
@@ -306,7 +306,7 @@
         (mm/p "We'll retry again in the next couple of days. In the meantime, please ensure that you have sufficient funds in the account that you have linked to Autopay.")
         (mm/p "We have now tried to charge you three times, and <b>we will not try again; you will need to make your payment another way.</b>"))
       (when-not (will-retry? payment)
-        (mm/p (format "<b>If you wish to use Autopay in the future, you will need to subscribe to it in your <a href='%s/me/account/rent'>dashboard</a> again.</b>" config/hostname)))
+        (mm/p (format "<b>If you wish to use Autopay in the future, you will need to subscribe to it in your <a href='%s/me/account/rent'>dashboard</a> again.</b>" (config/hostname config))))
       (mm/signature))
      :from ms/noreply
      :uuid (:msg/uuid msg))))
@@ -346,7 +346,7 @@
       (mm/greeting (account/first-name account))
       (mm/p "This is a friendly reminder that, since you configured <b>autopay</b>, your first payment will be taking place on the <b>1st of the upcoming month</b>.")
       (mm/p "For more details, log in to your Starcity account "
-            [:a {:href (format "%s/me/account/rent" config/hostname)} "here"]
+            [:a {:href (format "%s/me/account/rent" (config/hostname config))} "here"]
             ".")
       (mm/signature))
      :from ms/noreply

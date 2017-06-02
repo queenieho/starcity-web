@@ -5,8 +5,7 @@
             [clojure.string :as str]
             [org.httpkit.client :as http]
             [plumbing.core :refer [assoc-when]]
-            [starcity.config.slack :as config]
-            [starcity.environment :refer [is-production?]]
+            [starcity.config :as config :refer [config]]
             [taoensso.timbre :as timbre]))
 
 ;; =============================================================================
@@ -22,7 +21,7 @@
   If we're in development, override the channel with the `debug-channel`."
   [opts channel]
   (if channel
-    (if (is-production?)
+    (if (config/is-production? config)
       (assoc opts :channel channel)
       (assoc opts :channel debug-channel))
     opts))
@@ -32,7 +31,7 @@
 
   If we're in development, override the channel with the `debug-channel`."
   [opts channel]
-  (if (is-production?)
+  (if (config/is-production? config)
     (assoc opts :channel channel)
     (assoc opts :channel debug-channel)))
 
@@ -42,10 +41,10 @@
 
 (defn ^{:deprecated "1.2.0"} send-message
   [text & {:keys [channel cb opts] :or {cb identity, opts {}}}]
-  (http/post config/webhook-url
+  (http/post (config/slack-webhook-url config)
              {:headers {"Content-Type" "application/json"}
               :body    (json/generate-string (-> {:text     text
-                                                  :username config/username}
+                                                  :username (config/slack-username config)}
                                                  (assoc-channel-when channel)
                                                  (merge opts)))}
              cb))
@@ -53,10 +52,10 @@
 (defn ^{:deprecated "1.2.0"} rich-message
   [title text & {:keys [channel cb opts] :or {cb identity, opts {}}}]
   (let [opts     (assoc opts :fallback (or (:fallback opts) text))
-        payload  (-> {:username    config/username
+        payload  (-> {:username    (config/slack-username config)
                       :attachments [(merge {:text text :title title} opts)]}
                      (assoc-channel-when channel))]
-    (http/post config/webhook-url
+    (http/post (config/slack-webhook-url config)
                {:headers {"Content-Type" "application/json"}
                 :body    (json/generate-string payload)}
                cb)))
@@ -72,9 +71,9 @@
 (defn send
   [{:keys [channel username] :or {channel debug-channel}} msg & {:keys [uuid]}]
   (let [out-c      (chan 1)
-        msg-params (-> {:username (or username config/username)}
+        msg-params (-> {:username (or username (config/slack-username config))}
                        (assoc-channel (->channel channel)))]
-    (http/post config/webhook-url
+    (http/post (config/slack-webhook-url config)
                {:keepalive 30000
                 :headers   {"Content-Type" "application/json"}
                 :body      (json/generate-string (merge msg msg-params))}

@@ -8,7 +8,7 @@
              [string :as string]]
             [org.httpkit.client :as http]
             [plumbing.core :as plumbing]
-            [starcity.config.community-safety :as config]))
+            [starcity.config :as config :refer [config]]))
 
 ;; =============================================================================
 ;; Helpers
@@ -19,7 +19,7 @@
   (-> @(http/post (format "https://api.communitysafety.goodhire.com/v1/%s" endpoint)
                   {:body    (json/generate-string params)
                    :headers {"Content-Type"  "application/json"
-                             "Authorization" (format "ApiKey %s" config/api-key)}})
+                             "Authorization" (format "ApiKey %s" (config/community-safety-api-key config))}})
       (update-in [:body] json/parse-string true)))
 
 (s/fdef community-safety-request

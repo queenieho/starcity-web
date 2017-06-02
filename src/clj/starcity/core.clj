@@ -1,15 +1,11 @@
 (ns starcity.core
   (:gen-class)
-  (:require [starcity.environment]
-            [starcity.server]
+  (:require [starcity.server]
             [starcity.countries]
             [starcity.datomic]
             [starcity.log]
             [starcity.nrepl]
-            [starcity.config]
-            [starcity.config.stripe]
             [starcity.observers]
-            [starcity.services.mailchimp]
             [starcity.services.mailgun]
             [starcity.scheduler]
             [clojure.tools.cli :refer [parse-opts]]
@@ -20,7 +16,7 @@
     :id :env
     :default :production
     :parse-fn keyword
-    :validate [#{:production :development :staging} "Must be one of #{production, staging, development}"]]])
+    :validate [#{:prod :dev :stage} "Must be one of #{prod dev stage"]]])
 
 (defn- exit [status msg]
   (System/exit status))
@@ -29,5 +25,4 @@
   (let [{:keys [options errors]} (parse-opts args cli-options)]
     (when errors
       (exit 1 (clojure.string/join "\n" errors)))
-    (-> (mount/swap {#'starcity.environment/environment (:env options)})
-        mount/start)))
+    (mount/start-with-args {:env (:env options)})))

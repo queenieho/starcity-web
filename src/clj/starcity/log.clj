@@ -2,9 +2,7 @@
   (:require [cheshire.core :as json]
             [clojure.spec :as s]
             [mount.core :as mount :refer [defstate]]
-            [starcity
-             [config :refer [config]]
-             [environment :refer [environment]]]
+            [starcity.config :as config :refer [config]]
             [taoensso.timbre :as timbre :refer [merge-config!]]
             [taoensso.timbre.appenders.3rd-party.rolling :as rolling]
             [taoensso.timbre.appenders.core :as appenders]))
@@ -13,13 +11,10 @@
 ;; Configuration
 ;; =============================================================================
 
-(defn- appenders-for-environment
-  [{:keys [logfile]}]
-  (let [default {:spit (appenders/spit-appender {:fname logfile})}]
-    (get {:production {:rolling (rolling/rolling-appender {:path logfile})}
-          :staging    {:rolling (rolling/rolling-appender {:path logfile})}}
-         environment
-         default)))
+(defn- appender [appender filename]
+  (case appender
+    :spit    {:spit (appenders/spit-appender {:fname filename})}
+    :rolling {:rolling (rolling/rolling-appender {:path filename})}))
 
 (s/def ::event-vargs
   (s/cat :event keyword?
@@ -50,17 +45,9 @@
       (event-vargs data event params))
     data))
 
-(defn- setup-logger
-  [{:keys [level logfile] :as conf}]
-  (timbre/debug ::start {:level level :file logfile})
-  (merge-config!
-   {:level      level
-    :middleware [wrap-event-format]
-    :appenders  (appenders-for-environment conf)}))
-
-(defstate logger :start (setup-logger (:log config)))
-
-(comment
-  (timbre/info (ex-info "Yikes!" {:data 42}) ::an-event {:message "A message."})
-
-  )
+(defstate logger
+  :start (timbre/merge-config!
+          {:level      (config/log-level config)
+           :middleware [wrap-event-format]
+           :appenders  (appender (config/log-appender config)
+                                 (config/log-file config))}))

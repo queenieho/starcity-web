@@ -9,8 +9,7 @@
             [starcity.seed :as seed]
             [starcity.log]
             [starcity.nrepl]
-            [starcity.config]
-            [starcity.environment]
+            [starcity.config :as config :refer [config]]
             [starcity.scheduler]
             [starcity.countries]
             [net.cgrand.reload]
@@ -39,14 +38,15 @@
   "There's a more robust way to do this, but it's not really necessary ATM."
   []
   (= "datomic:mem://localhost:4334/starcity"
-     (:uri starcity.config.datomic/datomic)))
+     (config/datomic-uri config)))
 
 (defstate seed
   :start (when (in-memory-db?)
            (timbre/debug "seeding dev database...")
            (seed/seed conn)))
 
-(def start mount/start)
+(defn start []
+  (mount/start-with-args {:env :dev}))
 
 (def stop mount/stop)
 
@@ -67,9 +67,6 @@
 
 (defn admin-repl []
   (ra/cljs-repl "admin"))
-
-(defn apply-repl []
-  (ra/cljs-repl "apply"))
 
 (defn onboarding-repl []
   (ra/cljs-repl "onboarding"))

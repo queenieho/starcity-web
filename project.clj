@@ -49,6 +49,7 @@
                  [venantius/accountant "0.1.7"]
                  [day8.re-frame/http-fx "0.1.2"]
                  ;; Utility
+                 [aero "1.1.2"]
                  [dire "0.5.4"]
                  [potemkin "0.4.3"]
                  [me.raynes/fs "1.4.6"]

@@ -4,7 +4,7 @@
              [snippets :as snippets]]
             [net.cgrand.enlive-html :as html]
             [starcity.auth :as auth]
-            [starcity.config.stripe :refer [public-key]]
+            [starcity.config :as config :refer [config]]
             [starcity.controllers.common :as common]
             [starcity.models
              [account :as account]
@@ -32,7 +32,7 @@
                     :content (content)
                     :navbar (snippets/app-navbar)
                     :chatlio? true
-                    :json [["stripe" {:key public-key}]
+                    :json [["stripe" {:key (config/stripe-public-key config)}]
                            ["account" {:move-in      (move-in account)
                                        :full-deposit (full-deposit account)
                                        :llc          (llc account)

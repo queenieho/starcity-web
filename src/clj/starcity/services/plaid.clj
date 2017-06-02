@@ -1,7 +1,7 @@
 (ns starcity.services.plaid
   (:require [starcity.services.common :as common]
             [starcity.services.codec :refer [form-encode]]
-            [starcity.config :refer [config]]
+            [starcity.config :as config :refer [config]]
             [org.httpkit.client :as http]
             [taoensso.timbre :as timbre]
             [cheshire.core :as json]
@@ -30,16 +30,15 @@
   ([req-config token params]
    (plaid-request req-config token params nil))
   ([{:keys [endpoint token-key webhook?] :or {token-key :access_token}} token params cb]
-   (let [{:keys [secret client-id env webhook]} (:plaid config)
-         options                                (when webhook? {:webhook webhook})
-         url                                    (format "%s/%s" (base-url env) endpoint)
-         body                                   (-> (merge {:secret    secret
-                                                            :client_id client-id
-                                                            token-key  token}
-                                                           params)
-                                                    (assoc-when :options options)
-                                                    json/generate-string)
-         req-map                                {:body body :headers {"Content-Type" "application/json"}}]
+   (let [options (when webhook? {:webhook (config/plaid-webhook-url config)})
+         url     (format "%s/%s" (base-url (config/plaid-env config)) endpoint)
+         body    (-> (merge {:secret    (config/plaid-secret-key config)
+                             :client_id (config/plaid-client-id config)
+                             token-key  token}
+                            params)
+                     (assoc-when :options options)
+                     json/generate-string)
+         req-map {:body body :headers {"Content-Type" "application/json"}}]
      (if cb
        (http/post url req-map (comp cb common/parse-json-body))
        (-> @(http/post url req-map)

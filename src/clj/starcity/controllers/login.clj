@@ -9,7 +9,7 @@
             [net.cgrand.enlive-html :as html]
             [ring.util.response :as response]
             [starcity.controllers.common :as common]
-            [starcity.config :as config]
+            [starcity.config :as config :refer [config]]
             [starcity.datomic :refer [conn]]
             [starcity.models.account :as account]
             [starcity.util.validation :as validation]))
@@ -47,7 +47,7 @@
   (cond
     (not (empty? (:next params))) (:next params)
     (account/admin? account)      "/admin"
-    (account/applicant? account)  config/apply-hostname
+    (account/applicant? account)  (config/apply-hostname config)
     (account/onboarding? account) "/onboarding"
     :otherwise                    "/me"))
 

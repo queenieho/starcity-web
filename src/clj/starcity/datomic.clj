@@ -1,8 +1,7 @@
 (ns starcity.datomic
   (:require [datomic.api :as d]
             [mount.core :as mount :refer [defstate]]
-            [starcity.environment :as env]
-            [starcity.config.datomic :as config]
+            [starcity.config :as config :refer [config]]
             [starcity.datomic.seed :as seed]
             [blueprints.core :as db]
             [taoensso.timbre :as timbre]
@@ -12,16 +11,16 @@
 ;; Helpers
 ;; =============================================================================
 
-(defn- new-connection [{:keys [uri] :as conf}]
-  (timbre/info ::connecting {:uri uri})
+(defn- new-connection [uri]
+  (timbre/info ::connecting {})
   (d/create-database uri)
   (let [conn (d/connect uri)]
-    (db/conform-db conn config/partition)
-    (seed/seed conn env/environment)
+    (db/conform-db conn (config/datomic-part config))
+    (seed/seed conn (:env (mount/args)))
     conn))
 
-(defn- disconnect [{:keys [uri]} conn]
-  (timbre/info ::disconnecting {:uri uri})
+(defn- disconnect [uri conn]
+  (timbre/info ::disconnecting {})
   (d/release conn))
 
 (defn- install-report-queue [conn c]
@@ -40,8 +39,8 @@
 ;; =============================================================================
 
 (defstate conn
-  :start (new-connection config/datomic)
-  :stop  (disconnect config/datomic conn))
+  :start (new-connection (config/datomic-uri config))
+  :stop  (disconnect (config/datomic-uri config) conn))
 
 (def ^:private buffer-size
   "Will likely want to make this configurable at some point."
@@ -59,11 +58,4 @@
 (defstate listener :start (a/mult tx-report-ch))
 
 (defn tempid []
-  (d/tempid config/partition))
-
-(comment
-  (a/go
-    (while true
-      (let [v (a/<! tx-report-ch)])))
-
-  )
+  (d/tempid (config/datomic-part config)))
