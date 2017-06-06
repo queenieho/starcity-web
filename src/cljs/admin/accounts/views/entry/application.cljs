@@ -56,7 +56,8 @@
    :fitness/free-time    "What do you like to do in your free time?"
    :fitness/dealbreakers "Do you have any dealbreakers?"
    :fitness/experience   "Describe your past experience(s) living in shared spaces."
-   :fitness/skills       "How will you contribute to the community?"})
+   :fitness/skills       "How will you contribute to the community?"
+   :fitness/conflicts    "Please describe how you would resolve a conflict between yourself and another member of the home."})
 
 (defn- question-answer [key answer]
   [:div.content
@@ -76,7 +77,8 @@
             :fitness/free-time
             :fitness/dealbreakers
             :fitness/experience
-            :fitness/skills])))])))
+            :fitness/skills
+            :fitness/conflicts])))])))
 
 ;; =============================================================================
 ;; Approval
