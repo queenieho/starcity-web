@@ -86,7 +86,7 @@
      (sm/msg
       (sm/success
        (sm/title title link)
-       (sm/text (format "%s! Someone signed up! :partyparrot:" (rand-doge)))))
+       (sm/text (format "%s! Someone signed up! :partydoge:" (rand-doge)))))
      :uuid (:msg/uuid msg))))
 
 ;; =============================================================================
