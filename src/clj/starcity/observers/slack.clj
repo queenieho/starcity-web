@@ -51,7 +51,7 @@
         unit     (d/entity db unit-id)
         license  (d/entity db license-id)
         property (unit/property unit)]
-    (slack/community
+    (slack/crm
      (sm/msg
       (sm/info
        (sm/text
@@ -82,7 +82,7 @@
   (let [account (-> (d/entity (d/db conn) id) application/account)
         title   (format "%s's application" (account/full-name account))
         link    (format "%s/admin/accounts/%s" (config/hostname config) (:db/id account))]
-    (slack/community
+    (slack/crm
      (sm/msg
       (sm/success
        (sm/title title link)
@@ -101,7 +101,7 @@
   [conn {{account-id :account-id} :msg/params :as msg}]
   (let [account (d/entity (d/db conn) account-id)
         license (member-license/active conn account)]
-    (slack/community
+    (slack/crm
      (sm/msg
       (sm/info
        (sm/text (format "*%s* is now a member!" (account/full-name account)))
