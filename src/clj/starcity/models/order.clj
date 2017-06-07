@@ -47,6 +47,7 @@
         :args (s/cat :order p/entity?)
         :ret (s/or :nothing nil? :variant p/entity?))
 
+
 ;; =============================================================================
 ;; Queries
 ;; =============================================================================
@@ -142,12 +143,13 @@
 (defn clientize
   [order]
   (let [service (:order/service order)
+        desc    (if (string/blank? (desc order)) (service/desc service) (desc order))
         name    (if-let [vn (variant-name order)]
                   (str (service/name service) " - " (string/capitalize vn))
                   (service/name service))]
     {:id       (:db/id order)
      :name     name
-     :desc     (or (desc order) (service/desc service))
+     :desc     desc
      :price    (or (price order)
                    (-> order :order/variant :svc-variant/price)
                    (service/price service))
