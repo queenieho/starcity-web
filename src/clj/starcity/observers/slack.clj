@@ -114,8 +114,6 @@
 
 (defn- fmt-order [index order]
   (let [{:keys [name desc price quantity billed]} (order/clientize order)
-
-        ;; desc  (if (string/blank? desc) "no description" )
         price (if-some [p price] (str "$" price "/ea") "Quote")]
     (cond
       (some? quantity)
