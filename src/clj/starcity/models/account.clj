@@ -230,6 +230,8 @@
    (unit/rate unit license)
    :member-license.status/active))
 
+;; TODO: [6/6/17] Turn this into an event-style flow, like
+;; `:db.application/submit`
 (defn promote
   "Promote `account` to membership status."
   [account]
