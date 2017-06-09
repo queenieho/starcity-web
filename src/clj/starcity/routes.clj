@@ -63,73 +63,62 @@
   (POST "/newsletter"      [] newsletter/subscribe!)
 
   (context "/communities" []
-           (GET "/soma" [] communities/show-soma)
-           (GET "/mission" [] communities/show-mission))
+    (GET "/soma" [] communities/show-soma)
+    (GET "/mission" [] communities/show-mission))
 
   (GET "/forgot-password"  [] auth/show-forgot-password)
   (POST "/forgot-password" [] auth/forgot-password)
 
   (context "/login" []
-           (restrict
-            (routes
-             (GET  "/"           [] login/show)
-             (POST "/"           [] login/login))
-            {:handler  access/unauthenticated-user
-             :on-error (fn [req _] (redirect-by-role req))}))
+    (restrict
+        (routes
+         (GET  "/"           [] login/show)
+         (POST "/"           [] login/login))
+      {:handler  access/unauthenticated-user
+       :on-error (fn [req _] (redirect-by-role req))}))
 
   (ANY  "/logout"          [] auth/logout)
 
   (context "/signup" []
-           (restrict
-            (routes
-             (GET   "/"         [] signup/show-signup)
-             (POST  "/"         [] signup/signup)
-             (GET   "/complete" [] signup/show-complete)
-             (GET   "/activate" [] signup/activate))
-            {:handler  access/unauthenticated-user
-             :on-error (fn [req _] (redirect-by-role req))}))
-
-  ;; TODO: Disabling until I have an idea of how to better accomplish this.
-  #_(context "/settings" []
-           (restrict
-            (routes
-             (GET "/"          []
-                  (fn [_] (ring.util.response/redirect "/settings/change-password")))
-             (GET "/change-password"  [] settings/show-account-settings)
-             (POST "/change-password" [] settings/update-password))
-            {:handler  authenticated-user
-             :on-error (fn [req _] (redirect-by-role req))}))
+    (restrict
+        (routes
+         (GET   "/"         [] signup/show-signup)
+         (POST  "/"         [] signup/signup)
+         (GET   "/complete" [] signup/show-complete)
+         (GET   "/activate" [] signup/activate))
+      {:handler  access/unauthenticated-user
+       :on-error (fn [req _] (redirect-by-role req))}))
 
   (context "/admin" []
-           (restrict
-            (routes
-             (GET "*" [] admin/show))
-            {:handler  {:and [access/authenticated-user (access/user-isa :account.role/admin)]}
-             :on-error (fn [req _] (redirect-by-role req))}))
+    (restrict
+        (routes
+         (GET "*" [] admin/show))
+      {:handler  {:and [access/authenticated-user (access/user-isa :account.role/admin)]}
+       :on-error (fn [req _] (redirect-by-role req))}))
 
   (context "/me" []
-           (restrict
-            (routes
-             (GET "/*" [] dashboard/show))
-            {:handler  {:and [access/authenticated-user (access/user-isa :account.role/member)]}
-             :on-error (fn [req _] (redirect-by-role req))}))
+    (restrict
+        (routes
+         (GET "/*" [] dashboard/show))
+      {:handler  {:and [access/authenticated-user (access/user-isa :account.role/member)]}
+       :on-error (fn [req _] (redirect-by-role req))}))
 
 
   (context "/onboarding" []
-           (restrict
-            (routes
-             (GET "*" [] onboarding/show))
-            {:handler  {:and [access/authenticated-user (access/user-isa :account.role/onboarding)]}
-             :on-error (fn [req _] (redirect-by-role req))})
+    (restrict
+        (routes
+         (GET "*" [] onboarding/show))
+      {:handler  {:and [access/authenticated-user (access/user-isa :account.role/onboarding)]}
+       :on-error (fn [req _] (redirect-by-role req))}))
 
-           #_(restrict onboarding/routes
-                       {:handler  {:and [authenticated-user (user-isa :account.role/onboarding)]}
-                        :on-error redirect-by-role}))
+  (GET "/apply" []
+       (fn [_]
+         (response/redirect (config/apply-hostname config) :moved-permanently)))
 
   (context "/api/v1" [] api/routes)
 
   (context "/webhooks" []
-           (POST "/stripe" [] stripe/hook))
+    (POST "/stripe" [] stripe/hook))
 
   ;; catch-all
   (route/not-found "<p>Not Found</p>"))

@@ -18,7 +18,8 @@
             [starcity.services.slack.message :as sm]
             [taoensso.timbre :as timbre]
             [toolbelt.date :as td]
-            [starcity.models.application :as application]))
+            [starcity.models.application :as application]
+            [starcity.models.order :as order]))
 
 (defmulti handle (fn [_ msg] (:msg/key msg)))
 
@@ -51,7 +52,7 @@
         unit     (d/entity db unit-id)
         license  (d/entity db license-id)
         property (unit/property unit)]
-    (slack/community
+    (slack/crm
      (sm/msg
       (sm/info
        (sm/text
@@ -82,26 +83,26 @@
   (let [account (-> (d/entity (d/db conn) id) application/account)
         title   (format "%s's application" (account/full-name account))
         link    (format "%s/admin/accounts/%s" (config/hostname config) (:db/id account))]
-    (slack/community
+    (slack/crm
      (sm/msg
       (sm/success
        (sm/title title link)
-       (sm/text (format "%s! Someone signed up! :partyparrot:" (rand-doge)))))
+       (sm/text (format "%s! Someone signed up! :partydoge:" (rand-doge)))))
      :uuid (:msg/uuid msg))))
 
 ;; =============================================================================
 ;; Promotion
 ;; =============================================================================
 
+
 (defn- account-link [account]
   (let [url (format "%s/admin/accounts/%s" (config/hostname config) (:db/id account))]
     (sm/link url (account/full-name account))))
 
-(defmethod handle msg/promoted-key
-  [conn {{account-id :account-id} :msg/params :as msg}]
-  (let [account (d/entity (d/db conn) account-id)
-        license (member-license/active conn account)]
-    (slack/community
+
+(defn- is-member! [conn account msg]
+  (let [license (member-license/active conn account)]
+    (slack/crm
      (sm/msg
       (sm/info
        (sm/text (format "*%s* is now a member!" (account/full-name account)))
@@ -109,6 +110,51 @@
         (sm/field "Account" (account-link account) true)
         (sm/field "Unit" (unit-link (member-license/unit license)) true))))
      :uuid (:msg/uuid msg))))
+
+
+(defn- fmt-order [index order]
+  (let [{:keys [name desc price quantity billed]} (order/clientize order)
+
+        ;; desc  (if (string/blank? desc) "no description" )
+        price (if-some [p price] (str "$" price "/ea") "Quote")]
+    (cond
+      (some? quantity)
+      (format "%d. [ `%s` | _%s_ | *x%s* ] _%s_ (billed %s)"
+              (inc index)
+              (string/upper-case name)
+              price
+              (int quantity)
+              desc
+              (clojure.core/name billed))
+
+      :otherwise
+      (format "%d. [ `%s` | _%s_ ] _%s_ (billed %s)"
+              (inc index)
+              (string/upper-case name)
+              price
+              desc
+              (clojure.core/name billed)))))
+
+
+(defn- ordered-services! [conn account orders msg]
+  (slack/crm
+   (sm/msg
+    (sm/info
+     (sm/title (format "%s ordered premium services:" (account/full-name account))
+               (account-link account))
+     (sm/text (->> (map-indexed fmt-order orders) (interpose "\n") (apply str)))
+     (sm/fields
+      (sm/field "Account" (account-link account)))))
+   :uuid (:msg/uuid msg)))
+
+
+(defmethod handle msg/promoted-key
+  [conn {{account-id :account-id} :msg/params :as msg}]
+  (let [account (d/entity (d/db conn) account-id)
+        orders  (order/orders (d/db conn) account)]
+    (is-member! conn account msg)
+    (when-not (empty? orders) (ordered-services! conn account orders))))
+
 
 ;; =============================================================================
 ;; ACH Payment Made
