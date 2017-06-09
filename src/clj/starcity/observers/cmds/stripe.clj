@@ -149,7 +149,7 @@
     (if (= status "verification_failed")
       ;; If verification has failed then the bank information needs to be
       ;; re-entered. Delete the customer.
-      (conj tx (cmd/delete-customer (d/entity (d/db conn) [:stripe-customer/customer-id id])))
+      (conj tx (cmd/delete-customer (d/entity (d/db conn) [:stripe-customer/customer-id customer])))
       ;; Otherwise, just pass along the `msg`.
       tx)))
 
