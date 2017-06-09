@@ -153,7 +153,7 @@
   (let [account (d/entity (d/db conn) account-id)
         orders  (order/orders (d/db conn) account)]
     (is-member! conn account msg)
-    (when-not (empty? orders) (ordered-services! conn account orders))))
+    (when-not (empty? orders) (ordered-services! conn account orders msg))))
 
 
 ;; =============================================================================
