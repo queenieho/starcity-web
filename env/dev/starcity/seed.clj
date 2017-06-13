@@ -18,7 +18,8 @@
              [security-deposit :as deposit]
              [unit :as unit]]
             [starcity.models.onboard :as onboard]
-            [starcity.models.service :as service]))
+            [starcity.models.service :as service]
+            [toolbelt.date :as date]))
 
 ;; =============================================================================
 ;; TX Construction
@@ -113,7 +114,7 @@
                 :status :application.status/submitted
                 :properties [[:property/internal-name "52gilbert"]
                              [:property/internal-name "2072mission"]]
-                :move-in (c/to-date (t/date-time 2017 4 1))
+                :move-in (date/to-utc-corrected-date (c/to-date (t/date-time 2017 7 1)) (t/time-zone-for-id "America/Los_Angeles"))
                 :fitness {:fitness/experience   "Donec neque quam, dignissim in, mollis nec, sagittis eu, wisi."
                           :fitness/skills       "Donec neque quam, dignissim in, mollis nec, sagittis eu, wisi."
                           :fitness/free-time    "Donec neque quam, dignissim in, mollis nec, sagittis eu, wisi."

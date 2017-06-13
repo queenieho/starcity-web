@@ -1,18 +1,20 @@
 (ns starcity.api.admin.accounts
-  (:require [clj-time
+  (:require [bouncer
+             [core :as b]
+             [validators :as v]]
+            [clj-time
              [coerce :as c]
-             [core :as t]]
+             [core :as t]
+             [format :as f]]
             [clojure
              [spec :as s]
              [string :as string]]
             [compojure.core :refer [defroutes GET POST]]
             [datomic.api :as d]
             [plumbing.core :as plumbing]
-            ;; [ring.util.response :as response]
             [starcity
              [auth :as auth]
              [datomic :refer [conn]]]
-            [starcity.util.response :as response]
             [starcity.models
              [account :as account]
              [application :as app]
@@ -21,20 +23,20 @@
              [income-file :as income-file]
              [license :as license]
              [member-license :as member-license]
+             [msg :as msg]
              [note :as note]
              [property :as property]
              [rent-payment :as rent-payment]
              [security-deposit :as deposit]
              [unit :as unit]]
+            [starcity.util
+             [response :as response]
+             [validation :as uv]]
             [toolbelt
              [core :as tb :refer [str->int]]
              [datomic :as td]
              [predicates :as p]]
-            [bouncer.core :as b]
-            [bouncer.validators :as v]
-            [starcity.util.validation :as uv]
-            [starcity.models.msg :as msg]
-            [clj-time.format :as f]))
+            [toolbelt.date :as date]))
 
 ;; =============================================================================
 ;; Common
@@ -169,7 +171,13 @@
   (when-let [app (app/by-account conn account)]
     (merge
      {:application/status      (app/status app)
-      :application/move-in     (app/move-in-date app)
+      ;; NOTE: Think about how to best handle the timezone. This is hardcoded
+      ;; for now since we're operating exclusively on the west coast. This
+      ;; should probably come from the preferred time zone of the
+      ;; /viewer/ (admin)
+      :application/move-in     (date/to-utc-corrected-date
+                                (app/move-in-date app)
+                                (t/time-zone-for-id "America/Los_Angeles"))
       :application/license     (select-keys (app/desired-license app)
                                             [:db/id :license/term])
       :application/has-pet     (app/has-pet? app)
@@ -431,11 +439,14 @@
 ;; Approve
 ;; =============================================================================
 
-(def cannot-approve-error
+
+(def ^:private cannot-approve-error
   "This application cannot be approved! This could be because the application belongs to a non-applicant, is not yet complete, or is already approved.")
 
-(def unit-occupied-error
+
+(def ^:private unit-occupied-error
   "The provided unit is not available.")
+
 
 (defn approve-account!
   [conn approver account-id unit-id license-id move-in]
@@ -458,6 +469,7 @@
       (do
         @(d/transact conn (approval/approve approver account unit license move-in))
         (response/transit-ok {:result "ok"})))))
+
 
 ;; =============================================================================
 ;; Notes

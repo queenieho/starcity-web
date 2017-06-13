@@ -1,39 +1,48 @@
 (ns starcity.models.property
   (:refer-clojure :exclude [name])
-  (:require [clojure.spec :as s]
-            [starcity.models.unit :as unit]
-            starcity.spec
+  (:require [clj-time.core :as t]
+            [clojure.spec :as s]
             [datomic.api :as d]
+            [starcity.models.unit :as unit]
             [toolbelt.predicates :as p]))
 
-;; =============================================================================
-;; Spec
-;; =============================================================================
-
-(s/def :property/name string?)
-(s/def :property/available-on :starcity.spec/date)
-(s/def :property/cover-image-url string?)
-(s/def :property/description string?)
 
 ;; =============================================================================
 ;; Selectors
 ;; =============================================================================
 
-(def name :property/name)
-(def internal-name :property/internal-name)
-(def managed-account-id :property/managed-account-id)
-(def ops-fee :property/ops-fee)
-(def units :property/units)
+
+(def name
+  :property/name)
+
+
+(def internal-name
+  :property/internal-name)
+
+
+(def managed-account-id
+  :property/managed-account-id)
+
+
+(def ops-fee
+  :property/ops-fee)
+
+
+(def units
+  :property/units)
+
 
 ;; TODO: Actually store this in the DB.
 (defn time-zone
   "Produce the time zone that `property` is in."
   [property]
-  "US/Pacific")
+  (t/time-zone-for-id "America/Los_Angeles"))
+
 
 (def available-on
   "Date that property is available on."
   :property/available-on)
+
 
 (def accepting-tours?
   "Is this property currently accepting tours?"
@@ -43,11 +52,13 @@
         :args (s/cat :property p/entity?)
         :ret boolean?)
 
+
 ;; TODO: Schema
 (defn llc [property]
   (get {"52gilbert"   "52 Gilbert LLC"
         "2072mission" "2072-2074 Mission LLC"}
        (internal-name property)))
+
 
 ;; =============================================================================
 ;; Lookups

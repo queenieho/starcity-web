@@ -14,9 +14,6 @@
 ;; Controls
 ;; =============================================================================
 
-(defn- date-val [data k]
-  (when-let [d (get data k)] (u/date->input-format d)))
-
 (defn- on-change [k]
   #(dispatch [:home.controls/update k %]))
 

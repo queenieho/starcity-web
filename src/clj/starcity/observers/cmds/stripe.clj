@@ -1,5 +1,6 @@
 (ns starcity.observers.cmds.stripe
   (:require [clj-time.coerce :as c]
+            [clojure.spec :as s]
             [datomic.api :as d]
             [starcity.models
              [account :as account]
@@ -11,10 +12,9 @@
              [security-deposit :as deposit]]
             [starcity.services.stripe.event :as stripe-event]
             [taoensso.timbre :as timbre]
-            [clojure.spec :as s]
-            [toolbelt.predicates :as p]
-            [clj-time.core :as t]
-            [taoensso.nippy :as nippy]))
+            [toolbelt
+             [date :as date]
+             [predicates :as p]]))
 
 ;; =============================================================================
 ;; API
@@ -156,42 +156,32 @@
 ;; =============================================================================
 ;; Invoice (Autopay)
 
-(comment
-  ;; Create Autopay Invoice
-  (d/transact conn [(cmd/stripe-webhook-event "evt_19LMBqIvRccmW9nOGZY7X76h" "invoice.created")])
-
-  ;; Payment failed
-  (d/transact conn [(cmd/stripe-webhook-event "evt_19LMBrIvRccmW9nO17Yd00cu" "invoice.payment_failed")])
-
-  ;; Payment Succeeded
-  (d/transact conn [(cmd/stripe-webhook-event "evt_19LMBrIvRccmW9nO17Yd00cu" "invoice.payment_succeeded")])
-  )
-
 ;; =====================================
 ;; Created
 
 (defn- add-rent-payment
   "Add a new rent payment to member's `license` based on `invoice-id`."
-  [conn invoice-id customer-id period-start]
-  (let [license (member-license/by-customer-id conn customer-id)
-        payment (rent-payment/autopay-payment invoice-id
-                                              period-start
-                                              (member-license/rate license))]
+  [conn license invoice-id period-start]
+  (let [payment (rent-payment/autopay-payment license
+                                              invoice-id
+                                              period-start)]
     (member-license/add-rent-payments license payment)))
 
-;; NOTE: Stripe dates are in seconds since 1/1/1970 -- this converts to
+;; NOTE: Stripe dates are in *seconds* since 1/1/1970 -- this converts to
 ;; milliseconds, then to an inst
 (defn- invoice-start-date
   "Produce the invoice's start date by inspecting the line items. The
   `:period_start` date on the `event-data` has proven to be unreliable; hence
   the use of the `:lines`."
-  [event-data]
-  (-> event-data :lines :data first :period :start (* 1000) c/from-long c/to-date))
+  [license event-data]
+  (let [tz (member-license/time-zone license)]
+    (-> event-data :lines :data first :period :start (* 1000) c/from-long (date/to-utc-corrected-date tz))))
 
 (defmethod handle "invoice.created" [conn cmd]
   (let [{:keys [id customer] :as data} (fetch-stripe-event cmd)
-        period-start                   (invoice-start-date data)]
-    [(add-rent-payment conn id customer period-start)
+        license                        (member-license/by-customer-id conn customer)
+        period-start                   (invoice-start-date license data)]
+    [(add-rent-payment conn license id period-start)
      (msg/invoice-created id customer period-start)]))
 
 ;; =====================================

@@ -153,12 +153,9 @@
       (fn [name]
         [:div.form-control
          [:label.label "What should be " name "'s move-in date?"]
-         [:input.input
-          {:style        {:width 300}
-           :type         "date"
-           :defaultValue (when-let [move-in @move-in]
-                           (f/unparse date-formatter (c/to-date-time move-in)))
-           :on-change    #(dispatch [:approval/update :move-in (parse-date (.. % -target -value))])}]])})))
+         [a/date-picker
+          {:defaultValue (when-some [m @move-in] m)
+           :on-change    #(dispatch [:approval/update :move-in %])}]])})))
 
 (defn- unit-option
   [{:keys [db/id unit/name unit/available unit/market unit/account unit/rate]}]

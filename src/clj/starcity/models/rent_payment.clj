@@ -2,50 +2,58 @@
   (:require [clj-time
              [coerce :as c]
              [core :as t]]
-            [dire.core :refer [with-postcondition!]]
             [clojure.spec :as s]
             [datomic.api :as d]
-            [starcity.util :refer :all]
-            [plumbing.core :refer [assoc-when]]
-            [starcity.models.check :as check]
-            [toolbelt.predicates :as p]
-            [starcity.models.property :as property]))
+            [plumbing.core :as plumbing]
+            [starcity.models
+             [check :as check]
+             [member-license :as member-license]]
+            [toolbelt
+             [date :as date]
+             [predicates :as p]]))
 
 ;; =============================================================================
 ;; Constants
 ;; =============================================================================
+
 
 (def max-autopay-failures
   "The maximum number of times that autopay payments will be tried before the
   subscription is canceled."
   3)
 
+
+(def check
+  "The check payment method."
+  :rent-payment.method/check)
+
+
+(def autopay
+  "The autopay payment method."
+  :rent-payment.method/autopay)
+
+
+(def ach
+  "The ACH payment method."
+  :rent-payment.method/ach)
+
+
+(def other
+  "Some other payment method."
+  :rent-payment.method/other)
+
+
 ;; =============================================================================
 ;; Specs
 ;; =============================================================================
 
-(declare check ach autopay other)
 
 (s/def ::method #{check ach autopay other})
 (s/def ::status #{:rent-payment.status/due
                   :rent-payment.status/pending
                   :rent-payment.status/paid})
 
-(def check
-  "The check payment method."
-  :rent-payment.method/check)
 
-(def autopay
-  "The autopay payment method."
-  :rent-payment.method/autopay)
-
-(def ach
-  "The ACH payment method."
-  :rent-payment.method/ach)
-
-(def other
-  "Some other payment method."
-  :rent-payment.method/other)
 
 ;; =============================================================================
 ;; Selectors
@@ -58,14 +66,18 @@
 (def status :rent-payment/status)
 (def paid-on :rent-payment/paid-on)
 (def due-date :rent-payment/due-date)
+(def charge :rent-payment/charge)
+
 
 (def invoice
   "The id of the Stripe invoice."
   :rent-payment/invoice-id)
 
+
 (def method
   "The method used to pay this payment."
   :rent-payment/method)
+
 
 (def charge
   "The charge associated with this payment."
@@ -75,90 +87,113 @@
         :args (s/cat :payment p/entity?)
         :ret (s/or :nothing nil? :charge p/entity?))
 
-;; TODO: rename to `autopay-failures`
+
 (defn failures
   "The number of times autopay has failed."
   [payment]
   (get payment :rent-payment/autopay-failures 0))
 
-(def charge :rent-payment/charge)
+
+(def autopay-failures failures)         ; alias
+
 
 ;; =============================================================================
 ;; Predicates
 ;; =============================================================================
+
 
 (defn unpaid?
   "Is `payment` unpaid?"
   [payment]
   (#{:rent-payment.status/due} (status payment)))
 
+
 (defn paid?
   "Is `payment` paid?"
   [payment]
   (#{:rent-payment.status/paid} (status payment)))
 
-(defn past-due? [payment]
-  (let [due-date (-> payment due-date c/to-date-time)
-        property (-> payment member-license :member-license/unit :property/_units)
-        tz       (t/time-zone-for-id (property/time-zone property))]
-    (and (unpaid? payment)
-         (t/after? (t/to-time-zone (t/now) tz)
-                   ;; Pretends that the UTC time stored is in the time zone that
-                   ;; we want. This seems kind of hacky, but it works.
-                   (t/from-time-zone due-date tz)))))
+
+(defn past-due?
+  "Is `payment` past due?"
+  [payment]
+  (let [due (-> payment due-date c/to-date-time)]
+    (and (unpaid? payment) (t/after? (t/now) due))))
+
 
 ;; =============================================================================
 ;; Transactions
 ;; =============================================================================
 
-(defn- set-status [to-status]
-  (fn [payment]
-    {:db/id               (:db/id payment)
-     :rent-payment/status to-status}))
 
-(def due (set-status :rent-payment.status/due))
-(def pending (set-status :rent-payment.status/pending))
-(def paid (set-status :rent-payment.status/paid))
+(defn- set-status [status payment]
+  {:db/id               (:db/id payment)
+   :rent-payment/status status})
 
-(defn- default-due-date [start]
-  (let [start (c/to-date-time start)]
-    (-> (t/date-time (t/year start) (t/month start) 5)
-        (c/to-date))))
+
+(def due
+  "Set `payment` status to due."
+  (partial set-status :rent-payment.status/due))
+
+
+(def pending
+  "Set `payment` status to pending."
+  (partial set-status :rent-payment.status/pending))
+
+
+(def paid
+  "Set `payment` status to paid."
+  (partial set-status :rent-payment.status/paid))
+
+
+(defn- default-due-date
+  "The default due date is the fifth day of the same month as `start` date.
+  Preserves the original year, month, hour, minute and second of `start` date."
+  [start]
+  (let [st (c/to-date-time start)]
+    (c/to-date (t/date-time (t/year st)
+                            (t/month st)
+                            5
+                            (t/hour st)
+                            (t/minute st)
+                            (t/second st)))))
+
 
 (defn create
-  "Create an arbitrary rent payment payment."
+  "Create a rent payment."
   [amount period-start period-end status
    & {:keys [invoice-id method due-date check paid-on desc]}]
-  (when-not (is-first-day-of-month? (c/to-date-time period-start))
+  (when-not (date/is-first-day-of-month? (c/to-date-time period-start))
     (assert due-date "Due date must be supplied when the period start is not the first day of the month."))
   (when (#{paid} status)
     (assert method "If this payment has been `paid`, a `method` must be supplied."))
   (when (#{:rent-payment.method/check} method)
     (assert check "When paying by `check`, the `check` must be supplied."))
   (let [due-date (or due-date (default-due-date period-start))]
-    (assoc-when
+    (plumbing/assoc-when
      {:rent-payment/amount       amount
-      :rent-payment/period-start (beginning-of-day period-start)
-      :rent-payment/period-end   (end-of-day period-end)
+      :rent-payment/period-start period-start
+      :rent-payment/period-end   period-end
       :rent-payment/status       status
-      :rent-payment/due-date     (end-of-day due-date)}
+      :rent-payment/due-date     due-date}
      :rent-payment/check check
      :rent-payment/method method
      :rent-payment/invoice-id invoice-id
      :rent-payment/paid-on paid-on
      :rent-payment/method-desc desc)))
 
+
 (defn autopay-payment
   "Create an autopay payment with status `:rent-payment.status/pending`."
-  [invoice-id period-start amount]
-  (let [period-end (-> period-start
-                       c/to-date-time
-                       t/last-day-of-the-month
-                       c/to-date)]
-    (create amount period-start period-end :rent-payment.status/pending
-            :paid-on (java.util.Date.)
+  [member-license invoice-id period-start]
+  (let [rate       (member-license/rate member-license)
+        tz         (member-license/time-zone member-license)
+        period-end (date/end-of-month period-start tz)]
+    (create rate period-start period-end :rent-payment.status/pending
+            :paid-on (c/to-date (t/now))
             :method autopay
             :invoice-id invoice-id)))
+
 
 ;; =============================================================================
 ;; Checks
@@ -174,7 +209,7 @@
   (let [new-status (check-status->status (check/status check))
         paid-on    (when (= :rent-payment.status/paid new-status)
                      (check/received-on check))]
-    (assoc-when
+    (plumbing/assoc-when
      {:db/id               (:db/id payment)
       :rent-payment/check  check
       :rent-payment/method :rent-payment.method/check
@@ -208,7 +243,7 @@
 
 (defn update-check
   [payment check updated-check]
-  (->> [(assoc-when
+  (->> [(plumbing/assoc-when
          {:db/id (:db/id payment)}
          :rent-payment/status (new-status updated-check))
         (maybe-retract-paid-on payment check updated-check)

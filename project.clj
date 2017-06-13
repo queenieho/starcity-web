@@ -36,7 +36,7 @@
                  [mount "0.1.11"]
                  ;; Datomic
                  [io.rkn/conformity "0.4.0"]
-                 [starcity/blueprints "1.6.0" :exclusions [com.datomic/datomic-free]]
+                 [starcity/blueprints "1.7.0" :exclusions [com.datomic/datomic-free]]
                  [com.datomic/datomic-pro "0.9.5544" :exclusions [com.google.guava/guava]]
                  [org.postgresql/postgresql "9.4.1211"]
                  ;; CLJS
@@ -57,7 +57,7 @@
                  [com.taoensso/timbre "4.8.0"]
                  [com.taoensso/nippy "2.12.2"]
                  [prismatic/plumbing "0.5.3"]
-                 [starcity/toolbelt "0.1.3" :exclusions [com.datomic/datomic-free]]
+                 [starcity/toolbelt "0.1.5" :exclusions [com.datomic/datomic-free]]
                  [enlive "1.1.6"]
                  [cljsjs/moment "2.17.1-0"]]
 
