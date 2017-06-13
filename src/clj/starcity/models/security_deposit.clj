@@ -54,8 +54,7 @@
   (letfn [(-cents [amt] (float (/ amt 100)))]
     (->> (:security-deposit/charges security-deposit)
          (filter #(= (:charge/status %) :charge.status/pending))
-         (map (comp -cents :amount stripe/fetch-charge))
-         (reduce + 0))))
+         (reduce #(+ %1 (:charge/amount %2 0)) 0))))
 
 (defn amount-pending
   "Using attached checks and charges, determine how much is in a pending state.
@@ -69,24 +68,30 @@
 ;; Predicates
 ;; =============================================================================
 
+
 (defn is-unpaid? [security-deposit]
   (and (= 0 (get security-deposit :security-deposit/amount-received 0))
        (= 0 (amount-pending security-deposit))))
 
+
 (def is-paid? (comp not is-unpaid?))
+
 
 (defn paid-in-full? [security-deposit]
   (and (is-paid? security-deposit)
        (>= (amount-received security-deposit)
            (amount-required security-deposit))))
 
+
 (defn partially-paid? [security-deposit]
   (and (not (paid-in-full? security-deposit))
        (is-paid? security-deposit)))
 
+
 ;; =============================================================================
 ;; Transactions
 ;; =============================================================================
+
 
 (defn- sum-charges [security-deposit]
   (or (->> (:security-deposit/charges security-deposit)
@@ -94,6 +99,7 @@
            (map #(or (:charge/amount %) 0))
            (apply +))
       0))
+
 
 ;; =====================================
 ;; Checks
@@ -103,10 +109,12 @@
   [check]
   (#{check/cleared check/received check/deposited} (check/status check)))
 
+
 (defn- has-check?
   "Is `check` already part of `deposit`'s checks?"
   [deposit check]
   (some #(= (:db/id check) (:db/id %)) (checks deposit)))
+
 
 (defn- resolve-checks
   [deposit new-or-updated-check]
@@ -118,6 +126,7 @@
          (checks deposit))
     ;; Add
     (conj (checks deposit) new-or-updated-check)))
+
 
 (defn- sum-checks
   "The sum of all amounts in existing checks on `security-deposit` including the
@@ -131,10 +140,12 @@
             acc))
         0)))
 
+
 (defn- new-amount-received
   [security-deposit check]
   (int (+ (sum-checks security-deposit check)
           (sum-charges security-deposit))))
+
 
 (defn update-check
   [security-deposit check updated-check]
@@ -149,6 +160,7 @@
                      :check p/entity?
                      :updated-check check/updated?)
         :ret (s/keys :req [:db/id :security-deposit/amount-received]))
+
 
 (defn add-check
   "Add a new `check` to the `security-deposit` entity, taking into consideration
@@ -166,6 +178,7 @@
         :ret (s/keys :req [:db/id
                            :security-deposit/checks
                            :security-deposit/amount-received]))
+
 
 (defn create
   "Produce transaction data to create a security deposit entity for `account`.
@@ -191,6 +204,7 @@
 ;; Lookups
 ;; =============================================================================
 
+
 (def by-account
   "Retrieve `security-deposit` given the owning `account`."
   (comp first :security-deposit/_account))
@@ -198,6 +212,7 @@
 (s/fdef by-account
         :args (s/cat :account p/entity?)
         :ret p/entity?)
+
 
 (def by-charge
   "Produce the security deposit given `charge`."

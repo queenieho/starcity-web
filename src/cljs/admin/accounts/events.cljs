@@ -116,10 +116,6 @@
 ;; Account Entry
 ;; =============================================================================
 
-#_(defn- dispatches-for-page [page account-id]
-  (cond-> [[:account/fetch account-id]]
-    (= page :account/notes) (conj [:notes.account/fetch account-id])))
-
 (reg-event-fx
  :account/navigate
  [(path db/path)]
@@ -229,7 +225,7 @@
       :alert/message {:type :loading :content "Loading..." :duration :indefinite}
       :http-xhrio    {:method          :get
                       :uri             (str "/api/v1/admin/properties/" community "/units")
-                      :params          {:available-by (c/to-long move-in)
+                      :params          {:available-by (.valueOf move-in)
                                         :license      license}
                       :response-format (ajax/transit-response-format)
                       :on-success      [::fetch-units-success]
@@ -263,7 +259,7 @@
       :http-xhrio {:method          :post
                    :uri             (str "/api/v1/admin/accounts/" account-id "/approve")
                    :params          {:license-id license
-                                     :move-in    move-in
+                                     :move-in    (.toDate move-in)
                                      :unit-id    unit}
                    :format          (ajax/transit-request-format)
                    :response-format (ajax/transit-response-format)

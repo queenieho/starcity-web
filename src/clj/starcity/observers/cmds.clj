@@ -1,7 +1,5 @@
 (ns starcity.observers.cmds
-  (:require [clj-time
-             [coerce :as c]
-             [core :as t]]
+  (:require [clojure.string :as string]
             [datomic.api :as d]
             [plumbing.core :as plumbing]
             [starcity.models
@@ -11,8 +9,8 @@
              [cmd :as cmd]
              [msg :as msg]
              [note :as note]
+             [property :as property]
              [rent-payment :as rent-payment]]
-            [starcity.models.stripe.customer :as customer]
             [starcity.observers.cmds.stripe :as stripe]
             [starcity.services
              [community-safety :as community-safety]
@@ -20,7 +18,7 @@
             [starcity.services.stripe.customer :as customer-service]
             [starcity.util.async :refer [<!!?]]
             [taoensso.timbre :as timbre]
-            [clojure.string :as string]))
+            [toolbelt.date :as date]))
 
 ;; =============================================================================
 ;; Global
@@ -117,42 +115,50 @@
 ;; Rent
 ;; =============================================================================
 
-;; Autopay payments are created via webhook notification from Stripe.
 (defn- active-licenses
   "Query all active licenses that are not on autopay."
-  [conn]
-  (d/q '[:find ?e ?p
+  [db]
+  (d/q '[:find ?l ?pr ?p
          :where
          ;; active licenses
-         [?e :member-license/status :member-license.status/active]
-         [?e :member-license/price ?p]
+         [?l :member-license/status :member-license.status/active]
+         [?l :member-license/unit ?u]
+         [?pr :property/units ?u]
+         [?l :member-license/price ?p]
          ;; not on autopay
-         [(missing? $ ?e :member-license/subscription-id)]]
-       (d/db conn)))
+         [(missing? $ ?l :member-license/subscription-id)]]
+       db))
 
-(defn- period-end [t]
-  (-> t c/to-date-time t/last-day-of-the-month c/to-date))
 
-(defn- create-payments [start licenses]
+(defn- create-payments [db start query-result]
   (mapv
-   (fn [[e amount]]
-     (let [p (rent-payment/create amount start (period-end start) :rent-payment.status/due)]
-       {:db/id                        e
-        :member-license/rent-payments p}))
-   licenses))
+   (fn [[member-license-id property-id amount]]
+     (let [tz    (property/time-zone (d/entity db property-id))
+           start (date/beginning-of-day start tz)
+           end   (date/end-of-month start tz)
+           py    (rent-payment/create amount start end :rent-payment.status/due)]
+       (timbre/debug "create payments" {:tz    tz
+                                        :start start
+                                        :end   end})
+       {:db/id                        member-license-id
+        :member-license/rent-payments py}))
+   query-result))
+
 
 ;; Triggered monthly by scheduler. Creates rent payments at the beginning of the
 ;; month.
 (defmethod handle cmd/create-rent-payments-key
   [conn {time-period :cmd/params :as cmd}]
   (try
-    (let [txes (->> (active-licenses conn) (create-payments time-period))]
+    (let [db   (d/db conn)
+          txes (create-payments db time-period (active-licenses db))]
       @(d/transact conn (conj txes
                               (cmd/successful cmd)
                               (msg/rent-payments-created (map :db/id txes)))))
     (catch Throwable t
       @(d/transact conn [(cmd/failed cmd)])
       (throw t))))
+
 
 ;; =============================================================================
 ;; Stripe
