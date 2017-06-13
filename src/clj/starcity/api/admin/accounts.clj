@@ -190,7 +190,7 @@
 ;; Member
 
 (defn- payment-methods [conn account]
-  (let [license (member-license/active conn account)]
+  (when-let [license (member-license/active conn account)]
     {:payment/autopay (member-license/autopay-on? license)
      :payment/bank    (account/bank-linked? account)}))
 

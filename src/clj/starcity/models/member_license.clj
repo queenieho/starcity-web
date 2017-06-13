@@ -49,8 +49,9 @@
     (cond
       (> (count ls) 1) (throw (ex-info "Invalid state: account has multiple active member licenses."
                                        {:account (:db/id account)}))
-      (empty? ls)      (throw (ex-info "Invalid state: account has no active member licenses."
-                                       {:account (:db/id account)}))
+      ;; (empty? ls)      (throw (ex-info "Invalid state: account has no active member licenses."
+      ;;                                        {:account (:db/id account)}))
+      (empty? ls)      nil
       :otherwise       (d/entity (d/db conn) (first ls)))))
 
 (s/fdef active
