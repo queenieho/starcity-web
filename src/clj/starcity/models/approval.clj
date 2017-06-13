@@ -8,7 +8,10 @@
              [security-deposit :as deposit]
              [unit :as unit]]
             [toolbelt.predicates :as p]
-            [starcity.models.onboard :as onboard]))
+            [starcity.models.onboard :as onboard]
+            [starcity.models.property :as property]
+            [toolbelt.date :as date]
+            [clj-time.core :as t]))
 
 ;; =============================================================================
 ;; Lookups
@@ -73,13 +76,14 @@
 (defn create
   "Produce transaction data required to create an approval entity."
   [approver approvee unit license move-in]
-  {:db/id             (tempid)
-   :approval/account  (:db/id approvee)
-   :approval/approver (:db/id approver)
-   :approval/unit     (:db/id unit)
-   :approval/license  (:db/id license)
-   :approval/move-in  move-in
-   :approval/status   :approval.status/pending})
+  (let [tz (-> unit unit/property property/time-zone)]
+    {:db/id             (tempid)
+     :approval/account  (:db/id approvee)
+     :approval/approver (:db/id approver)
+     :approval/unit     (:db/id unit)
+     :approval/license  (:db/id license)
+     :approval/move-in  (date/beginning-of-day move-in tz) ; ensure beginning of day
+     :approval/status   :approval.status/pending}))
 
 (s/fdef create
         :args (s/cat :approver p/entity?
@@ -104,16 +108,18 @@
   - Create a security deposit stub
   - Mark the application as approved"
   [approver approvee unit license move-in]
-  [(create approver approvee unit license move-in)
-   ;; Change role
-   {:db/id (:db/id approvee) :account/role :account.role/onboarding}
-   (deposit/create approvee (int (unit/rate unit license)))
-   (onboard/create approvee)
-   (app/change-status (:account/application approvee)
-                      :application.status/approved)
-   (msg/approved approver approvee unit license move-in)
-   ;; Log `approvee` out
-   (cmd/delete-session approvee)])
+  (let [tz      (-> unit unit/property property/time-zone)
+        move-in (date/beginning-of-day move-in tz)] ; for msg
+    [(create approver approvee unit license move-in)
+     ;; Change role
+     {:db/id (:db/id approvee) :account/role :account.role/onboarding}
+     (deposit/create approvee (int (unit/rate unit license)))
+     (onboard/create approvee)
+     (app/change-status (:account/application approvee)
+                        :application.status/approved)
+     (msg/approved approver approvee unit license move-in)
+     ;; Log `approvee` out
+     (cmd/delete-session approvee)]))
 
 (s/fdef approve
         :args (s/cat :approver p/entity?

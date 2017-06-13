@@ -114,8 +114,6 @@
 
 (defn- fmt-order [index order]
   (let [{:keys [name desc price quantity billed]} (order/clientize order)
-
-        ;; desc  (if (string/blank? desc) "no description" )
         price (if-some [p price] (str "$" price "/ea") "Quote")]
     (cond
       (some? quantity)
@@ -153,7 +151,7 @@
   (let [account (d/entity (d/db conn) account-id)
         orders  (order/orders (d/db conn) account)]
     (is-member! conn account msg)
-    (when-not (empty? orders) (ordered-services! conn account orders))))
+    (when-not (empty? orders) (ordered-services! conn account orders msg))))
 
 
 ;; =============================================================================

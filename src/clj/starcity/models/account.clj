@@ -14,13 +14,14 @@
              [application :refer [submitted?]]
              [approval :as approval]
              [member-license :as member-license]
+             [property :as property]
              [rent-payment :as rent-payment]
              [security-deposit :as deposit]
              [unit :as unit]]
             [starcity.models.account.role :as r]
-            [starcity.util.date :refer [end-of-day]]
             [toolbelt
              [core :refer [round]]
+             [date :as date]
              [predicates :as p]]))
 
 ;; =============================================================================
@@ -195,6 +196,7 @@
     (assert (onboarding? account)
             "Cannot promote a non-onboarding account.")))
 
+
 (defn- prorated-amount [commencement rate]
   (let [commencement   (c/to-date-time commencement)
         days-in-month  (t/day (t/last-day-of-the-month commencement))
@@ -202,24 +204,29 @@
         days-remaining (inc (- days-in-month (t/day commencement)))]
     (round (* (/ rate days-in-month) days-remaining) 2)))
 
-(defn- prorated-payment [commencement rate]
-  (let [dt (c/to-date-time commencement)]
-    (rent-payment/create (prorated-amount commencement rate)
-                         commencement
-                         (c/to-date (t/last-day-of-the-month dt))
+
+(defn- prorated-payment [property start rate]
+  (let [tz    (property/time-zone property)
+        start (date/beginning-of-day start tz)]
+    (rent-payment/create (prorated-amount start rate)
+                         start
+                         (date/end-of-month start tz)
                          :rent-payment.status/due
-                         :due-date (c/to-date (t/plus dt (t/days 5))))))
+                         :due-date start)))
+
 
 (defn- security-deposit-due-date
-  [account commencement]
-  (let [deposit  (deposit/by-account account)
-        due-date (-> (t/plus (c/to-date-time (end-of-day commencement))
-                             (t/days 30))
-                     c/to-date)]
+  "Determine the due date of the security deposit by examining the move-in date."
+  [account approval]
+  (let [deposit (deposit/by-account account)
+        move-in (approval/move-in approval)
+        tz      (property/time-zone (approval/property approval))
+        due     (-> (c/to-date-time (date/end-of-day move-in tz))
+                    (t/plus (t/days 30))
+                    c/to-date)]
     {:db/id                   (:db/id deposit)
-     :security-deposit/due-by due-date}))
+     :security-deposit/due-by due}))
 
-;; license unit commencement rate
 
 (defn- approval->member-license
   [{:keys [approval/unit approval/license] :as approval}]
@@ -229,6 +236,7 @@
    (approval/move-in approval)
    (unit/rate unit license)
    :member-license.status/active))
+
 
 ;; TODO: [6/6/17] Turn this into an event-style flow, like
 ;; `:db.application/submit`
@@ -240,21 +248,24 @@
   (let [base           (change-role account r/member)
         approval       (approval/by-account account)
         member-license (approval->member-license approval)
-        payment        (prorated-payment (approval/move-in approval)
+        payment        (prorated-payment (approval/property approval)
+                                         (approval/move-in approval)
                                          (member-license/rate member-license))]
     [(->> (plumbing/assoc-when
            member-license
            :member-license/rent-payments payment)
           (assoc base :account/license))
-     (security-deposit-due-date account (approval/move-in approval))]))
+     (security-deposit-due-date account approval)]))
 
 (s/fdef promote
         :args (s/cat :account p/entity?)
         :ret vector?)
 
+
 ;; =============================================================================
 ;; Transformations
 ;; =============================================================================
+
 
 (defn clientize
   "Produce a client-suitable representation of an `account` entity."
@@ -266,6 +277,7 @@
 (s/fdef clientize
         :args (s/cat :account p/entity?)
         :ret (s/keys :req [:db/id :account/name] :opt [:account/email]))
+
 
 ;; =============================================================================
 ;; Metrics

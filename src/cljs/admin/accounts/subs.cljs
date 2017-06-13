@@ -193,7 +193,7 @@
  :account.application/move-in
  :<- [:account/application]
  (fn [app _]
-   (:application/move-in app)))
+   (js/moment. (:application/move-in app))))
 
 (reg-sub
  :account.application/fitness

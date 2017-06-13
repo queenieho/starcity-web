@@ -1,15 +1,17 @@
 (ns starcity.models.unit
-  (:require [datomic.api :as d]
-            [clojure.spec :as s]
-            [toolbelt.core :refer [find-by]]
-            [toolbelt.predicates :as p]
-            [clj-time.coerce :as c]
-            [clj-time.core :as t]))
+  (:require [clojure.spec :as s]
+            [datomic.api :as d]
+            [toolbelt
+             [core :refer [find-by]]
+             [predicates :as p]]))
 
 ;; =============================================================================
 ;; Selectors
+;; =============================================================================
+
 
 (def property :property/_units)
+
 
 (defn rate
   "Determine the rate for `unit` given `license`.
@@ -29,9 +31,11 @@
         :args (s/cat :unit p/entity? :license p/entity?)
         :ret float?)
 
+
 ;; =============================================================================
 ;; Predicates
 ;; =============================================================================
+
 
 (defn available?
   "Returns true iff `unit` is not or will not be occupied by someone during
@@ -55,6 +59,7 @@
         :args (s/cat :db p/db? :unit p/entity? :date inst?)
         :ret boolean?)
 
+
 (defn occupied?
   "Returns true iff `unit` is occupied. Differs from `available?` in that it
   only checks for active licenses -- it does not incorporate any notion of
@@ -75,8 +80,11 @@
         :args (s/cat :db p/db? :unit p/entity?)
         :ret boolean?)
 
-;; =====================================
+
+;; =============================================================================
 ;; Queries
+;; =============================================================================
+
 
 (defn occupied-by
   "Produces the account entity of the member who lives in `unit`."
@@ -93,6 +101,7 @@
 (s/fdef occupied-by
         :args (s/cat :conn p/conn? :unit p/entity?)
         :ret p/entity?)
+
 
 (defn by-name
   "Look up a unit by `:unit/name`."
