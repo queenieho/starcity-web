@@ -42,15 +42,16 @@
 ;; make sense, since certain steps are moot in the absense of satisfied
 ;; prerequisites.
 (def steps
-  [:deposit/method
-   :deposit.method/bank
-   :deposit.method/verify
-   :deposit/pay
+  [:admin/emergency
    :services/moving
    :services/storage
    :services/customize
    :services/cleaning
-   :services/upgrades])
+   :services/upgrades
+   :deposit/method
+   :deposit.method/bank
+   :deposit.method/verify
+   :deposit/pay])
 
 (s/def ::step (set steps))
 
@@ -63,6 +64,12 @@
   (fn [conn account step] step))
 
 (defmethod validations :default [_ _ _] {})
+
+(defmethod validations :admin/emergency
+  [_ _ _]
+  {:first-name   [[v/required :message "Please provide your contact's first name."]]
+   :last-name    [[v/required :message "Please provide your contact's last name."]]
+   :phone-number [[v/required :message "Please provide your contact's phone number."]]})
 
 (defmethod validations :deposit/method
   [_ _ _]
@@ -123,15 +130,21 @@
 
 (defmulti complete?
   "Has `account` completed `step`?"
-  (fn [conn account step] step))
+  (fn [db account step] step))
 
 (s/fdef complete?
-        :args (s/cat :conn p/conn?
+        :args (s/cat :db p/db?
                      :account p/entity?
                      :step ::step)
         :ret (s/or :bool boolean? :nothing nil?))
 
 (defmethod complete? :default [_ _ _] false)
+
+(defmethod complete? :admin/emergency [_ account _]
+  (let [contact (:account/emergency-contact account)]
+    (and (:person/first-name contact)
+         (:person/last-name contact)
+         (:person/phone-number contact))))
 
 (defmethod complete? :deposit/method
   [_ account _]
@@ -142,52 +155,52 @@
 ;; 1. A Stripe customer exists for this account (platform)
 ;; 2. Bank Verification has not failed for this customer
 (defmethod complete? :deposit.method/bank
-  [conn account _]
+  [db account _]
   (if (= (-> account deposit/by-account deposit/method)
          :security-deposit.payment-method/check)
     nil
-    (if-let [customer (account/stripe-customer (d/db conn) account)]
+    (if-let [customer (account/stripe-customer db account)]
       (not (customer/verification-failed? (customer/fetch customer)))
       false)))
 
 (defmethod complete? :deposit.method/verify
-  [conn account _]
-  (let [customer (account/stripe-customer (d/db conn) account)]
+  [db account _]
+  (let [customer (account/stripe-customer db account)]
     (and (:stripe-customer/bank-account-token customer)
          (customer/has-verified-bank-account?
           (customer/fetch customer)))))
 
 (defmethod complete? :deposit/pay
-  [conn account _]
+  [_ account _]
   (let [deposit (deposit/by-account account)]
     (boolean (or (some charge/is-pending? (deposit/charges deposit))
                  (> (deposit/received deposit) 0)))))
 
 (defmethod complete? :services/moving
-  [conn account _]
+  [db account _]
   (let [onboard (onboard/by-account account)]
     (or (onboard/seen-moving? onboard)
         (and (inst? (onboard/move-in onboard))
              (let [s (service/moving-assistance (d/db conn))]
-               (order/exists? (d/db conn) account s))))))
+               (order/exists? db account s))))))
 
 (defmethod complete? :services/storage
-  [conn account _]
+  [_ account _]
   (let [onboard (onboard/by-account account)]
     (onboard/seen-storage? onboard)))
 
 (defmethod complete? :services/customize
-  [conn account _]
+  [_ account _]
   (let [onboard (onboard/by-account account)]
     (onboard/seen-customize? onboard)))
 
 (defmethod complete? :services/cleaning
-  [conn account _]
+  [_ account _]
   (let [onboard (onboard/by-account account)]
     (onboard/seen-cleaning? onboard)))
 
 (defmethod complete? :services/upgrades
-  [conn account _]
+  [_ account _]
   (let [onboard (onboard/by-account account)]
     (onboard/seen-upgrades? onboard)))
 
@@ -230,15 +243,15 @@
         :ret ::order-params)
 
 
-(defmulti fdata
-  "Given a `step`, produce a map containing keys `complete` and `data`, where
-  `complete` tells us whether or not this step has been completed, and `data` is
-  the information entered by `account` in `step`."
+(defmulti ^:private fdata
   (fn [conn account step] step))
 
 (defn fetch
+  "Given a `step`, produce a map containing keys `complete` and `data`, where
+  `complete` tells us whether or not this step has been completed, and `data` is
+  the information entered by `account` in `step`."
   [conn account step]
-  {:complete (complete? conn account step)
+  {:complete (complete? (d/db conn) account step)
    :data     (fdata conn account step)})
 
 (s/fdef fetch
@@ -249,6 +262,12 @@
                    :nothing nil?))
 
 (defmethod fdata :default [_ _ _] nil)
+
+(defmethod fdata :admin/emergency [_ account _]
+  (let [contact (:account/emergency-contact account)]
+    {:first-name   (:person/first-name contact)
+     :last-name    (:person/last-name contact)
+     :phone-number (:person/phone-number contact)}))
 
 (defmethod fdata :deposit/method
   [conn account step]
@@ -348,6 +367,22 @@
 
 (defmethod save! :default [conn account step _]
   (timbre/debugf "no `save!` method implemented for %s" step))
+
+;; =============================================================================
+;; Administrative
+
+
+(defmethod save! :admin/emergency
+  [conn account _ {:keys [first-name last-name phone-number]}]
+  (let [tx {:person/first-name   first-name
+            :person/last-name    last-name
+            :person/phone-number phone-number}]
+    @(d/transact conn
+                 [(if-let [contact (:account/emergency-contact account)]
+                    (assoc tx :db/id (:db/id contact))
+                    {:db/id                     (:db/id account)
+                     :account/emergency-contact tx})])))
+
 
 ;; =============================================================================
 ;; Security Deposit
@@ -580,6 +615,7 @@
         onboard (onboard/by-account account)]
     (and (boolean (or (some charge/is-pending? (deposit/charges deposit))
                       (> (deposit/received deposit) 0)))
+         (complete? db account :admin/emergency)
          (onboard/seen-cleaning? onboard)
          (onboard/seen-customize? onboard)
          (onboard/seen-moving? onboard)
@@ -617,7 +653,7 @@
 (defroutes routes
   (GET "/" []
        (fn [req]
-         (transit-ok {:result (fetch-all conn (auth/requester req))})))
+         (transit-ok {:result (fetch-all conn (req/requester (d/db conn) req))})))
 
   (POST "/" []
         (fn [{:keys [params] :as req}]

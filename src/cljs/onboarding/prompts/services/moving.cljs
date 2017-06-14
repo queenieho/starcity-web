@@ -2,8 +2,7 @@
   (:require [ant-ui.core :as a]
             [onboarding.prompts.content :as content]
             [re-frame.core :refer [dispatch subscribe]]
-            [cljsjs.moment]
-            [reagent.core :as r]))
+            [cljsjs.moment]))
 
 (defn- form
   [keypath commencement {:keys [needed date time]}]
