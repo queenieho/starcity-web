@@ -84,6 +84,19 @@
                 (level/overview-item "Unit" (:unit/name unit))
                 (deposit-overview-items @deposit))]))))
 
+(defn emergency-contact
+  [{:keys [first-name last-name phone-number]}]
+  (let [contact (subscribe [:account/contact])]
+    (when-not (-> @contact :account/emergency-contact empty?)
+      (let [{:keys [:person/first-name :person/last-name :person/phone-number]}
+            (:account/emergency-contact @contact)]
+        [a/card {:title "Emergency Contact"}
+         [:p [:b "Name"]]
+         [:p (str first-name " " last-name)]
+         [:br]
+         [:p [:b "Phone Number"]]
+         [:p phone-number]]))))
+
 ;; =============================================================================
 ;; Overview
 
@@ -98,7 +111,11 @@
     [member-stats]]
    [a/card {:title "Rent Payments" :style {:margin-bottom 16}}
     [rent/payments]]
-   [deposit/payments]])
+   [:div.columns
+    [:div.column.is-three-quarters
+     [deposit/payments]]
+    [:div.column
+     [emergency-contact]]]])
 
 ;; Proxy for `overview` since we cannot `subscribe` in a multimethod
 (defn- applicant-content []
