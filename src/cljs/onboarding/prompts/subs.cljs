@@ -11,6 +11,9 @@
   {:overview/start
    "Welcome to the Starcity community!"
 
+   :admin/emergency
+   "Who should we contact in the event of an emergency?"
+
    :deposit/method
    "How would you like to pay your security deposit?"
 

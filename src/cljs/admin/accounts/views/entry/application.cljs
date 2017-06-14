@@ -205,11 +205,6 @@
 ;; =============================================================================
 ;; Eligibility
 
-(defn- pet-text [{:keys [pet/type pet/breed pet/weight]}]
-  (if (#{:dog} type)
-    (str "Dog: " breed ", " weight "lbs")
-    (name type)))
-
 (defn- income-file [{:keys [db/id income-file/name]}]
   [:li
    [:a {:href     (str "/api/v1/admin/income-file/" id)
@@ -222,26 +217,67 @@
 
 (defn eligibility []
   (let [app (subscribe [:account/application])]
-    (fn []
-      (let [{:keys [application/address application/has-pet
-                    application/pet income/files application/status]} @app]
+    (let [{:keys [application/address application/has-pet
+                  application/pet income/files application/status]} @app]
+      [:div
+       [approval-modal]
+       [a/card {:title "Eligiblity"
+                :extra (when (= status :application.status/submitted)
+                         (r/as-element [approve-button]))}
         [:div
-         [approval-modal]
-         [a/card {:title "Eligiblity"
-                  :extra (when (= status :application.status/submitted)
-                           (r/as-element [approve-button]))}
-          [:div
-           [:p [:strong "Current Address"]]
-           [:p (or address "N/A")]
-           [:p {:style {:margin-top 6}} [:strong "Pet"]]
-           [:p (cond
-                 (nil? has-pet)   "N/A"
-                 (false? has-pet) "No pet."
-                 :otherwise       (pet-text pet))]
-           [:p {:style {:margin-top 6}} [:strong "Income"]]
-           (if (empty? files)
-             [:p "N/A"]
-             [:ul
-              (map-indexed
-               #(with-meta (income-file %2) {:key %1})
-               files)])]]]))))
+         [:p [:strong "Current Address"]]
+         [:p (or address "N/A")]
+         [:p {:style {:margin-top 6}} [:strong "Income"]]
+         (if (empty? files)
+           [:p "N/A"]
+           [:ul
+            (map-indexed
+             #(with-meta (income-file %2) {:key %1})
+             files)])]]])))
+
+(defn- pet*
+  [{:keys [pet/type pet/breed pet/weight pet/daytime-care
+           pet/demeanor pet/vaccines pet/sterile pet/bitten]}]
+  (let [dog (= :dog type)]
+    [:div
+     [:div.columns
+      [:div.column
+       [:p [:b "Type"]]
+       [:p (name type)]]
+      (when dog
+        [:div.column
+         [:p [:b "Breed"]]
+         [:p breed]])
+      (when dog
+        [:div.column
+         [:p [:b "Weight"]]
+         [:p (str weight "lbs")]])]
+
+     [:div.columns
+      [:div.column
+       [:p [:b "Vaccinated?"]]
+       [a/input {:type :checkbox :disabled true :checked vaccines}]]
+      [:div.column
+       [:p [:b "Sterile?"]]
+       [a/input {:type :checkbox :disabled true :checked sterile}]]
+      [:div.column
+       [:p [:b "Bitey?"]]
+       [a/input {:type :checkbox :disabled true :checked bitten}]]]
+
+     [:div.columns
+      [:div.column
+       [:p [:b "Demeanor"]]
+       [:p (or demeanor "N/A")]]]
+     [:div.columns
+      [:div.column
+       [:p [:b "Daytime care"]]
+       [:p (or daytime-care "N/A")]]]]))
+
+(defn pet []
+  (let [app                                           (subscribe [:account/application])
+        {:keys [application/pet application/has-pet]} @app]
+    [a/card {:title "Pet"}
+     (cond
+       (nil? has-pet)   "N/A"
+       (false? has-pet) "No pet."
+       :otherwise       [pet* pet])]))

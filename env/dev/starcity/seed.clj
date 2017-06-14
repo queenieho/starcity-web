@@ -99,7 +99,8 @@
                  :application/address address
                  :application/move-in move-in
                  :application/has-pet (boolean pet)
-                 :application/fitness fitness)]))
+                 :application/fitness fitness
+                 :application/pet pet)]))
 
 (defn applications-tx [conn]
   (concat
@@ -115,6 +116,14 @@
                 :properties [[:property/internal-name "52gilbert"]
                              [:property/internal-name "2072mission"]]
                 :move-in (date/to-utc-corrected-date (c/to-date (t/date-time 2017 7 1)) (t/time-zone-for-id "America/Los_Angeles"))
+                :pet {:pet/type         :dog
+                      :pet/weight       35
+                      :pet/breed        "corgi"
+                      :pet/daytime-care "crate"
+                      :pet/demeanor     "bitey"
+                      :pet/vaccines     true
+                      :pet/bitten       true
+                      :pet/sterile      true}
                 :fitness {:fitness/experience   "Donec neque quam, dignissim in, mollis nec, sagittis eu, wisi."
                           :fitness/skills       "Donec neque quam, dignissim in, mollis nec, sagittis eu, wisi."
                           :fitness/free-time    "Donec neque quam, dignissim in, mollis nec, sagittis eu, wisi."
