@@ -113,7 +113,8 @@
           [:div.column.is-two-thirds
            [app/community-fitness]]
           [:div.column
-           [app/eligibility]]]]))))
+           [app/eligibility]
+           [:div {:style {:margin-top 16}} [app/pet]]]]]))))
 
 (defmethod overview :account.role/applicant [_]
   [applicant-content])
