@@ -116,10 +116,11 @@
 ;; =============================================================================
 
 (defn- contact [account]
-  {:account/email (:account/email account)
-   :account/phone (:account/phone-number account)
-   :account/dob   (when-let [dob (:account/dob account)]
-                    (f/unparse (f/formatter "M/d") (c/to-date-time dob)))})
+  {:account/email             (:account/email account)
+   :account/phone             (:account/phone-number account)
+   :account/dob               (when-let [dob (:account/dob account)]
+                                (f/unparse (f/formatter "M/d") (c/to-date-time dob)))
+   :account/emergency-contact (into {} (:account/emergency-contact account))})
 
 (defmulti clientize-account
   "Produce a map of `client-data` based on the role of the account. This is

@@ -100,6 +100,10 @@
     [{:key      :overview
       :children [{:key   :start
                   :label "Get Started"}]}
+     {:key      :admin
+      :label    "Administrative"
+      :children [{:key   :emergency
+                  :label "Emergency Contact"}]}
      {:key      :services
       :label    "Services"
       :children [{:key   :moving
@@ -135,6 +139,7 @@
       :children [{:key      :review
                   :label    "Review &amp; Complete"
                   :requires #{:deposit/pay
+                              :admin/emergency
                               :services/moving
                               :services/storage
                               :services/customize
@@ -146,12 +151,12 @@
 ;; =============================================================================
 
 (def default-value
-  {:menu             {:active   :overview/start
-                      :default  :overview/start
-                      :items    menu
-                      :complete #{}}
+  {:menu          {:active   :overview/start
+                   :default  :overview/start
+                   :items    menu
+                   :complete #{}}
    ;; Starts off as being bootstrapped
-   :bootstrapping    true
+   :bootstrapping true
    ;; Always complete, since there's nothing to do
    ;; :overview/start   {:complete true}
    })
@@ -296,6 +301,12 @@
 (defmethod can-advance? :default [_]
   true)
 
+(defmethod can-advance? :admin/emergency [prompt]
+  (let [{:keys [first-name last-name phone-number]} (:data prompt)]
+    (not (or (string/blank? first-name)
+             (string/blank? last-name)
+             (string/blank? phone-number)))))
+
 (defmethod can-advance? :deposit/method
   [{:keys [data]}]
   (#{"ach" "check"} (:method data)))
@@ -327,6 +338,9 @@
   (get-in db [:menu :default]))
 
 (defmethod next-prompt* :overview/start [_ _]
+  :admin/emergency)
+
+(defmethod next-prompt* :admin/emergency [_ _]
   :services/moving)
 
 (defmethod next-prompt* :services/moving [_ _]
@@ -382,7 +396,8 @@
 (defmethod previous-prompt :default [db keypath]
   nil)
 
-(defmethod previous-prompt :services/moving [_ _] :overview/start)
+(defmethod previous-prompt :admin/emergency [_ _] :overview/start)
+(defmethod previous-prompt :services/moving [_ _] :admin/emergency)
 (defmethod previous-prompt :services/storage [_ _] :services/moving)
 (defmethod previous-prompt :services/customize [_ _] :services/storage)
 (defmethod previous-prompt :services/cleaning [_ _] :services/customize)
@@ -398,7 +413,8 @@
 ;; Can Save
 
 (defn can-save? [_ keypath]
-  (boolean (#{:services/moving
+  (boolean (#{:admin/emergency
+              :services/moving
               :services/storage
               :services/customize
               :services/cleaning
