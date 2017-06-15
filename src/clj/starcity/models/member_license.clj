@@ -87,7 +87,8 @@
               :in $ ?sc
               :where
               [?sc :stripe-customer/account ?a]
-              [?a :account/license ?ml]]
+              [?a :account/licenses ?ml]
+              [?ml :member-license/status :member-license.status/active]]
             (d/db conn) [:stripe-customer/customer-id customer-id])
        (d/entity (d/db conn))))
 

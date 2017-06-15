@@ -435,7 +435,7 @@
   [conn account step {method :method}]
   (let [deposit (deposit/by-account account)
         charge  (d/entity (d/db conn) (create-charge conn account deposit method))]
-    (if (complete? conn account step)
+    (if (complete? (d/db conn) account step)
       (throw (ex-info "Cannot charge customer for security deposit twice!"
                       {:account (:db/id account)}))
       @(d/transact conn [(charge-tx deposit method charge)
