@@ -156,6 +156,23 @@
 ;; =============================================================================
 ;; Invoice (Autopay)
 
+
+(defn- rent-invoice?
+  "The invoice belongs to a rent payment (as opposed to a premium service
+  subscription) based on whether or not there's a member license that references
+  the subscription id."
+  [conn subscription-id]
+  (some? (member-license/by-subscription-id conn subscription-id)))
+
+
+(defn- assert-rent-invoice
+  [conn cmd]
+  (let [data (fetch-stripe-event cmd)]
+    (assert (rent-invoice? conn (:subscription data))
+            "This is not a rent invoice; not processing.")
+    data))
+
+
 ;; =====================================
 ;; Created
 
@@ -178,9 +195,9 @@
     (-> event-data :lines :data first :period :start (* 1000) c/from-long (date/to-utc-corrected-date tz))))
 
 (defmethod handle "invoice.created" [conn cmd]
-  (let [{:keys [id customer] :as data} (fetch-stripe-event cmd)
-        license                        (member-license/by-customer-id conn customer)
-        period-start                   (invoice-start-date license data)]
+  (let [{:keys [id customer] :as data} (assert-rent-invoice conn cmd)
+        license      (member-license/by-customer-id conn customer)
+        period-start (invoice-start-date license data)]
     [(add-rent-payment conn license id period-start)
      (msg/invoice-created id customer period-start)]))
 
@@ -194,9 +211,9 @@
 ;; See https://stripe.com/docs/api#invoices for reference.
 
 (defmethod handle "invoice.updated" [conn cmd]
-  (let [{:keys [id charge]} (fetch-stripe-event cmd)
-        payment             (rent-payment/by-invoice-id conn id)]
-    ;; When there's not already a charge for this payment, create one.
+  ;; When there's not already a charge for this payment, create one.
+  (let [{:keys [id charge] :as data} (assert-rent-invoice conn cmd)
+        payment                      (rent-payment/by-invoice-id conn id)]
     (if-not (rent-payment/charge payment)
       [{:db/id               (:db/id payment)
         :rent-payment/charge (charge/create charge (rent-payment/amount payment))}]
@@ -234,19 +251,19 @@
         :ret vector?)
 
 (defmethod handle "invoice.payment_failed" [conn cmd]
-  (let [invoice-id (event-subject-id cmd)
-        payment    (rent-payment/by-invoice-id conn invoice-id)]
+  (let [{:keys [id]} (assert-rent-invoice conn cmd)
+        payment      (rent-payment/by-invoice-id conn id)]
     (conj (invoice-failed conn payment)
-          (msg/invoice-payment-failed invoice-id))))
+          (msg/invoice-payment-failed id))))
 
 ;; =====================================
 ;; Succeeded
 
 (defmethod handle "invoice.payment_succeeded" [conn cmd]
-  (let [invoice-id (event-subject-id cmd)
-        payment    (rent-payment/by-invoice-id conn invoice-id)]
+  (let [{:keys [id]} (assert-rent-invoice conn cmd)
+        payment      (rent-payment/by-invoice-id conn id)]
     [(rent-payment/paid payment)
-     (msg/invoice-payment-succeeded invoice-id)]))
+     (msg/invoice-payment-succeeded id)]))
 
 ;; =============================================================================
 ;; Subscription (autopay)
