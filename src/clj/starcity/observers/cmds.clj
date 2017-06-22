@@ -125,8 +125,11 @@
          [?l :member-license/unit ?u]
          [?pr :property/units ?u]
          [?l :member-license/price ?p]
+         [?l :member-license/commencement ?c]
          ;; not on autopay
-         [(missing? $ ?l :member-license/subscription-id)]]
+         [(missing? $ ?l :member-license/subscription-id)]
+         ;; license has commenced
+         [(.before ^java.util.Date ?c ?now)]]
        db))
 
 
