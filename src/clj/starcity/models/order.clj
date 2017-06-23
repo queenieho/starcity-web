@@ -325,7 +325,7 @@
 
 (defn place-order!
   [conn account order & {:as opts}]
-  (assert (some? (or (:price opts) (get-in order [:order/service :service/price])))
+  (assert (some? (or (:price opts) (computed-price order)))
           "Order cannot be placed without a price!")
   (assert (not (ordered? order))
           "Order has already been ordered!")
@@ -343,26 +343,41 @@
 (comment
   (def conn starcity.datomic/conn)
 
-  (let [account (d/entity (d/db conn) [:account/email "onboarding@test.com"])]
-    (d/q '[:find (pull ?o [:order/price
-                           {:order/variant [:svc-variant/name
-                                            :svc-variant/price]}
-                           {:order/service [:service/code
-                                            :service/price]}])
-           :in $ ?a
-           :where
-           [?o :order/account ?a]]
-         (d/db conn) (:db/id account)))
+  (def account
+    (d/entity (d/db conn) [:account/email "wills@researchpartnership.com"]))
+
+  (d/q '[:find (pull ?o [:db/id
+                         :order/price
+                         :order/desc
+                         {:order/variant [:db/id
+                                          :svc-variant/name
+                                          :svc-variant/price]}
+                         {:order/service [:db/id
+                                          :service/code
+                                          :service/price]}])
+         :in $ ?a
+         :where
+         [?o :order/account ?a]]
+       (d/db conn) (:db/id account))
 
 
-  (let [account (d/entity (d/db conn) [:account/email "onboarding@test.com"])
-        service (service/by-code (d/db conn) "cleaning,weekly")
+  @(d/transact conn [{:db/id 285873023231370
+                      :order/desc "Desk Rental, $85"}])
+
+
+  (d/q '[:find ?s ?c ?p
+         :where
+         [?s :service/code ?c]
+         [?s :service/price ?p]]
+       (d/db conn))
+
+
+  (let [service (service/by-code (d/db conn) "mirror,full-length")
         order   (by-account (d/db conn) account service)]
     (place-order! conn account order))
 
 
-  (let [account (d/entity (d/db conn) [:account/email "onboarding@test.com"])
-        cus     (customer-id (d/db conn) account)]
+  (let [cus (customer-id (d/db conn) account)]
     (<!!? (rcu/update! (config/stripe-private-key config) cus
                        :default-source (rcu/token (credit-card cus)))))
 
