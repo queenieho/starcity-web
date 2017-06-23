@@ -142,9 +142,10 @@
 
 (defmethod complete? :admin/emergency [_ account _]
   (let [contact (:account/emergency-contact account)]
-    (and (:person/first-name contact)
-         (:person/last-name contact)
-         (:person/phone-number contact))))
+    (boolean
+     (and (:person/first-name contact)
+          (:person/last-name contact)
+          (:person/phone-number contact)))))
 
 (defmethod complete? :deposit/method
   [_ account _]
