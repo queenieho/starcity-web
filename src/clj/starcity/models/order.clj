@@ -92,7 +92,7 @@
 (defn computed-name
   [order]
   (let [service (:order/service order)]
-    (if-let [vn (variant-name order)]
+    (if-let [vn (-> order :order/variant :svc-variant/name)]
      (str (service/name service) " - " (string/capitalize vn))
      (service/name service))))
 
