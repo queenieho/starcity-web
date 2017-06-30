@@ -142,9 +142,10 @@
 
 (defmethod complete? :admin/emergency [_ account _]
   (let [contact (:account/emergency-contact account)]
-    (and (:person/first-name contact)
-         (:person/last-name contact)
-         (:person/phone-number contact))))
+    (boolean
+     (and (:person/first-name contact)
+          (:person/last-name contact)
+          (:person/phone-number contact)))))
 
 (defmethod complete? :deposit/method
   [_ account _]
@@ -396,7 +397,9 @@
 
 (defmethod save! :deposit.method/bank
   [conn account _ {token :stripe-token}]
-  (customer/create-platform! account token))
+  (if-let [customer (account/stripe-customer (d/db conn) account)]
+    (sources/create! (customer/id customer) token)
+    (customer/create-platform! account token)))
 
 (defmethod save! :deposit.method/verify
   [conn account _ {:keys [amount-1 amount-2]}]

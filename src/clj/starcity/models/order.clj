@@ -4,6 +4,7 @@
              [account :as account]
              [charge :as charge]
              [customer :as customer]]
+            [clj-time.core :as t]
             [clojure
              [spec :as s]
              [string :as string]]
@@ -20,8 +21,9 @@
             [starcity.models
              [service :as service]]
             [toolbelt
-             [predicates :as p]
-             [async :refer [<!!?]]]
+             [async :refer [<!!?]]
+             [date :as date]
+             [predicates :as p]]
             [taoensso.timbre :as timbre]
             [clojure.core.async :as a]))
 
@@ -85,6 +87,14 @@
 (s/fdef ordered-at
         :args (s/cat :order p/entity?)
         :ret (s/or :inst inst? :nothing nil?))
+
+
+(defn computed-name
+  [order]
+  (let [service (:order/service order)]
+    (if-let [vn (-> order :order/variant :svc-variant/name)]
+     (str (service/name service) " - " (string/capitalize vn))
+     (service/name service))))
 
 
 ;; =============================================================================
@@ -154,6 +164,7 @@
 ;; Transactions
 ;; =============================================================================
 
+
 (s/def ::quantity (s/and pos? float?))
 (s/def ::desc string?)
 (s/def ::variant integer?)
@@ -199,6 +210,7 @@
 
 (s/fdef remove-existing
         :args (s/cat :db p/db? :account p/entity? :service p/entity?))
+
 
 ;; =============================================================================
 ;; Clientize
@@ -287,8 +299,7 @@
     @(d/transact conn [{:db/id         (:db/id order)
                         :order/ordered (java.util.Date.)
                         :order/price   price
-                        :stripe/charge (charge/create (:id charge)
-                                                      price
+                        :stripe/charge (charge/create (:id charge) price
                                                       :purpose (stripe-desc account order)
                                                       :account account)}])))
 
@@ -320,12 +331,12 @@
     @(d/transact conn [{:db/id          (:db/id order)
                         :order/ordered  (java.util.Date.)
                         :stripe/plan-id (:id plan)
-                        :stripe/subs-id  (:id sub)}])))
+                        :stripe/subs-id (:id sub)}])))
 
 
 (defn place-order!
   [conn account order & {:as opts}]
-  (assert (some? (or (:price opts) (get-in order [:order/service :service/price])))
+  (assert (some? (or (:price opts) (computed-price order)))
           "Order cannot be placed without a price!")
   (assert (not (ordered? order))
           "Order has already been ordered!")
@@ -339,32 +350,82 @@
                      :order p/entity?
                      :opts (s/keys* :opt-un [::price ::desc])))
 
-
 (comment
   (def conn starcity.datomic/conn)
 
-  (let [account (d/entity (d/db conn) [:account/email "onboarding@test.com"])]
-    (d/q '[:find (pull ?o [:order/price
-                           {:order/variant [:svc-variant/name
-                                            :svc-variant/price]}
-                           {:order/service [:service/code
-                                            :service/price]}])
-           :in $ ?a
-           :where
-           [?o :order/account ?a]]
-         (d/db conn) (:db/id account)))
+  (def account
+    (d/entity (d/db conn) [:account/email "wills@researchpartnership.com"]))
+
+  (d/q '[:find (pull ?o [:db/id
+                         :order/price
+                         :order/desc
+                         {:order/variant [:db/id
+                                          :svc-variant/name
+                                          :svc-variant/price]}
+                         {:order/service [:db/id
+                                          :service/code
+                                          :service/price]}])
+         :in $ ?a
+         :where
+         [?o :order/account ?a]]
+       (d/db conn) (:db/id account))
 
 
-  (let [account (d/entity (d/db conn) [:account/email "onboarding@test.com"])
-        service (service/by-code (d/db conn) "cleaning,weekly")
+  @(d/transact conn [{:db/id 285873023231370
+                      :order/desc "Desk Rental, $85"}])
+
+
+  (d/q '[:find ?s ?c ?p
+         :where
+         [?s :service/code ?c]
+         [?s :service/price ?p]]
+       (d/db conn))
+
+
+  (let [service (service/by-code (d/db conn) "mirror,full-length")
         order   (by-account (d/db conn) account service)]
     (place-order! conn account order))
 
 
-  (let [account (d/entity (d/db conn) [:account/email "onboarding@test.com"])
-        cus     (customer-id (d/db conn) account)]
+  (let [cus (customer-id (d/db conn) account)]
     (<!!? (rcu/update! (config/stripe-private-key config) cus
                        :default-source (rcu/token (credit-card cus)))))
 
+
+  )
+
+;; =============================================================================
+;; Order Analytics: 6/29/17
+;; =============================================================================
+
+;; Date of request (if available), date request completed (if available),
+;; associated member, $ charge (initiated / completed / success) would be a good
+;; starting place.
+
+(defn order-report [db]
+  (let [qr (d/q '[:find ?e ?email ?date-of-request
+                  :where
+                  [?e :order/account ?a ?dortx]
+                  [?dortx :db/txInstant ?date-of-request]
+                  [?e :order/service ?s]
+                  [?a :account/email ?email]]
+                db)]
+    (map
+     (fn [[e email date-of-request]]
+       (let [ent     (d/entity db e)
+             price   (if-some [p (computed-price ent)] (str "$" p) "N/A")
+             tz      (t/time-zone-for-id "America/Los_Angeles")
+             dor     (-> date-of-request (date/to-utc-corrected-date tz) date/short-date)
+             ordered (when-some [d (ordered-at ent)] (-> d (date/to-utc-corrected-date tz) date/short-date))]
+         ;; amount charged, service, member, date requested, date charged
+         [price (computed-name ent) email dor (or ordered "N/A")]))
+     qr)))
+
+
+(comment
+  (->> (order-report (d/db starcity.datomic/conn))
+       (map (comp (partial apply str) (partial interpose ",")))
+       (interpose "\n")
+       (apply str))
 
   )
