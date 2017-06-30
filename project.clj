@@ -25,7 +25,7 @@
                  [optimus "0.19.1"]
                  [starcity/datomic-session-store "0.1.0"]
                  [starcity/customs "0.1.0"]
-                 [starcity/facade "0.1.0"]
+                 [starcity/facade "0.1.2"]
                  ;; HTTP APIs
                  [nilenso/mailgun "0.2.3"]
                  [org.apache.httpcomponents/httpclient "4.5.2"] ; dep resolution?
