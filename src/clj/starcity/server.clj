@@ -54,10 +54,10 @@
     (when-not (or (= uri "/favicon.ico")
                   (string/starts-with? uri "/assets")
                   (string/starts-with? uri "/bundles"))
-      (t/trace ::request (assoc-when {:uri         uri
-                                      :method      request-method
-                                      :remote-addr remote-addr}
-                                     :user (:account/email identity))))
+      (t/info :web/request (assoc-when {:uri         uri
+                                        :method      request-method
+                                        :remote-addr remote-addr}
+                                       :user (:account/email identity))))
     (handler req)))
 
 ;; =============================================================================
