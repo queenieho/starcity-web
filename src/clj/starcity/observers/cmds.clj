@@ -119,6 +119,7 @@
   "Query all active licenses that are not on autopay."
   [db]
   (d/q '[:find ?l ?pr ?p
+         :in $ ?now
          :where
          ;; active licenses
          [?l :member-license/status :member-license.status/active]
@@ -130,7 +131,7 @@
          [(missing? $ ?l :member-license/subscription-id)]
          ;; license has commenced
          [(.before ^java.util.Date ?c ?now)]]
-       db))
+       db (java.util.Date.)))
 
 
 (defn- create-payments [db start query-result]
