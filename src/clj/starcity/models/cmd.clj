@@ -179,3 +179,12 @@
 (s/fdef delete-session
         :args (s/cat :account p/entity?)
         :ret ::cmd)
+
+
+;; =============================================================================
+;; Other
+
+(defn read-cmd [cmd]
+  (-> (select-keys cmd [:db/id :cmd/uuid :cmd/id :cmd/key :cmd/params :cmd/meta :cmd/status])
+      (plumbing.core/update-in-when [:cmd/params] taoensso.nippy/thaw)
+      (plumbing.core/update-in-when [:cmd/meta] taoensso.nippy/thaw)))
