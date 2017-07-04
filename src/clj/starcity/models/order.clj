@@ -354,11 +354,12 @@
   (def conn starcity.datomic/conn)
 
   (def account
-    (d/entity (d/db conn) [:account/email "wills@researchpartnership.com"]))
+    (d/entity (d/db conn) [:account/email ""]))
 
   (d/q '[:find (pull ?o [:db/id
                          :order/price
-                         :order/desc
+                         :order/quantity
+                         :stripe/subs-id
                          {:order/variant [:db/id
                                           :svc-variant/name
                                           :svc-variant/price]}
@@ -371,18 +372,7 @@
        (d/db conn) (:db/id account))
 
 
-  @(d/transact conn [{:db/id 285873023231370
-                      :order/desc "Desk Rental, $85"}])
-
-
-  (d/q '[:find ?s ?c ?p
-         :where
-         [?s :service/code ?c]
-         [?s :service/price ?p]]
-       (d/db conn))
-
-
-  (let [service (service/by-code (d/db conn) "mirror,full-length")
+  (let [service (service/by-code (d/db conn) "plants,planter")
         order   (by-account (d/db conn) account service)]
     (place-order! conn account order))
 
@@ -390,6 +380,7 @@
   (let [cus (customer-id (d/db conn) account)]
     (<!!? (rcu/update! (config/stripe-private-key config) cus
                        :default-source (rcu/token (credit-card cus)))))
+
 
 
   )
