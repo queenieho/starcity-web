@@ -9,7 +9,6 @@
              [account :as account]
              [charge :as charge]
              [member-license :as member-license]
-             [msg :as msg]
              [rent :as rent]
              [rent-payment :as rent-payment]]
             [starcity.models.stripe.customer :as customer]

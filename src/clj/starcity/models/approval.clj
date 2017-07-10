@@ -3,7 +3,6 @@
             [starcity.datomic.partition :refer [tempid]]
             [starcity.models
              [application :as app]
-             [msg :as msg]
              [security-deposit :as deposit]
              [unit :as unit]]
             [toolbelt.predicates :as p]

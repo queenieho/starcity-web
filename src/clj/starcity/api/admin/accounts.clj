@@ -26,7 +26,6 @@
              [income-file :as income-file]
              [license :as license]
              [member-license :as member-license]
-             [msg :as msg]
              [note :as note]
              [property :as property]
              [rent-payment :as rent-payment]
