@@ -3,9 +3,8 @@
             [clojure.spec :as s]
             [datomic.api :as d]
             [starcity
-             [auth :as auth]
-             [datomic :refer [conn]]
-             [util :refer :all]]
+             [config :as config :refer [config]]
+             [datomic :refer [conn]]]
             [starcity.models
              [account :as account]
              [charge :as charge]
@@ -16,8 +15,14 @@
             [starcity.models.stripe.customer :as customer]
             [starcity.services.stripe :as stripe]
             [starcity.util.response :as resp]
+            [starcity.util.request :as req]
             [taoensso.timbre :as timbre]
-            [toolbelt.predicates :as p]))
+            [toolbelt.core :as tb]
+            [toolbelt.async :refer [<!!?]]
+            [toolbelt.predicates :as p]
+            [ribbon.charge :as rc]
+            [starcity.models.property :as property]
+            [reactor.events :as events]))
 
 ;; =============================================================================
 ;; Handlers
@@ -29,7 +34,7 @@
 (defn next-payment-handler
   "Retrieve the details of the 'next' payment for requesting account."
   [{:keys [params] :as req}]
-  (let [account (auth/requester req)]
+  (let [account (req/requester (d/db conn) req)]
     (resp/json-ok (rent/next-payment conn account))))
 
 ;; =============================================================================
@@ -56,7 +61,7 @@
 (defn payments-handler
   "Retrieve the list of rent payments for the requesting account."
   [req]
-  (let [account    (auth/requester req)
+  (let [account    (req/requester (d/db conn) req)
         payments   (rent/payments conn account)
         grace-over (->> (member-license/active conn account)
                         (member-license/grace-period-over? conn))]
@@ -80,13 +85,16 @@
   "Create a charge for `payment` on Stripe."
   [conn account payment license amount]
   (if (rent-payment/unpaid? payment)
-    (let [customer (account/stripe-customer (d/db conn) account)]
-      (get-in (stripe/charge (cents amount)
+    (let [customer (account/stripe-customer (d/db conn) account)
+          property (member-license/property account)
+          desc     (format "%s's rent at %s" (account/full-name account) (property/name property))]
+      (:id (<!!? (rc/create! (config/stripe-private-key config)
+                             (cents amount)
                              (customer/bank-account-token customer)
-                             (account/email account)
+                             :email (account/email account)
+                             :description desc
                              :customer-id (customer/id customer)
-                             :managed-account (member-license/managed-account-id license))
-              [:body :id]))
+                             :managed-account (member-license/managed-account-id license)))))
     (throw (ex-info "Cannot pay a payment that is already paid!"
                     {:payment (:db/id payment) :account (:db/id account)}))))
 
@@ -101,7 +109,7 @@
                         :rent-payment/paid-on (java.util.Date.)
                         :rent-payment/method rent-payment/ach
                         :rent-payment/charge (charge/create charge-id amount :account account))
-                       (msg/ach-payment payment account)])))
+                       (events/rent-payment-made account payment)])))
 
 (s/fdef make-payment!
         :args (s/cat :conn p/conn?
@@ -137,5 +145,5 @@
 
   (POST "/:payment-id/pay" [payment-id]
         (fn [req]
-          (let [account (auth/requester req)]
-            (make-payment conn account (str->int payment-id))))))
+          (let [account (req/requester (d/db conn) req)]
+            (make-payment conn account (tb/str->int payment-id))))))

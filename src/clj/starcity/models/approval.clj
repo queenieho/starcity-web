@@ -3,7 +3,6 @@
             [starcity.datomic.partition :refer [tempid]]
             [starcity.models
              [application :as app]
-             [cmd :as cmd]
              [msg :as msg]
              [security-deposit :as deposit]
              [unit :as unit]]
@@ -11,7 +10,8 @@
             [starcity.models.onboard :as onboard]
             [starcity.models.property :as property]
             [toolbelt.date :as date]
-            [clj-time.core :as t]))
+            [clj-time.core :as t]
+            [reactor.events :as events]))
 
 ;; =============================================================================
 ;; Lookups
@@ -98,33 +98,3 @@
                            :approval/license
                            :approval/move-in
                            :approval/status]))
-
-(defn approve
-  "Approve `approvee` by creating an `approval` entity and flipping the
-  necessary bits elswhere in the database.
-
-  More specifically, this means:
-  - Change `account`'s role to onboarding
-  - Create a security deposit stub
-  - Mark the application as approved"
-  [approver approvee unit license move-in]
-  (let [tz      (-> unit unit/property property/time-zone)
-        move-in (date/beginning-of-day move-in tz)] ; for msg
-    [(create approver approvee unit license move-in)
-     ;; Change role
-     {:db/id (:db/id approvee) :account/role :account.role/onboarding}
-     (deposit/create approvee (int (unit/rate unit license)))
-     (onboard/create approvee)
-     (app/change-status (:account/application approvee)
-                        :application.status/approved)
-     (msg/approved approver approvee unit license move-in)
-     ;; Log `approvee` out
-     (cmd/delete-session approvee)]))
-
-(s/fdef approve
-        :args (s/cat :approver p/entity?
-                     :approvee p/entity?
-                     :unit p/entity?
-                     :license p/entity?
-                     :move-in inst?)
-        :ret (s/and vector? (s/+ map?)))

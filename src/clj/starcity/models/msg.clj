@@ -38,63 +38,7 @@
 ;; =============================================================================
 
 ;; =============================================================================
-;; Accounts
-
-(def approved-key :account/approve)
-
-(defn approved
-  "An account has been approved."
-  [approver approvee unit license move-in]
-  (create approved-key :params {:approver-id (:db/id approver)
-                                :approvee-id (:db/id approvee)
-                                :unit-id     (:db/id unit)
-                                :license-id  (:db/id license)
-                                :move-in     move-in}))
-
-(s/fdef approved
-        :args (s/cat :approver p/entity?
-                     :approvee p/entity?
-                     :unit p/entity?
-                     :license p/entity?
-                     :move-in inst?)
-        :ret ::msg)
-
-(def account-created-key :account/created)
-
-(defn account-created
-  "An account has been created."
-  [email]
-  (create account-created-key :params {:email email}))
-
-(s/fdef account-created
-        :args (s/cat :email string?)
-        :ret ::msg)
-
-(def promoted-key :account/promoted)
-
-(defn promoted
-  "An `account` has been promoted to membership status."
-  [account]
-  (create promoted-key :params {:account-id (:db/id account)}))
-
-(s/fdef promoted
-        :args (s/cat :account p/entity?)
-        :ret ::msg)
-
-;; =============================================================================
 ;; Notes
-
-(def note-created-key :note/created)
-
-(defn note-created
-  "A new note has been created."
-  [note & [notify?]]
-  (create note-created-key :params {:note/uuid (:note/uuid note)
-                                    :notify?   notify?}))
-
-(s/fdef note-created
-        :args (s/cat :note (s/keys :req [:note/uuid]) :notify? (s/? boolean?))
-        :ret ::msg)
 
 (def note-comment-created-key :note.comment/created)
 
@@ -109,18 +53,6 @@
 
 ;; =============================================================================
 ;; Rent
-
-(def ach-payment-key :rent.payment.ach/pay)
-
-(defn ach-payment
-  "An ACH payment has been made."
-  [payment account]
-  (create ach-payment-key :params {:payment-id (:db/id payment)
-                                   :account-id (:db/id account)}))
-
-(s/fdef ach-payment
-        :args (s/cat :payment p/entity? :account p/entity?)
-        :ret ::msg)
 
 (def rent-payments-created-key :rent.payments/created)
 
@@ -221,32 +153,4 @@
 
 (s/fdef autopay-deactivated
         :args (s/cat :member-license p/entity?)
-        :ret ::msg)
-
-;; =============================================================================
-;; Security Deposit
-
-
-(def deposit-payment-made-key :security-deposit/ach-payment-made)
-
-(defn deposit-payment-made
-  "A security deposit payment has been made."
-  [account charge]
-  (create deposit-payment-made-key :params {:charge-id  (:db/id charge)
-                                            :account-id (:db/id account)}))
-
-(s/fdef deposit-payment-made
-        :args (s/cat :account p/entity? :charge p/entity?)
-        :ret ::msg)
-
-(def remainder-deposit-paid-key :security-deposit.remainder/paid)
-
-(defn remainder-deposit-paid
-  "The remainder of the security deposit has been paid."
-  [account charge-id]
-  (create remainder-deposit-paid-key :params {:charge-id  charge-id
-                                              :account-id (:db/id account)}))
-
-(s/fdef remainder-deposit-paid
-        :args (s/cat :account p/entity? :charge-id string?)
         :ret ::msg)

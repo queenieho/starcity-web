@@ -2,6 +2,9 @@
   (:require [bouncer
              [core :as b]
              [validators :as v]]
+            [blueprints.models
+             [approval :as approval]
+             [event :as event]]
             [clj-time
              [coerce :as c]
              [core :as t]
@@ -12,13 +15,13 @@
             [compojure.core :refer [defroutes GET POST]]
             [datomic.api :as d]
             [plumbing.core :as plumbing]
+            [reactor.events :as events]
             [starcity
              [auth :as auth]
              [datomic :refer [conn]]]
             [starcity.models
              [account :as account]
              [application :as app]
-             [approval :as approval]
              [charge :as charge]
              [income-file :as income-file]
              [license :as license]
@@ -468,7 +471,8 @@
 
       :otherwise
       (do
-        @(d/transact conn (approval/approve approver account unit license move-in))
+        @(d/transact conn (conj (approval/approve approver account unit license move-in)
+                                (events/account-approved account)))
         (response/transit-ok {:result "ok"})))))
 
 
@@ -507,9 +511,9 @@
   "Create a new note under `account-id` given `params`."
   [conn account-id author {:keys [subject content notify ticket]}]
   (let [note (note/create subject content :ticket? ticket :author author)]
-    @(d/transact conn [{:db/id         account-id
-                        :account/notes note}
-                       (msg/note-created note notify)])
+    @(d/transact conn (tb/conj-when
+                       [{:db/id account-id :account/notes note}]
+                       (when notify (events/note-created note))))
     {:result "ok"}))
 
 (s/def ::subject string?)

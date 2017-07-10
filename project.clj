@@ -59,7 +59,7 @@
                  [com.taoensso/timbre "4.8.0"]
                  [com.taoensso/nippy "2.12.2"]
                  [prismatic/plumbing "0.5.3"]
-                 [starcity/toolbelt "0.1.6" :exclusions [com.datomic/datomic-free]]
+                 [starcity/toolbelt "0.1.7-SNAPSHOT" :exclusions [com.datomic/datomic-free]]
                  [starcity/ribbon "0.3.0-SNAPSHOT"]
                  [enlive "1.1.6"]
                  [cljsjs/moment "2.17.1-0"]]

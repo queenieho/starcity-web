@@ -5,9 +5,11 @@
             [ring.util.response :as response]
             [starcity.controllers.common :as common]
             [starcity.datomic :refer [conn]]
-            [starcity.models.cmd :as cmd]))
+            [reactor.events :as events]))
+
 
 (html/defsnippet newsletter "templates/subscribed-newsletter.html" [:main] [])
+
 
 (defn show
   [req]
@@ -17,9 +19,10 @@
                   :js-bundles ["main.js"]
                   :main (newsletter))))
 
+
 (defn subscribe!
   "Subscribe the specified email address (params) to our newsletter."
   [req]
   (when-let [email (get-in req [:params :email])]
-    (d/transact-async conn [(cmd/subscribe-to-newsletter email)]))
+    @(d/transact-async conn [(events/add-newsletter-subscriber email)]))
   (response/redirect "/newsletter"))

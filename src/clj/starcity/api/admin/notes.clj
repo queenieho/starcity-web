@@ -1,21 +1,20 @@
 (ns starcity.api.admin.notes
-  (:require [bouncer
+  (:require [blueprints.models.note :as note]
+            [bouncer
              [core :as b]
              [validators :as v]]
             [clojure.spec :as s]
             [compojure.core :refer [defroutes POST GET DELETE PUT]]
             [datomic.api :as d]
+            [reactor.events :as events]
             [starcity
              [auth :as auth]
              [datomic :refer [conn]]]
-            [starcity.models
-             [msg :as msg]
-             [note :as note]]
             [starcity.util
              [response :as response]
              [validation :as uv]]
             [toolbelt
-             [core :refer [str->int]]
+             [core :as tb]
              [predicates :as p]]))
 
 ;; =============================================================================
@@ -33,8 +32,9 @@
   [conn note-id author {:keys [content notify]}]
   (let [note    (d/entity (d/db conn) note-id)
         comment (note/create-comment author content)]
-    @(d/transact conn [(note/add-comment note comment)
-                       (msg/note-comment-created comment notify)])
+    @(d/transact conn (tb/conj-when
+                       [(note/add-comment note comment)]
+                       (when notify (events/note-comment-created note comment))))
     {:result "ok"}))
 
 (s/def ::content string?)
@@ -121,26 +121,26 @@
   (GET "/:note-id" [note-id]
        (fn [_]
          (let [db   (d/db conn)
-               note (d/entity db (str->int note-id))]
+               note (d/entity db (tb/str->int note-id))]
            (response/transit-ok
             {:result (note/clientize db note)}))))
 
   (PUT "/:note-id" [note-id]
        (fn [{params :params :as req}]
          (let [requester (auth/requester req)]
-           (update-note! conn requester (str->int note-id) params))))
+           (update-note! conn requester (tb/str->int note-id) params))))
 
   (DELETE "/:note-id" [note-id]
           (fn [req]
-            (delete-note! conn (auth/requester req) (str->int note-id))))
+            (delete-note! conn (auth/requester req) (tb/str->int note-id))))
 
   (POST "/:note-id/convert" [note-id]
         (fn [_]
-          (convert-note! conn (str->int note-id))))
+          (convert-note! conn (tb/str->int note-id))))
 
   (POST "/:note-id/status" [note-id]
         (fn [_]
-          (change-status! conn (str->int note-id))))
+          (change-status! conn (tb/str->int note-id))))
 
   (POST "/:note-id/comments" [note-id]
         (fn [{params :params :as req}]
@@ -149,5 +149,5 @@
                 author  (auth/requester req)]
             (if-let [params (uv/valid? vresult)]
               (response/transit-ok
-               (create-comment! conn (str->int note-id) author params))
+               (create-comment! conn (tb/str->int note-id) author params))
               (response/transit-malformed {:message (first (uv/errors vresult))}))))))
