@@ -13,14 +13,12 @@
             [plumbing.core :as plumbing]
             [starcity
              [auth :as auth]
-             [datomic :refer [conn]]
-             [util :refer [beginning-of-day]]]
+             [datomic :refer [conn]]]
             [starcity.models
              [account :as account]
              [approval :as approval]
              [catalogue :as catalogue]
              [charge :as charge]
-             [msg :as msg]
              [news :as news]
              [onboard :as onboard]
              [order :as order]
@@ -36,7 +34,13 @@
              [response :as res :refer [transit-malformed transit-ok]]
              [validation :as validation]]
             [taoensso.timbre :as timbre]
-            [toolbelt.predicates :as p]))
+            [toolbelt.predicates :as p]
+            [toolbelt.async :refer [<!!?]]
+            [reactor.events :as events]
+            [ribbon.charge :as rc]
+            [starcity.config :as config :refer [config]]
+            [toolbelt.date :as date]
+            [toolbelt.datomic :as td]))
 
 ;; NOTE: Do we want to deal with dependencies like we do on the client? This may
 ;; make sense, since certain steps are moot in the absense of satisfied
@@ -98,7 +102,7 @@
 (defmethod validations :services/moving
   [_ account _]
   (letfn [(-commencement [account]
-            (-> account approval/by-account approval/move-in beginning-of-day))
+            (-> account approval/by-account approval/move-in date/beginning-of-day))
           (-after-commencement? [date]
             (or (= date (-commencement account))
                 (t/after? (c/to-date-time date) (c/to-date-time (-commencement account)))))]
@@ -414,35 +418,34 @@
     50000))
 
 (defn- create-charge
-  [conn account deposit method]
-  (let [customer (account/stripe-customer (d/db conn) account)]
-    (stripe/create-charge! conn
-                           (:db/id account)
-                           (charge-amount method deposit)
-                           (:stripe-customer/bank-account-token customer)
-                           :description (format "'%s' security deposit payment" method)
-                           :customer-id (:stripe-customer/customer-id customer)
-                           :managed-account (-> account
-                                                account/approval
-                                                approval/unit
-                                                unit/property
-                                                property/managed-account-id))))
-
-(defn- charge-tx
-  [deposit method charge]
-  {:db/id                         (:db/id deposit)
-   :security-deposit/payment-type (keyword "security-deposit.payment-type" method)
-   :security-deposit/charges      (:db/id charge)})
+  [db account deposit method]
+  (let [customer (account/stripe-customer db account)]
+    (<!!? (rc/create! (config/stripe-private-key config)
+                      (charge-amount method deposit)
+                      (customer/bank-account-token customer)
+                      :email (account/email account)
+                      :description (format "'%s' security deposit payment" method)
+                      :customer-id (customer/id customer)
+                      :managed-account (-> account
+                                           account/approval
+                                           approval/unit
+                                           unit/property
+                                           property/managed-account-id)))))
 
 (defmethod save! :deposit/pay
   [conn account step {method :method}]
-  (let [deposit (deposit/by-account account)
-        charge  (d/entity (d/db conn) (create-charge conn account deposit method))]
-    (if (complete? (d/db conn) account step)
-      (throw (ex-info "Cannot charge customer for security deposit twice!"
-                      {:account (:db/id account)}))
-      @(d/transact conn [(charge-tx deposit method charge)
-                         (msg/deposit-payment-made account charge)]))))
+  (if (complete? (d/db conn) account step)
+    (throw (ex-info "Cannot charge customer for security deposit twice!"
+                    {:account (:db/id account)}))
+    (let [deposit   (deposit/by-account account)
+          charge-id (:id (create-charge (d/db conn) account deposit method))
+          amount    (float (/ (charge-amount method deposit) 100))
+          charge    (charge/create charge-id amount :account account)]
+      @(d/transact conn [{:db/id                         (:db/id deposit)
+                          :security-deposit/payment-type (keyword "security-deposit.payment-type" method)
+                          :security-deposit/charges      (td/id charge)}
+                         charge
+                         (events/deposit-payment-made account charge-id)]))))
 
 ;; =============================================================================
 ;; Services
@@ -616,6 +619,7 @@
 (defn- is-finished? [db account]
   (let [deposit (deposit/by-account account)
         onboard (onboard/by-account account)]
+    ;; TODO: This logic is a duplicate of what `deposit/paid?` does, right?
     (and (boolean (or (some charge/is-pending? (deposit/charges deposit))
                       (> (deposit/received deposit) 0)))
          (complete? db account :admin/emergency)
@@ -633,7 +637,7 @@
   @(d/transact conn (conj (account/promote account)
                           (news/welcome account)
                           (news/autopay account)
-                          (msg/promoted account))))
+                          (events/account-promoted account))))
 
 (defn finish-handler
   [{:keys [params session] :as req}]
