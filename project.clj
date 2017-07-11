@@ -19,7 +19,6 @@
                  [cheshire "5.6.3"]
                  [ring/ring "1.5.0"]
                  [ring-middleware-format "0.7.2"]
-                 [hiccup "1.0.5"]       ; TODO: remove
                  [buddy "1.1.0"]
                  [bouncer "1.0.0"]
                  [optimus "0.19.1"]
@@ -28,7 +27,7 @@
                  [starcity/facade "0.1.2"]
                  ;; HTTP APIs
                  [nilenso/mailgun "0.2.3"]
-                 [starcity/mailer "0.1.0-SNAPSHOT"]
+                 [starcity/mailer "0.1.0"]
                  [org.apache.httpcomponents/httpclient "4.5.2"] ; dep resolution?
                  ;; Time
                  [clj-time "0.12.0"]
@@ -37,8 +36,8 @@
                  [mount "0.1.11"]
                  ;; Datomic
                  [io.rkn/conformity "0.4.0"]
-                 [starcity/blueprints "1.8.0-SNAPSHOT" :exclusions [com.datomic/datomic-free]]
-                 [starcity/reactor "0.1.0-SNAPSHOT"]
+                 [starcity/blueprints "1.8.0" :exclusions [com.datomic/datomic-free]]
+                 [starcity/reactor "0.1.0"]
                  [com.datomic/datomic-pro "0.9.5544" :exclusions [com.google.guava/guava]]
                  [org.postgresql/postgresql "9.4.1211"]
                  ;; CLJS
@@ -59,8 +58,8 @@
                  [com.taoensso/timbre "4.8.0"]
                  [com.taoensso/nippy "2.12.2"]
                  [prismatic/plumbing "0.5.3"]
-                 [starcity/toolbelt "0.1.7-SNAPSHOT" :exclusions [com.datomic/datomic-free]]
-                 [starcity/ribbon "0.3.0-SNAPSHOT"]
+                 [starcity/toolbelt "0.1.7" :exclusions [com.datomic/datomic-free]]
+                 [starcity/ribbon "0.3.0"]
                  [enlive "1.1.6"]
                  [cljsjs/moment "2.17.1-0"]]
 
