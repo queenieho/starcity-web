@@ -2,28 +2,26 @@
   (:require [cheshire.core :as json]
             [datomic.api :as d]
             [org.httpkit.client :as http]
-            [starcity.config :as config :refer [config]]
+            [reactor.events :as events]
             [ring.util.response :as response]
-            [starcity.datomic :refer [conn]]
-            [starcity.models.cmd :as cmd]))
+            [starcity.config :as config :refer [config]]
+            [starcity.datomic :refer [conn]]))
 
-;; =============================================================================
-;; API
-;; =============================================================================
 
 (defn hook
   [{params :params :as req}]
   (let [{:keys [id type livemode user_id]} params]
-    (when-not (d/entity (d/db conn) [:cmd/id id])
+    (when-not (some? (d/entity (d/db conn) [:event/id id]))
       ;; If we're in production...
       (if (config/is-production? config)
-        ;; Only accept events that are sent in `livemode`
+        ;; Only accept events that are sent in `livemode` in production
         (when livemode
-          @(d/transact conn [(cmd/stripe-webhook-event id type user_id)]))
-        ;; If it's development, accept all
-        @(d/transact conn [(cmd/stripe-webhook-event id type user_id)])))
+          @(d/transact-async conn [(events/stripe-event id type user_id)]))
+        ;; Accept all events during development
+        @(d/transact-async conn [(events/stripe-event id type user_id)])))
     ;; Acknowledge that we've received the event.
     (response/response {})))
+
 
 (comment
 
@@ -36,9 +34,5 @@
     @(http/post "http://localhost:8080/webhooks/stripe"
                 {:headers {"Content-Type" "application/json"}
                  :body    (json/generate-string event*)}))
-
-  (d/touch (d/entity (d/db conn) [:cmd/id (:id event*)]))
-
-  @(d/transact conn [(cmd/retry (d/entity (d/db conn) [:cmd/id (:id event*)]))])
 
   )

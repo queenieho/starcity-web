@@ -5,9 +5,8 @@
             [starcity.datomic]
             [starcity.log]
             [starcity.nrepl]
-            [starcity.observers]
-            [starcity.services.mailgun]
             [starcity.scheduler]
+            [starcity.reactor]
             [clojure.tools.cli :refer [parse-opts]]
             [mount.core :as mount]))
 

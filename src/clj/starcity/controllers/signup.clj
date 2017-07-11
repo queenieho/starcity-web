@@ -9,15 +9,15 @@
              [core :as facade]
              [snippets :as snippets]]
             [net.cgrand.enlive-html :as html]
+            [reactor.events :as events]
             [ring.util.response :as response]
             [starcity.controllers.common :as common]
             [starcity.config :as config :refer [config]]
             [starcity.datomic :refer [conn]]
-            [starcity.models
-             [account :as account]
-             [cmd :as cmd]]
+            [starcity.models.account :as account]
             [starcity.util.validation :as validation]
             [taoensso.timbre :as timbre]))
+
 
 ;; =============================================================================
 ;; Constants
@@ -114,7 +114,7 @@
       (if-let [{:keys [email password first-name last-name]} (validation/valid? vresult)]
         (if-not (account/exists? (d/db conn) email)
           (do
-            @(d/transact conn [(cmd/create-account email password first-name last-name)])
+            @(d/transact-async conn [(events/create-account email password first-name last-name)])
             (response/redirect redirect-after-signup))
           ;; account already exists for email
           (signup-errors req params (format "An account is already registered for %s." email)))

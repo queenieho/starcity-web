@@ -1,6 +1,7 @@
 (ns starcity.api.mars.security-deposit
   (:require [compojure.core :refer [defroutes GET POST]]
             [datomic.api :as d]
+            [reactor.events :as events]
             [starcity
              [auth :as auth]
              [datomic :refer [conn]]]
@@ -8,7 +9,6 @@
              [account :as account]
              [charge :as charge]
              [member-license :as member-license]
-             [msg :as msg]
              [security-deposit :as deposit]]
             [starcity.models.stripe.customer :as customer]
             [starcity.services.stripe :as stripe]
@@ -75,7 +75,7 @@
                        charge    (charge/create charge-id (float amount) :account account)]
                    @(d/transact conn [{:db/id                    (:db/id deposit)
                                        :security-deposit/charges charge}
-                                      (msg/remainder-deposit-paid account charge-id)])
+                                      (events/remainder-deposit-payment-made account charge-id)])
                    (resp/json-ok {:result "ok"})))))
 
 (defroutes routes
