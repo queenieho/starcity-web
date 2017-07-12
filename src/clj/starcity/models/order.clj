@@ -1,31 +1,16 @@
 (ns starcity.models.order
   (:refer-clojure :exclude [update])
-  (:require [blueprints.models
-             [account :as account]
-             [charge :as charge]
-             [customer :as customer]]
+  (:require [blueprints.models.account :as account]
+            [blueprints.models.charge :as charge]
+            [blueprints.models.service :as service]
             [clj-time.core :as t]
-            [clojure
-             [spec :as s]
-             [string :as string]]
+            [clojure.spec :as s]
+            [clojure.string :as string]
             [datomic.api :as d]
             [plumbing.core :as plumbing]
-            [ribbon
-             [charge :as rc]
-             [customer :as rcu]
-             [plan :as rp]
-             [subscription :as rs]]
-            [starcity
-             [config :as config :refer [config]]
-             [datomic :refer [tempid]]]
-            [starcity.models
-             [service :as service]]
-            [toolbelt
-             [async :refer [<!!?]]
-             [date :as date]
-             [predicates :as p]]
-            [taoensso.timbre :as timbre]
-            [clojure.core.async :as a]))
+            [starcity.datomic :refer [tempid]]
+            [toolbelt.date :as date]
+            [toolbelt.predicates :as p]))
 
 ;; =============================================================================
 ;; Selectors
@@ -93,8 +78,8 @@
   [order]
   (let [service (:order/service order)]
     (if-let [vn (-> order :order/variant :svc-variant/name)]
-     (str (service/name service) " - " (string/capitalize vn))
-     (service/name service))))
+      (str (service/name service) " - " (string/capitalize vn))
+      (service/name service))))
 
 
 ;; =============================================================================
@@ -234,156 +219,6 @@
      :quantity (quantity order)
      :billed   (-> service :service/billed clojure.core/name keyword)}))
 
-
-;; =============================================================================
-;; Orders Playground: 6/15/17
-;; =============================================================================
-
-
-;; To place the order, we need to know the following:
-;; 1. Billed once or on a subscription?
-;; 2. Description of order (code +? variant)
-;; 3. Price
-
-(defn- customer-id [db account]
-  (:stripe-customer/customer-id (customer/by-account db account)))
-
-
-(defn- stripe-desc [account order]
-  (let [email (:account/email account)
-        quant (or (:order/quantity order) 1)
-        code  (get-in order [:order/service :service/code])
-        vart  (get-in order [:order/variant :svc-variant/name])]
-    (if (some? vart)
-      (format "%s : x%s : %s (%s)" email quant code vart)
-      (format "%s : x%s : %s" email quant code))))
-
-
-(defn- credit-card [customer-id]
-  (let [customer (rcu/fetch (config/stripe-private-key config) customer-id)
-        card     (rcu/active-credit-card (<!!? customer))]
-    (if (nil? card)
-      (throw (ex-info "Cannot place order; customer has no credit card!"
-                      {:customer customer-id}))
-      card)))
-
-
-(defmulti place-order!*
-  (fn [_ _ order _]
-    (get-in order [:order/service :service/billed])))
-
-
-(defmethod place-order!* :default [_ account order _]
-  (throw (ex-info "This order has an unknown bill method; cannot place!"
-                  {:order   (:db/id order)
-                   :account (:account/email account)})))
-
-
-(defn- make-charge! [db account order price opts]
-  (let [cus   (customer-id db account)
-        card  (rcu/token (credit-card cus))
-        desc  (str (stripe-desc account order)
-                   (if-some [s (:desc opts)] (str " : \"" s "\"") ""))
-        price (int (* 100 price))]
-    (rc/create! (config/stripe-private-key config) price card
-                :customer-id cus
-                :description desc
-                :email (account/email account))))
-
-
-(defmethod place-order!* :service.billed/once
-  [conn account order {:keys [price] :as opts}]
-  (let [price  (* (or price (computed-price order))
-                  (or (quantity order) 1))
-        charge (<!!? (make-charge! (d/db conn) account order price opts))]
-    @(d/transact conn [{:db/id         (:db/id order)
-                        :order/ordered (java.util.Date.)
-                        :order/price   price
-                        :stripe/charge (charge/create (:id charge) price
-                                                      :purpose (stripe-desc account order)
-                                                      :account account)}])))
-
-
-(defn- get-plan! [order price]
-  (let [key       (config/stripe-private-key config)
-        price     (int (* 100 price))
-        plan-name (get-in order [:order/service :service/code])
-        p-remote  (a/<!! (rp/fetch key plan-name))]
-    (if (p/throwable? p-remote)
-      (<!!? (rp/create! key plan-name plan-name price :month))
-      p-remote)))
-
-
-(defn- make-subscription! [db account order price]
-  (let [plan (get-plan! order price)
-        cus  (customer-id db account)
-        sub  (<!!? (rs/create! (config/stripe-private-key config) cus (:id plan)
-                               :quantity (int (or (quantity order) 1))))]
-    [plan sub]))
-
-
-(defmethod place-order!* :service.billed/monthly
-  [conn account order {:keys [price] :as opts}]
-  (assert (or (some? price) (some? (get-in order [:order/service :service/price])))
-          "Services subscribed to must have a price!")
-  (let [price      (or price (get-in order [:order/service :service/price]))
-        [plan sub] (make-subscription! (d/db conn) account order price)]
-    @(d/transact conn [{:db/id          (:db/id order)
-                        :order/ordered  (java.util.Date.)
-                        :stripe/plan-id (:id plan)
-                        :stripe/subs-id (:id sub)}])))
-
-
-(defn place-order!
-  [conn account order & {:as opts}]
-  (assert (some? (or (:price opts) (computed-price order)))
-          "Order cannot be placed without a price!")
-  (assert (not (ordered? order))
-          "Order has already been ordered!")
-  (place-order!* conn account order opts))
-
-(s/def ::price float?)
-(s/def ::desc string?)
-(s/fdef place-order!
-        :args (s/cat :conn p/conn?
-                     :account p/entity?
-                     :order p/entity?
-                     :opts (s/keys* :opt-un [::price ::desc])))
-
-(comment
-  (def conn starcity.datomic/conn)
-
-  (def account
-    (d/entity (d/db conn) [:account/email ""]))
-
-  (d/q '[:find (pull ?o [:db/id
-                         :order/price
-                         :order/quantity
-                         :stripe/subs-id
-                         {:order/variant [:db/id
-                                          :svc-variant/name
-                                          :svc-variant/price]}
-                         {:order/service [:db/id
-                                          :service/code
-                                          :service/price]}])
-         :in $ ?a
-         :where
-         [?o :order/account ?a]]
-       (d/db conn) (:db/id account))
-
-
-  (let [service (service/by-code (d/db conn) "plants,planter")
-        order   (by-account (d/db conn) account service)]
-    (place-order! conn account order))
-
-
-  (let [cus (customer-id (d/db conn) account)]
-    (<!!? (rcu/update! (config/stripe-private-key config) cus
-                       :default-source (rcu/token (credit-card cus)))))
-
-
-
-  )
 
 ;; =============================================================================
 ;; Order Analytics: 6/29/17
