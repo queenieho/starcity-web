@@ -36,8 +36,8 @@
                  [mount "0.1.11"]
                  ;; Datomic
                  [io.rkn/conformity "0.4.0"]
-                 [starcity/blueprints "1.8.0" :exclusions [com.datomic/datomic-free]]
-                 [starcity/reactor "0.1.3"]
+                 [starcity/blueprints "1.8.1" :exclusions [com.datomic/datomic-free]]
+                 [starcity/reactor "0.2.0"]
                  [com.datomic/datomic-pro "0.9.5544" :exclusions [com.google.guava/guava]]
                  [org.postgresql/postgresql "9.4.1211"]
                  ;; CLJS
