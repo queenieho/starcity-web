@@ -2,7 +2,7 @@
   (:require [clojure.spec :as s]
             [datomic.api :as d]
             [toolbelt
-             [core :refer [find-by]]
+             [core :as tb]
              [predicates :as p]]))
 
 ;; =============================================================================
@@ -23,8 +23,8 @@
         plps (-> unit property :property/licenses)
         pred #(= (:db/id license) (-> % :license-price/license :db/id))]
     (-> (or
-         (find-by pred ulps)
-         (find-by pred plps))
+         (tb/find-by pred ulps)
+         (tb/find-by pred plps))
         :license-price/price)))
 
 (s/fdef rate

@@ -1,5 +1,6 @@
 (ns starcity.api.onboarding
-  (:require [bouncer
+  (:require [blueprints.models.order :as order]
+            [bouncer
              [core :as b]
              [validators :as v]]
             [clj-time
@@ -21,7 +22,6 @@
              [charge :as charge]
              [news :as news]
              [onboard :as onboard]
-             [order :as order]
              [property :as property]
              [security-deposit :as deposit]
              [service :as service]
