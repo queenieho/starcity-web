@@ -3,9 +3,8 @@
             [compojure.core :refer [defroutes GET]]
             [datomic.api :as d]
             [ring.util.response :as response]
-            [starcity
-             [datomic :refer [conn]]
-             [util :refer [str->int]]]))
+            [starcity.datomic :refer [conn]]
+            [toolbelt.core :as tb]))
 
 ;; =============================================================================
 ;; API
@@ -22,4 +21,4 @@
 
 (defroutes routes
   (GET "/:file-id" [file-id]
-       (fn [_] (fetch-file (str->int file-id)))))
+       (fn [_] (fetch-file (tb/str->int file-id)))))
