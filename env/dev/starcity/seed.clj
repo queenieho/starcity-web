@@ -1,24 +1,21 @@
 (ns starcity.seed
-  (:require [clj-time
-             [coerce :as c]
-             [core :as t]]
+  (:require [blueprints.models.application :as app]
+            [blueprints.models.approval :as approval]
+            [blueprints.models.check :as check]
+            [blueprints.models.license :as license]
+            [blueprints.models.member-license :as member-license]
+            [blueprints.models.onboard :as onboard]
+            [blueprints.models.promote :as promote]
+            [blueprints.models.property :as property]
+            [blueprints.models.rent-payment :as rp]
+            [blueprints.models.security-deposit :as deposit]
+            [blueprints.models.unit :as unit]
+            [clj-time.coerce :as c]
+            [clj-time.core :as t]
             [datomic.api :as d]
             [io.rkn.conformity :as cf]
-            [plumbing.core :refer [assoc-when]]
-            [starcity.datomic :refer [conn tempid]]
-            [starcity.models
-             [account :as account]
-             [application :as app]
-             [approval :as approval]
-             [check :as check]
-             [license :as license]
-             [member-license :as member-license]
-             [property :as property]
-             [rent-payment :as rp]
-             [security-deposit :as deposit]
-             [unit :as unit]]
-            [starcity.models.onboard :as onboard]
-            [starcity.models.service :as service]
+            [toolbelt.core :as tb]
+            [starcity.datomic :refer [conn]]
             [toolbelt.date :as date]))
 
 ;; =============================================================================
@@ -33,8 +30,8 @@
 
 (defn account
   [email first-name last-name phone role & [slack-handle]]
-  (assoc-when
-   {:db/id                (tempid)
+  (tb/assoc-when
+   {:db/id                (d/tempid :db.part/starcity)
     :account/email        email
     :account/password     password
     :account/first-name   first-name
@@ -73,13 +70,13 @@
     (d/entity (d/db conn) [:account/email "admin@test.com"])
     (d/entity (d/db conn) [:account/email "member@test.com"])
     (unit/by-name (d/db conn) "52gilbert-1")
-    (license/by-term conn 3)
+    (license/by-term (d/db conn) 3)
     (c/to-date (t/now)))
    (approve
     (d/entity (d/db conn) [:account/email "admin@test.com"])
     (d/entity (d/db conn) [:account/email "onboarding@test.com"])
     (unit/by-name (d/db conn) "2072mission-1")
-    (license/by-term conn 3)
+    (license/by-term (d/db conn) 3)
     (c/to-date (t/plus (t/now) (t/months 1))))))
 
 ;; =============================================================================
@@ -89,29 +86,29 @@
   [account-id & {:keys [address properties license move-in pet fitness status]
                  :or   {move-in (c/to-date (t/plus (t/now) (t/weeks 2)))
                         status  :application.status/in-progress}}]
-  (let [id (tempid)]
+  (let [id (d/tempid :db.part/starcity)]
     [{:db/id               account-id
       :account/application id}
-     (assoc-when {:db/id              id
-                  :application/status status}
-                 :application/license license
-                 :application/communities properties
-                 :application/address address
-                 :application/move-in move-in
-                 :application/has-pet (boolean pet)
-                 :application/fitness fitness
-                 :application/pet pet)]))
+     (tb/assoc-when {:db/id              id
+                     :application/status status}
+                    :application/license license
+                    :application/communities properties
+                    :application/address address
+                    :application/move-in move-in
+                    :application/has-pet (boolean pet)
+                    :application/fitness fitness
+                    :application/pet pet)]))
 
 (defn applications-tx [conn]
   (concat
    (application [:account/email "test@test.com"]
-                :license (:db/id (license/by-term conn 3)))
+                :license (:db/id (license/by-term (d/db conn) 3)))
    (application [:account/email "applicant@test.com"]
                 :address {:address/country     "US"
                           :address/region      "CA"
                           :address/locality    "Oakland"
                           :address/postal-code "94611"}
-                :license (:db/id (license/by-term conn 3))
+                :license (:db/id (license/by-term (d/db conn) 3))
                 :status :application.status/submitted
                 :properties [[:property/internal-name "52gilbert"]
                              [:property/internal-name "2072mission"]]
@@ -130,11 +127,11 @@
                           :fitness/interested   "Donec neque quam, dignissim in, mollis nec, sagittis eu, wisi."
                           :fitness/dealbreakers "Donec neque quam, dignissim in, mollis nec, sagittis eu, wisi."})
    (application [:account/email "onboarding@test.com"]
-                :license (:db/id (license/by-term conn 6))
+                :license (:db/id (license/by-term (d/db conn) 6))
                 :status :application.status/approved
                 :properties [[:property/internal-name "52gilbert"]])
    (application [:account/email "member@test.com"]
-                :license (:db/id (license/by-term conn 3))
+                :license (:db/id (license/by-term (d/db conn) 3))
                 :status :application.status/approved
                 :properties [[:property/internal-name "52gilbert"]])))
 
@@ -144,7 +141,7 @@
 (defn member-licenses-tx [conn]
   (let [admin  (d/entity (d/db conn) [:account/email "admin@test.com"])
         member (d/entity (d/db conn) [:account/email "member@test.com"])]
-    (remove #(contains? % :msg/uuid) (account/promote member))))
+    (remove #(contains? % :msg/uuid) (promote/promote member))))
 
 ;; =============================================================================
 ;; Rent Payments
@@ -170,7 +167,7 @@
 
 (defn- rent-payments-tx [conn]
   (let [license (->> (d/entity (d/db conn) [:account/email "member@test.com"])
-                     (member-license/active conn))]
+                     (member-license/active (d/db conn)))]
     [(member-license/add-rent-payments
       license
       check-december
@@ -180,7 +177,7 @@
 ;; Stripe Customers
 
 (defn stripe-customers-tx []
-  [{:db/id                              (tempid)
+  [{:db/id                              (d/tempid :db.part/starcity)
     :stripe-customer/account            [:account/email "member@test.com"]
     :stripe-customer/customer-id        "cus_9bzpu7sapb8g7y"
     :stripe-customer/bank-account-token "ba_19IlpVIvRccmW9nO20kCxqE5"}])
@@ -189,7 +186,7 @@
 ;; Avatar
 
 (defn avatar-tx []
-  [{:db/id       (tempid)
+  [{:db/id       (d/tempid :db.part/starcity)
     :avatar/name :system
     :avatar/url  "/assets/img/starcity-logo-black.png"}])
 

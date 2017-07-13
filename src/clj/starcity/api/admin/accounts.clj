@@ -1,44 +1,36 @@
 (ns starcity.api.admin.accounts
-  (:require [bouncer
-             [core :as b]
-             [validators :as v]]
-            [blueprints.models
-             [approval :as approval]
-             [event :as event]]
-            [clj-time
-             [coerce :as c]
-             [core :as t]
-             [format :as f]]
-            [clojure
-             [spec :as s]
-             [string :as string]]
+  (:require [blueprints.models.account :as account]
+            [blueprints.models.application :as application]
+            [blueprints.models.approval :as approval]
+            [blueprints.models.charge :as charge]
+            [blueprints.models.income-file :as income-file]
+            [blueprints.models.license :as license]
+            [blueprints.models.member-license :as member-license]
+            [blueprints.models.note :as note]
+            [blueprints.models.property :as property]
+            [blueprints.models.rent-payment :as rent-payment]
+            [blueprints.models.security-deposit :as deposit]
+            [blueprints.models.unit :as unit]
+            [bouncer.core :as b]
+            [bouncer.validators :as v]
+            [clj-time.coerce :as c]
+            [clj-time.core :as t]
+            [clj-time.format :as f]
+            [clojure.spec :as s]
+            [clojure.string :as string]
             [compojure.core :refer [defroutes GET POST]]
             [datomic.api :as d]
             [plumbing.core :as plumbing]
             [reactor.events :as events]
-            [starcity
-             [auth :as auth]
-             [datomic :refer [conn]]]
-            [starcity.models
-             [account :as account]
-             [application :as app]
-             [charge :as charge]
-             [income-file :as income-file]
-             [license :as license]
-             [member-license :as member-license]
-             [note :as note]
-             [property :as property]
-             [rent-payment :as rent-payment]
-             [security-deposit :as deposit]
-             [unit :as unit]]
-            [starcity.util
-             [response :as response]
-             [validation :as uv]]
-            [toolbelt
-             [core :as tb :refer [str->int]]
-             [datomic :as td]
-             [predicates :as p]]
-            [toolbelt.date :as date]))
+            [starcity.auth :as auth]
+            [starcity.datomic :refer [conn]]
+            [starcity.util.response :as response]
+            [starcity.util.validation :as uv]
+            [toolbelt.core :as tb]
+            [toolbelt.date :as date]
+            [toolbelt.datomic :as td]
+            [toolbelt.predicates :as p]
+            [taoensso.timbre :as timbre]))
 
 ;; =============================================================================
 ;; Common
@@ -150,7 +142,7 @@
           (-> (select-keys file [:db/id :income-file/path])
               (assoc :income-file/name (last (string/split (:income-file/path file) #"/")))
               (dissoc :income-file/path)))
-        (income-file/by-account conn account))})
+        (income-file/by-account (d/db conn) account))})
 
 (defn- address
   [{:keys [address/locality address/region address/postal-code address/country]}]
@@ -164,44 +156,44 @@
   `:account` and `:community-fitness` entities were last updated and picks the
   latest update."
   [conn account app]
-  (->> [app account (app/community-fitness app)]
+  (->> [app account (application/community-fitness app)]
        (remove nil?)                    ; in case community fitness is not present
        (map (comp c/to-date-time (partial td/updated-at (d/db conn))))
        (t/latest)
        (c/to-date)))
 
 (defn application [conn account]
-  (when-let [app (app/by-account conn account)]
+  (when-let [app (application/by-account (d/db conn) account)]
     (merge
-     {:application/status      (app/status app)
+     {:application/status      (application/status app)
       ;; NOTE: Think about how to best handle the timezone. This is hardcoded
       ;; for now since we're operating exclusively on the west coast. This
       ;; should probably come from the preferred time zone of the
       ;; /viewer/ (admin)
       :application/move-in     (date/to-utc-corrected-date
-                                (app/move-in-date app)
+                                (application/move-in-date app)
                                 (t/time-zone-for-id "America/Los_Angeles"))
-      :application/license     (select-keys (app/desired-license app)
+      :application/license     (select-keys (application/desired-license app)
                                             [:db/id :license/term])
-      :application/has-pet     (app/has-pet? app)
-      :application/pet         (into {} (app/pet app))
+      :application/has-pet     (application/has-pet? app)
+      :application/pet         (into {} (application/pet app))
       :application/communities (map #(select-keys % [:property/name :db/id])
-                                    (app/communities app))
-      :application/address     (address (app/address app))
-      :application/fitness     (into {} (app/community-fitness app))
+                                    (application/communities app))
+      :application/address     (address (application/address app))
+      :application/fitness     (into {} (application/community-fitness app))
       :application/updated-at  (updated-at conn account app)
       :application/created-at  (td/created-at (d/db conn) app)}
      (income conn account))))
 
 (defmethod clientize-account :account.role/applicant
   [conn account client-data]
-  (plumbing/assoc-when client-data :account/application (application conn account)))
+  (tb/assoc-when client-data :account/application (application conn account)))
 
 ;; =============================================================================
 ;; Member
 
 (defn- payment-methods [conn account]
-  (when-let [license (member-license/active conn account)]
+  (when-let [license (member-license/active (d/db conn) account)]
     {:payment/autopay (member-license/autopay-on? license)
      :payment/bank    (account/bank-linked? account)}))
 
@@ -233,15 +225,13 @@
 
 (defn- payment-uri [payment]
   (let [method     (rent-payment/method payment)
-        charge-id  (-> payment rent-payment/charge charge/id)
-        invoice-id (rent-payment/invoice payment)
         managed-id (-> payment rent-payment/member-license member-license/managed-account-id)]
     (case method
       :rent-payment.method/ach
-      (format "%s/payments/%s" stripe-dashboard-uri charge-id)
+      (format "%s/payments/%s" stripe-dashboard-uri (-> payment rent-payment/charge charge/id))
 
       :rent-payment.method/autopay
-      (format "%s/%s/invoices/%s" stripe-dashboard-uri managed-id invoice-id)
+      (format "%s/%s/invoices/%s" stripe-dashboard-uri managed-id (rent-payment/invoice payment))
 
       nil)))
 
@@ -543,13 +533,13 @@
 
   (GET "/:account-id" [account-id]
        (fn [_]
-         (response/transit-ok (fetch-account conn (str->int account-id)))))
+         (response/transit-ok (fetch-account conn (tb/str->int account-id)))))
 
   (POST "/:account-id/approve" [account-id]
         (fn [{:keys [params] :as req}]
           (let [approver (auth/requester req)]
             (approve-account! conn approver
-                              (str->int account-id)
+                              (tb/str->int account-id)
                               (:unit-id params)
                               (:license-id params)
                               (:move-in params)))))
@@ -560,7 +550,7 @@
   (GET "/:account-id/notes" [account-id]
        (fn [_]
          (response/transit-ok
-          (fetch-notes conn (str->int account-id)))))
+          (fetch-notes conn (tb/str->int account-id)))))
 
   (POST "/:account-id/notes" [account-id]
         (fn [{params :params :as req}]
@@ -570,5 +560,5 @@
                                             :ticket  v/boolean})
                 author  (auth/requester req)]
             (if-let [params (uv/valid? vresult)]
-              (response/transit-ok (create-note! conn (str->int account-id) author params))
+              (response/transit-ok (create-note! conn (tb/str->int account-id) author params))
               (response/transit-malformed {:message (first (uv/errors vresult))}))))))

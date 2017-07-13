@@ -1,13 +1,11 @@
 (ns starcity.api.orders
-  (:require [compojure.core :refer [defroutes DELETE GET]]
+  (:require [blueprints.models.order :as order]
+            [compojure.core :refer [defroutes DELETE GET]]
             [datomic.api :as d]
-            [starcity
-             [datomic :refer [conn]]
-             [util :refer [str->int]]]
-            [starcity.models.order :as order]
-            [starcity.util
-             [request :as req]
-             [response :as res]]))
+            [starcity.datomic :refer [conn]]
+            [starcity.util.request :as req]
+            [starcity.util.response :as res]
+            [toolbelt.core :as tb]))
 
 ;; =============================================================================
 ;; Handlers
@@ -39,4 +37,4 @@
   (GET "/" [] fetch-orders)
   (DELETE "/:order-id" [order-id]
           (fn [req]
-            (delete-order req (str->int order-id)))))
+            (delete-order req (tb/str->int order-id)))))

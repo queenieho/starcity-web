@@ -1,18 +1,18 @@
 (ns starcity.api.mars.security-deposit
-  (:require [compojure.core :refer [defroutes GET POST]]
+  (:require [blueprints.models.account :as account]
+            [blueprints.models.charge :as charge]
+            [blueprints.models.customer :as customer]
+            [blueprints.models.member-license :as member-license]
+            [blueprints.models.security-deposit :as deposit]
+            [compojure.core :refer [defroutes GET POST]]
             [datomic.api :as d]
             [reactor.events :as events]
-            [starcity
-             [auth :as auth]
-             [datomic :refer [conn]]]
-            [starcity.models
-             [account :as account]
-             [charge :as charge]
-             [member-license :as member-license]
-             [security-deposit :as deposit]]
-            [starcity.models.stripe.customer :as customer]
-            [starcity.services.stripe :as stripe]
-            [starcity.util.response :as resp]))
+            [ribbon.charge :as rc]
+            [starcity.config :as config :refer [config]]
+            [starcity.datomic :refer [conn]]
+            [starcity.util.request :as request]
+            [starcity.util.response :as resp]
+            [toolbelt.async :refer [<!!?]]))
 
 ;; =============================================================================
 ;; Fetch
@@ -27,10 +27,8 @@
 (defn fetch-security-deposit
   "Fetch requester's security deposit information."
   [req]
-  (let [account (auth/requester req)]
-    (resp/json-ok {:result (->> account
-                               deposit/by-account
-                               clientize-security-deposit)})))
+  (let [account (request/requester (d/db conn) req)]
+    (resp/json-ok {:result (-> account deposit/by-account clientize-security-deposit)})))
 
 ;; =============================================================================
 ;; Pay Remainder
@@ -47,19 +45,21 @@
 
 (defn- make-charge!
   [deposit customer account license amount]
-  (-> (stripe/charge (int (* 100 amount))
-                     (customer/bank-account-token customer)
-                     (account/email account)
-                     :customer-id (customer/id customer)
-                     :managed-account (member-license/managed-account-id license))
-      (get-in [:body :id])))
+  (:id (<!!? (rc/create! (config/stripe-private-key config)
+                         (int (* 100 amount))
+                         (customer/bank-token customer)
+                         :description (format "security deposit payment for '%s'"
+                                              (account/email account))
+                         :email (account/email account)
+                         :customer-id (customer/id customer)
+                         :managed-account (member-license/managed-account-id license)))))
 
 (defn pay-security-deposit
   "Pay requester's security deposit iff he/she has linked bank account."
   [conn account]
   (let [deposit  (deposit/by-account account)
-        customer (account/stripe-customer (d/db conn) account)
-        license  (member-license/active conn account)]
+        customer (customer/by-account (d/db conn) account)
+        license  (member-license/active (d/db conn) account)]
     (cond
       (nil? customer)
       (resp/json-unprocessable {:error invalid-customer-error})
@@ -72,7 +72,7 @@
 
       :otherwise (let [amount    (charge-amount deposit)
                        charge-id (make-charge! deposit customer account license amount)
-                       charge    (charge/create charge-id (float amount) :account account)]
+                       charge    (charge/create account charge-id (float amount))]
                    @(d/transact conn [{:db/id                    (:db/id deposit)
                                        :security-deposit/charges charge}
                                       (events/remainder-deposit-payment-made account charge-id)])
@@ -83,5 +83,5 @@
 
   (POST "/pay" []
         (fn [req]
-          (let [account (auth/requester req)]
+          (let [account (request/requester (d/db conn) req)]
             (pay-security-deposit conn account)))))

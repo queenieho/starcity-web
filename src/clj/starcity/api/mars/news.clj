@@ -1,46 +1,45 @@
 (ns starcity.api.mars.news
-  (:require [compojure.core :refer [defroutes GET POST]]
+  (:require [blueprints.models.news :as news]
+            [compojure.core :refer [defroutes GET POST]]
             [datomic.api :as d]
-            [plumbing.core :refer [assoc-when]]
-            [starcity
-             [auth :as auth]
-             [datomic :refer [conn]]
-             [util :refer :all]]
-            [starcity.models.news :as news]
-            [starcity.util.response :as res]))
+            [starcity.datomic :refer [conn]]
+            [starcity.util.request :as request]
+            [starcity.util.response :as res]
+            [toolbelt.core :as tb]
+            [toolbelt.datomic :as td]))
 
 (defn- clientize-news-item [news]
-  (assoc-when
+  (tb/assoc-when
    {:id      (:db/id news)
     :content (:news/content news)}
    :action (:news/action news)
    :avatar-url (get-in news [:news/avatar :avatar/url])
    :title (:news/title news)))
 
-(defn- query-news [conn account & {:keys [limit] :or {limit 10}}]
+(defn- query-news [db account & {:keys [limit] :or {limit 10}}]
   (->> (d/q '[:find ?e ?tx-time
               :in $ ?a
               :where
               [?e :news/account ?a ?t]
               [?e :news/dismissed false]
               [?t :db/txInstant ?tx-time]]
-            (d/db conn) (:db/id account))
+            db (td/id account))
        (sort-by second)
        (reverse)
-       (map (comp (partial d/entity (d/db conn)) first))))
+       (map (comp (partial d/entity db) first))))
 
 (defn fetch-news
   "Retrieve requester's news."
   [req]
-  (let [account (auth/requester req)]
-    (res/json-ok {:news (->> (query-news conn account)
+  (let [account (request/requester (d/db conn) req)]
+    (res/json-ok {:news (->> (query-news (d/db conn) account)
                              (map clientize-news-item))})))
 
 (defn dismiss-news
   "Dismiss news item identified by `news-id`."
   [news-id]
   (fn [req]
-    (let [news (d/entity (d/db conn) (str->int news-id))]
+    (let [news (d/entity (d/db conn) (tb/str->int news-id))]
       @(d/transact conn [(news/dismiss news)])
       (res/json-ok {:result "ok"}))))
 
