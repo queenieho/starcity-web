@@ -4,9 +4,8 @@
             [starcity.api.mars.rent.bank-account.setup :as setup]
             [starcity.datomic :refer [conn]]
             [starcity.models.rent :as rent]
-            [starcity.util
-             [request :as req]
-             [response :as res]]))
+            [starcity.util.request :as req]
+            [starcity.util.response :as res]))
 
 (defn bank-account-handler [req]
   (let [requester (req/requester (d/db conn) req)]

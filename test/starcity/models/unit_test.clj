@@ -1,10 +1,9 @@
 (ns starcity.models.unit-test
-  (:require [clj-time
-             [coerce :as c]
-             [core :as t]]
+  (:require [blueprints.models.unit :as unit]
+            [clj-time.coerce :as c]
+            [clj-time.core :as t]
             [clojure.test :refer :all]
             [datomic.api :as d]
-            [starcity.models.unit :as unit] ; testing
             [starcity.test.datomic :as db :refer [with-conn]]))
 
 (use-fixtures :once db/conn-fixture)

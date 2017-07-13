@@ -1,14 +1,13 @@
 (ns starcity.controllers.auth
-  (:require [clojure.string :as str]
+  (:require [blueprints.models.account :as account]
+            [clojure.string :as str]
             [datomic.api :as d]
             [facade.core :as facade]
             [net.cgrand.enlive-html :as html]
             [reactor.events :as events]
             [ring.util.response :as response]
             [starcity.controllers.common :as common]
-            [starcity.datomic :refer [conn]]
-            [starcity.models.account :as account]))
-
+            [starcity.datomic :refer [conn]]))
 
 ;; =============================================================================
 ;; Views

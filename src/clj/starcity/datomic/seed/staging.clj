@@ -1,26 +1,22 @@
 (ns starcity.datomic.seed.staging
-  (:require [clj-time
-             [coerce :as c]
-             [core :as t]]
-            [io.rkn.conformity :as conformity]
+  (:require [blueprints.models.approval :as approval]
+            [blueprints.models.license :as license]
+            [blueprints.models.onboard :as onboard]
+            [blueprints.models.security-deposit :as deposit]
+            [blueprints.models.unit :as unit]
+            [clj-time.coerce :as c]
+            [clj-time.core :as t]
             [datomic.api :as d]
-            [plumbing.core :as plumbing]
-            [starcity.datomic.partition :refer [tempid]]
-            [starcity.models
-             [application :as app]
-             [approval :as approval]
-             [license :as license]
-             [onboard :as onboard]
-             [security-deposit :as deposit]
-             [unit :as unit]]))
+            [io.rkn.conformity :as conformity]
+            [toolbelt.core :as tb]))
 
 (def password
   "bcrypt+blake2b-512$30e1776f40ee533841fcba62a0dbd580$12$2dae523ec1eb9fd91409ebb5ed805fe53e667eaff0333243")
 
 (defn account
   [email first-name last-name phone role & [slack-handle]]
-  (plumbing/assoc-when
-   {:db/id                (tempid)
+  (tb/assoc-when
+   {:db/id                (d/tempid :db.part/starcity)
     :account/email        email
     :account/password     password
     :account/first-name   first-name
@@ -49,31 +45,31 @@
     (d/entity (d/db conn) [:account/email "josh@joinstarcity.com"])
     (d/entity (d/db conn) [:account/email "jon@test.com"])
     (unit/by-name (d/db conn) "2072mission-10")
-    (license/by-term conn 3)
+    (license/by-term (d/db conn) 3)
     (c/to-date (t/now)))
    (approve
     (d/entity (d/db conn) [:account/email "josh@joinstarcity.com"])
     (d/entity (d/db conn) [:account/email "jesse@test.com"])
     (unit/by-name (d/db conn) "2072mission-11")
-    (license/by-term conn 3)
+    (license/by-term (d/db conn) 3)
     (c/to-date (t/now)))
    (approve
     (d/entity (d/db conn) [:account/email "josh@joinstarcity.com"])
     (d/entity (d/db conn) [:account/email "mo@test.com"])
     (unit/by-name (d/db conn) "2072mission-12")
-    (license/by-term conn 3)
+    (license/by-term (d/db conn) 3)
     (c/to-date (t/now)))
    (approve
     (d/entity (d/db conn) [:account/email "josh@joinstarcity.com"])
     (d/entity (d/db conn) [:account/email "meg@test.com"])
     (unit/by-name (d/db conn) "2072mission-13")
-    (license/by-term conn 3)
+    (license/by-term (d/db conn) 3)
     (c/to-date (t/now)))
    (approve
     (d/entity (d/db conn) [:account/email "josh@joinstarcity.com"])
     (d/entity (d/db conn) [:account/email "jp@test.com"])
     (unit/by-name (d/db conn) "2072mission-14")
-    (license/by-term conn 3)
+    (license/by-term (d/db conn) 3)
     (c/to-date (t/now)))))
 
 ;; =============================================================================
@@ -82,7 +78,7 @@
 ;; NOTE: Needed for membership
 
 ;; (defn- create-security-deposit [account]
-;;   {:db/id                            (tempid)
+;;   {:db/id                            (d/tempid :db.part/starcity)
 ;;    :security-deposit/account         account
 ;;    :security-deposit/amount-required 2000
 ;;    :security-deposit/amount-received 500

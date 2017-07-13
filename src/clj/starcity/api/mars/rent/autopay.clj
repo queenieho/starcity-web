@@ -1,13 +1,11 @@
 (ns starcity.api.mars.rent.autopay
-  (:require [compojure.core :refer [defroutes GET POST]]
+  (:require [blueprints.models.account :as account]
+            [blueprints.models.news :as news]
+            [compojure.core :refer [defroutes GET POST]]
             [datomic.api :as d]
-            [starcity
-             [auth :as auth]
-             [datomic :refer [conn]]]
-            [starcity.models
-             [account :as account]
-             [autopay :as autopay]
-             [news :as news]]
+            [starcity.datomic :refer [conn]]
+            [starcity.models.autopay :as autopay]
+            [starcity.util.request :as request]
             [starcity.util.response :as res]
             [taoensso.timbre :as timbre]))
 
@@ -15,24 +13,24 @@
   "Handles requests to determine whether or not the requesting user is
   subscribed to autopay or not."
   [req]
-  (let [account (auth/requester req)]
-    (res/json-ok {:subscribed (autopay/subscribed? conn account)})))
+  (let [account (request/requester (d/db conn) req)]
+    (res/json-ok {:subscribed (autopay/subscribed? (d/db conn) account)})))
 
 (def ^:private already-subscribed
   (res/json-unprocessable {:error "You are already subscribed to autopay -- cannot subscribe again."}))
 
 (defn- subscribe-handler
-  "Subscribes requesting user to autopay. "
+  "Subscribes requesting user to autopay."
   [{:keys [params] :as req}]
-  (let [account (auth/requester req)]
-    (if (autopay/subscribed? conn account)
+  (let [account (request/requester (d/db conn) req)]
+    (if (autopay/subscribed? (d/db conn) account)
       already-subscribed
       (try
-        ;; TODO: This should be an event.
         (autopay/subscribe! conn account)
         ;; Dismiss the news item that prompted `account` to set up autopay, as it's now setup.
-        (d/transact conn [(->> news/autopay-action (news/by-action conn account) news/dismiss)])
-        (res/json-ok {:status (autopay/setup-status conn account)})
+        (when-some [news (news/by-action (d/db conn) account news/autopay-action)]
+          @(d/transact conn [(news/dismiss news)]))
+        (res/json-ok {:status (autopay/setup-status (d/db conn) account)})
         (catch Exception e
           (timbre/error e ::subscribe {:account (account/email account)})
           (throw e))))))

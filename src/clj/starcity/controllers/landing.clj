@@ -1,19 +1,19 @@
 (ns starcity.controllers.landing
-  (:require [clj-time
-             [coerce :as c]
-             [core :as t]
-             [format :as f]]
+  (:require [blueprints.models.property :as property]
+            [clj-time.coerce :as c]
+            [clj-time.core :as t]
+            [clj-time.format :as f]
             [datomic.api :as d]
             [facade.core :as facade]
             [net.cgrand.enlive-html :as html]
             [optimus.link :as link]
             [starcity.controllers.common :as common]
-            [starcity.datomic :refer [conn]]
-            [starcity.models.property :as property]))
+            [starcity.datomic :refer [conn]]))
 
 ;; =============================================================================
 ;; Helpers
 ;; =============================================================================
+
 
 ;; See https://github.com/cgrand/enlive/issues/110
 (html/set-ns-parser! facade/hickory-parser)
@@ -40,9 +40,11 @@
       "Now"
       (f/unparse formatter available-on))))
 
+
 ;; =============================================================================
 ;; Snippets
 ;; =============================================================================
+
 
 (html/defsnippet svg "templates/landing/svg.html" [:svg] [])
 (html/defsnippet header "templates/landing/header.html" [:header] [])
@@ -50,9 +52,11 @@
   [:#hero] (html/set-attr :style (bg-img hero-img))
   [:#mission-card :.availability] (html/content (format "Available %s" (availability conn "2072mission"))))
 
+
 ;; =============================================================================
 ;; Handlers
 ;; =============================================================================
+
 
 (defn show
   "Show the landing page."

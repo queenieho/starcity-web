@@ -1,46 +1,40 @@
 (ns starcity.api.onboarding
-  (:require [blueprints.models.order :as order]
-            [bouncer
-             [core :as b]
-             [validators :as v]]
-            [clj-time
-             [coerce :as c]
-             [core :as t]]
-            [clojure
-             [set :as set]
-             [spec :as s]]
+  (:require [blueprints.models.account :as account]
+            [blueprints.models.approval :as approval]
+            [blueprints.models.catalogue :as catalogue]
+            [blueprints.models.charge :as charge]
+            [blueprints.models.customer :as customer]
+            [blueprints.models.news :as news]
+            [blueprints.models.onboard :as onboard]
+            [blueprints.models.order :as order]
+            [blueprints.models.promote :as promote]
+            [blueprints.models.property :as property]
+            [blueprints.models.security-deposit :as deposit]
+            [blueprints.models.service :as service]
+            [blueprints.models.unit :as unit]
+            [bouncer.core :as b]
+            [bouncer.validators :as v]
+            [clj-time.coerce :as c]
+            [clj-time.core :as t]
+            [clojure.set :as set]
+            [clojure.spec :as s]
             [compojure.core :refer [defroutes GET POST]]
             [datomic.api :as d]
-            [plumbing.core :as plumbing]
-            [starcity
-             [auth :as auth]
-             [datomic :refer [conn]]]
-            [starcity.models
-             [account :as account]
-             [approval :as approval]
-             [catalogue :as catalogue]
-             [charge :as charge]
-             [news :as news]
-             [onboard :as onboard]
-             [property :as property]
-             [security-deposit :as deposit]
-             [service :as service]
-             [stripe :as stripe]
-             [unit :as unit]]
-            [starcity.models.stripe.customer :as customer]
-            [starcity.services.stripe.sources :as sources]
-            [starcity.util
-             [request :as req]
-             [response :as res :refer [transit-malformed transit-ok]]
-             [validation :as validation]]
-            [taoensso.timbre :as timbre]
-            [toolbelt.predicates :as p]
-            [toolbelt.async :refer [<!!?]]
             [reactor.events :as events]
             [ribbon.charge :as rc]
+            [ribbon.customer :as rcu]
             [starcity.config :as config :refer [config]]
+            [starcity.datomic :refer [conn]]
+            [starcity.util.request :as req]
+            [starcity.util.response :as res :refer [transit-malformed transit-ok]]
+            [starcity.util.validation :as validation]
+            [taoensso.timbre :as timbre]
+            [toolbelt.async :refer [<!!?]]
+            [toolbelt.core :as tb]
             [toolbelt.date :as date]
-            [toolbelt.datomic :as td]))
+            [toolbelt.datomic :as td]
+            [toolbelt.predicates :as p]
+            [blueprints.models.member-license :as member-license]))
 
 ;; NOTE: Do we want to deal with dependencies like we do on the client? This may
 ;; make sense, since certain steps are moot in the absense of satisfied
@@ -59,15 +53,19 @@
 
 (s/def ::step (set steps))
 
+
 ;; =============================================================================
 ;; validate
 ;; =============================================================================
+
 
 (defmulti validations
   "Produce the validations for `step`."
   (fn [conn account step] step))
 
+
 (defmethod validations :default [_ _ _] {})
+
 
 (defmethod validations :admin/emergency
   [_ _ _]
@@ -75,14 +73,17 @@
    :last-name    [[v/required :message "Please provide your contact's last name."]]
    :phone-number [[v/required :message "Please provide your contact's phone number."]]})
 
+
 (defmethod validations :deposit/method
   [_ _ _]
   {:method [[v/required :message "Please choose a payment method."]
             [v/member #{"ach" "check"} :message "Please choose a valid payment method."]]})
 
+
 (defmethod validations :deposit.method/bank
   [_ _ _]
   {:stripe-token [[v/required :message "Something went wrong; please try again or contact support."]]})
+
 
 (defmethod validations :deposit.method/verify
   [_ _ _]
@@ -93,10 +94,12 @@
      :amount-2 [[v/required :message "Please provide the second deposit amount."]
                 integer in-range]}))
 
+
 (defmethod validations :deposit/pay
   [_ _ _]
   {:method [[v/required :message "Please choose a payment option."]
             [v/member #{"partial" "full"} :message "Please choose a valid payment option."]]})
+
 
 ;; If `needed` is false, no other reqs
 (defmethod validations :services/moving
@@ -122,15 +125,18 @@
     (when-not (validation/valid? vresult)
       (validation/errors vresult))))
 
+
 ;; =============================================================================
 ;; fetch
 ;; =============================================================================
 
+
 (s/def ::complete boolean?)
 (s/def ::data map?)
 
-;; =====================================
-;; Complete
+
+;;; Complete
+
 
 (defmulti complete?
   "Has `account` completed `step`?"
@@ -142,7 +148,9 @@
                      :step ::step)
         :ret (s/or :bool boolean? :nothing nil?))
 
+
 (defmethod complete? :default [_ _ _] false)
+
 
 (defmethod complete? :admin/emergency [_ account _]
   (let [contact (:account/emergency-contact account)]
@@ -151,10 +159,12 @@
           (:person/last-name contact)
           (:person/phone-number contact)))))
 
+
 (defmethod complete? :deposit/method
   [_ account _]
   (let [deposit (deposit/by-account account)]
     (boolean (deposit/method deposit))))
+
 
 ;; This step is complete when:
 ;; 1. A Stripe customer exists for this account (platform)
@@ -164,22 +174,23 @@
   (if (= (-> account deposit/by-account deposit/method)
          :security-deposit.payment-method/check)
     nil
-    (if-let [customer (account/stripe-customer db account)]
-      (not (customer/verification-failed? (customer/fetch customer)))
+    (if-let [customer (customer/by-account db account)]
+      (not (some? (customer/bank-token customer)))
       false)))
+
 
 (defmethod complete? :deposit.method/verify
   [db account _]
-  (let [customer (account/stripe-customer db account)]
-    (and (:stripe-customer/bank-account-token customer)
-         (customer/has-verified-bank-account?
-          (customer/fetch customer)))))
+  (let [customer (customer/by-account db account)]
+    (some? (:stripe-customer/bank-token customer))))
+
 
 (defmethod complete? :deposit/pay
   [_ account _]
   (let [deposit (deposit/by-account account)]
-    (boolean (or (some charge/is-pending? (deposit/charges deposit))
+    (boolean (or (some charge/pending? (deposit/charges deposit))
                  (> (deposit/received deposit) 0)))))
+
 
 (defmethod complete? :services/moving
   [db account _]
@@ -189,28 +200,34 @@
              (let [s (service/moving-assistance (d/db conn))]
                (order/exists? db account s))))))
 
+
 (defmethod complete? :services/storage
   [_ account _]
   (let [onboard (onboard/by-account account)]
     (onboard/seen-storage? onboard)))
+
 
 (defmethod complete? :services/customize
   [_ account _]
   (let [onboard (onboard/by-account account)]
     (onboard/seen-customize? onboard)))
 
+
 (defmethod complete? :services/cleaning
   [_ account _]
   (let [onboard (onboard/by-account account)]
     (onboard/seen-cleaning? onboard)))
+
 
 (defmethod complete? :services/upgrades
   [_ account _]
   (let [onboard (onboard/by-account account)]
     (onboard/seen-upgrades? onboard)))
 
+
 ;; =====================================
 ;; Fetch
+
 
 (defn- order-params
   "Produce the client-side parameters for services ordered by `account` from
@@ -227,7 +244,7 @@
         (fn [acc [order-id service-id]]
           (let [order (d/entity db order-id)]
             (-> {service-id
-                 (plumbing/assoc-when
+                 (tb/assoc-when
                   {}
                   :quantity (order/quantity order)
                   :desc (order/desc order)
@@ -235,11 +252,13 @@
                 (merge acc))))
         {})))
 
+
 (s/def ::quantity (s/and pos? number?))
 (s/def ::desc string?)
 (s/def ::variant integer?)
 (s/def ::order-params
   (s/map-of integer? (s/keys :opt-un [::quantity ::desc ::variant])))
+
 
 (s/fdef order-params
         :args (s/cat :db p/db?
@@ -347,7 +366,7 @@
   [conn account]
   (reduce
    (fn [acc step]
-     (plumbing/assoc-when acc step (fetch conn account step)))
+     (tb/assoc-when acc step (fetch conn account step)))
    {}
    steps))
 
@@ -392,6 +411,7 @@
 ;; =============================================================================
 ;; Security Deposit
 
+
 (defmethod save! :deposit/method
   [conn account _ {method :method}]
   (let [method  (keyword "security-deposit.payment-method" method)
@@ -399,16 +419,29 @@
     @(d/transact conn [{:db/id                   (:db/id deposit)
                         :security-deposit/payment-method method}])))
 
+
 (defmethod save! :deposit.method/bank
   [conn account _ {token :stripe-token}]
-  (if-let [customer (account/stripe-customer (d/db conn) account)]
-    (sources/create! (customer/id customer) token)
-    (customer/create-platform! account token)))
+  (let [stripe (config/stripe-private-key config)]
+    @(d/transact conn
+                 [(if-let [customer (customer/by-account (d/db conn) account)]
+                    (do
+                      (<!!? (rcu/add-source! stripe (customer/id customer) token))
+                      {:db/id (td/id customer) :stripe-customer/bank-bank-account-token token})
+                    (let [cus (<!!? (rcu/create! stripe (account/email account) token))]
+                      (customer/create (:id cus) account)))])))
 
 (defmethod save! :deposit.method/verify
   [conn account _ {:keys [amount-1 amount-2]}]
-  (let [customer (account/stripe-customer (d/db conn) account)]
-    (customer/verify-microdeposits customer amount-1 amount-2)))
+  (let [stripe   (config/stripe-private-key config)
+        customer (customer/by-account (d/db conn) account)
+        cus      (<!!? (rcu/fetch stripe (customer/id customer)))]
+    (<!!? (rcu/verify-bank-account! stripe
+                                    (customer/id customer)
+                                    (:id (rcu/unverified-bank-account cus))
+                                    amount-1 amount-2))
+    @(d/transact conn [(assoc {:db/id (td/id customer)}
+                              :stripe-customer/bank-account-token (:id (rcu/unverified-bank-account cus)))])))
 
 (defn- charge-amount
   "Determine the correct amount to charge in cents given "
@@ -419,10 +452,10 @@
 
 (defn- create-charge
   [db account deposit method]
-  (let [customer (account/stripe-customer db account)]
+  (let [customer (customer/by-account db account)]
     (<!!? (rc/create! (config/stripe-private-key config)
                       (charge-amount method deposit)
-                      (customer/bank-account-token customer)
+                      (customer/bank-token customer)
                       :email (account/email account)
                       :description (format "'%s' security deposit payment" method)
                       :customer-id (customer/id customer)
@@ -440,7 +473,7 @@
     (let [deposit   (deposit/by-account account)
           charge-id (:id (create-charge (d/db conn) account deposit method))
           amount    (float (/ (charge-amount method deposit) 100))
-          charge    (charge/create charge-id amount :account account)]
+          charge    (charge/create account charge-id amount)]
       @(d/transact conn [{:db/id                         (:db/id deposit)
                           :security-deposit/payment-type (keyword "security-deposit.payment-type" method)
                           :security-deposit/charges      (td/id charge)}
@@ -467,8 +500,7 @@
         (fn [[order-id service-id]]
           (let [{:keys [quantity desc variant] :as params} (get params service-id)
                 order                                      (d/entity db order-id)]
-            (timbre/debug "update params:" order-id params)
-            (->> (plumbing/assoc-when
+            (->> (tb/assoc-when
                   {}
                   :quantity (when-let [q quantity] (float q))
                   :desc     desc
@@ -498,9 +530,8 @@
        (map
         (fn [[service-id params]]
           (let [service (d/entity db service-id)]
-            (timbre/debug "service:" (:service/code service) "params:" params)
             (order/create account service
-                          (plumbing/assoc-when
+                          (tb/assoc-when
                            {}
                            :quantity (when-let [q (:quantity params)] (float q))
                            :desc (:desc params)
@@ -535,7 +566,7 @@
 (defn- add-move-in-tx
   [db onboard move-in]
   (let [service (service/moving-assistance db)]
-    (plumbing/conj-when
+    (tb/conj-when
      [{:db/id           (:db/id onboard)
        :onboard/move-in move-in}]
      ;; When there's not an moving-assistance order, create one.
@@ -547,7 +578,7 @@
   (let [retract-move-in (when-let [v (onboard/move-in onboard)]
                           [:db/retract (:db/id onboard) :onboard/move-in v])
         retract-order   (order/remove-existing db account (service/moving-assistance db))]
-    (plumbing/conj-when [] retract-move-in retract-order)))
+    (tb/conj-when [] retract-move-in retract-order)))
 
 (defmethod save! :services/moving
   [conn account step {:keys [needed date time]}]
@@ -620,7 +651,7 @@
   (let [deposit (deposit/by-account account)
         onboard (onboard/by-account account)]
     ;; TODO: This logic is a duplicate of what `deposit/paid?` does, right?
-    (and (boolean (or (some charge/is-pending? (deposit/charges deposit))
+    (and (boolean (or (some charge/pending? (deposit/charges deposit))
                       (> (deposit/received deposit) 0)))
          (complete? db account :admin/emergency)
          (onboard/seen-cleaning? onboard)
@@ -631,10 +662,11 @@
 
 (defn- finish! [conn account {token :token}]
   (when token
-    (if-let [customer (account/stripe-customer (d/db conn) account)]
-      (sources/create! (customer/id customer) token)
-      (customer/create-platform! account token)))
-  @(d/transact conn (conj (account/promote account)
+    (if-let [customer (customer/by-account (d/db conn) account)]
+      (<!!? (rcu/add-source! (config/stripe-private-key config)
+                             (customer/id customer) token))
+      (<!!? (rcu/create! (config/stripe-private-key config) (account/email account) token))))
+  @(d/transact conn (conj (promote/promote account)
                           (news/welcome account)
                           (news/autopay account)
                           (events/account-promoted account))))
@@ -648,11 +680,15 @@
       (not finished)
       (res/transit-unprocessable {:error "Cannot submit; onboarding is unfinished."})
 
+      (some? (member-license/active (d/db conn) account))
+      (res/transit-unprocessable {:error "Your onboarding has been finished; please refresh the page."})
+
+
       ;; If there are orders, ensure that a token has been passed along.
       (and (> (count orders) 0) (not (:token params)))
       (res/transit-malformed {:error "Your credit card details are required."})
 
-      :otherwise (let [session (assoc-in session [:identity :account/role] account/member)]
+      :otherwise (let [session (assoc-in session [:identity :account/role] :account.role/member)]
                    (finish! conn account params)
                    (-> (res/transit-ok {:message "ok"})
                        (assoc :session session))))))

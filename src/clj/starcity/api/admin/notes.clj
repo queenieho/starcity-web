@@ -1,21 +1,17 @@
 (ns starcity.api.admin.notes
   (:require [blueprints.models.note :as note]
-            [bouncer
-             [core :as b]
-             [validators :as v]]
+            [bouncer.core :as b]
+            [bouncer.validators :as v]
             [clojure.spec :as s]
-            [compojure.core :refer [defroutes POST GET DELETE PUT]]
+            [compojure.core :refer [defroutes DELETE GET POST PUT]]
             [datomic.api :as d]
             [reactor.events :as events]
-            [starcity
-             [auth :as auth]
-             [datomic :refer [conn]]]
-            [starcity.util
-             [response :as response]
-             [validation :as uv]]
-            [toolbelt
-             [core :as tb]
-             [predicates :as p]]))
+            [starcity.auth :as auth]
+            [starcity.datomic :refer [conn]]
+            [starcity.util.response :as response]
+            [starcity.util.validation :as uv]
+            [toolbelt.core :as tb]
+            [toolbelt.predicates :as p]))
 
 ;; =============================================================================
 ;; Handlers

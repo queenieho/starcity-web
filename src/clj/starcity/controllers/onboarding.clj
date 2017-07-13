@@ -1,16 +1,16 @@
 (ns starcity.controllers.onboarding
-  (:require [facade
-             [core :as facade]
-             [snippets :as snippets]]
+  (:require [blueprints.models.account :as account]
+            [blueprints.models.approval :as approval]
+            [blueprints.models.property :as property]
+            [blueprints.models.security-deposit :as deposit]
+            [datomic.api :as d]
+            [facade.core :as facade]
+            [facade.snippets :as snippets]
             [net.cgrand.enlive-html :as html]
-            [starcity.auth :as auth]
             [starcity.config :as config :refer [config]]
             [starcity.controllers.common :as common]
-            [starcity.models
-             [account :as account]
-             [approval :as approval]
-             [property :as property]
-             [security-deposit :as deposit]]))
+            [starcity.datomic :refer [conn]]
+            [starcity.util.request :as req]))
 
 (html/defsnippet content "templates/onboarding.html" [:section] []
   [:section] (html/append (snippets/loading-fullscreen)))
@@ -27,7 +27,7 @@
 (defn show
   "Show the Onboarding app."
   [req]
-  (let [account (auth/requester req)]
+  (let [account (req/requester (d/db conn) req)]
     (-> (facade/app req "onboarding"
                     :content (content)
                     :navbar (snippets/app-navbar)

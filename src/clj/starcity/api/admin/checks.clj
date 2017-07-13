@@ -1,22 +1,18 @@
 (ns starcity.api.admin.checks
-  (:require [bouncer
-             [core :as b]
-             [validators :as v]]
+  (:require [blueprints.models.check :as check]
+            [blueprints.models.rent-payment :as rent-payment]
+            [blueprints.models.security-deposit :as deposit]
+            [bouncer.core :as b]
+            [bouncer.validators :as v]
             [clojure.spec :as s]
             [compojure.core :refer [defroutes POST]]
             [datomic.api :as d]
-            [plumbing.core :refer [update-in-when]]
+            [plumbing.core :as plumbing]
             [starcity.datomic :refer [conn]]
-            [starcity.models
-             [check :as check]
-             [rent-payment :as rent-payment]
-             [security-deposit :as deposit]]
-            [starcity.util
-             [response :as response]
-             [validation :as uv]]
-            [toolbelt
-             [core :as tb :refer [str->int]]
-             [predicates :as p]]))
+            [starcity.util.response :as response]
+            [starcity.util.validation :as uv]
+            [toolbelt.core :as tb]
+            [toolbelt.predicates :as p]))
 
 ;; =============================================================================
 ;; Handlers
@@ -117,6 +113,6 @@
   (POST "/:check-id" [check-id]
         (fn [{params :params}]
           (let [vresult (b/validate params check-validators)]
-            (if-let [params (uv/valid? vresult #(update-in-when % [:amount] float))]
-              (response/transit-ok (update-check! conn (str->int check-id) params))
+            (if-let [params (uv/valid? vresult #(plumbing/update-in-when % [:amount] float))]
+              (response/transit-ok (update-check! conn (tb/str->int check-id) params))
               (response/transit-malformed {:message (first (uv/errors vresult))}))))))

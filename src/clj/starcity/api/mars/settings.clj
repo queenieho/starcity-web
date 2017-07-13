@@ -1,21 +1,17 @@
 (ns starcity.api.mars.settings
-  (:require [bouncer
-             [core :as b]
-             [validators :as v]]
-            [clojure
-             [spec :as s]
-             [string :as string]]
+  (:require [bouncer.core :as b]
+            [bouncer.validators :as v]
+            [clojure.spec :as s]
+            [clojure.string :as string]
             [compojure.core :refer [defroutes POST]]
             [customs.auth :as auth]
             [datomic.api :as d]
             [starcity.datomic :refer [conn]]
-            [starcity.util
-             [request :as req]
-             [response :as response]
-             [validation :as uv]]
-            [toolbelt
-             [core :as tb]
-             [predicates :as p]]))
+            [starcity.util.request :as req]
+            [starcity.util.response :as response]
+            [starcity.util.validation :as uv]
+            [toolbelt.core :as tb]
+            [toolbelt.predicates :as p]))
 
 ;; =============================================================================
 ;; Handlers

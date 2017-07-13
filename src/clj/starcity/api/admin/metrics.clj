@@ -1,27 +1,26 @@
 (ns starcity.api.admin.metrics
-  (:require [clj-time.coerce :as c]
+  (:require [blueprints.models.account :as account]
+            [blueprints.models.application :as application]
+            [clj-time.coerce :as c]
             [clojure.spec :as s]
             [compojure.core :refer [defroutes GET]]
             [datomic.api :as d]
             [plumbing.core :as plumbing]
             [starcity.datomic :refer [conn]]
-            [starcity.models
-             [account :as account]
-             [application :as app]]
-            [starcity.util
-             [date :as date]
-             [response :as response]]
+            [toolbelt.date :as date]
+            [starcity.util.response :as response]
             [toolbelt.predicates :as p]))
 
 ;; =============================================================================
 ;; Handlers
 ;; =============================================================================
 
+
 (defn overview
   [conn pstart pend]
   (let [db (d/db conn)]
     {:accounts/created     (account/total-created db pstart pend)
-     :applications/created (app/total-created db pstart pend)}))
+     :applications/created (application/total-created db pstart pend)}))
 
 (s/fdef overview
         :args (s/cat :conn p/conn?
@@ -30,13 +29,16 @@
         :ret (s/keys :req [:accounts/total
                            :applications/total]))
 
+
 ;; =============================================================================
 ;; Routes
 ;; =============================================================================
 
+
 (defn- format-params [params]
   (-> (plumbing/update-in-when params [:pstart] c/to-date)
       (plumbing/update-in-when [:pend] c/to-date)))
+
 
 (defroutes routes
   (GET "/" []

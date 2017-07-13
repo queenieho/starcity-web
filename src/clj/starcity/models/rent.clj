@@ -1,18 +1,21 @@
 (ns starcity.models.rent
-  (:require [clj-time
-             [coerce :as c]
-             [core :as t]]
+  (:require [blueprints.models.account :as account]
+            [blueprints.models.customer :as customer]
+            [blueprints.models.member-license :as member-license]
+            [blueprints.models.rent-payment :as rent-payment]
+            [clj-time.coerce :as c]
+            [clj-time.core :as t]
             [clojure.spec :as s]
             [datomic.api :as d]
-            [starcity.models
-             [account :as account]
-             [member-license :as member-license]]
-            [starcity.models.rent.util :refer [first-day-next-month]]
-            [starcity.models.stripe.customer :as customer]
-            [starcity.models.rent-payment :as rent-payment]))
+            [ribbon.customer :as rcu]
+            [starcity.config :as config :refer [config]]
+            [toolbelt.async :refer [<!!?]]
+            [toolbelt.datomic :as td]
+            [toolbelt.predicates :as p]))
 
 ;; =============================================================================
-;; Next Payment
+;; Selectors
+;; =============================================================================
 
 ;; NOTE: There will be some weird behavior here at renewal time. If the
 ;; currently active license ends next month, but member has chosen to renew,
@@ -21,69 +24,66 @@
   "Produces the due date of the next rent payment. Produces `nil` when the
   `member-license` will have expired by the next billing cycle."
   [member-license]
-  (let [ends       (c/to-date-time (member-license/ends member-license))
-        next-cycle (t/plus (first-day-next-month (t/now)) (t/days 4))]
-    (when-not (t/after? next-cycle ends)
-      next-cycle)))
+  (let [ends (c/to-date-time (member-license/ends member-license))
+        next (t/plus (t/first-day-of-the-month (t/now)) (t/months 1) (t/days 4))]
+    (when-not (t/after? next ends)
+      (c/to-date next))))
 
 (s/fdef scheduled-date
-        :args (s/cat :member-license :starcity.spec.datomic/entity)
-        :ret :starcity.spec/datetime)
+        :args (s/cat :member-license p/entity?)
+        :ret (s/or :inst inst? :nothing nil?))
+
 
 (defn next-payment
-  ;; TODO: DOCUMENTATION
-  [conn account]
-  (let [license (member-license/active conn account)]
+  [db account]
+  (let [license (member-license/active db account)]
     {:amount (member-license/rate license)
-     :due-by (c/to-date (due-date license))}))
+     :due-by (due-date license)}))
 
-;; TODO: Spec
+(s/fdef next-payment
+        :args (s/cat :db p/db? :account p/entity?)
+        :ret (s/keys :req-un [::amount ::due-by]))
 
-;; =============================================================================
-;; Bank Account
 
 (defn bank-account
   "Produce the bank account data for this account."
   [db account]
-  (when-let [customer (account/stripe-customer db account)]
+  (when-let [customer (customer/by-account db account)]
     (when (customer/has-verified-bank-account? customer)
-      (let [bank-account (customer/active-bank-account customer)]
-        {:bank-name (customer/account-name bank-account)
-         :number    (customer/account-last4 bank-account)}))))
+      (let [cus          (<!!? (rcu/fetch (config/stripe-private-key config)
+                                          (customer/id customer)))
+            bank-account (rcu/active-bank-account cus)]
+        {:bank-name (rcu/account-name bank-account)
+         :number    (rcu/account-last4 bank-account)}))))
+
+(s/fdef bank-account
+        :args (s/cat :db p/db? :account p/entity?)
+        :ret (s/or :result (s/keys :req-un [::bank-name ::bank-number])
+                   :nothing nil?))
+
 
 ;; =============================================================================
-;; Payments
+;; Queries
+;; =============================================================================
 
-(defn- query-payments [conn account]
+
+(defn- query-payments [db account]
   (->> (d/q '[:find [?e ...]
               :in $ ?a
               :where
               [?a :account/license ?l]
               [?l :member-license/rent-payments ?e]]
-            (d/db conn) (:db/id account))
-       (map (partial d/entity (d/db conn)))))
+            db (td/id account))
+       (map (partial d/entity db))))
 
 (defn payments
   "Query the 'history' of `account`'s rent payments. Pulls the last twelve
   payments sorted by most recent first."
-  [conn account]
-  (let [payments (query-payments conn account)]
+  [db account]
+  (let [payments (query-payments db account)]
     (->> (sort-by :rent-payment/period-start payments)
          (reverse))))
 
-(comment
-  (let [conn    starcity.datomic/conn
-        account (d/entity (d/db conn) [:account/email "member@test.com"])]
-    (bank-account conn account))
-
-  (defn- rand-date []
-    (let [plus-or-minus (rand-int 2)
-          days          (rand-int 10)]
-      (if (zero? plus-or-minus)
-        (c/to-date (t/minus (t/now) (t/days days)))
-        (c/to-date (t/plus (t/now) (t/days days))))))
-
-  (sort-by :created-at
-           (->> (take 10 (repeatedly rand-date))
-                (map #(assoc {} :created-at %))))
-  )
+(s/fdef payments
+        :args (s/cat :db p/db? :account p/entity?)
+        :ret (s/* p/entity?))
