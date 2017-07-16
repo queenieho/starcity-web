@@ -2,13 +2,22 @@
        :plugins      [[lein-figwheel "0.5.8" :exclusions [org.clojure/clojure org.clojure/core.async]]
                       [lein-cooper "1.2.2" :exclusions [org.clojure/clojure]]]
        :dependencies [[figwheel-sidecar "0.5.8"]
-                      [binaryage/devtools "0.9.2"]]
+                      [binaryage/devtools "0.9.2"]
+                      [com.datomic/datomic-free "0.9.5544"]]
        :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}}
 
  :uberjar {:aot          :all
            :main         starcity.core
            :source-paths ["src/clj" "src/cljs"]
            :prep-tasks   ["compile" ["cljsbuild" "once"]]
+
+           :dependencies [[com.datomic/datomic-pro "0.9.5544" :exclusions [com.google.guava/guava]]
+                          [org.postgresql/postgresql "9.4.1211"]]
+
+           :repositories {"my.datomic.com" {:url      "https://my.datomic.com/repo"
+                                            :username :env/datomic_username
+                                            :password :env/datomic_password}}
+
            :cljsbuild
            {:builds [{:id           "admin"
                       :source-paths ["src/cljs/admin" "src/cljs/starcity"]

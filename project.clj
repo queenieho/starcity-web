@@ -38,8 +38,6 @@
                  [io.rkn/conformity "0.4.0"]
                  [starcity/blueprints "1.9.0" :exclusions [com.datomic/datomic-free]]
                  [starcity/reactor "0.2.0"]
-                 [com.datomic/datomic-pro "0.9.5544" :exclusions [com.google.guava/guava]]
-                 [org.postgresql/postgresql "9.4.1211"]
                  ;; CLJS
                  [cljsjs/flatpickr "2.0.0-rc.7-0"]
                  [starcity/ant-ui "0.1.2" :exclusions [re-frame]]
@@ -69,11 +67,7 @@
              "-XX:+DoEscapeAnalysis"
              "-XX:+UseConcMarkSweepGC"]
 
-  :repositories {"my.datomic.com" {:url      "https://my.datomic.com/repo"
-                                   :username :env/datomic_username
-                                   :password :env/datomic_password}
-
-                 "releases" {:url        "s3://starjars/releases"
+  :repositories {"releases" {:url        "s3://starjars/releases"
                              :username   :env/aws_access_key
                              :passphrase :env/aws_secret_key}}
 
