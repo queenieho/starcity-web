@@ -7,6 +7,7 @@
             [blueprints.models.news :as news]
             [blueprints.models.onboard :as onboard]
             [blueprints.models.order :as order]
+            [blueprints.models.payment :as payment]
             [blueprints.models.promote :as promote]
             [blueprints.models.property :as property]
             [blueprints.models.security-deposit :as deposit]
@@ -172,24 +173,27 @@
 (defmethod complete? :deposit.method/bank
   [db account _]
   (if (= (-> account deposit/by-account deposit/method)
-         :security-deposit.payment-method/check)
+         :deposit.method/check)
     nil
     (if-let [customer (customer/by-account db account)]
-      (not (some? (customer/bank-token customer)))
+      (let [stripe (config/stripe-private-key config)
+            cus    (<!!? (rcu/fetch stripe (customer/id customer)))]
+        (or (some? (rcu/unverified-bank-account cus))
+            (rcu/has-verified-bank-account? cus)))
       false)))
 
 
 (defmethod complete? :deposit.method/verify
   [db account _]
-  (let [customer (customer/by-account db account)]
-    (some? (:stripe-customer/bank-token customer))))
+  (let [stripe (config/stripe-private-key config)]
+    (when-let [customer (customer/by-account db account)]
+      (rcu/has-verified-bank-account? (<!!? (rcu/fetch stripe (customer/id customer)))))))
 
 
 (defmethod complete? :deposit/pay
   [_ account _]
   (let [deposit (deposit/by-account account)]
-    (boolean (or (some charge/pending? (deposit/charges deposit))
-                 (> (deposit/received deposit) 0)))))
+    (deposit/is-paid? deposit)))
 
 
 (defmethod complete? :services/moving
@@ -447,7 +451,7 @@
   "Determine the correct amount to charge in cents given "
   [method deposit]
   (if (= "full" method)
-    (* (deposit/required deposit) 100)
+    (* (deposit/amount deposit) 100)
     50000))
 
 (defn- create-charge
@@ -463,7 +467,7 @@
                                            account/approval
                                            approval/unit
                                            unit/property
-                                           property/managed-account-id)))))
+                                           property/deposit-connect-id)))))
 
 (defmethod save! :deposit/pay
   [conn account step {method :method}]
@@ -473,11 +477,13 @@
     (let [deposit   (deposit/by-account account)
           charge-id (:id (create-charge (d/db conn) account deposit method))
           amount    (float (/ (charge-amount method deposit) 100))
-          charge    (charge/create account charge-id amount)]
-      @(d/transact conn [{:db/id                         (:db/id deposit)
-                          :security-deposit/payment-type (keyword "security-deposit.payment-type" method)
-                          :security-deposit/charges      (td/id charge)}
-                         charge
+          payment   (payment/create amount account
+                                    :for :payment.for/deposit
+                                    :charge-id charge-id)]
+      @(d/transact conn [{:db/id            (:db/id deposit)
+                          :deposit/type     (keyword "deposit.type" method)
+                          :deposit/payments (td/id payment)}
+                         payment
                          (events/deposit-payment-made account charge-id)]))))
 
 ;; =============================================================================
@@ -650,9 +656,7 @@
 (defn- is-finished? [db account]
   (let [deposit (deposit/by-account account)
         onboard (onboard/by-account account)]
-    ;; TODO: This logic is a duplicate of what `deposit/paid?` does, right?
-    (and (boolean (or (some charge/pending? (deposit/charges deposit))
-                      (> (deposit/received deposit) 0)))
+    (and (deposit/is-paid? deposit)
          (complete? db account :admin/emergency)
          (onboard/seen-cleaning? onboard)
          (onboard/seen-customize? onboard)
