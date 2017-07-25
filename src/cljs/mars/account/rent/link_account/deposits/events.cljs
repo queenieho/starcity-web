@@ -6,8 +6,8 @@
             [mars.account.rent.link-account.deposits.db :as db]
             [mars.api :as api]
             [day8.re-frame.http-fx]
-            [starcity.log :as l]
-            [ajax.core :as ajax]))
+            [ajax.core :as ajax]
+            [toolbelt.core :as tb]))
 
 (reg-event-fx
  :rent.link-account.deposits/bootstrap
@@ -72,7 +72,7 @@
  :autopay.create-token/failure
  [(path db/path)]
  (fn [{:keys [db]} [_ error]]
-   (l/error "Failed to create token!" error)
+   (tb/error "Failed to create token!" error)
    {:db            (db/toggle-submitting-bank-info db)
     :alert/message default-error}))
 
@@ -101,7 +101,7 @@
  :autopay.send-bank-token/failure
  [(path db/path)]
  (fn [_ [_ error]]
-   (l/error "Failed to submit token to server!" error)
+   (tb/error "Failed to submit token to server!" error)
    {:alert/message default-error}))
 
 ;; =============================================================================
@@ -140,8 +140,12 @@
 (reg-event-fx
  :rent.link-account.deposits.verify-amounts/failure
  [(path db/path)]
- (fn [{:keys [db]} _]
-   {:db            (db/toggle-submitting-deposits db)
-    :alert/message {:type     :error
-                    :duration 6
-                    :content  "Incorrect deposit amounts entered."}}))
+ (fn [{:keys [db]} [_ res]]
+   (tb/error res)
+   {:db                 (db/toggle-submitting-deposits db)
+    :alert.message/hide true
+    :alert/notify       {:type     :error
+                         :duration 6
+                         :title    "Error!"
+                         :content  (get-in res [:response :error]
+                                           "Yikes! An unknown error has occurred.")}}))
