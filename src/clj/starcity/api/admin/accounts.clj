@@ -3,10 +3,12 @@
             [blueprints.models.application :as application]
             [blueprints.models.approval :as approval]
             [blueprints.models.charge :as charge]
+            [blueprints.models.check :as check]
             [blueprints.models.income-file :as income-file]
             [blueprints.models.license :as license]
             [blueprints.models.member-license :as member-license]
             [blueprints.models.note :as note]
+            [blueprints.models.payment :as payment]
             [blueprints.models.property :as property]
             [blueprints.models.rent-payment :as rent-payment]
             [blueprints.models.security-deposit :as deposit]
@@ -30,8 +32,7 @@
             [toolbelt.date :as date]
             [toolbelt.datomic :as td]
             [toolbelt.predicates :as p]
-            [taoensso.timbre :as timbre]
-            [blueprints.models.payment :as payment]))
+            [taoensso.timbre :as timbre]))
 
 ;; =============================================================================
 ;; Common

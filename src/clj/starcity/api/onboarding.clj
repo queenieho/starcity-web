@@ -2,8 +2,8 @@
   (:require [blueprints.models.account :as account]
             [blueprints.models.approval :as approval]
             [blueprints.models.catalogue :as catalogue]
-            [blueprints.models.charge :as charge]
             [blueprints.models.customer :as customer]
+            [blueprints.models.member-license :as member-license]
             [blueprints.models.news :as news]
             [blueprints.models.onboard :as onboard]
             [blueprints.models.order :as order]
@@ -34,8 +34,7 @@
             [toolbelt.core :as tb]
             [toolbelt.date :as date]
             [toolbelt.datomic :as td]
-            [toolbelt.predicates :as p]
-            [blueprints.models.member-license :as member-license]))
+            [toolbelt.predicates :as p]))
 
 ;; NOTE: Do we want to deal with dependencies like we do on the client? This may
 ;; make sense, since certain steps are moot in the absense of satisfied
@@ -167,9 +166,6 @@
     (boolean (deposit/method deposit))))
 
 
-;; This step is complete when:
-;; 1. A Stripe customer exists for this account (platform)
-;; 2. Bank Verification has not failed for this customer
 (defmethod complete? :deposit.method/bank
   [db account _]
   (if (= (-> account deposit/by-account deposit/method)
@@ -431,21 +427,33 @@
                  [(if-let [customer (customer/by-account (d/db conn) account)]
                     (do
                       (<!!? (rcu/add-source! stripe (customer/id customer) token))
-                      {:db/id (td/id customer) :stripe-customer/bank-bank-account-token token})
+                      {:db/id (td/id customer) :stripe-customer/bank-account-token token})
                     (let [cus (<!!? (rcu/create! stripe (account/email account) token))]
+
                       (customer/create (:id cus) account)))])))
+
+
+(def ^:private verification-failed-error
+  "The maximum number of verification attempts has been exceeded, and verification has failed. Please reload the page and input your bank credentials again.")
+
 
 (defmethod save! :deposit.method/verify
   [conn account _ {:keys [amount-1 amount-2]}]
   (let [stripe   (config/stripe-private-key config)
         customer (customer/by-account (d/db conn) account)
         cus      (<!!? (rcu/fetch stripe (customer/id customer)))]
-    (<!!? (rcu/verify-bank-account! stripe
-                                    (customer/id customer)
-                                    (:id (rcu/unverified-bank-account cus))
-                                    amount-1 amount-2))
-    @(d/transact conn [(assoc {:db/id (td/id customer)}
-                              :stripe-customer/bank-account-token (:id (rcu/unverified-bank-account cus)))])))
+    (if (rcu/verification-failed? cus)
+      (let [sid (:id (tb/find-by rcu/failed-bank-account? (rcu/bank-accounts cus)))]
+        @(d/transact conn [(events/delete-source (customer/id customer) sid)])
+        (throw (ex-info "Verification has failed!" {:message verification-failed-error})))
+      (do
+        (<!!? (rcu/verify-bank-account! stripe
+                                        (customer/id customer)
+                                        (:id (rcu/unverified-bank-account cus))
+                                        amount-1 amount-2))
+        @(d/transact conn [(assoc {:db/id (td/id customer)}
+                                  :stripe-customer/bank-account-token (:id (rcu/unverified-bank-account cus)))])))))
+
 
 (defn- charge-amount
   "Determine the correct amount to charge in cents given "
