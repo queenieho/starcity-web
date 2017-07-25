@@ -57,7 +57,7 @@
 (defmethod submit-check :update
   [{:keys [params form edited] :as db} fx]
   (merge
-   (check-req (str "/api/v1/admin/checks/" (:id params)) (select-keys form edited))
+   (check-req (str "/api/v1/admin/checks/" (:check-id params)) (select-keys form edited))
    fx))
 
 (reg-event-fx

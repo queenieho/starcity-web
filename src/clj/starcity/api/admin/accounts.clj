@@ -3,10 +3,12 @@
             [blueprints.models.application :as application]
             [blueprints.models.approval :as approval]
             [blueprints.models.charge :as charge]
+            [blueprints.models.check :as check]
             [blueprints.models.income-file :as income-file]
             [blueprints.models.license :as license]
             [blueprints.models.member-license :as member-license]
             [blueprints.models.note :as note]
+            [blueprints.models.payment :as payment]
             [blueprints.models.property :as property]
             [blueprints.models.rent-payment :as rent-payment]
             [blueprints.models.security-deposit :as deposit]
@@ -44,39 +46,56 @@
 ;; =====================================
 ;; Clientize Security Deposit
 
-(defn- check->payment [check]
-  (merge
-   {:payment/id     (:db/id check)
-    :payment/method :check
-    :payment/status (name (:check/status check))
-    :payment/amount (:check/amount check)}
-   (select-keys check [:check/name :check/bank :check/number
-                       :check/received-on :check/date])))
 
-(defn- charge->payment [charge]
-  {:payment/id        (:db/id charge)
+(defmulti clientize-deposit-payment
+  (fn [payment]
+    (cond
+      (payment/charge? payment) :charge
+      (payment/check? payment)  :check
+      :otherwise                :unknown)))
+
+
+(defmethod clientize-deposit-payment :default [payment]
+  {:payment/id     (:db/id payment)
+   :payment/method :other
+   :payment/status (name (payment/status payment))
+   :payment/amount (payment/amount payment)})
+
+
+(defmethod clientize-deposit-payment :charge [payment]
+  {:payment/id        (:db/id payment)
    :payment/method    :ach
-   :payment/status    (name (:charge/status charge))
-   :payment/amount    (:charge/amount charge)
-   :charge/stripe-uri (format "%s/payments/%s"
-                              stripe-dashboard-uri (:charge/stripe-id charge))})
+   :payment/status    (name (payment/status payment))
+   :payment/amount    (payment/amount payment)
+   :charge/stripe-uri (format "%s/payments/%s" stripe-dashboard-uri (payment/charge-id payment))})
+
+
+(defmethod clientize-deposit-payment :check [payment]
+  (-> (select-keys (:payment/check payment)
+                   [:check/name :check/bank :check/number
+                    :check/received-on :check/date])
+      (merge
+       {:payment/id     (:db/id payment)
+        :payment/method :check
+        :payment/status (name (check/status (:payment/check payment)))
+        :payment/amount (payment/amount payment)})
+      (assoc :payment/check-id (-> payment :payment/check :db/id))))
+
 
 (defn- clientize-security-deposit [deposit]
-  (let [checks  (deposit/checks deposit)
-        charges (deposit/charges deposit)]
+  (let [payments (deposit/payments deposit)]
     {:db/id            (:db/id deposit)
-     :deposit/received (deposit/received deposit)
-     :deposit/required (deposit/required deposit)
+     :deposit/received (deposit/amount-paid deposit)
+     :deposit/required (deposit/amount deposit)
      :deposit/pending  (deposit/amount-pending deposit)
      :deposit/due-date (deposit/due-by deposit)
      :deposit/method   (deposit/method deposit)
-     :deposit/payments (concat
-                        (map check->payment checks)
-                        (map charge->payment charges))}))
+     :deposit/payments (map clientize-deposit-payment payments)}))
 
 (s/fdef clientize-security-deposit
         :args (s/cat :deposit p/entity?)
         :ret map?)
+
 
 ;; =============================================================================
 ;; Accounts Search

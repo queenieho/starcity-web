@@ -19,7 +19,7 @@
   (comp approval/move-in approval/by-account))
 
 (def ^:private full-deposit
-  (comp deposit/required deposit/by-account))
+  (comp deposit/amount deposit/by-account))
 
 (def ^:private llc
   (comp property/llc approval/property approval/by-account))

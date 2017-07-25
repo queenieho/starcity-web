@@ -19,7 +19,10 @@
             [toolbelt.async :refer [<!!?]]
             [toolbelt.core :as tb]
             [toolbelt.datomic :as td]
-            [toolbelt.predicates :as p]))
+            [toolbelt.predicates :as p]
+            [ribbon.charge :as rc]
+            [reactor.events :as events]
+            [starcity.util.validation :as validation]))
 
 ;; =============================================================================
 ;; Handlers
@@ -59,6 +62,7 @@
 (s/fdef add-bank-account!
         :args (s/cat :db p/db?
                      :account p/entity?
+                     :token string?
                      :verified (s/? (s/or :bool boolean? :keyword keyword?)))
         :ret map?)
 
@@ -136,24 +140,36 @@
 (defn verify-deposits
   [{:keys [params] :as req}]
   (let [account  (req/requester (d/db conn) req)
-        deposits (:deposits params)]
-    (if-not (deposits-valid? deposits)
-      (res/json-malformed {:error "Invalid deposit amounts."})
+        stripe   (config/stripe-private-key config)
+        deposits (:deposits params)
+        customer (customer/by-account (d/db conn) account)
+        cus      (<!!? (rcu/fetch stripe (customer/id customer)))
+        vresult  (deposits-valid? deposits)]
+    (cond
+      (not (validation/valid? vresult))
+      (res/json-malformed {:error (first (validation/errors vresult))})
+
+      (rcu/verification-failed? cus)
+      (let [sid (:id (tb/find-by rcu/failed-bank-account? (rcu/bank-accounts cus)))]
+        @(d/transact conn [(events/delete-source (customer/id customer) sid)])
+        (res/json-malformed {:error "Maximum number of verification attempts exceeded. Please refresh the page and try again."}))
+
+      :otherwise
       (try
         (let [cus (customer/by-account (d/db conn) account)
               bat (get-bank-token cus)
-              res (rcu/verify-bank-account! (config/stripe-private-key config)
-                                            (customer/id cus)
-                                            bat
-                                            (first deposits)
-                                            (second deposits))]
+              res (<!!? (rcu/verify-bank-account! (config/stripe-private-key config)
+                                                  (customer/id cus)
+                                                  bat
+                                                  (first deposits)
+                                                  (second deposits)))]
           (timbre/info ::verify-microdeposits {:account  (account/email account)
                                                :customer (customer/id cus)})
           @(d/transact conn [(assoc {:db/id (td/id cus)} :stripe-customer/bank-account-token bat)])
           (res/json-ok {:status (autopay/setup-status (d/db conn) account)}))
         (catch Exception e
           (timbre/error e ::verify-microdeposits {:account (account/email account)})
-          (throw e))))))
+          (res/json-unprocessable {:error (get (ex-data e) :message)}))))))
 
 
 ;; =============================================================================
