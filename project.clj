@@ -36,7 +36,7 @@
                  [mount "0.1.11"]
                  ;; Datomic
                  [io.rkn/conformity "0.4.0"]
-                 [starcity/blueprints "1.10.0" :exclusions [com.datomic/datomic-free]]
+                 [starcity/blueprints "1.10.1" :exclusions [com.datomic/datomic-free]]
                  [starcity/reactor "0.3.0"]
                  ;; CLJS
                  [cljsjs/flatpickr "2.0.0-rc.7-0"]
