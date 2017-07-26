@@ -1,23 +1,20 @@
 (ns starcity.controllers.signup
-  (:require [bouncer
-             [core :as b]
-             [validators :as v]]
+  (:require [blueprints.models.account :as account]
+            [bouncer.core :as b]
+            [bouncer.validators :as v]
             [clojure.string :refer [capitalize lower-case trim]]
             [customs.auth :as auth]
             [datomic.api :as d]
-            [facade
-             [core :as facade]
-             [snippets :as snippets]]
+            [facade.core :as facade]
+            [facade.snippets :as snippets]
             [net.cgrand.enlive-html :as html]
             [reactor.events :as events]
             [ring.util.response :as response]
-            [starcity.controllers.common :as common]
             [starcity.config :as config :refer [config]]
+            [starcity.controllers.common :as common]
             [starcity.datomic :refer [conn]]
-            [starcity.models.account :as account]
             [starcity.util.validation :as validation]
             [taoensso.timbre :as timbre]))
-
 
 ;; =============================================================================
 ;; Constants

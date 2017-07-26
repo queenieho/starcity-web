@@ -1,27 +1,24 @@
 (ns starcity.api.mars.rent.payments
-  (:require [compojure.core :refer [defroutes GET POST]]
+  (:require [blueprints.models.account :as account]
+            [blueprints.models.charge :as charge]
+            [blueprints.models.customer :as customer]
+            [blueprints.models.member-license :as member-license]
+            [blueprints.models.property :as property]
+            [blueprints.models.rent-payment :as rent-payment]
             [clojure.spec :as s]
+            [compojure.core :refer [defroutes GET POST]]
             [datomic.api :as d]
-            [starcity
-             [config :as config :refer [config]]
-             [datomic :refer [conn]]]
-            [starcity.models
-             [account :as account]
-             [charge :as charge]
-             [member-license :as member-license]
-             [rent :as rent]
-             [rent-payment :as rent-payment]]
-            [starcity.models.stripe.customer :as customer]
-            [starcity.services.stripe :as stripe]
-            [starcity.util.response :as resp]
-            [starcity.util.request :as req]
-            [taoensso.timbre :as timbre]
-            [toolbelt.core :as tb]
-            [toolbelt.async :refer [<!!?]]
-            [toolbelt.predicates :as p]
+            [reactor.events :as events]
             [ribbon.charge :as rc]
-            [starcity.models.property :as property]
-            [reactor.events :as events]))
+            [starcity.config :as config :refer [config]]
+            [starcity.datomic :refer [conn]]
+            [starcity.models.rent :as rent]
+            [starcity.util.request :as req]
+            [starcity.util.response :as resp]
+            [taoensso.timbre :as timbre]
+            [toolbelt.async :refer [<!!?]]
+            [toolbelt.core :as tb]
+            [toolbelt.predicates :as p]))
 
 ;; =============================================================================
 ;; Handlers
@@ -30,14 +27,17 @@
 ;; =============================================================================
 ;; Next Payment
 
+
 (defn next-payment-handler
   "Retrieve the details of the 'next' payment for requesting account."
   [{:keys [params] :as req}]
   (let [account (req/requester (d/db conn) req)]
-    (resp/json-ok (rent/next-payment conn account))))
+    (resp/json-ok (rent/next-payment (d/db conn) account))))
+
 
 ;; =============================================================================
 ;; Payments List
+
 
 (defn- clientize-payment-item
   [grace-over {:keys [:rent-payment/method :rent-payment/check] :as p}]
@@ -54,16 +54,16 @@
             :late-fee late-fee
             :amount   (if late-fee (* amount 1.1) amount)
             :desc     (:rent-payment/method-desc p)}
-           (when method {:method (name method)})
-           (when check {:check {:number (:check/number check)}}))))
+           (when-some [m method] {:method (name m)})
+           (when-some [c check] {:check {:number (:check/number check)}}))))
 
 (defn payments-handler
   "Retrieve the list of rent payments for the requesting account."
   [req]
   (let [account    (req/requester (d/db conn) req)
-        payments   (rent/payments conn account)
-        grace-over (->> (member-license/active conn account)
-                        (member-license/grace-period-over? conn))]
+        payments   (rent/payments (d/db conn) account)
+        grace-over (->> (member-license/active (d/db conn) account)
+                        (member-license/grace-period-over?))]
     (resp/json-ok
      {:payments (->> (take 12 payments)
                      (map (partial clientize-payment-item grace-over)))})))
@@ -74,22 +74,21 @@
 (defn- cents [x]
   (int (* 100 x)))
 
-(defn- charge-amount [conn license payment]
+(defn- charge-amount [license payment]
   (if (and (rent-payment/past-due? payment)
-           (member-license/grace-period-over? conn license))
+           (member-license/grace-period-over? license))
     (* (rent-payment/amount payment) 1.1)
     (rent-payment/amount payment)))
 
 (defn- create-charge!
   "Create a charge for `payment` on Stripe."
-  [conn account payment license amount]
+  [customer account payment license amount]
   (if (rent-payment/unpaid? payment)
-    (let [customer (account/stripe-customer (d/db conn) account)
-          property (member-license/property account)
+    (let [property (member-license/property license)
           desc     (format "%s's rent at %s" (account/full-name account) (property/name property))]
       (:id (<!!? (rc/create! (config/stripe-private-key config)
                              (cents amount)
-                             (customer/bank-account-token customer)
+                             (customer/bank-token customer)
                              :email (account/email account)
                              :description desc
                              :customer-id (customer/id customer)
@@ -99,15 +98,16 @@
 
 (defn- make-payment!
   [conn account payment]
-  (let [license   (member-license/active conn account)
-        amount    (charge-amount conn license payment)
-        charge-id (create-charge! conn account payment license amount)]
+  (let [license   (member-license/active (d/db conn) account)
+        customer  (customer/by-account (d/db conn) account)
+        amount    (charge-amount license payment)
+        charge-id (create-charge! customer account payment license amount)]
     @(d/transact conn [(assoc
-                        (rent-payment/pending payment)
+                        (rent-payment/set-pending payment)
                         :rent-payment/amount amount
                         :rent-payment/paid-on (java.util.Date.)
                         :rent-payment/method rent-payment/ach
-                        :rent-payment/charge (charge/create charge-id amount :account account))
+                        :rent-payment/charge (charge/create account charge-id amount))
                        (events/rent-payment-made account payment)])))
 
 (s/fdef make-payment!

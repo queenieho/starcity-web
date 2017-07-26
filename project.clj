@@ -1,4 +1,4 @@
-(defproject starcity "1.9.1"
+(defproject starcity "1.10.0"
   :description "The web app for https://joinstarcity.com"
   :url "https://joinstarcity.com"
   :license {:name "Eclipse Public License"
@@ -36,10 +36,8 @@
                  [mount "0.1.11"]
                  ;; Datomic
                  [io.rkn/conformity "0.4.0"]
-                 [starcity/blueprints "1.8.1" :exclusions [com.datomic/datomic-free]]
-                 [starcity/reactor "0.2.0"]
-                 [com.datomic/datomic-pro "0.9.5544" :exclusions [com.google.guava/guava]]
-                 [org.postgresql/postgresql "9.4.1211"]
+                 [starcity/blueprints "1.10.1" :exclusions [com.datomic/datomic-free]]
+                 [starcity/reactor "0.3.0"]
                  ;; CLJS
                  [cljsjs/flatpickr "2.0.0-rc.7-0"]
                  [starcity/ant-ui "0.1.2" :exclusions [re-frame]]
@@ -59,7 +57,7 @@
                  [com.taoensso/nippy "2.12.2"]
                  [prismatic/plumbing "0.5.3"]
                  [starcity/toolbelt "0.1.7" :exclusions [com.datomic/datomic-free]]
-                 [starcity/ribbon "0.3.0"]
+                 [starcity/ribbon "0.5.0"]
                  [enlive "1.1.6"]
                  [cljsjs/moment "2.17.1-0"]]
 
@@ -69,11 +67,7 @@
              "-XX:+DoEscapeAnalysis"
              "-XX:+UseConcMarkSweepGC"]
 
-  :repositories {"my.datomic.com" {:url      "https://my.datomic.com/repo"
-                                   :username :env/datomic_username
-                                   :password :env/datomic_password}
-
-                 "releases" {:url        "s3://starjars/releases"
+  :repositories {"releases" {:url        "s3://starjars/releases"
                              :username   :env/aws_access_key
                              :passphrase :env/aws_secret_key}}
 

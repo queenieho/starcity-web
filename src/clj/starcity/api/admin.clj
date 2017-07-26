@@ -1,23 +1,24 @@
 (ns starcity.api.admin
-  (:require [compojure.core :refer [context defroutes GET]]
-            [starcity.api.admin
-             [accounts :as accounts]
-             [checks :as checks]
-             [income :as income]
-             [licenses :as licenses]
-             [metrics :as metrics]
-             [notes :as notes]
-             [properties :as properties]
-             [referrals :as referrals]]
-            [starcity.auth :as auth]
-            [starcity.util.response :as response]
-            [starcity.models.account :as account]))
+  (:require [blueprints.models.account :as account]
+            [compojure.core :refer [context defroutes GET]]
+            [datomic.api :as d]
+            [starcity.api.admin.accounts :as accounts]
+            [starcity.api.admin.checks :as checks]
+            [starcity.api.admin.income :as income]
+            [starcity.api.admin.licenses :as licenses]
+            [starcity.api.admin.metrics :as metrics]
+            [starcity.api.admin.notes :as notes]
+            [starcity.api.admin.properties :as properties]
+            [starcity.api.admin.referrals :as referrals]
+            [starcity.datomic :refer [conn]]
+            [starcity.util.request :as req]
+            [starcity.util.response :as res]))
 
 (defroutes routes
   (GET "/" []
        (fn [req]
-         (let [requester (auth/requester req)]
-           (response/transit-ok {:result {:auth (account/clientize requester)}}))))
+         (let [requester (req/requester (d/db conn) req)]
+           (res/transit-ok {:result {:auth (account/clientize requester)}}))))
 
   (context "/accounts" [] accounts/routes)
   (context "/checks" [] checks/routes)

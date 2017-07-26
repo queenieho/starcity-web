@@ -1,22 +1,20 @@
 (ns starcity.api.admin.checks
-  (:require [bouncer
-             [core :as b]
-             [validators :as v]]
+  (:require [blueprints.models.check :as check]
+            [blueprints.models.rent-payment :as rent-payment]
+            [blueprints.models.security-deposit :as deposit]
+            [bouncer.core :as b]
+            [bouncer.validators :as v]
             [clojure.spec :as s]
             [compojure.core :refer [defroutes POST]]
             [datomic.api :as d]
-            [plumbing.core :refer [update-in-when]]
+            [plumbing.core :as plumbing]
             [starcity.datomic :refer [conn]]
-            [starcity.models
-             [check :as check]
-             [rent-payment :as rent-payment]
-             [security-deposit :as deposit]]
-            [starcity.util
-             [response :as response]
-             [validation :as uv]]
-            [toolbelt
-             [core :as tb :refer [str->int]]
-             [predicates :as p]]))
+            [starcity.util.response :as response]
+            [starcity.util.validation :as uv]
+            [toolbelt.core :as tb]
+            [toolbelt.predicates :as p]
+            [blueprints.models.payment :as payment]
+            [taoensso.timbre :as timbre]))
 
 ;; =============================================================================
 ;; Handlers
@@ -31,16 +29,31 @@
    :received-on [uv/inst]
    :bank        [v/string]})
 
+
+(defn- check-status->payment-status [status]
+  (case status
+    :check.status/received  :payment.status/pending
+    :check.status/cleared   :payment.status/paid
+    :check.status/cancelled :payment.status/failed
+    :check.status/canceled  :payment.status/failed
+    :check.status/bounced   :payment.status/failed
+    :check.status/deposited :payment.status/pending))
+
+
 ;; =============================================================================
 ;; Update
 
+
 (defn- update-check-tx [check params]
-  (let [deposit       (check/security-deposit check)
-        payment       (check/rent-payment check)
-        updated-check (check/update check params)]
-    (if deposit
-      [updated-check (deposit/update-check deposit check updated-check)]
-      (conj (rent-payment/update-check payment check updated-check) updated-check))))
+  (let [updated-check (check/update check params)]
+    (if-let [py (check/rent-payment check)]
+      (conj (rent-payment/update-check py check updated-check) updated-check)
+      (let [payment (check/payment check)
+            deposit (deposit/by-payment payment)]
+        [updated-check
+         {:db/id          (:db/id payment)
+          :payment/status (check-status->payment-status (check/status updated-check))}]))))
+
 
 (defn update-check!
   [conn check-id params]
@@ -68,14 +81,28 @@
                 :received-on received-on
                 :bank bank))
 
+
+(defn- deposit-payment [deposit params]
+  (let [check   (check-tx params)
+        payment (payment/create (:amount params) (deposit/account deposit)
+                                :status (check-status->payment-status (:status params))
+                                :for :payment.for/deposit
+                                :method :payment.method/check)]
+    (timbre/debug params check payment (payment/add-check payment check))
+    [check
+     payment
+     (payment/add-check payment check)
+     (deposit/add-payment deposit payment)]))
+
+
 (defn create-check!
   "Create a check on the security deposit idenfified by `deposit-id`."
   [conn {:keys [deposit-id payment-id] :as params}]
   (let [deposit (when deposit-id (d/entity (d/db conn) deposit-id))
         payment (when payment-id (d/entity (d/db conn) payment-id))]
-    @(d/transact conn [(if deposit
-                         (deposit/add-check deposit (check-tx params))
-                         (rent-payment/add-check payment (check-tx params)))])
+    @(d/transact conn (if deposit
+                        (deposit-payment deposit params)
+                        [(rent-payment/add-check payment (check-tx params))]))
     {:result "ok"}))
 
 (s/def ::deposit-id integer?)
@@ -117,6 +144,6 @@
   (POST "/:check-id" [check-id]
         (fn [{params :params}]
           (let [vresult (b/validate params check-validators)]
-            (if-let [params (uv/valid? vresult #(update-in-when % [:amount] float))]
-              (response/transit-ok (update-check! conn (str->int check-id) params))
+            (if-let [params (uv/valid? vresult #(plumbing/update-in-when % [:amount] float))]
+              (response/transit-ok (update-check! conn (tb/str->int check-id) params))
               (response/transit-malformed {:message (first (uv/errors vresult))}))))))

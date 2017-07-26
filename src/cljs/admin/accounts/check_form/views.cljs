@@ -22,7 +22,7 @@
    ;; is unnecessary
    ;; :check.status/deposited
    :check.status/cleared
-   :check.status/cancelled
+   :check.status/canceled
    :check.status/bounced])
 
 (def recover-status
@@ -57,7 +57,7 @@
                 :footer    (r/as-element [footer])
                 :on-cancel #(dispatch [:check-form/hide])}
        ;; TOP ROW
-       [:div.control.is-grouped
+       [:div.field.is-grouped
         [:div.control.is-expanded
          [:label.label "Amount (dollars)"]
          [a/input-number
@@ -79,7 +79,7 @@
                    :on-change   (on-change :bank val)}]]]
 
        ;; MIDDLE ROW
-       [:div.control.is-grouped
+       [:div.field.is-grouped
         [:div.control.is-expanded
          [:label.label "Check number"]
          [a/input {:placeholder "e.g. 1234"
@@ -101,7 +101,7 @@
                    :on-change (on-change :received-on (comp u/input-format->date val))}]]]
 
        ;; BOTTOM ROW
-       [:div.control.is-grouped
+       [:div.field.is-grouped
         [:div.control.is-expanded
          [:label.label "Status"]
          [a/select {:value       (when-let [s (:status @data)] (name s))
