@@ -37,7 +37,7 @@
                  ;; Datomic
                  [io.rkn/conformity "0.4.0"]
                  [starcity/blueprints "1.10.1" :exclusions [com.datomic/datomic-free]]
-                 [starcity/reactor "0.3.0" :exclusions [com.datomic/datomic-pro]]
+                 [starcity/reactor "0.3.1" :exclusions [com.datomic/datomic-pro]]
                  ;; CLJS
                  [cljsjs/flatpickr "2.0.0-rc.7-0"]
                  [starcity/ant-ui "0.1.2" :exclusions [re-frame]]
