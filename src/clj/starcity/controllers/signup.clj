@@ -111,7 +111,7 @@
       (if-let [{:keys [email password first-name last-name]} (validation/valid? vresult)]
         (if-not (account/exists? (d/db conn) email)
           (do
-            @(d/transact-async conn [(events/create-account email password first-name last-name)])
+            @(d/transact-async conn [(events/create-account email (auth/hash-password password) first-name last-name)])
             (response/redirect redirect-after-signup))
           ;; account already exists for email
           (signup-errors req params (format "An account is already registered for %s." email)))
