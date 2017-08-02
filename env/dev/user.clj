@@ -16,7 +16,8 @@
             ;; convenience
             [starcity.datomic :refer [conn]]
             [taoensso.timbre :as timbre]
-            [mount.core :as mount :refer [defstate]]))
+            [mount.core :as mount :refer [defstate]]
+            [toolbelt.core]))
 
 (timbre/refer-timbre)
 
