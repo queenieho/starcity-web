@@ -37,7 +37,7 @@
                  ;; Datomic
                  [io.rkn/conformity "0.4.0"]
                  [starcity/blueprints "1.10.2" :exclusions [com.datomic/datomic-free]]
-                 [starcity/reactor "0.4.0"]
+                 [starcity/reactor "0.4.1"]
                  ;; CLJS
                  [starcity/ant-ui "0.1.2" :exclusions [re-frame]]
                  [com.andrewmcveigh/cljs-time "0.5.0-alpha2"]
