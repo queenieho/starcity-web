@@ -288,8 +288,70 @@
                                 "An unknown error occurred.")}}))
 
 ;; =============================================================================
+;; Refund Deposit
+;; =============================================================================
+
+
+(reg-event-db
+ :deposit.refund/show
+ [(path db/path)]
+ (fn [db [_ deposit]]
+   (db/show-deposit-refund db deposit)))
+
+
+(reg-event-db
+ :deposit.refund/hide
+ [(path db/path)]
+ (fn [db _]
+   (db/hide-deposit-refund db)))
+
+
+(reg-event-db
+ :deposit.refund.form/update
+ [(path db/path)]
+ (fn [db [_ k v]]
+   (db/update-deposit-refund-form db k v)))
+
+
+(reg-event-fx
+ :deposit.refund/submit
+ [(path db/path)]
+ (fn [{:keys [db]} [_ deposit-id]]
+   (let [form-data (db/refund-deposit-form-data db)]
+     {:db         (db/submitting-deposit-refund db true)
+      :http-xhrio {:method          :post
+                   :uri             (str "/api/v1/admin/deposits/" deposit-id "/refund")
+                   :params          form-data
+                   :format          (ajax/transit-request-format)
+                   :response-format (ajax/transit-response-format)
+                   :on-success      [:deposit.refund.submit/success]
+                   :on-failure      [:deposit.refund.submit/failure]}})))
+
+
+(reg-event-fx
+ :deposit.refund.submit/success
+ [(path db/path)]
+ (fn [{:keys [db]} [_ response]]
+   (tb/log response)
+   {:db       (db/submitting-deposit-refund db false)
+    :dispatch [:deposit.refund/hide]}))
+
+
+(reg-event-fx
+ :deposit.refund.submit/failure
+ [(path db/path)]
+ (fn [{:keys [db]} [_ response]]
+   (tb/error response)
+   {:db           (db/submitting-deposit-refund db false)
+    :alert/notify {:title   "Error!"
+                   :type    :error
+                   :content (get-in response [:response :error])}}))
+
+
+;; =============================================================================
 ;; Navigation
 ;; =============================================================================
+
 
 (reg-event-fx
  :account.subnav/navigate-to

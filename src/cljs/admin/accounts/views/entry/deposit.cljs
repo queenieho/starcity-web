@@ -1,5 +1,6 @@
 (ns admin.accounts.views.entry.deposit
   (:require [admin.accounts.check-form.views :as check-form]
+            [admin.accounts.views.entry.deposit.refund :as refund]
             [admin.components.util :as u]
             [ant-ui.core :as a]
             [clojure.string :as string]
@@ -8,9 +9,11 @@
             [toolbelt.core :as tb]
             [toolbelt.date :as date]))
 
+
 (defn- edit-check [data]
   (let [check (update data :status #(keyword "check.status" %))]
     #(dispatch [:check-form/show check])))
+
 
 (def ^:private columns
   [{:title     "Amount"
@@ -32,7 +35,9 @@
                      (r/as-element
                       [:a {:on-click (edit-check (:payment record))} "Edit"]))))}])
 
+
 (defmulti deposit-content :method)
+
 
 (defmethod deposit-content "check"
   [{payment :payment}]
@@ -42,12 +47,14 @@
    [:b "date on check: "] (date/short-date (:date payment)) u/divider
    [:b "received on: "] (date/short-date (:received-on payment))])
 
+
 (defmethod deposit-content "ach"
   [{payment :payment}]
   [:p "View payment details on the "
    [:a {:href   (:stripe-uri payment)
         :target "_blank"}
     "Stripe dashboard."]])
+
 
 (defn- payment->row [payment]
   {:key     (:payment/id payment)
@@ -56,29 +63,48 @@
    :method  (:payment/method payment)
    :payment payment})
 
-(defn add-check-button [deposit-id]
+
+(defn add-check-item [deposit-id]
   (let [name (subscribe [:account/name])]
-    (fn [deposit-id]
-      [:a {:on-click #(dispatch [:check-form/show {:deposit-id deposit-id
-                                                   :name       @name
-                                                   :amount     500}])}
-       "Add Check"])))
+    [:a {:on-click #(dispatch [:check-form/show {:deposit-id deposit-id
+                                                 :name       @name
+                                                 :amount     500}])}
+     "Add Check"]))
+
+
+(defn dropdown-menu [deposit]
+  (let [refundable (:deposit/refundable deposit)]
+    [a/menu
+     [a/menu-item
+      [add-check-item (:id deposit)]]
+     [a/menu-item {:disabled (not refundable)}
+      [:a {:on-click (when refundable #(dispatch [:deposit.refund/show deposit]))
+           :style    {:color (when-not refundable "lightgray")}} "Refund"]]]))
+
+
+(defn deposit-dropdown [deposit]
+  [a/dropdown {:overlay (r/as-element (dropdown-menu deposit))}
+   [:a "Options " [a/icon {:type "down"}]]])
+
 
 (defn payments
   "Component that displays the current account's security deposit payments in
   tabular format."
   []
-  (let [deposit (subscribe [:account/deposit])]
-    (fn []
-      (let [payments (:deposit/payments @deposit)]
-        [:div
-         [check-form/modal]
-         [a/card {:title "Security Deposit Payments"
-                  :extra (r/as-element [add-check-button (:db/id @deposit)])}
-          (if (empty? payments)
-            [:p "No payments yet."]
-            [a/table {:dataSource        (clj->js (map payment->row payments))
-                      :columns           columns
-                      :expandedRowRender (fn [payment]
-                                           (r/as-element (deposit-content (js->clj payment :keywordize-keys true))))
-                      :size              :small}])]]))))
+  (let [deposit  (subscribe [:account/deposit])
+        payments (:deposit/payments @deposit)]
+    [:div
+     [check-form/modal]
+     [refund/modal @deposit]
+     [a/card {:title "Security Deposit Payments"
+              :extra (r/as-element (deposit-dropdown @deposit))}
+      (when-let [refund-status (:deposit/refund-status @deposit)]
+        [:div {:style {:margin-bottom 18}}
+         [:p [:span "Refund Staus: "] [:b refund-status]]])
+      (if (empty? payments)
+        [:p "No payments yet."]
+        [a/table {:dataSource        (clj->js (map payment->row payments))
+                  :columns           columns
+                  :expandedRowRender (fn [payment]
+                                       (r/as-element (deposit-content (js->clj payment :keywordize-keys true))))
+                  :size              :small}])]]))

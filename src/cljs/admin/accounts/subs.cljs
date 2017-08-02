@@ -2,7 +2,8 @@
   (:require [admin.accounts.db :as db]
             [admin.accounts.check-form.subs]
             [re-frame.core :refer [reg-sub]]
-            [toolbelt.core :as tb]))
+            [toolbelt.core :as tb]
+            [clojure.string :as string]))
 
 (reg-sub
  ::accounts
@@ -266,9 +267,11 @@
  (fn [db _]
    (db/approving? db)))
 
+
 ;; =============================================================================
 ;; Promotion
 ;; =============================================================================
+
 
 (reg-sub
  :account/promoting?
@@ -276,9 +279,49 @@
  (fn [db _]
    (db/promoting? db)))
 
+
+;; =============================================================================
+;; Deposit Refunds
+;; =============================================================================
+
+
+(reg-sub
+ :deposit.refund/showing?
+ :<- [::accounts]
+ (fn [db _]
+   (db/showing-deposit-refund? db)))
+
+
+(reg-sub
+ :deposit.refund/can-submit?
+ :<- [::accounts]
+ :<- [:account/deposit]
+ (fn [[db deposit] _]
+   (let [{:keys [amount deduction-reasons]} (db/refund-deposit-form-data db)]
+     (and (> amount 0)
+          (if (< amount (:deposit/required deposit))
+            (not (string/blank? deduction-reasons))
+            true)))))
+
+
+(reg-sub
+ :deposit.refund/submitting?
+ :<- [::accounts]
+ (fn [db _]
+   (db/submitting-deposit-refund? db)))
+
+
+(reg-sub
+ :deposit.refund/form-data
+ :<- [::accounts]
+ (fn [db _]
+   (db/refund-deposit-form-data db)))
+
+
 ;; =============================================================================
 ;; Account Subnav
 ;; =============================================================================
+
 
 (reg-sub
  :account.subnav/items

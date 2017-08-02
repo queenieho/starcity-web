@@ -84,13 +84,15 @@
 
 (defn- clientize-security-deposit [deposit]
   (let [payments (deposit/payments deposit)]
-    {:db/id            (:db/id deposit)
-     :deposit/received (deposit/amount-paid deposit)
-     :deposit/required (deposit/amount deposit)
-     :deposit/pending  (deposit/amount-pending deposit)
-     :deposit/due-date (deposit/due-by deposit)
-     :deposit/method   (deposit/method deposit)
-     :deposit/payments (map clientize-deposit-payment payments)}))
+    {:db/id                 (:db/id deposit)
+     :deposit/received      (deposit/amount-paid deposit)
+     :deposit/required      (deposit/amount deposit)
+     :deposit/pending       (deposit/amount-pending deposit)
+     :deposit/due-date      (deposit/due-by deposit)
+     :deposit/method        (deposit/method deposit)
+     :deposit/payments      (map clientize-deposit-payment payments)
+     :deposit/refund-status (deposit/refund-status deposit)
+     :deposit/refundable    (deposit/is-refundable? deposit)}))
 
 (s/fdef clientize-security-deposit
         :args (s/cat :deposit p/entity?)
