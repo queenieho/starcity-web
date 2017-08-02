@@ -1,5 +1,6 @@
 (ns starcity.api.admin.checks
   (:require [blueprints.models.check :as check]
+            [blueprints.models.payment :as payment]
             [blueprints.models.rent-payment :as rent-payment]
             [blueprints.models.security-deposit :as deposit]
             [bouncer.core :as b]
@@ -11,10 +12,9 @@
             [starcity.datomic :refer [conn]]
             [starcity.util.response :as response]
             [starcity.util.validation :as uv]
+            [taoensso.timbre :as timbre]
             [toolbelt.core :as tb]
-            [toolbelt.predicates :as p]
-            [blueprints.models.payment :as payment]
-            [taoensso.timbre :as timbre]))
+            [toolbelt.predicates :as p]))
 
 ;; =============================================================================
 ;; Handlers

@@ -138,10 +138,12 @@
 ;; =============================================================================
 ;; Member Licenses
 
+
 (defn member-licenses-tx [conn]
   (let [admin  (d/entity (d/db conn) [:account/email "admin@test.com"])
         member (d/entity (d/db conn) [:account/email "member@test.com"])]
     (remove #(contains? % :msg/uuid) (promote/promote member))))
+
 
 ;; =============================================================================
 ;; Rent Payments
