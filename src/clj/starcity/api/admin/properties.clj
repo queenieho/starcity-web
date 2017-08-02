@@ -162,9 +162,8 @@
 ;; =============================================================================
 ;; Unit Entry
 
-(defn- clientize-unit-entry [conn unit]
-  (let [occupant (unit/occupied-by conn unit)]
-    ;; (println (:unit/licenses unit))
+(defn- clientize-unit-entry [db unit]
+  (let [occupant (unit/occupied-by db unit)]
     (merge
      (select-keys unit [:db/id :unit/name])
      {:property/licenses (->> (unit/property unit)
@@ -176,10 +175,9 @@
                             :account/name (account/full-name occupant)})})))
 
 (defn unit-entry
-  ""
   [conn unit-id]
   (let [unit (d/entity (d/db conn) unit-id)]
-    {:result (clientize-unit-entry conn unit)}))
+    {:result (clientize-unit-entry (d/db conn) unit)}))
 
 ;; =============================================================================
 ;; Update License Price
