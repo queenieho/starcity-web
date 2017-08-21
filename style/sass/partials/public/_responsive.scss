@@ -1,0 +1,5 @@
+.hide-smaller-screens {
+  @media screen and (max-width: 959px) {
+    display: none;
+  }
+}
