@@ -21,6 +21,12 @@
 (html/defsnippet soma-svg "templates/soma/svg.html" [:svg] [])
 (html/defsnippet soma-main "templates/soma.html" [:main] [])
 
+(def ^:private coming-soon-fonts
+  "https://fonts.googleapis.com/css?family=Caveat|Eczar:700|Work+Sans:400,600|Vast+Shadow")
+
+(html/defsnippet coming-soon-svg "templates/soma/svg.html" [:svg] [])
+(html/defsnippet coming-soon-main "templates/coming-soon.html" [:main] [])
+
 ;; =============================================================================
 ;; Handlers
 ;; =============================================================================
@@ -47,4 +53,16 @@
                       :js-bundles ["main.js"]
                       :main (soma-main)
                       :fonts [soma-fonts])
+       (common/render-ok)))
+
+(defn show-coming-soon
+  "Show the Coming Soon page, with a preview of new communities in our pipeline."
+  [req]
+  (->> (facade/public req
+                      :svg (coming-soon-svg)
+                      :header (snippets/public-header :communities)
+                      :css-bundles ["public.css"]
+                      :js-bundles ["main.js"]
+                      :main (coming-soon-main)
+                      :fonts [coming-soon-fonts])
        (common/render-ok)))
