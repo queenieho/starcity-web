@@ -58,6 +58,7 @@
                  [starcity/toolbelt "0.1.7" :exclusions [com.datomic/datomic-free]]
                  [starcity/ribbon "0.6.0"]
                  [enlive "1.1.6"]
+                 [com.akolov.enlive-reload "0.2.1"]
                  [cljsjs/moment "2.17.1-0"]]
 
   :jvm-opts ["-server"

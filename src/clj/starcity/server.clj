@@ -20,13 +20,15 @@
              [not-modified :refer [wrap-not-modified]]
              [params :refer [wrap-params]]
              [resource :refer [wrap-resource]]
-             [session :refer [wrap-session]]]
+             [session :refer [wrap-session]]
+             [reload :refer [wrap-reload]]]
             [ring.middleware.session.datomic :refer [datomic-store session->entity]]
             [ring.util.response :as response]
             [starcity
              [config :as config :refer [config]]
              [datomic :refer [conn]]
              [routes :refer [app-routes]]]
+            [com.akolov.enlive-reload :refer :all]
             [taoensso.timbre :as t]))
 
 ;; =============================================================================
@@ -59,6 +61,16 @@
                                         :remote-addr remote-addr}
                                        :user (:account/email identity))))
     (handler req)))
+
+(defn wrap-reload-templates
+  [handler]
+  (fn [req]
+    (if (config/is-development? config)
+      ((-> handler
+           (wrap-enlive-reload)
+           (wrap-reload))
+       req)
+      (handler req))))
 
 ;; =============================================================================
 ;; Ring Handler
@@ -101,6 +113,9 @@
           [optimizations/none strategies/serve-live-assets]
           [optimizations/all strategies/serve-frozen-assets])]
     (-> app-routes
+        (wrap-reload-templates)
+        ;;(wrap-enlive-reload)
+        ;;(wrap-reload)
         (optimus/wrap assemble-assets optimize strategy)
         (wrap-authorization (access/auth-backend :unauthorized-handler unauthorized-handler))
         (wrap-authentication (access/auth-backend :unauthorized-handler unauthorized-handler))
