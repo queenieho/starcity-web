@@ -48,11 +48,11 @@
            (seed/seed conn)))
 
 
-;;(defstate livereload
-;;  :start (livereload/start! {:paths ["resources/templates"
-;;                                     "resources/public/assets"]
-;;                             :debug? true})
-;;  :stop  (livereload/stop!))
+(defstate livereload
+  :start (livereload/start! {:paths ["resources/templates"
+                                     "resources/public/assets"]
+                             :debug? true})
+  :stop  (livereload/stop!))
 
 
 (defn start []

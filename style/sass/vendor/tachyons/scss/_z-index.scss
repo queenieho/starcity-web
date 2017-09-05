@@ -51,10 +51,9 @@
 .z-9999 { z-index: 9999; }
 
 .z-max {
-  z-index: 2147483647;
+  z-index: 10000;
 }
 
 .z-inherit { z-index: inherit; }
 .z-initial { z-index: initial; }
 .z-unset { z-index: unset; }
-

@@ -1,0 +1,50 @@
+// Align
+.align-left   { text-align: left }
+.align-center { text-align: center }
+.align-right  { text-align: right }
+
+
+// Flexbox
+.flex-row, .flexrow {
+  display: flex;
+  flex-direction: row;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.space-between {
+  justify-content: space-between;
+}
+
+.flex-child-33 {
+  display: inline-block;
+  margin:10px 0 0 10%;
+  flex-grow: 1;
+  width: calc(100% * (1/4) - 10px - 1px);
+
+  &:first-child {
+    margin-left: 10%
+  }
+  &:nth-child(3n), &:nth-child(3n-1) {
+    margin-left: 3%
+  }
+}
+
+
+// Columns
+.columns {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+}
+
+.column {
+  // flex: 1 1 auto;
+  &.is-half { flex: 0 0 50% }
+  &.is-third { flex: 0 0 33% }
+  &.is-two-thirds { flex: 0 0 66% }
+  &.is-quarter { flex: 0 0 25% }
+  &.is-three-quarters { flex: 0 0 75% }
+}

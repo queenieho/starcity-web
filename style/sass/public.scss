@@ -11,12 +11,14 @@ different styling for our internal products. */
 @import "partials/public/_colors.scss";
 @import "partials/public/_typography.scss";
 @import "partials/public/_images.scss";
-
+@import "partials/public/_layout.scss";
 
 //  Components
 @import "partials/public/_alert.scss";
 @import "partials/public/_button.scss";
+@import "partials/public/_modal.scss";
 @import "partials/public/_communities.scss";
+@import "partials/public/_comingsoon.scss";
 @import "partials/public/_dropdown.scss";
 @import "partials/public/_navigation.scss";
 @import "partials/public/_hero.scss";

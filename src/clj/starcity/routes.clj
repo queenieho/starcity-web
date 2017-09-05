@@ -65,7 +65,8 @@
   (context "/communities" []
     (GET "/soma" [] communities/show-soma)
     (GET "/mission" [] communities/show-mission)
-    (GET "/coming-soon" [] communities/show-coming-soon))
+    (GET "/coming-soon" [] communities/show-coming-soon)
+    (POST "/coming-soon" [] communities/submit-suggestions!))
 
   (GET "/forgot-password"  [] auth/show-forgot-password)
   (POST "/forgot-password" [] auth/forgot-password)
