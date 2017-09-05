@@ -41,10 +41,19 @@ $(document).ready(function() {
     function showModal(id) {
       let modal = document.getElementById(id);
       $(modal).addClass('open');
+      $('body').on('keydown.modal', function(e) {
+        if (e.which === 27 ) hideModals();
+      });
+      $('body').on('click.modal', function(e) {
+        let clicked = $(e.target);
+        if (clicked.is('.modal-overlay')) hideModals();
+      })
     }
 
     function hideModals() {
       modals.removeClass('open');
+      $('body').off('keydown.modal');
+      $('body').off('click.modal');
     }
 
     modalOpeners.click( function(e) {
@@ -54,5 +63,8 @@ $(document).ready(function() {
 
     modalClosers.click( hideModals );
 
-    window.hideModals = hideModals;
+    window.goToSubscribe = function() {
+      hideModals();
+      $('#subscribe').focus();
+    }
 });
