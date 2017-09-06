@@ -24,7 +24,7 @@
                  [optimus "0.19.1"]
                  [starcity/datomic-session-store "0.1.0"]
                  [starcity/customs "0.1.0"]
-                 [starcity/facade "0.1.3-SNAPSHOT"]
+                 [starcity/facade "0.1.3"]
                  ;; HTTP APIs
                  [nilenso/mailgun "0.2.3"]
                  [starcity/mailer "0.1.0"]
@@ -36,7 +36,7 @@
                  [mount "0.1.11"]
                  ;; Datomic
                  [io.rkn/conformity "0.4.0"]
-                 [starcity/blueprints "1.10.3-SNAPSHOT" :exclusions [com.datomic/datomic-free]]
+                 [starcity/blueprints "1.10.3" :exclusions [com.datomic/datomic-free]]
                  [starcity/reactor "0.4.2"]
                  ;; CLJS
                  [starcity/ant-ui "0.1.2" :exclusions [re-frame]]
