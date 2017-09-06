@@ -34,20 +34,20 @@ $(document).ready(function() {
     log = console.log.bind(console);
 
     // Modals
-    let modalOpeners = $('a[data-modal]'),
+    var modalOpeners = $('a[data-modal]'),
         modalClosers = $('.modal-close-btn'),
         modals       = $('.modal-overlay');
 
     function showModal(id) {
-      let modal = document.getElementById(id);
+      var modal = document.getElementById(id);
       $(modal).addClass('open');
       $('body').on('keydown.modal', function(e) {
         if (e.which === 27 ) hideModals();
       });
       $('body').on('click.modal', function(e) {
-        let clicked = $(e.target);
+        var clicked = $(e.target);
         if (clicked.is('.modal-overlay')) hideModals();
-      })
+      });
     }
 
     function hideModals() {
@@ -57,7 +57,7 @@ $(document).ready(function() {
     }
 
     modalOpeners.click( function(e) {
-      let modalId = $(this).attr('data-modal');
+      var modalId = $(this).attr('data-modal');
       showModal( modalId );
     });
 
@@ -66,5 +66,5 @@ $(document).ready(function() {
     window.goToSubscribe = function() {
       hideModals();
       $('#subscribe').focus();
-    }
+    };
 });
