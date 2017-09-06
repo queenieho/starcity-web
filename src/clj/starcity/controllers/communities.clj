@@ -1,10 +1,15 @@
 (ns starcity.controllers.communities
-  (:require [facade
-             [core :as facade]
-             [snippets :as snippets]]
+  (:require [blueprints.models.suggestion :as suggestion]
+            [clojure.string :as string]
+            [datomic.api :as d]
+            [facade.core :as facade]
+            [facade.snippets :as snippets]
             [net.cgrand.enlive-html :as html]
-            [taoensso.timbre :as timbre]
-            [starcity.controllers.common :as common]))
+            [starcity.controllers.common :as common]
+            [starcity.datomic :refer [conn]]
+            [toolbelt.datomic :as td]
+            [clojure.spec :as s]
+            [toolbelt.predicates :as p]))
 
 ;; =============================================================================
 ;; Views
@@ -60,6 +65,7 @@
                       :fonts [soma-fonts])
        (common/render-ok)))
 
+
 (defn show-coming-soon
   "Show the Coming Soon page, with a preview of new communities in our pipeline."
   [req & {:as opts}]
@@ -72,16 +78,25 @@
                       :fonts [coming-soon-fonts])
        (common/render-ok)))
 
-(defn- validate [params]
-  (timbre/warn params)
-  true)
+
+(defn- validate-suggestions [params]
+  (not (and (= 1 (count params)) (string/blank? (:other params)))))
+
+
+(defn params->tx
+  [{:keys [other] :as params}]
+  (let [cities (->> (dissoc params :other) (keys) (map name))]
+    (-> (if (not (string/blank? other))
+          (concat cities (string/split other #","))
+          cities)
+        (suggestion/create-many))))
 
 
 (defn submit-suggestions!
   [{params :params :as req}]
-  (let [vresult (validate params)]
-    (if (= vresult true)
+  (let [vresult (validate-suggestions params)]
+    (if vresult
       (do
-        ;;@(d/transact-async conn [(events/submit-city-suggestions params)])
+        @(d/transact-async conn (params->tx params))
         (show-coming-soon req :messages ["Thanks! We appreciate the feedback."]))
       (show-coming-soon req :errors ["Please select some cities!"]))))
