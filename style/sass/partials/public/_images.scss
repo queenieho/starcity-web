@@ -113,3 +113,15 @@
     }
   }
 }
+
+
+
+$drop-shadow-offset: 3px;
+
+.dropbox {
+  box-shadow: $drop-shadow-offset $drop-shadow-offset 0 $yellow;
+
+  &.dropbox-blue { box-shadow: $drop-shadow-offset $drop-shadow-offset 0 $blue; }
+  &.dropbox-purple { box-shadow: $drop-shadow-offset $drop-shadow-offset 0 $purple; }
+  &.dropbox-green { box-shadow: $drop-shadow-offset $drop-shadow-offset 0 $green; }
+}

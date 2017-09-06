@@ -30,4 +30,41 @@ $(document).ready(function() {
             $("#header-interior-scroll").addClass("mt4-l w-90-l");
         }
     });
+
+    log = console.log.bind(console);
+
+    // Modals
+    let modalOpeners = $('a[data-modal]'),
+        modalClosers = $('.modal-close-btn'),
+        modals       = $('.modal-overlay');
+
+    function showModal(id) {
+      let modal = document.getElementById(id);
+      $(modal).addClass('open');
+      $('body').on('keydown.modal', function(e) {
+        if (e.which === 27 ) hideModals();
+      });
+      $('body').on('click.modal', function(e) {
+        let clicked = $(e.target);
+        if (clicked.is('.modal-overlay')) hideModals();
+      })
+    }
+
+    function hideModals() {
+      modals.removeClass('open');
+      $('body').off('keydown.modal');
+      $('body').off('click.modal');
+    }
+
+    modalOpeners.click( function(e) {
+      let modalId = $(this).attr('data-modal');
+      showModal( modalId );
+    });
+
+    modalClosers.click( hideModals );
+
+    window.goToSubscribe = function() {
+      hideModals();
+      $('#subscribe').focus();
+    }
 });

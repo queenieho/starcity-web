@@ -1,0 +1,64 @@
+$modal-index-base: 11000;
+$modal-overlay-color: rgba(255,255,255,0.8);
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  z-index: $modal-index-base + 1;
+  background: $modal-overlay-color;
+  display: none;
+  cursor: pointer;
+
+  &.open {
+    display: block;
+  }
+}
+
+.modal-container {
+  max-width: 720px;
+  margin: 3rem auto;
+}
+
+.modal-content {
+  position: relative;
+  background: #fff;
+  box-shadow: 2px 2px 15px rgba(0,0,0,0.15);
+  padding: 3rem 4rem;
+  cursor: default;
+
+  p { font-size: .9rem }
+
+  &.no-pad {
+    padding: 0;
+  }
+}
+
+.modal-pad {
+  padding: 2rem 4rem;
+}
+
+.modal-close-btn {
+  font-size: 1.7rem;
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+
+
+.modal-gallery {
+  margin-top: 4rem;
+
+  img {
+
+  }
+
+}

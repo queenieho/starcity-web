@@ -3,7 +3,9 @@
                       [lein-cooper "1.2.2" :exclusions [org.clojure/clojure]]]
        :dependencies [[figwheel-sidecar "0.5.8"]
                       [binaryage/devtools "0.9.2"]
-                      [com.datomic/datomic-free "0.9.5544"]]
+                      [com.datomic/datomic-free "0.9.5544"]
+                      [com.akolov.enlive-reload "0.2.1"]
+                      [clj-livereload "0.2.0"]]
        :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}}
 
  :uberjar {:aot          :all
