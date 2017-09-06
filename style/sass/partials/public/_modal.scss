@@ -30,6 +30,14 @@ $modal-overlay-color: rgba(255,255,255,0.8);
   cursor: default;
 
   p { font-size: .9rem }
+
+  &.no-pad {
+    padding: 0;
+  }
+}
+
+.modal-pad {
+  padding: 2rem 4rem;
 }
 
 .modal-close-btn {

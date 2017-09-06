@@ -11,25 +11,25 @@
       <img src="/assets/img/coming-soon/oakland.jpg" alt="Oakland Building">
       <h2 class="text-green relative">Oakland</h3>
       <p class="mb4 f6">Situated in City Center Oakland, this location is a historic Hotel conversion that will also feature a bar, restaurant and coffee shop on the ground floor and be ready for occupancy in Winter 2018.</p>
-      <!-- <a class="button button-green dib" data-modal="oakland">
+      <a class="button button-green dib" data-modal="learn-more">
         <span class="text-white">Learn More</span>
-      </a> -->
+      </a>
     </div>
     <div class="fl w-third-l w-100 ph4 pb3 relative">
       <img src="/assets/img/coming-soon/fidi.jpg" alt="Financial District">
       <h2 class="text-purple relative">Financial District</h3>
       <p class="mb4 f6">Ideally located in the middle of the action, Starcity FiDi is a former-commuter's haven with access to the top jobs in the world at your footstep. Couple that with the bustling downtown restaurant scene and you’re where all the action is. This location will be ready for occupancy in Summer 2018.</p>
-      <!-- <a class="button button-purple dib" data-modal="fidi">
+      <a class="button button-purple dib" data-modal="learn-more">
         <span class="text-white">Learn More</span>
-      </a> -->
+      </a>
     </div>
     <div class="fl w-third-l w-100 ph4 pb3 relative">
       <img src="/assets/img/coming-soon/union-square.jpg" alt="Union Square">
       <h2 class="text-yellow relative">Union Square</h3>
       <p class="mb4 f6">Centrally placed in the heart of San Francisco, this fifty member location is a historic, converted Turkish bath house and will feature amazing communal space, roof deck and walking access to all the best that the city has to offer. This location will be ready for occupancy in Summer 2018. </p>
-      <!-- <a class="button button-yellow dib" data-modal="union-square">
+      <a class="button button-yellow dib" data-modal="learn-more">
         <span class="text-white">Learn More</span>
-      </a> -->
+      </a>
     </div>
   </section>
 
@@ -38,17 +38,17 @@
       <img src="/assets/img/coming-soon/jackson-square.jpg" alt="Jackson Square">
       <h2 class="text-blue relative">Jackson Square</h3>
       <p class="mb4 f6">The most idyllic neighborhood in San Francisco with Gold Rush-era architecture and quaint tree-lined streets. It’s the oldest established historic district and the future Starcity location honors that tradition. This location will be ready for occupancy in Winter 2019. </p>
-      <!-- <a class="button button-blue dib" data-modal="jackson-square">
+      <a class="button button-blue dib" data-modal="learn-more">
         <span class="text-white">Learn More</span>
-      </a> -->
+      </a>
     </div>
     <div class="fl w-third-l w-100 ph4 pb3 relative">
       <img src="/assets/img/coming-soon/north-beach.jpg" alt="North Beach">
       <h2 class="text-green relative">North Beach</h3>
       <p class="mb4 f6">Nestled on the border of Jackson Square and North Beach, this smaller brick and timber conversion will be a sanctuary for the downtown habitant who wants to enjoy an easy stroll to work. This location will be ready for occupancy in Winter 2018.</p>
-      <!-- <a class="button button-green dib" data-modal="north-beach">
+      <a class="button button-green dib" data-modal="learn-more">
         <span class="text-white">Learn More</span>
-      </a> -->
+      </a>
     </div>
   </section>
 
@@ -232,21 +232,23 @@
 
 <div class="modal-overlay" id="jackson-square">
   <div class="modal-container">
-    <div class="modal-content">
-      <a class="text-blue modal-close-btn">&#9587;</a>
-      <div class="columns">
-        <div class="column is-half">
-          <p class="handwriting text-blue mb0">Winter 2019</p>
-          <h2 class="text-blue mt2 mb4">Jackson Square</h3>
-          <h4>Coming Soon</h4>
-          <p class="mb4">The most idyllic neighborhood in San Francisco with Gold Rush-era architecture and quaint tree-lined streets. It’s the oldest established historic district and the future Starcity location honors that tradition. This location will be ready for occupancy in Winter 2019.</p>
-          <p class="mb4">
-            Stay up to date on this property and more by <a href="#subscribe" onclick="goToSubscribe()">subscribing to our newsletter.</a>
-          </p>
-        </div>
-        <div class="column is-half">
-
-        </div>
+    <div class="modal-content no-pad">
+      <div class="modal-pad">
+        <a class="text-blue modal-close-btn">&#9587;</a>
+        <p class="handwriting text-blue mb0">Winter 2019</p>
+        <h2 class="text-blue mt2 mb2">Jackson Square</h3>
+      </div>
+      <div class="modal-pad bg-blue">
+        <p class="mb4 text-white">
+          Stay up to date on this property and more by subscribing to our newsletter.</a>
+        </p>
+        <form action="/newsletter" method="POST"></form>
+          <div class="dt mt4 mb2 align-center centered">
+            <!-- <label for="other mr2">Other</label> -->
+            <input required id="subscribe" class="dtc w-60 input-joined input-large" type="text" placeholder="Your email" name="email">
+            <button type="submit" class="dtc button button-white button-joined relative w-40">Subscribe</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -255,21 +257,54 @@
 
 <div class="modal-overlay" id="north-beach">
   <div class="modal-container">
-    <div class="modal-content">
-      <a class="text-green modal-close-btn">&#9587;</a>
-      <div class="columns">
-        <div class="column is-half">
-          <p class="handwriting text-green mb0">Winter 2018</p>
-          <h2 class="text-green mt2 mb4">North Beach</h3>
-          <h4>Coming Soon</h4>
-          <p class="mb4">The most idyllic neighborhood in San Francisco with Gold Rush-era architecture and quaint tree-lined streets. It’s the oldest established historic district and the future Starcity location honors that tradition. This location will be ready for occupancy in Winter 2019.</p>
-          <p class="mb4">
-            Stay up to date on this property and more by <a href="#subscribe" onclick="goToSubscribe()">subscribing to our newsletter.</a>
-          </p>
+    <div class="modal-content no-pad">
+      <div class="modal-pad">
+        <a class="text-green modal-close-btn">&#9587;</a>
+        <p class="handwriting text-green mb0">Winter 2018</p>
+        <h2 class="text-green mt2 mb2">North Beach</h3>
+      </div>
+      <div class="modal-pad bg-green">
+        <div class="columns">
+          <div class="column is-one-third">
+            <p class="mb4 text-white">
+              Stay up to date on this property and more by subscribing to our newsletter.</a>
+            </p>
+          </div>
+          <div class="column is-two-thirds">
+            <form action="/newsletter" method="POST"></form>
+              <div class="dt mt4 mb2 align-center centered">
+                <!-- <label for="other mr2">Other</label> -->
+                <input required id="subscribe" class="dtc w-60 input-joined input-large" type="text" placeholder="Your email" name="email">
+                <button type="submit" class="dtc button button-white button-joined relative w-40">Subscribe</button>
+              </div>
+            </form>
+          </div>
         </div>
-        <div class="column is-half">
+      </div>
+    </div>
+  </div>
+</div>
 
-        </div>
+
+<div class="modal-overlay" id="learn-more">
+  <div class="modal-container">
+    <div class="modal-content no-pad">
+      <div class="modal-pad">
+        <a class="text-blue modal-close-btn">&#9587;</a>
+        <p class="handwriting text-blue mb0">Newsletter</p>
+        <h2 class="text-blue mt2 mb2">Be the first to hear about it!</h3>
+      </div>
+      <div class="modal-pad bg-blue">
+        <p class="mb4 text-white">
+          Stay up to date on this property and more by subscribing to our newsletter.</a>
+        </p>
+        <form action="/newsletter" method="POST"></form>
+          <div class="dt mt4 mb2 align-center centered">
+            <!-- <label for="other mr2">Other</label> -->
+            <input required id="subscribe" class="dtc w-60 input-joined input-large" type="text" placeholder="Your email" name="email">
+            <button type="submit" class="dtc button button-white button-joined relative w-40">Subscribe</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>

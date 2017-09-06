@@ -3,6 +3,10 @@
 .align-center { text-align: center }
 .align-right  { text-align: right }
 
+.centered {
+  margin-left: auto;
+  margin-right: auto;
+}
 
 // Flexbox
 .flex-row, .flexrow {
