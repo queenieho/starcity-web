@@ -38,7 +38,12 @@
   overflow: hidden;
   border-radius: 5px;
   box-shadow: rgba(39, 44, 49, 0.06) 8px 14px 38px, rgba(39, 44, 49, 0.09) 1px 3px 8px;
-  min-height: 300px;
+  height: 363px;
+  transition: all 0.05s linear;
+
+  &:hover {
+    transform: scale3d(1.02,1.02,1);
+  }
 
   .bpp--image, .bpp--content {
     position: relative;

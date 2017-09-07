@@ -17,7 +17,8 @@
             [starcity.datomic :refer [conn]]
             [taoensso.timbre :as timbre]
             [mount.core :as mount :refer [defstate]]
-            [toolbelt.core]))
+            [toolbelt.core]
+            [clj-livereload.server :as livereload]))
 
 (timbre/refer-timbre)
 
@@ -45,6 +46,14 @@
   :start (when (in-memory-db?)
            (timbre/debug "seeding dev database...")
            (seed/seed conn)))
+
+
+(defstate livereload
+  :start (livereload/start! {:paths ["resources/templates"
+                                     "resources/public/assets"]
+                             :debug? true})
+  :stop  (livereload/stop!))
+
 
 (defn start []
   (mount/start-with-args {:env :dev}))

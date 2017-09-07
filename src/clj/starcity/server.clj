@@ -2,31 +2,30 @@
   (:require [buddy.auth :as buddy]
             [buddy.auth.middleware :refer [wrap-authentication wrap-authorization]]
             [clojure.string :as string]
+            [com.akolov.enlive-reload :refer [wrap-enlive-reload]]
             [customs.access :as access]
             [mount.core :as mount :refer [defstate]]
-            [optimus
-             [assets :as assets]
-             [optimizations :as optimizations]
-             [prime :as optimus]
-             [strategies :as strategies]]
+            [optimus.assets :as assets]
+            [optimus.optimizations :as optimizations]
+            [optimus.prime :as optimus]
+            [optimus.strategies :as strategies]
             [org.httpkit.server :refer [run-server]]
             [plumbing.core :refer [assoc-when]]
-            [ring.middleware
-             [content-type :refer [wrap-content-type]]
-             [format :refer [wrap-restful-format]]
-             [keyword-params :refer [wrap-keyword-params]]
-             [multipart-params :refer [wrap-multipart-params]]
-             [nested-params :refer [wrap-nested-params]]
-             [not-modified :refer [wrap-not-modified]]
-             [params :refer [wrap-params]]
-             [resource :refer [wrap-resource]]
-             [session :refer [wrap-session]]]
+            [ring.middleware.content-type :refer [wrap-content-type]]
+            [ring.middleware.format :refer [wrap-restful-format]]
+            [ring.middleware.keyword-params :refer [wrap-keyword-params]]
+            [ring.middleware.multipart-params :refer [wrap-multipart-params]]
+            [ring.middleware.nested-params :refer [wrap-nested-params]]
+            [ring.middleware.not-modified :refer [wrap-not-modified]]
+            [ring.middleware.params :refer [wrap-params]]
+            [ring.middleware.reload :refer [wrap-reload]]
+            [ring.middleware.resource :refer [wrap-resource]]
+            [ring.middleware.session :refer [wrap-session]]
             [ring.middleware.session.datomic :refer [datomic-store session->entity]]
             [ring.util.response :as response]
-            [starcity
-             [config :as config :refer [config]]
-             [datomic :refer [conn]]
-             [routes :refer [app-routes]]]
+            [starcity.config :as config :refer [config]]
+            [starcity.datomic :refer [conn]]
+            [starcity.routes :refer [app-routes]]
             [taoensso.timbre :as t]))
 
 ;; =============================================================================
@@ -59,6 +58,16 @@
                                         :remote-addr remote-addr}
                                        :user (:account/email identity))))
     (handler req)))
+
+
+(defn wrap-reload-templates
+  [handler]
+  (let [wrapped (-> handler wrap-reload wrap-enlive-reload)]
+    (fn [req]
+     (if (config/is-development? config)
+       (wrapped req)
+       (handler req)))))
+
 
 ;; =============================================================================
 ;; Ring Handler
@@ -101,6 +110,7 @@
           [optimizations/none strategies/serve-live-assets]
           [optimizations/all strategies/serve-frozen-assets])]
     (-> app-routes
+        (wrap-reload-templates)
         (optimus/wrap assemble-assets optimize strategy)
         (wrap-authorization (access/auth-backend :unauthorized-handler unauthorized-handler))
         (wrap-authentication (access/auth-backend :unauthorized-handler unauthorized-handler))
