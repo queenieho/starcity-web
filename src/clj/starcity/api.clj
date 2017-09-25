@@ -4,7 +4,6 @@
             [customs.access :as access]
             [starcity.api
              [admin :as admin]
-             [mars :as mars]
              [onboarding :as onboarding]
              [orders :as orders]]))
 
@@ -18,9 +17,6 @@
    :on-error (fn [_ _] {:status 403 :body "You are not authorized."})})
 
 (defroutes routes
-
-  (context "/mars" []
-    (restrict mars/routes (app-restrictions :account.role/member)))
 
   (context "/admin" []
     (restrict admin/routes (app-restrictions :account.role/admin)))

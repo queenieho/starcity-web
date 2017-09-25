@@ -111,6 +111,12 @@
   (get-in config [:hosts :apply]))
 
 
+(defn odin-hostname
+  "The hostname of the odin service."
+  [config]
+  (get-in config [:hosts :odin]))
+
+
 ;; =============================================================================
 ;; Logs
 ;; =============================================================================

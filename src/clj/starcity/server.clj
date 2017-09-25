@@ -81,7 +81,6 @@
 
    ;;; CLJS apps
    "admin.js"      ["/js/cljs/admin.js"]
-   "mars.js"       ["/js/cljs/mars.js"]
    "onboarding.js" ["/js/cljs/onboarding.js"]
 
    ;;; Styles

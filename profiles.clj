@@ -35,20 +35,6 @@
                                      :externs          ["externs/stripe.ext.js"]
                                      :closure-warnings {:externs-validation :off
                                                         :non-standard-jsdoc :off}}}
-                     {:id           "mars"
-                      :source-paths ["src/cljs/mars" "src/cljs/starcity"]
-                      :jar          true
-                      :compiler     {:main             mars.core
-                                     :optimizations    :advanced
-                                     :elide-asserts    true
-                                     :pretty-print     false
-                                     :parallel-build   true
-                                     :asset-path       "/js/cljs/mars/out"
-                                     :output-dir       "resources/public/js/cljs/mars/out"
-                                     :output-to        "resources/public/js/cljs/mars.js"
-                                     :externs          ["externs/stripe.ext.js"]
-                                     :closure-warnings {:externs-validation :off
-                                                        :non-standard-jsdoc :off}}}
 
                      {:id           "onboarding"
                       :source-paths ["src/cljs/onboarding" "src/cljs/starcity"]

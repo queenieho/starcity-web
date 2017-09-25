@@ -54,7 +54,7 @@
     (account/admin? account)      "/admin"
     (account/applicant? account)  (config/apply-hostname config)
     (account/onboarding? account) "/onboarding"
-    :otherwise                    "/me"))
+    :otherwise                    (config/odin-hostname config)))
 
 
 ;; =============================================================================

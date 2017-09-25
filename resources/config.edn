@@ -35,10 +35,12 @@
                          :stage "https://staging.joinstarcity.com"
                          :dev   #join ["http://localhost:"
                                        ^:ref [:webserver :port]]}
-
          :apply #profile {:prod  "https://apply.joinstarcity.com"
                           :stage "https://apply.staging.joinstarcity.com"
-                          :dev   "http://localhost:8081"}}
+                          :dev   "http://localhost:8081"}
+         :odin  #profile {:prod  "https://my.joinstarcity.com"
+                          :stage "https://my.staging.joinstarcity.com"
+                          :dev   "http://localhost:8082"}}
 
  :mailgun #profile {:prod    {:domain  "mg.joinstarcity.com"
                               :sender  "Starcity <meg@joinstarcity.com>"
