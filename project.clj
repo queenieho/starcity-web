@@ -36,7 +36,7 @@
                  [mount "0.1.11"]
                  ;; Datomic
                  [io.rkn/conformity "0.4.0"]
-                 [starcity/blueprints "1.11.1" :exclusions [com.datomic/datomic-free]]
+                 [starcity/blueprints "1.11.2" :exclusions [com.datomic/datomic-free]]
                  [starcity/reactor "0.5.0"]
                  ;; CLJS
                  [starcity/ant-ui "0.1.2" :exclusions [re-frame]]
