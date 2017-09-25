@@ -1,6 +1,6 @@
 {:server-port     3449
  :css-dirs        ["resources/public/assets/css"]
- :builds-to-start ["admin" "apply" "mars" "onboarding"]
+ :builds-to-start ["admin" "onboarding"]
  :builds
  [{:id           "admin"
    :source-paths ["src/cljs/admin" "src/cljs/starcity"]
@@ -10,24 +10,6 @@
                   :asset-path           "/js/cljs/admin/out"
                   :output-to            "resources/public/js/cljs/admin.js"
                   :output-dir           "resources/public/js/cljs/admin/out"
-                  :verbose              false
-                  :source-map           true
-                  :optimizations        :none
-                  :source-map-timestamp true
-                  :external-config
-                  {:devtools/config
-                   {:features-to-install    [:formatters :hints]
-                    :fn-symbol              "ƒ"
-                    :print-config-overrides true}}}}
-
-  {:id           "mars"
-   :source-paths ["src/cljs/mars" "src/cljs/starcity"]
-   :figwheel     {:on-jsload mars.core/run}
-   :compiler     {:main                 mars.core
-                  :preloads             [devtools.preload]
-                  :asset-path           "/js/cljs/mars/out"
-                  :output-to            "resources/public/js/cljs/mars.js"
-                  :output-dir           "resources/public/js/cljs/mars/out"
                   :verbose              false
                   :source-map           true
                   :optimizations        :none
