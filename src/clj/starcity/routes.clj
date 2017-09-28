@@ -97,9 +97,8 @@
       {:handler  {:and [access/authenticated-user (access/user-isa :account.role/admin)]}
        :on-error (fn [req _] (redirect-by-role req))}))
 
-  (ANY "/me" [] (fn [_]
-                  (response/redirect (config/odin-hostname config))))
-
+  (context "/me" []
+    (routes (ANY "*" [] (fn [_] (response/redirect (config/odin-hostname config))))))
 
   (context "/onboarding" []
     (restrict
