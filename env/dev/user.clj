@@ -72,9 +72,6 @@
 ;; =============================================================================
 ;; CLJS Repls
 
-(defn mars-repl []
-  (ra/cljs-repl "mars"))
-
 (defn admin-repl []
   (ra/cljs-repl "admin"))
 

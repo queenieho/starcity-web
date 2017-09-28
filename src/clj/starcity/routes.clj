@@ -1,7 +1,7 @@
 (ns starcity.routes
   (:require [buddy.auth.accessrules :refer [restrict]]
             [compojure
-             [core :refer [ANY context defroutes GET POST routes]]
+             [core :refer [ANY context defroutes GET POST ANY routes]]
              [route :as route]]
             [customs.access :as access]
             [ring.util.response :as response]
@@ -13,7 +13,6 @@
              [careers :as careers]
              [collaborate :as collaborate]
              [communities :as communities]
-             [dashboard :as dashboard]
              [faq :as faq]
              [landing :as landing]
              [lifestyle :as lifestyle]
@@ -38,7 +37,7 @@
         :account.role/applicant  (config/apply-hostname config)
         :account.role/onboarding "/onboarding"
         :account.role/admin      "/admin"
-        :account.role/member     "/me"
+        :account.role/member     (config/odin-hostname config)
         "/")
       (response/redirect)))
 
@@ -99,12 +98,7 @@
        :on-error (fn [req _] (redirect-by-role req))}))
 
   (context "/me" []
-    (restrict
-        (routes
-         (GET "/*" [] dashboard/show))
-      {:handler  {:and [access/authenticated-user (access/user-isa :account.role/member)]}
-       :on-error (fn [req _] (redirect-by-role req))}))
-
+    (routes (ANY "*" [] (fn [_] (response/redirect (config/odin-hostname config))))))
 
   (context "/onboarding" []
     (restrict
