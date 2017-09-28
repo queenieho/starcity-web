@@ -32,10 +32,10 @@
 ;; Middleware
 ;; =============================================================================
 
-;; TODO: This doesn't fail well when we're dealing with an api request
+
 (defn wrap-exception-handling
   [handler]
-  (fn [{:keys [identity uri request-method remote-addr] :as req}]
+  (fn [{:keys [session uri request-method remote-addr] :as req}]
     (try
       (handler req)
       (catch Exception e
@@ -43,8 +43,9 @@
           (t/error e ::unhandled (assoc-when {:uri         uri
                                               :method      request-method
                                               :remote-addr remote-addr}
-                                             :user (:account/email identity)))
+                                             :user (get-in session [:identity :account/email])))
           {:status 500 :body "Unexpected server error!"})))))
+
 
 (defn wrap-logging
   "Middleware to log requests."
