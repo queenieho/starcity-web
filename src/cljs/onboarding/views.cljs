@@ -38,7 +38,7 @@
     {:class (str (when (= keypath active) "is-active ")
                  (when (complete keypath) "is-complete ")
                  (when-not (requirements-satisfied? item complete) "is-disabled "))
-     :href  (routes/path-for keypath)}
+     :href  (if (requirements-satisfied? item complete) (routes/path-for keypath) "")}
     [:span {:dangerouslySetInnerHTML {:__html (or label (-> key name string/capitalize))}}]
     (when (complete keypath)
       [:span.is-pulled-right.icon.is-small [:i.fa.fa-check]])]])
@@ -50,7 +50,7 @@
     {:class (str (when (= keypath active) "is-active ")
                  (when (complete keypath) "is-complete ")
                  (when-not (requirements-satisfied? item complete) "is-disabled "))
-     :href (routes/path-for keypath)}
+     :href (if (requirements-satisfied? item complete) (routes/path-for keypath) "")}
     [:span {:dangerouslySetInnerHTML {:__html (or label (-> key name string/capitalize))}}]
     (when (complete keypath)
       [:span.is-pulled-right.icon.is-small [:i.fa.fa-check]])]
