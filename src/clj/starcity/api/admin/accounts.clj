@@ -10,7 +10,6 @@
             [blueprints.models.note :as note]
             [blueprints.models.payment :as payment]
             [blueprints.models.property :as property]
-            [blueprints.models.rent-payment :as rent-payment]
             [blueprints.models.security-deposit :as deposit]
             [blueprints.models.unit :as unit]
             [bouncer.core :as b]
@@ -231,7 +230,7 @@
               [?m :member-license/rent-payments ?p]]
             (d/db conn) (:db/id account))
        (map (partial d/entity (d/db conn)))
-       (sort-by :rent-payment/period-start)
+       (sort-by :payment/pstart)
        (reverse)))
 
 (defn- clientize-check [check]
@@ -245,30 +244,31 @@
                       :check/date]))
 
 (defn- payment-uri [payment]
-  (let [method     (rent-payment/method payment)
-        managed-id (-> payment rent-payment/member-license member-license/managed-account-id)]
+  (let [method     (payment/method payment)
+        account    (payment/account payment)
+        license    (member-license/active (d/db conn) account)
+        managed-id (member-license/rent-connect-id license)]
     (case method
-      :rent-payment.method/ach
-      (format "%s/payments/%s" stripe-dashboard-uri (-> payment rent-payment/charge charge/id))
+      :payment.method/stripe-charge
+      (format "%s/payments/%s" stripe-dashboard-uri (payment/charge-id payment))
 
-      :rent-payment.method/autopay
-      (format "%s/%s/invoices/%s" stripe-dashboard-uri managed-id (rent-payment/invoice payment))
+      :payment.method/stripe-invoice
+      (format "%s/%s/invoices/%s" stripe-dashboard-uri managed-id (payment/invoice-id payment))
 
       nil)))
 
 (defn- clientize-payment [payment]
   (-> (select-keys payment [:db/id
-                            :rent-payment/status
-                            :rent-payment/period-start
-                            :rent-payment/period-end
-                            :rent-payment/due-date
-                            :rent-payment/paid-on
-                            :rent-payment/amount
-                            :rent-payment/method-desc
-                            :rent-payment/method
-                            :rent-payment/check])
-      (update :rent-payment/check clientize-check)
-      (assoc :rent-payment/stripe-uri (payment-uri payment))))
+                            :payment/status
+                            :payment/pstart
+                            :payment/pend
+                            :payment/due
+                            :payment/paid-on
+                            :payment/amount
+                            :payment/method
+                            :payment/check])
+      (update :payment/check clientize-check)
+      (assoc :payment/stripe-uri (payment-uri payment))))
 
 (defn- payments [conn account]
   (->> (query-payments conn account)
@@ -288,7 +288,7 @@
 (defn- member-licenses [conn account]
   (->> (:account/licenses account)
        (map clientize-member-license)
-       (sort-by :license/active)
+       (sort-by :license/starts)
        (reverse)))
 
 (defmethod clientize-account :account.role/member
@@ -349,9 +349,9 @@
          [?p :property/units ?u]
          [?l :member-license/unit ?u]
          [?l :member-license/rent-payments ?py]
-         [?py :rent-payment/period-start ?start]
-         [?py :rent-payment/period-end ?end]
-         [?py :rent-payment/status ?status]
+         [?py :payment/pstart ?start]
+         [?py :payment/pend ?end]
+         [?py :payment/status ?status]
          [(.after ^java.util.Date ?end ?now)]
          [(.before ^java.util.Date ?start ?now)]]
        (d/db conn) (java.util.Date.)))
