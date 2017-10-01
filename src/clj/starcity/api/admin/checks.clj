@@ -1,7 +1,6 @@
 (ns starcity.api.admin.checks
   (:require [blueprints.models.check :as check]
             [blueprints.models.payment :as payment]
-            [blueprints.models.rent-payment :as rent-payment]
             [blueprints.models.security-deposit :as deposit]
             [bouncer.core :as b]
             [bouncer.validators :as v]
@@ -46,7 +45,8 @@
 
 (defn- update-check-tx [check params]
   (let [updated-check (check/update check params)]
-    (if-let [py (check/rent-payment check)]
+    [updated-check]
+    #_(if-let [py (check/rent-payment check)]
       (conj (rent-payment/update-check py check updated-check) updated-check)
       (let [payment (check/payment check)
             deposit (deposit/by-payment payment)]
@@ -88,7 +88,6 @@
                                 :status (check-status->payment-status (:status params))
                                 :for :payment.for/deposit
                                 :method :payment.method/check)]
-    (timbre/debug params check payment (payment/add-check payment check))
     [check
      payment
      (payment/add-check payment check)
@@ -99,11 +98,13 @@
   "Create a check on the security deposit idenfified by `deposit-id`."
   [conn {:keys [deposit-id payment-id] :as params}]
   (let [deposit (when deposit-id (d/entity (d/db conn) deposit-id))
-        payment (when payment-id (d/entity (d/db conn) payment-id))]
+        payment (when payment-id (d/entity (d/db conn) payment-id))
+        check   (check-tx params)]
     @(d/transact conn (if deposit
                         (deposit-payment deposit params)
-                        [(rent-payment/add-check payment (check-tx params))]))
+                        [(payment/add-check payment check) check]))
     {:result "ok"}))
+
 
 (s/def ::deposit-id integer?)
 (s/def ::payment-id integer?)

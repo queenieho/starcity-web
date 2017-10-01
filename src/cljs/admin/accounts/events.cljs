@@ -144,6 +144,7 @@
  :account.fetch/success
  [(path db/path)]
  (fn [{:keys [db]} [_ {account :result}]]
+   (tb/log account)
    {:db (db/done-fetching-account db account)}))
 
 (reg-event-fx

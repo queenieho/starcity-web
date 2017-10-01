@@ -56,18 +56,15 @@
 
 (defn- payment->row [payment]
   {:key        (:db/id payment)
-   :amount     (:rent-payment/amount payment)
-   :status     (name (:rent-payment/status payment))
-   :due-date   (:rent-payment/due-date payment)
-   :paid-on    (:rent-payment/paid-on payment)
-   :period     [(:rent-payment/period-start payment)
-                (:rent-payment/period-end payment)]
-   :method     (if (= :rent-payment.method/other (:rent-payment/method payment))
-                 (:rent-payment/method-desc payment)
-                 (when-let [method (:rent-payment/method payment)]
-                   (name method)))
-   :check      (:rent-payment/check payment)
-   :stripe-uri (:rent-payment/stripe-uri payment)})
+   :amount     (:payment/amount payment)
+   :status     (name (:payment/status payment))
+   :due-date   (:payment/due payment)
+   :paid-on    (:payment/paid-on payment)
+   :period     [(:payment/pstart payment)
+                (:payment/pend payment)]
+   :method     (when-let [method (:payment/method payment)] (name method))
+   :check      (:payment/check payment)
+   :stripe-uri (:payment/stripe-uri payment)})
 
 ;; NOTE: Lots of duplication between this and `deposit.cljs`
 (defmulti payment-content :method)
