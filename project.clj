@@ -13,9 +13,9 @@
                  [org.clojure/tools.cli "0.3.5"]
                  ;; Web
                  [http-kit "2.2.0"]
-                 [bidi "2.0.16"]        ; phasing in
+                 [bidi "2.0.16"]
                  [clj-http "3.3.0"]
-                 [compojure "1.5.1"]    ; phasing out
+                 [compojure "1.5.1"]
                  [cheshire "5.6.3"]
                  [ring/ring "1.5.0"]
                  [ring-middleware-format "0.7.2"]
@@ -36,7 +36,7 @@
                  [mount "0.1.11"]
                  ;; Datomic
                  [io.rkn/conformity "0.4.0"]
-                 [starcity/blueprints "1.13.0-SNAPSHOT" :exclusions [com.datomic/datomic-free]]
+                 [starcity/blueprints "1.12.1" :exclusions [com.datomic/datomic-free]]
                  [starcity/reactor "0.5.0"]
                  ;; CLJS
                  [starcity/ant-ui "0.1.2" :exclusions [re-frame]]
