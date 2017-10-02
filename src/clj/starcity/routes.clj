@@ -46,7 +46,8 @@
 
   (GET "/lifestyle"        [] lifestyle/show)
   (GET "/story"            [] story/show)
-  (GET "/careers"          [] careers/show)
+  (GET "/careers"          [] (fn [_]
+                                (response/redirect "https://jobs.lever.co/starcity")))
   (GET "/faq"              [] faq/show)
 
   (GET "/schedule-tour"    [] schedule-tour/show)
