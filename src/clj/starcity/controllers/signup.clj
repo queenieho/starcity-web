@@ -1,5 +1,6 @@
 (ns starcity.controllers.signup
   (:require [blueprints.models.account :as account]
+            [blueprints.models.events :as events]
             [bouncer.core :as b]
             [bouncer.validators :as v]
             [clojure.string :refer [capitalize lower-case trim]]
@@ -8,7 +9,6 @@
             [facade.core :as facade]
             [facade.snippets :as snippets]
             [net.cgrand.enlive-html :as html]
-            [reactor.events :as events]
             [ring.util.response :as response]
             [starcity.config :as config :refer [config]]
             [starcity.controllers.common :as common]

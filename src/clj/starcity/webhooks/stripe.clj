@@ -1,8 +1,8 @@
 (ns starcity.webhooks.stripe
-  (:require [cheshire.core :as json]
+  (:require [blueprints.models.events :as events]
+            [cheshire.core :as json]
             [datomic.api :as d]
             [org.httpkit.client :as http]
-            [reactor.events :as events]
             [ring.util.response :as response]
             [starcity.config :as config :refer [config]]
             [starcity.datomic :refer [conn]]))

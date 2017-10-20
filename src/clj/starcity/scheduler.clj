@@ -2,7 +2,7 @@
   (:require [datomic.api :as d]
             [hara.io.scheduler :as sch]
             [mount.core :refer [defstate]]
-            [reactor.events :as events]
+            [blueprints.models.events :as events]
             [starcity.datomic :refer [conn]]
             [taoensso.timbre :as timbre]))
 

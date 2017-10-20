@@ -1,11 +1,11 @@
 (ns starcity.controllers.newsletter
-  (:require [datomic.api :as d]
+  (:require [blueprints.models.events :as events]
+            [datomic.api :as d]
             [facade.core :as facade]
             [net.cgrand.enlive-html :as html]
             [ring.util.response :as response]
             [starcity.controllers.common :as common]
-            [starcity.datomic :refer [conn]]
-            [reactor.events :as events]))
+            [starcity.datomic :refer [conn]]))
 
 
 (html/defsnippet newsletter "templates/subscribed-newsletter.html" [:main] [])

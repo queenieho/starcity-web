@@ -1,10 +1,10 @@
 (ns starcity.api.admin.deposits
-  (:require [blueprints.models.security-deposit :as deposit]
+  (:require [blueprints.models.events :as events]
+            [blueprints.models.security-deposit :as deposit]
             [bouncer.core :as b]
             [bouncer.validators :as v]
             [compojure.core :refer [defroutes POST]]
             [datomic.api :as d]
-            [reactor.events :as events]
             [starcity.datomic :refer [conn]]
             [starcity.util.response :as response]
             [starcity.util.validation :as uv]
