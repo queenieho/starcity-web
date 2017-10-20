@@ -1,11 +1,11 @@
 (ns starcity.api.admin.notes
-  (:require [blueprints.models.note :as note]
+  (:require [blueprints.models.events :as events]
+            [blueprints.models.note :as note]
             [bouncer.core :as b]
             [bouncer.validators :as v]
             [clojure.spec :as s]
             [compojure.core :refer [defroutes DELETE GET POST PUT]]
             [datomic.api :as d]
-            [reactor.events :as events]
             [starcity.auth :as auth]
             [starcity.datomic :refer [conn]]
             [starcity.util.response :as response]

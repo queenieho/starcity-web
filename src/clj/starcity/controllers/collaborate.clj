@@ -1,5 +1,6 @@
 (ns starcity.controllers.collaborate
-  (:require [bouncer
+  (:require [blueprints.models.events :as events]
+            [bouncer
              [core :as b]
              [validators :as v]]
             [datomic.api :as d]
@@ -7,8 +8,7 @@
             [net.cgrand.enlive-html :as html]
             [starcity.controllers.common :as common]
             [starcity.datomic :refer [conn]]
-            [starcity.util.validation :as validation]
-            [reactor.events :as events]))
+            [starcity.util.validation :as validation]))
 
 
 ;; =============================================================================
