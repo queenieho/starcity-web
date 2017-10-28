@@ -1,4 +1,4 @@
-(defproject starcity "2.2.0"
+(defproject starcity "2.2.1"
   :description "The web app for https://joinstarcity.com"
   :url "https://joinstarcity.com"
   :license {:name "Eclipse Public License"
@@ -37,7 +37,7 @@
                  ;; Datomic
                  [io.rkn/conformity "0.4.0"]
                  [starcity/blueprints "1.13.0" :exclusions [com.datomic/datomic-free]]
-                 [starcity/reactor "0.6.0"]
+                 [starcity/reactor "0.6.1"]
                  ;; CLJS
                  [starcity/ant-ui "0.1.2" :exclusions [re-frame]]
                  [com.andrewmcveigh/cljs-time "0.5.0-alpha2"]

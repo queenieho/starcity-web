@@ -23,7 +23,7 @@
                        :username    (config/slack-username config)
                        :channel     "#debug"}
      :stripe          {:secret-key (config/stripe-private-key config)}
-     :public-hostname "http://localhost:8080"}))
+     :public-hostname (config/hostname config)}))
 
 
 (defstate reactor
