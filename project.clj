@@ -1,4 +1,4 @@
-(defproject starcity "2.2.1"
+(defproject starcity "2.3.0-SNAPSHOT"
   :description "The web app for https://joinstarcity.com"
   :url "https://joinstarcity.com"
   :license {:name "Eclipse Public License"
@@ -36,8 +36,7 @@
                  [mount "0.1.11"]
                  ;; Datomic
                  [io.rkn/conformity "0.4.0"]
-                 [starcity/blueprints "1.13.0" :exclusions [com.datomic/datomic-free]]
-                 [starcity/reactor "0.6.1"]
+                 [starcity/blueprints "1.14.1" :exclusions [com.datomic/datomic-free]]
                  ;; CLJS
                  [starcity/ant-ui "0.1.2" :exclusions [re-frame]]
                  [com.andrewmcveigh/cljs-time "0.5.0-alpha2"]
@@ -55,7 +54,7 @@
                  [com.taoensso/timbre "4.8.0"]
                  [com.taoensso/nippy "2.12.2"]
                  [prismatic/plumbing "0.5.3"]
-                 [starcity/toolbelt "0.1.8" :exclusions [com.datomic/datomic-free]]
+                 [starcity/toolbelt "0.1.10" :exclusions [com.datomic/datomic-free]]
                  [starcity/ribbon "0.7.0"]
                  [enlive "1.1.6"]
                  [com.akolov.enlive-reload "0.2.1"]

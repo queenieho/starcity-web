@@ -11,7 +11,6 @@
             [starcity.config :as config :refer [config]]
             [starcity.scheduler]
             [starcity.countries]
-            [starcity.reactor]
             [net.cgrand.reload]
             ;; convenience
             [starcity.datomic :refer [conn]]
