@@ -9,7 +9,6 @@
             [starcity.log]
             [starcity.nrepl]
             [starcity.config :as config :refer [config]]
-            [starcity.scheduler]
             [starcity.countries]
             [net.cgrand.reload]
             ;; convenience

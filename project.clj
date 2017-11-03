@@ -31,7 +31,6 @@
                  [org.apache.httpcomponents/httpclient "4.5.2"] ; dep resolution?
                  ;; Time
                  [clj-time "0.12.0"]
-                 [im.chit/hara.io.scheduler "2.4.8"]
                  ;; Reloaded
                  [mount "0.1.11"]
                  ;; Datomic
