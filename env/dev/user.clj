@@ -31,7 +31,7 @@
     (timbre/debug "starting figwheel server...")
     (apply ra/start-figwheel! builds)))
 
-;; =============================================================================
+;; ============================================================================
 ;; Reloaded Workflow
 
 (defn- in-memory-db?
@@ -63,9 +63,13 @@
   (stest/instrument)
   :ready)
 
+(defn go! []
+  (go)
+  (start-figwheel!))
+
 (defn reset []
   (stop)
-  (refresh :after 'user/go))
+  (refresh :after 'user/go!))
 
 ;; =============================================================================
 ;; CLJS Repls
