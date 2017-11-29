@@ -5,6 +5,8 @@ different styling for our internal products. */
 @import "vendor/tachyons/tachyons.scss";
 @import "vendor/mixin-circle.scss";
 @import "../../node_modules/spinkit/scss/spinners/2-double-bounce.scss";
+@import "../../node_modules/slick-carousel/slick/slick.scss";
+@import "../../node_modules/slick-carousel/slick/slick-theme.scss";
 
 //  Global Styles
 @import "partials/public/_animations.scss";
@@ -30,3 +32,4 @@ different styling for our internal products. */
 @import "partials/public/_spinkit.scss";
 @import "partials/public/_responsive.scss";
 @import "partials/zindex";
+@import "partials/public/_slick.scss";

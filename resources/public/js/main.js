@@ -67,4 +67,17 @@ $(document).ready(function() {
       hideModals();
       $('#subscribe').focus();
     };
+
+    $('.single-item').slick({
+        dots: true,
+        arrows: false,
+        mobileFirst: true,
+        responsive: [{
+            breakpoint: 425,
+            settings: {
+                arrows: true
+            }
+        }]
+    });
+
 });
