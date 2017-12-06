@@ -42,31 +42,31 @@
 (defn approval-tx [conn]
   (concat
    (approve
-    (d/entity (d/db conn) [:account/email "josh@joinstarcity.com"])
+    (d/entity (d/db conn) [:account/email "josh@starcity.com"])
     (d/entity (d/db conn) [:account/email "jon@test.com"])
     (unit/by-name (d/db conn) "2072mission-10")
     (license/by-term (d/db conn) 3)
     (c/to-date (t/now)))
    (approve
-    (d/entity (d/db conn) [:account/email "josh@joinstarcity.com"])
+    (d/entity (d/db conn) [:account/email "josh@starcity.com"])
     (d/entity (d/db conn) [:account/email "jesse@test.com"])
     (unit/by-name (d/db conn) "2072mission-11")
     (license/by-term (d/db conn) 3)
     (c/to-date (t/now)))
    (approve
-    (d/entity (d/db conn) [:account/email "josh@joinstarcity.com"])
+    (d/entity (d/db conn) [:account/email "josh@starcity.com"])
     (d/entity (d/db conn) [:account/email "mo@test.com"])
     (unit/by-name (d/db conn) "2072mission-12")
     (license/by-term (d/db conn) 3)
     (c/to-date (t/now)))
    (approve
-    (d/entity (d/db conn) [:account/email "josh@joinstarcity.com"])
+    (d/entity (d/db conn) [:account/email "josh@starcity.com"])
     (d/entity (d/db conn) [:account/email "meg@test.com"])
     (unit/by-name (d/db conn) "2072mission-13")
     (license/by-term (d/db conn) 3)
     (c/to-date (t/now)))
    (approve
-    (d/entity (d/db conn) [:account/email "josh@joinstarcity.com"])
+    (d/entity (d/db conn) [:account/email "josh@starcity.com"])
     (d/entity (d/db conn) [:account/email "jp@test.com"])
     (unit/by-name (d/db conn) "2072mission-14")
     (license/by-term (d/db conn) 3)

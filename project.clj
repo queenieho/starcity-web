@@ -1,6 +1,6 @@
 (defproject starcity "2.6.0-SNAPSHOT"
-  :description "The web app for https://joinstarcity.com"
-  :url "https://joinstarcity.com"
+  :description "The web app for https://starcity.com"
+  :url "https://starcity.com"
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
 

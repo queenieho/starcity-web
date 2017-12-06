@@ -19,7 +19,7 @@
   "bugs": {
     "url": "https://github.com/starcity-properties/starcity-web/issues"
   },
-  "homepage": "https://joinstarcity.com",
+  "homepage": "https://starcity.com",
   "dependencies": {
     "antd": "^2.8.0",
     "bulma": "^0.4.0",
