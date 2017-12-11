@@ -190,9 +190,8 @@
       ;; for now since we're operating exclusively on the west coast. This
       ;; should probably come from the preferred time zone of the
       ;; /viewer/ (admin)
-      :application/move-in     (date/to-utc-corrected-date
-                                (application/move-in-date app)
-                                (t/time-zone-for-id "America/Los_Angeles"))
+      :application/move-in     (when-some [d (application/move-in-date app)]
+                                 (date/to-utc-corrected-date d (t/time-zone-for-id "America/Los_Angeles")))
       :application/license     (select-keys (application/desired-license app)
                                             [:db/id :license/term])
       :application/has-pet     (application/has-pet? app)
