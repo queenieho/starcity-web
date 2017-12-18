@@ -24,7 +24,7 @@
                  [optimus "0.19.1"]
                  [starcity/datomic-session-store "0.1.0"]
                  [starcity/customs "0.1.0"]
-                 [starcity/facade "0.1.7-SNAPSHOT"]
+                 [starcity/facade "0.1.7"]
                  ;; HTTP APIs
                  [nilenso/mailgun "0.2.3"]
                  [starcity/mailer "0.1.0"]
