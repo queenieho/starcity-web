@@ -27,6 +27,12 @@
 (html/defsnippet soma-svg "templates/soma/svg.html" [:svg] [])
 (html/defsnippet soma-main "templates/soma.html" [:main] [])
 
+(def ^:private north-beach-fonts
+  "https://fonts.googleapis.com/css?family=Caveat|Eczar:700|Work+Sans:400,600|IM+Fell+DW+Pica+SC|Marcellus+SC")
+
+(html/defsnippet north-beach-svg "templates/north-beach/svg.html" [:svg] [])
+(html/defsnippet north-beach-main "templates/north-beach.html" [:main] [])
+
 (def ^:private coming-soon-fonts
   "https://fonts.googleapis.com/css?family=Caveat|Eczar:700|Work+Sans:400,600|Vast+Shadow")
 
@@ -65,6 +71,17 @@
                       :fonts [soma-fonts])
        (common/render-ok)))
 
+(defn show-north-beach
+  "Show the North Beach community page."
+  [req]
+  (->> (facade/public req
+                      :svg (north-beach-svg)
+                      :header (snippets/public-header :communities)
+                      :css-bundles ["public.css"]
+                      :js-bundles ["main.js"]
+                      :main (north-beach-main)
+                      :fonts [north-beach-fonts])
+       (common/render-ok)))
 
 (defn show-coming-soon
   "Show the Coming Soon page, with a preview of new communities in our pipeline."
