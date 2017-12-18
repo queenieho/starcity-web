@@ -65,6 +65,7 @@
   (context "/communities" []
     (GET "/soma" [] communities/show-soma)
     (GET "/mission" [] communities/show-mission)
+    (GET "/north-beach" [] communities/show-north-beach)
     (GET "/coming-soon" [] communities/show-coming-soon)
     (POST "/coming-soon" [] communities/submit-suggestions!))
 
