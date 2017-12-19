@@ -34,6 +34,11 @@
            (accounts/admin :email "admin@test.com")
            members)))
 
+(defn- onboard-accounts [db]
+  (let [license (license/by-term db 3)]
+    (accounts/onboard [:account/email "admin@test.com"] [:unit/name "52gilbert-1"] (:db/id license)
+                      :email "onboarding@test.com")))
+
 
 (defn seed [conn]
   (let [db          (d/db conn)
@@ -41,7 +46,12 @@
         member-ids  (->> accounts-tx
                          (filter #(and (:account/email %) (= :account.role/member (:account/role %))))
                          (map (fn [m] [:account/email (:account/email m)])))]
-    (->> {:seed/accounts {:txes [accounts-tx]}
-          :seed/orders   {:txes     [(orders/gen-orders db member-ids)]
-                          :requires [:seed/accounts]}}
-         (cf/ensure-conforms conn))))
+    (do
+      (->> {:seed/accounts {:txes [accounts-tx]}
+            :seed/orders   {:txes     [(orders/gen-orders db member-ids)]
+                            :requires [:seed/accounts]}
+            :seed/avatars  {:txes [[{:db/id       (d/tempid :db.part/starcity)
+                                     :avatar/name :system}]]}}
+           (cf/ensure-conforms conn))
+      (->> {:seed/onboard-accounts {:txes [(onboard-accounts db)]}}
+           (cf/ensure-conforms conn)))))
