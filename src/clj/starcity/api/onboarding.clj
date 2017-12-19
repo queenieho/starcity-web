@@ -459,7 +459,7 @@
   "Determine the correct amount to charge in cents given "
   [method deposit]
   (if (= "full" method)
-    (* (deposit/amount deposit) 100)
+    (int (* (deposit/amount deposit) 100))
     50000))
 
 (defn- create-charge
