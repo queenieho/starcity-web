@@ -519,7 +519,8 @@
                   :quantity (when-let [q quantity] (float q))
                   :desc     desc
                   :variant  variant)
-                 (order/update order)))))))
+                 (order/update order)))))
+       (remove empty?)))
 
 (defn- remove-orders
   "Remoe all orders for services in `existing` but not in `params`."
