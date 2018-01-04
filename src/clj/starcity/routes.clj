@@ -36,7 +36,7 @@
   (-> (case (:account/role identity)
         :account.role/applicant  (config/apply-hostname config)
         :account.role/onboarding "/onboarding"
-        :account.role/admin      "/admin"
+        :account.role/admin      (config/odin-hostname config)
         :account.role/member     (config/odin-hostname config)
         "/")
       (response/redirect)))

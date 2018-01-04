@@ -51,7 +51,6 @@
   [account {:keys [params] :as req}]
   (cond
     (not (empty? (:next params))) (:next params)
-    (account/admin? account)      "/admin"
     (account/applicant? account)  (config/apply-hostname config)
     (account/onboarding? account) "/onboarding"
     :otherwise                    (config/odin-hostname config)))
