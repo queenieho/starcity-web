@@ -12,6 +12,14 @@
       background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url(../img/hero-mission.jpg);
     }
   }
+  &.north-beach {
+    background-image: linear-gradient(rgba(0, 0, 0, 0.50), rgba(0, 0, 0, 0.50)), url(../img/hero-north-beach.jpg);
+    background-position: center;
+    &:hover {
+      background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url(../img/hero-north-beach.jpg);
+      background-position: center;
+    }
+  }
 }
 
 .soma-font {
