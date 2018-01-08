@@ -24,7 +24,8 @@
 (def ^:private widget-ids
   "Map of property internal names to TimeKit widget ids."
   {"2072mission" "f78e3497-5555-43de-aa75-8bc5f0e0aa80"
-   "52gilbert"   "e8b4ba3d-f305-4d5d-9674-5e2a6fec4f5a"})
+   "52gilbert"   "e8b4ba3d-f305-4d5d-9674-5e2a6fec4f5a"
+   "6nottingham" "3d11f40d-cc10-472e-9b36-52de573ef352"})
 
 
 (defn- widget-id
@@ -33,6 +34,7 @@
   (when-let [property (property/by-internal-name db internal-name)]
     (when (property/accepting-tours? property)
       (get widget-ids internal-name))))
+
 
 (defn- properties
   [db]
