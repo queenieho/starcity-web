@@ -84,7 +84,6 @@
    "styles.js" ["/js/styles.js"]
 
    ;;; North-Beach Floorplan Drawing
-   ;; "north-beach.js"      []
    "north-beach.js" ["/js/north-beach/f1/nb-floor1.js"
                      "/js/north-beach/f1/nb-1-outwall.js"
                      "/js/north-beach/f1/nb-f1-deck.js"
@@ -148,7 +147,7 @@
           [optimizations/all strategies/serve-frozen-assets])]
     (-> app-routes
         (wrap-reload-templates)
-        (optimus/wrap assemble-assets optimize strategy {:uglify-js {:mangle-names false}})
+        (optimus/wrap assemble-assets optimize strategy)
         (wrap-authorization (access/auth-backend :unauthorized-handler unauthorized-handler))
         (wrap-authentication (access/auth-backend :unauthorized-handler unauthorized-handler))
         (wrap-logging)
