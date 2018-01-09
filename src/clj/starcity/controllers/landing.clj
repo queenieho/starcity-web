@@ -67,5 +67,6 @@
                     :svg (svg)
                     :css-bundles ["public.css"]
                     :js-bundles ["main.js"]
+                    :scripts ["http://cdn.jsdelivr.net/gh/kenwheeler/slick@1.8.1/slick/slick.min.js"]
                     :header (header)
                     :main (main conn hero)))))
