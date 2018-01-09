@@ -1,106 +1,107 @@
 $(document).ready(function() {
 
+  function makeStairs(canvas, stairs, stairsStyle) {
+    const stairsObj = [];
+
+    stairs.forEach((item) => {
+      stairsObj.push(new linea.Stairs(canvas, item.origin, item.outline, 6, item.vertical, stairsStyle));
+    });
+
+    return stairsObj;
+  }
+
+  function makeInteriorWall(canvas, interiorWalls, interiorWallStyle) {
+    const interiorWallsObj = [];
+
+    interiorWalls.forEach((item) => {
+      interiorWallsObj.push(new linea.InteriorWall(canvas, item.origin, item.outline, item.code, interiorWallStyle));
+    });
+
+    return interiorWallsObj;
+  }
+
+  function makeNightTable(canvas, nightTables, nightTableStyle, labelStyle) {
+    const nightTablesObj = [];
+
+    nightTables.forEach((item) => {
+      nightTablesObj.push(new linea.NightTable(canvas, item.origin, item.outline, item.code, nightTableStyle, item.label, labelStyle));
+    });
+
+    return nightTablesObj;
+  }
+
+  function makeBed(canvas, beds, bedStyle, labelStyle) {
+    const bedsObj = [];
+
+    beds.forEach((item) => {
+      bedsObj.push(new linea.Bed(canvas, item.origin, item.outline, item.code, bedStyle, item.label, labelStyle));
+    });
+
+    return bedsObj;
+  }
+
+  function makeDoor(canvas, doors, doorStyle, doorProjStyle, doorStopStyle) {
+    const doorsObj = [];
+
+    doors.forEach((item) => {
+      doorsObj.push(new linea.Door(canvas, item.origin, item.outline, 90, item.clockwise, item.code, doorStyle, doorStopStyle, doorProjStyle));
+    });
+
+    return doorsObj;
+  }
+
+  function makeSlidingDoor(canvas, slidingDoors, slidingDoorStyle, doorProjStyle) {
+    const slidingDoorsObj = [];
+
+    slidingDoors.forEach((item) => {
+      slidingDoorsObj.push(new linea.SlidingDoor(canvas, item.origin, item.outline, item.code, slidingDoorStyle, doorProjStyle));
+    });
+
+    return slidingDoorsObj;
+  }
+
+  function makeWindows(canvas, windows, windowStyle) {
+    const windowsObj = [];
+
+    windows.forEach((item) => {
+      windowsObj.push(new linea.Window(canvas, item.origin, item.outline, item.code, windowStyle));
+    });
+
+    return windowsObj;
+  }
+
+  function makeDresser(canvas, dressers, dresserStyle, labelStyle) {
+    const dressersObj = [];
+
+    dressers.forEach((item) => {
+      dressersObj.push(new linea.Dresser(canvas, item.origin, item.outline, item.code, dresserStyle, item.label, labelStyle));
+    });
+
+    return dressersObj;
+  }
+
+  function getFeature(object, feature) {
+    const list = [];
+    object.forEach((item) => {
+      if (item.type === feature) { list.push(item); }
+    });
+
+    return list;
+  }
+
+  function write(floor, origin, labels, style) {
+    labels.forEach((item) => {
+      floor.writeLabel(item.x + origin.x, item.y + origin.y, item.label, style);
+    });
+  };
+
+  const zeroOrigin = { x: 0, y: 0 };
+
+  // #########################################################################
+  // Floor 1
+  // #########################################################################
+
   if ($('#nott-floor1').length) {
-    function makeStairs(canvas, stairs, stairsStyle) {
-      const stairsObj = [];
-
-      stairs.forEach((item) => {
-        stairsObj.push(new linea.Stairs(canvas, item.origin, item.outline, 6, item.vertical, stairsStyle));
-      });
-
-      return stairsObj;
-    }
-
-    function makeInteriorWall(canvas, interiorWalls, interiorWallStyle) {
-      const interiorWallsObj = [];
-
-      interiorWalls.forEach((item) => {
-        interiorWallsObj.push(new linea.InteriorWall(canvas, item.origin, item.outline, item.code, interiorWallStyle));
-      });
-
-      return interiorWallsObj;
-    }
-
-    function makeNightTable(canvas, nightTables, nightTableStyle, labelStyle) {
-      const nightTablesObj = [];
-
-      nightTables.forEach((item) => {
-        nightTablesObj.push(new linea.NightTable(canvas, item.origin, item.outline, item.code, nightTableStyle, item.label, labelStyle));
-      });
-
-      return nightTablesObj;
-    }
-
-    function makeBed(canvas, beds, bedStyle, labelStyle) {
-      const bedsObj = [];
-
-      beds.forEach((item) => {
-        bedsObj.push(new linea.Bed(canvas, item.origin, item.outline, item.code, bedStyle, item.label, labelStyle));
-      });
-
-      return bedsObj;
-    }
-
-    function makeDoor(canvas, doors, doorStyle, doorProjStyle, doorStopStyle) {
-      const doorsObj = [];
-
-      doors.forEach((item) => {
-        doorsObj.push(new linea.Door(canvas, item.origin, item.outline, 90, item.clockwise, item.code, doorStyle, doorStopStyle, doorProjStyle));
-      });
-
-      return doorsObj;
-    }
-
-    function makeSlidingDoor(canvas, slidingDoors, slidingDoorStyle, doorProjStyle) {
-      const slidingDoorsObj = [];
-
-      slidingDoors.forEach((item) => {
-        slidingDoorsObj.push(new linea.SlidingDoor(canvas, item.origin, item.outline, item.code, slidingDoorStyle, doorProjStyle));
-      });
-
-      return slidingDoorsObj;
-    }
-
-    function makeWindows(canvas, windows, windowStyle) {
-      const windowsObj = [];
-
-      windows.forEach((item) => {
-        windowsObj.push(new linea.Window(canvas, item.origin, item.outline, item.code, windowStyle));
-      });
-
-      return windowsObj;
-    }
-
-    function makeDresser(canvas, dressers, dresserStyle, labelStyle) {
-      const dressersObj = [];
-
-      dressers.forEach((item) => {
-        dressersObj.push(new linea.Dresser(canvas, item.origin, item.outline, item.code, dresserStyle, item.label, labelStyle));
-      });
-
-      return dressersObj;
-    }
-
-    function getFeature(object, feature) {
-      const list = [];
-      object.forEach((item) => {
-        if (item.type === feature) { list.push(item); }
-      });
-
-      return list;
-    }
-
-    function write(floor, origin, labels, style) {
-      labels.forEach((item) => {
-        floor.writeLabel(item.x + origin.x, item.y + origin.y, item.label, style);
-      });
-    };
-
-    // #########################################################################
-    // Floor 1
-    // #########################################################################
-
-    const zeroOrigin = { x: 0, y: 0 };
     const canvas1 = new linea.LineaCanvas('#nott-floor1', -5, -5, 250, 700);
     const nb = new linea.Floorplan(canvas1, nbFloorOne.unit.origin, nbFloorOne.room.outline, nbFloorOne.unit.code, style.floorOutline.default);
 
@@ -200,11 +201,12 @@ $(document).ready(function() {
 
     write(nb, zeroOrigin, labels1, style.labelStyle);
     write(nb, zeroOrigin, labels1V, style.labelStyleV);
+  }
+  // #########################################################################
+  // Floor 2
+  // #########################################################################
 
-    // #########################################################################
-    // Floor 2
-    // #########################################################################
-
+  if ($('#nott-floor2').length) {
     const canvas2 = new linea.LineaCanvas('#nott-floor2', -5, -5, 250, 700);
     const nb2 = new linea.Floorplan(canvas2, zeroOrigin, nbFloorTwo.room.outline, nbFloorTwo.unit.code, style.floorOutline.default);
 
@@ -304,11 +306,12 @@ $(document).ready(function() {
 
     write(nb2, zeroOrigin, labels2, style.labelStyle);
     write(nb2, zeroOrigin, labels2V, style.labelStyleV);
+  }
+  // #########################################################################
+  // Floor 3
+  // #########################################################################
 
-    // #########################################################################
-    // Floor 3
-    // #########################################################################
-
+  if ($('#nott-floor3').length) {
     const canvas3 = new linea.LineaCanvas('#nott-floor3', -5, -5, 250, 700);
     const nb3 = new linea.Floorplan(canvas3, zeroOrigin, nbFloorThree.room.outline, nbFloorThree.unit.code, style.floorOutline.default);
 
