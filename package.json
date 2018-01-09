@@ -24,7 +24,9 @@
     "antd": "^2.8.0",
     "bulma": "^0.4.0",
     "less-plugin-clean-css": "^1.5.1",
-    "spinkit": "^1.2.5",
-    "slick-carousel": "^1.8.1"
+    "linea": "^3.1.0",
+    "slick-carousel": "^1.8.1",
+    "snapsvg-cjs": "0.0.6",
+    "spinkit": "^1.2.5"
   }
 }

@@ -13,7 +13,8 @@ pom.xml.asc
 .sass-cache/
 /resources/public/assets/css
 /resources/public/js/cljs
-*.log            # TODO: move to /logs
+# TODO: move to /logs
+*.log
 /logs
 .cljs_rhino_repl/*
 figwheel_server.log
