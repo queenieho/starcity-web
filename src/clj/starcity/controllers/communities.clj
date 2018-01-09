@@ -78,7 +78,48 @@
                       :svg (north-beach-svg)
                       :header (snippets/public-header :communities)
                       :css-bundles ["public.css"]
-                      :js-bundles ["main.js"]
+                      :js-bundles ["main.js"
+                                   "styles.js"
+
+                                   ;;; Floor 1
+                                   "nb-floor1.js"
+                                   "nb-1-outwall.js"
+                                   "nb-f1-deck.js"
+                                   "nb-f1-bed1.js"
+                                   "nb-f1-laundry.js"
+                                   "nb-f1-toi.js"
+                                   "nb-f1-bath.js"
+                                   "nb-f1-storage.js"
+                                   "nb-f1-bed2.js"
+                                   "nb-f1-foyer.js"
+
+                                   ;;; Floor 2
+                                   "nb-floor2.js"
+                                   "nb-f2-outwall.js"
+                                   "nb-f2-bed1.js"
+                                   "nb-f2-bed2.js"
+                                   "nb-f2-bed3.js"
+                                   "nb-f2-shower.js"
+                                   "nb-f2-toilet.js"
+                                   "nb-f2-bath.js"
+                                   "nb-f2-bed4.js"
+                                   "nb-f2-bed5.js"
+
+                                   ;;; Floor 3
+                                   "nb-floor3.js"
+                                   "nb-f3-outwall.js"
+                                   "nb-f3-bed1.js"
+                                   "nb-f3-bed2.js"
+                                   "nb-f3-bed3.js"
+                                   "nb-f3-shower.js"
+                                   "nb-f3-toilet.js"
+                                   "nb-f3-bath.js"
+                                   "nb-f3-bed4.js"
+                                   "nb-f3-bed5.js"
+
+                                   "north-beach.js"]
+                      :scripts ["https://cdn.jsdelivr.net/npm/snapsvg-cjs@0.0.6/dist/snap.svg.js"
+                                "https://cdn.jsdelivr.net/npm/linea@3.1.0/dist/linea/linea.js"]
                       :main (north-beach-main)
                       :fonts [north-beach-fonts])
        (common/render-ok)))

@@ -80,6 +80,49 @@
    "main.js" ["/js/main.js"]
    "tour.js" ["/js/tour.js"]
 
+   ;;; FloorPlan Styles
+   "styles.js" ["/js/styles.js"]
+
+   ;;; North-Beach Floorplan Drawing
+   "north-beach.js" ["/js/north-beach/north-beach.js"]
+
+   ;;; North-Beach Floorplan Data Files
+   ;;;; Floor 1
+   "nb-floor1.js" ["/js/north-beach/f1/nb-floor1.js"]
+   "nb-1-outwall.js" ["/js/north-beach/f1/nb-1-outwall.js"]
+   "nb-f1-deck.js" ["/js/north-beach/f1/nb-f1-deck.js"]
+   "nb-f1-bed1.js" ["/js/north-beach/f1/nb-f1-bed1.js"]
+   "nb-f1-laundry.js" ["/js/north-beach/f1/nb-f1-laundry.js"]
+   "nb-f1-toi.js" ["/js/north-beach/f1/nb-f1-toi.js"]
+   "nb-f1-bath.js" ["/js/north-beach/f1/nb-f1-bath.js"]
+   "nb-f1-storage.js" ["/js/north-beach/f1/nb-f1-storage.js"]
+   "nb-f1-bed2.js" ["/js/north-beach/f1/nb-f1-bed2.js"]
+   "nb-f1-foyer.js" ["/js/north-beach/f1/nb-f1-foyer.js"]
+   ;;;; Floor 2
+   "nb-floor2.js" ["/js/north-beach/f2/nb-floor2.js"]
+   "nb-f2-outwall.js" ["/js/north-beach/f2/nb-2-outwall.js"]
+   "nb-f2-bed1.js" ["/js/north-beach/f2/nb-f2-bed1.js"]
+   "nb-f2-bed2.js" ["/js/north-beach/f2/nb-f2-bed2.js"]
+   "nb-f2-bed3.js" ["/js/north-beach/f2/nb-f2-bed3.js"]
+   "nb-f2-shower.js" ["/js/north-beach/f2/nb-f2-shower.js"]
+   "nb-f2-toilet.js" ["/js/north-beach/f2/nb-f2-toilet.js"]
+   "nb-f2-bath.js" ["/js/north-beach/f2/nb-f2-bath.js"]
+   "nb-f2-bed4.js" ["/js/north-beach/f2/nb-f2-bed4.js"]
+   "nb-f2-bed5.js" ["/js/north-beach/f2/nb-f2-bed5.js"]
+   ;;;; Floor 3
+   "nb-floor3.js" ["/js/north-beach/f3/nb-floor3.js"]
+   "nb-f3-outwall.js" ["/js/north-beach/f3/nb-3-outwall.js"]
+   "nb-f3-bed1.js" ["/js/north-beach/f3/nb-f3-bed1.js"]
+   "nb-f3-bed2.js" ["/js/north-beach/f3/nb-f3-bed2.js"]
+   "nb-f3-bed3.js" ["/js/north-beach/f3/nb-f3-bed3.js"]
+   "nb-f3-shower.js" ["/js/north-beach/f3/nb-f3-shower.js"]
+   "nb-f3-toilet.js" ["/js/north-beach/f3/nb-f3-toilet.js"]
+   "nb-f3-bath.js" ["/js/north-beach/f3/nb-f3-bath.js"]
+   "nb-f3-bed4.js" ["/js/north-beach/f3/nb-f3-bed4.js"]
+   "nb-f3-bed5.js" ["/js/north-beach/f3/nb-f3-bed5.js"]
+
+
+
    ;;; CLJS apps
    "admin.js"      ["/js/cljs/admin.js"]
    "onboarding.js" ["/js/cljs/onboarding.js"]
