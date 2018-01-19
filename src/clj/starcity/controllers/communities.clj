@@ -80,7 +80,7 @@
                       :css-bundles ["public.css"]
                       :js-bundles ["main.js" "styles.js" "north-beach.js"]
                       :scripts ["https://cdn.jsdelivr.net/npm/snapsvg-cjs@0.0.6/dist/snap.svg.js"
-                                "https://cdn.jsdelivr.net/npm/linea@3.1.0/dist/linea/linea.js"]
+                                "https://cdn.jsdelivr.net/npm/linea@3.1.1/dist/minified-linea/linea-min.js"]
                       :main (north-beach-main)
                       :fonts [north-beach-fonts])
        (common/render-ok)))
