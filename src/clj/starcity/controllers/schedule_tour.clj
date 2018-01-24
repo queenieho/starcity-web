@@ -8,13 +8,13 @@
             [datomic.api :as d]
             [facade.core :as facade]
             [net.cgrand.enlive-html :as html]
-            [plumbing.core :as plumbing]
             [ring.util.response :as response]
             [starcity.controllers.common :as common]
             [starcity.datomic :refer [conn]]
             [starcity.util.request :as req]
             [starcity.util.validation :as validation]
-            [toolbelt.predicates :as p]))
+            [toolbelt.predicates :as p]
+            [toolbelt.core :as tb]))
 
 ;; =============================================================================
 ;; Helpers
@@ -82,7 +82,7 @@
   (html/html
    (map
     (fn [[name code tours]]
-      (let [attrs   (plumbing/assoc-when {:value code} :disabled (not tours))
+      (let [attrs   (tb/assoc-when {:value code} :disabled (not tours))
             content (if-not tours (str name " - not touring currently") name)]
         [:option attrs content]))
     properties)))
@@ -118,10 +118,9 @@
 
 
 (defn- view [db req & {:as opts}]
-  (facade/public req
-                 :main (schedule-tour (properties db) opts)
-                 :css-bundles ["public.css"]
-                 :js-bundles ["main.js" "tour.js"]))
+  (common/page req {:main        (schedule-tour (properties db) opts)
+                    :css-bundles ["public.css"]
+                    :js-bundles  ["main.js" "tour.js"]}))
 
 
 ;; =============================================================================

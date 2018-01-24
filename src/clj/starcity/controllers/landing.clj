@@ -63,10 +63,9 @@
   [req]
   (let [hero (rand-nth (hero-images req))]
     (common/render-ok
-     (facade/public req
-                    :svg (svg)
-                    :css-bundles ["public.css"]
-                    :js-bundles ["main.js"]
-                    :scripts ["https://cdn.jsdelivr.net/gh/kenwheeler/slick@1.8.1/slick/slick.min.js"]
-                    :header (header)
-                    :main (main conn hero)))))
+     (common/page req {:svg         (svg)
+                       :css-bundles ["public.css"]
+                       :js-bundles  ["main.js"]
+                       :scripts     ["https://cdn.jsdelivr.net/gh/kenwheeler/slick@1.8.1/slick/slick.min.js"]
+                       :header      (header)
+                       :main        (main conn hero)}))))

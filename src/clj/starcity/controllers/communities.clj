@@ -3,7 +3,6 @@
             [clojure.string :as string]
             [datomic.api :as d]
             [facade.core :as facade]
-            [facade.snippets :as snippets]
             [net.cgrand.enlive-html :as html]
             [starcity.controllers.common :as common]
             [starcity.datomic :refer [conn]]
@@ -50,51 +49,47 @@
 (defn show-mission
   "Show the Mission community page."
   [req]
-  (->> (facade/public req
-                      :svg (mission-svg)
-                      :header (snippets/public-header :communities)
-                      :css-bundles ["public.css"]
-                      :js-bundles ["main.js"]
-                      :main (mission-main)
-                      :fonts [mission-fonts])
+  (->> (common/page req {:svg         (mission-svg)
+                         :header      (common/header :communities)
+                         :css-bundles ["public.css"]
+                         :js-bundles  ["main.js"]
+                         :main        (mission-main)
+                         :fonts       [mission-fonts]})
        (common/render-ok)))
 
 (defn show-soma
   "Show the SoMa community page."
   [req]
-  (->> (facade/public req
-                      :svg (soma-svg)
-                      :header (snippets/public-header :communities)
-                      :css-bundles ["public.css"]
-                      :js-bundles ["main.js"]
-                      :main (soma-main)
-                      :fonts [soma-fonts])
+  (->> (common/page req {:svg         (soma-svg)
+                         :header      (common/header :communities)
+                         :css-bundles ["public.css"]
+                         :js-bundles  ["main.js"]
+                         :main        (soma-main)
+                         :fonts       [soma-fonts]})
        (common/render-ok)))
 
 (defn show-north-beach
   "Show the North Beach community page."
   [req]
-  (->> (facade/public req
-                      :svg (north-beach-svg)
-                      :header (snippets/public-header :communities)
-                      :css-bundles ["public.css"]
-                      :js-bundles ["main.js" "styles.js" "north-beach.js"]
-                      :scripts ["https://cdn.jsdelivr.net/npm/snapsvg-cjs@0.0.6/dist/snap.svg.js"
-                                "https://cdn.jsdelivr.net/npm/linea@3.1.1/dist/minified-linea/linea-min.js"]
-                      :main (north-beach-main)
-                      :fonts [north-beach-fonts])
+  (->> (common/page req {:svg         (north-beach-svg)
+                         :header      (common/header :communities)
+                         :css-bundles ["public.css"]
+                         :js-bundles  ["main.js" "styles.js" "north-beach.js"]
+                         :scripts     ["https://cdn.jsdelivr.net/npm/snapsvg-cjs@0.0.6/dist/snap.svg.js"
+                                       "https://cdn.jsdelivr.net/npm/linea@3.1.1/dist/minified-linea/linea-min.js"]
+                         :main        (north-beach-main)
+                         :fonts       [north-beach-fonts]})
        (common/render-ok)))
 
 (defn show-coming-soon
   "Show the Coming Soon page, with a preview of new communities in our pipeline."
   [req & {:as opts}]
-  (->> (facade/public req
-                      :svg (coming-soon-svg)
-                      :header (snippets/public-header :communities)
-                      :css-bundles ["public.css"]
-                      :js-bundles ["main.js"]
-                      :main (coming-soon-main opts)
-                      :fonts [coming-soon-fonts])
+  (->> (common/page req {:svg         (coming-soon-svg)
+                         :header      (common/header :communities)
+                         :css-bundles ["public.css"]
+                         :js-bundles  ["main.js"]
+                         :main        (coming-soon-main opts)
+                         :fonts       [coming-soon-fonts]})
        (common/render-ok)))
 
 

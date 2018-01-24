@@ -38,18 +38,16 @@
 (defn- forgot-password-errors
   [req & errors]
   (common/render-malformed
-   (facade/public req
-                  :css-bundles ["public.css"]
-                  :js-bundles ["main.js"]
-                  :main (apply forgot-password-main errors))))
+   (common/page req {:css-bundles ["public.css"]
+                     :js-bundles  ["main.js"]
+                     :main        (apply forgot-password-main errors)})))
 
 
 (defn show-forgot-password [req]
   (common/render-ok
-   (facade/public req
-                  :css-bundles ["public.css"]
-                  :js-bundles ["main.js"]
-                  :main (forgot-password-main))))
+   (common/page req {:css-bundles ["public.css"]
+                     :js-bundles  ["main.js"]
+                     :main        (forgot-password-main)})))
 
 
 (defn forgot-password

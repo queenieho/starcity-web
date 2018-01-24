@@ -73,10 +73,9 @@
 
 (defn- view
   [req & errors]
-  (facade/public req
-                 :css-bundles ["public.css"]
-                 :js-bundles ["main.js"]
-                 :main (login-main errors)))
+  (common/page req {:css-bundles ["public.css"]
+                    :js-bundles  ["main.js"]
+                    :main        (login-main errors)}))
 
 
 (defn show

@@ -7,7 +7,6 @@
             [customs.auth :as auth]
             [datomic.api :as d]
             [facade.core :as facade]
-            [facade.snippets :as snippets]
             [net.cgrand.enlive-html :as html]
             [ring.util.response :as response]
             [starcity.config :as config :refer [config]]
@@ -69,11 +68,10 @@
 
 (defn- signup-view
   [req & {:keys [errors form]}]
-  (facade/public req
-                 :main (signup-main :errors errors :form form)
-                 :css-bundles ["public.css"]
-                 :js-bundles ["main.js"]
-                 :header (snippets/public-header :signup)))
+  (common/page req {:main        (signup-main :errors errors :form form)
+                    :css-bundles ["public.css"]
+                    :js-bundles  ["main.js"]
+                    :header      (common/header :signup)}))
 
 ;; =============================================================================
 ;; Handlers
@@ -83,17 +81,15 @@
 ;; Signup
 
 (defn- show-invalid-activation [req]
-  (->> (facade/public req
-                      :css-bundles ["public.css"]
-                      :js-bundles ["main.js"]
-                      :main (invalid-activation))
+  (->> (common/page req {:css-bundles ["public.css"]
+                         :js-bundles  ["main.js"]
+                         :main        (invalid-activation)})
        (common/render-ok)))
 
 (defn show-complete [req]
-  (->> (facade/public req
-                      :css-bundles ["public.css"]
-                      :js-bundles ["main.js"]
-                      :main (signup-complete))
+  (->> (common/page req {:css-bundles ["public.css"]
+                         :js-bundles  ["main.js"]
+                         :main        (signup-complete)})
        (common/render-ok)))
 
 (defn- signup-errors [req form & errors]

@@ -1,7 +1,6 @@
 (ns starcity.controllers.newsletter
   (:require [blueprints.models.events :as events]
             [datomic.api :as d]
-            [facade.core :as facade]
             [net.cgrand.enlive-html :as html]
             [ring.util.response :as response]
             [starcity.controllers.common :as common]
@@ -14,10 +13,9 @@
 (defn show
   [req]
   (common/render-ok
-   (facade/public req
-                  :css-bundles ["public.css"]
-                  :js-bundles ["main.js"]
-                  :main (newsletter))))
+   (common/page req {:css-bundles ["public.css"]
+                     :js-bundles  ["main.js"]
+                     :main        (newsletter)})))
 
 
 (defn subscribe!

@@ -1,4 +1,4 @@
-(defproject starcity "2.9.8-SNAPSHOT"
+(defproject starcity "2.10.0-SNAPSHOT"
   :description "The web app for https://starcity.com"
   :url "https://starcity.com"
   :license {:name "Eclipse Public License"
@@ -24,7 +24,7 @@
                  [optimus "0.19.1"]
                  [starcity/datomic-session-store "0.1.0"]
                  [starcity/customs "0.1.0"]
-                 [starcity/facade "0.1.9"]
+                 [starcity/facade "0.2.0"]
                  ;; HTTP APIs
                  [nilenso/mailgun "0.2.3"]
                  [starcity/mailer "0.1.0"]

@@ -43,10 +43,9 @@
 
 
 (defn- view [req & {:as opts}]
-  (facade/public req
-                 :main (collaborate opts)
-                 :css-bundles ["public.css"]
-                 :js-bundles ["main.js"]))
+  (common/page req {:main        (collaborate opts)
+                    :css-bundles ["public.css"]
+                    :js-bundles  ["main.js"]}))
 
 
 ;; =============================================================================
