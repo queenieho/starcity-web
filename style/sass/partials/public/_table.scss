@@ -9,21 +9,21 @@ th, td {
 
 .table-comparison {
   .shadow {
-    box-shadow: 0 9px 0px 0px white, 
-                0 -9px 0px 0px white, 
-                12px 0 20px 0px rgba(0, 0, 0, 0.04), 
+    box-shadow: 0 9px 0px 0px white,
+                0 -9px 0px 0px white,
+                12px 0 20px 0px rgba(0, 0, 0, 0.04),
                 -12px 0 20px 0px rgba(0, 0, 0, 0.04);
   }
   .shadow-top {
-    box-shadow: 0 9px 0px 0px white, 
+    box-shadow: 0 9px 0px 0px white,
                 0px -12px 20px 0px rgba(0, 0, 0, 0.04),
-                12px 0 20px 0px rgba(0, 0, 0, 0.04), 
+                12px 0 20px 0px rgba(0, 0, 0, 0.04),
                 -12px 0 20px 0px rgba(0, 0, 0, 0.04);
   }
   .shadow-bottom {
-    box-shadow: 0 -9px 0px 0px white, 
+    box-shadow: 0 -9px 0px 0px white,
                 0 12px 20px 0px rgba(0, 0, 0, 0.04),
-                12px 0 20px 0px rgba(0, 0, 0, 0.04), 
+                12px 0 20px 0px rgba(0, 0, 0, 0.04),
                 -12px 0 20px 0px rgba(0, 0, 0, 0.04);
   }
   .border-top {

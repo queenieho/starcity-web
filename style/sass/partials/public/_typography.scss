@@ -30,10 +30,17 @@ body {
   font-family: 'Work Sans', sans-serif;
 }
 
+main.brand {
+  h1, h2 {
+    line-height: 1.25;
+  }
+}
+
 h1, h2 {
   font-family: 'Eczar', serif;
   line-height: $headline-line-height;
   font-weight: 600;
+
 }
 
 h1 {
@@ -71,6 +78,12 @@ a {
   }
   &.no-hover:hover {
     text-decoration: none;
+  }
+  &.block-link {
+    color: inherit;
+    &:hover {
+      text-decoration: none;
+    }
   }
 }
 

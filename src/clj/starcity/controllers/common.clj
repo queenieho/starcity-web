@@ -40,7 +40,7 @@
   (when href (keyword (string/replace href "/" ""))))
 
 
-(defn- maybe-activate
+(defn maybe-activate
   [active]
   (letfn [(activate [node]
             (update-in node [:attrs :class] str " active"))]

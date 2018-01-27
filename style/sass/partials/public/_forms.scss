@@ -69,6 +69,11 @@ textarea {
 }
 
 
+:focus {
+  outline: 0;
+}
+
+
 $fancy-checkbox-background:  none;
 $fancy-checkbox-label-color: #fff;
 $fancy-checkbox-border:      rgba(255,255,255,0.7);

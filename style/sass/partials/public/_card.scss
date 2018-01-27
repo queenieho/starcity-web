@@ -1,0 +1,83 @@
+.card {
+  border: solid 1px $line-gray;
+  padding: 20px;
+  position: relative;
+  &-bottom {
+    border-top: none;
+  }
+  &-dark {
+    background-color: $black;
+    border-color: $black;
+  }
+  &-full {
+    padding: 0px;
+  }
+  &-white {
+    background: white;
+  }
+  &-large {
+    padding: 40px;
+  }
+  &-hover:hover {
+    box-shadow: 1em 0 2em rgba($black,.1);
+    -webkit-transition: all 600ms;
+    transition: all 600ms;
+  }
+}
+
+.tag {
+  padding: 8px 6px 4px 8px;
+  width: 18px;
+  bottom: 0;
+  right: 0;
+  border-top: solid 1px $line-gray;
+  border-left: solid 1px $line-gray;
+  position: absolute;
+  &-dark {
+    border-top: solid 1px rgba(255,255,255,0.3);
+    border-left: solid 1px rgba(255,255,255,0.3);
+  }
+}
+
+figcaption, figcaption p {
+  font-size: 14px;
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  top: 3px;
+  position: relative;
+}
+
+@media screen and (min-width: 60em) {
+  .do:before {
+    content:"";
+    display: block;
+    background-image: url('../svg/icon-check.svg');
+    background-size: 16px 16px;
+    width: 16px;
+    height: 16px;
+    position: absolute;
+    left: 21px;
+  }
+
+  .dont:before {
+    content:"";
+    display: block;
+    background-image: url('../svg/icon-x.svg');
+    background-size: 16px 16px;
+    width: 16px;
+    height: 16px;
+    position: absolute;
+    left: 21px;
+  }
+}
+
+.bl-l {
+  border-left: 0;
+}
+
+.bl-t {
+  border-top: 0;
+}

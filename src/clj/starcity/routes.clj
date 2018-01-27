@@ -10,6 +10,7 @@
             [starcity.controllers
              [admin :as admin]
              [auth :as auth]
+             [brand :as brand]
              [careers :as careers]
              [collaborate :as collaborate]
              [communities :as communities]
@@ -61,6 +62,15 @@
 
   (GET "/newsletter"       [] newsletter/show)
   (POST "/newsletter"      [] newsletter/subscribe!)
+
+  (context "/brand" []
+    (GET "/" [] brand/show-root)
+    (GET "/guidelines" [] brand/show-guidelines)
+    (GET "/downloads" [] brand/show-downloads)
+    (GET "/press" [] brand/show-press))
+
+  (context "/downloads" []
+    (GET "*" [] (fn [{uri :uri}] (response/resource-response uri))))
 
   (context "/communities" []
     (GET "/soma" [] communities/show-soma)
