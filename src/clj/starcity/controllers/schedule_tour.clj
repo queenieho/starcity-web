@@ -39,9 +39,11 @@
 (defn- properties
   [db]
   (vec
-   (d/q '[:find ?n ?in ?t
+   (d/q '[:find ?n ?saddr ?in ?t
           :where
           [?p :property/name ?n]
+          [?p :property/address ?addr]
+          [?addr :address/lines ?saddr]
           [?p :property/internal-name ?in]
           [?p :property/tours ?t]]
         db)))
@@ -49,6 +51,7 @@
 (s/fdef properties
         :args (s/cat :db p/db?)
         :ret (s/* (s/spec (s/cat :name string?
+                                 :street-address string?
                                  :internal-name string?
                                  :tours boolean?))))
 
@@ -57,7 +60,7 @@
   (b/validate
    params
    {:community      [[v/required :message "Please select a community."]
-                     [v/member (set (map second (properties db)))
+                     [v/member (set (map #(nth % 2) (properties db)))
                       :message "Please select a valid community."]]
     :referral       [[v/required :message "Please choose a referral method."]]
     :referral-other [[v/required
@@ -78,12 +81,22 @@
   "Thanks! Choose a time below that works for you.")
 
 
+(defn- community-option-name [name street-address]
+  (let [street-address (-> (string/split street-address #"\n")
+                           (first)
+                           (string/replace #"\d+" "")
+                           (string/trim))]
+    (format "%s (%s)" name street-address)))
+
+
 (defn- community-options [properties]
   (html/html
    (map
-    (fn [[name code tours]]
+    (fn [[name street-address code tours]]
       (let [attrs   (tb/assoc-when {:value code} :disabled (not tours))
-            content (if-not tours (str name " - not touring currently") name)]
+            content (if-not tours
+                      (str name " - not touring currently")
+                      (community-option-name name street-address))]
         [:option attrs content]))
     properties)))
 
