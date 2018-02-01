@@ -1,5 +1,6 @@
 (ns user
-  (:require [clojure.tools.namespace.repl :refer [refresh]]
+  (:require [clojure.tools.namespace.repl :refer [refresh refresh-all]]
+            [clojure.tools.namespace.find :as nfind]
             [clojure.spec.test :as stest]
             [clojure.spec :as s]
             [datomic.api :as d]
@@ -16,12 +17,10 @@
             [taoensso.timbre :as timbre]
             [mount.core :as mount :refer [defstate]]
             [toolbelt.core]
-            [clj-livereload.server :as livereload]))
+            [clj-livereload.server :as livereload]
+            [clojure.java.io :as io]))
 
 (timbre/refer-timbre)
-
-;; Autoreload on change during dev
-(net.cgrand.reload/auto-reload *ns*)
 
 ;; =============================================================================
 ;; Figwheel
@@ -52,6 +51,11 @@
                              :debug? true})
   :stop  (livereload/stop!))
 
+(defn autoreload []
+  ;; Autoreload on change during dev
+  (doseq [n (nfind/find-namespaces-in-dir (io/file "src/clj/starcity/controllers"))]
+    (net.cgrand.reload/auto-reload n)))
+
 
 (defn start []
   (mount/start-with-args {:env :dev}))
@@ -59,8 +63,9 @@
 (def stop mount/stop)
 
 (defn go []
-  (start)
   (stest/instrument)
+  (start)
+  (autoreload)
   :ready)
 
 (defn go! []
@@ -69,7 +74,8 @@
 
 (defn reset []
   (stop)
-  (refresh :after 'user/go!))
+  (refresh-all :after 'user/go)
+  (autoreload))
 
 ;; =============================================================================
 ;; CLJS Repls
