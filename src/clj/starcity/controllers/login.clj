@@ -52,7 +52,6 @@
   (cond
     (not (empty? (:next params))) (:next params)
     (account/applicant? account)  (config/apply-hostname config)
-    (account/onboarding? account) "/onboarding"
     :otherwise                    (config/odin-hostname config)))
 
 

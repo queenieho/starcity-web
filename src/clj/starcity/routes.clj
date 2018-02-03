@@ -36,7 +36,7 @@
   [{:keys [identity] :as req}]
   (-> (case (:account/role identity)
         :account.role/applicant  (config/apply-hostname config)
-        :account.role/onboarding "/onboarding"
+        :account.role/onboarding (config/odin-hostname config)
         :account.role/admin      (config/odin-hostname config)
         :account.role/member     (config/odin-hostname config)
         "/")
