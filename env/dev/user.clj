@@ -82,6 +82,3 @@
 
 (defn admin-repl []
   (ra/cljs-repl "admin"))
-
-(defn onboarding-repl []
-  (ra/cljs-repl "onboarding"))

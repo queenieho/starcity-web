@@ -2,7 +2,6 @@
   (:require [datomic.api :as d]
             [mount.core :as mount :refer [defstate]]
             [starcity.config :as config :refer [config]]
-            [starcity.datomic.seed :as seed]
             [blueprints.core :as db]
             [taoensso.timbre :as timbre]
             [clojure.core.async :as a]))
@@ -16,7 +15,6 @@
   (d/create-database uri)
   (let [conn (d/connect uri)]
     (db/conform-db conn (config/datomic-part config))
-    (seed/seed conn (:env (mount/args)))
     conn))
 
 (defn- disconnect [uri conn]

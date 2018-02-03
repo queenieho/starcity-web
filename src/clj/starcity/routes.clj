@@ -19,7 +19,6 @@
              [lifestyle :as lifestyle]
              [login :as login]
              [newsletter :as newsletter]
-             [onboarding :as onboarding]
              [privacy :as privacy]
              [schedule-tour :as schedule-tour]
              [signup :as signup]
@@ -110,18 +109,19 @@
        :on-error (fn [req _] (redirect-by-role req))}))
 
   (context "/me" []
-    (routes (ANY "*" [] (fn [_] (response/redirect (config/odin-hostname config))))))
+    (routes (ANY "*" []
+                 (fn [_]
+                   (response/redirect (config/odin-hostname config) :moved-permanently)))))
 
   (context "/onboarding" []
-    (restrict
-        (routes
-         (GET "*" [] onboarding/show))
-      {:handler  {:and [access/authenticated-user (access/user-isa :account.role/onboarding)]}
-       :on-error (fn [req _] (redirect-by-role req))}))
+    (routes (ANY "*" []
+                 (fn [_]
+                   (response/redirect (config/odin-hostname config) :moved-permanently)))))
 
-  (GET "/apply" []
-       (fn [_]
-         (response/redirect (config/apply-hostname config) :moved-permanently)))
+  (context "/apply" []
+    (routes (ANY "*" []
+                 (fn [_]
+                   (response/redirect (config/apply-hostname config) :moved-permanently)))))
 
   (context "/api/v1" [] api/routes)
 

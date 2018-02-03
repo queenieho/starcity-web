@@ -118,7 +118,6 @@
 
    ;;; CLJS apps
    "admin.js"      ["/js/cljs/admin.js"]
-   "onboarding.js" ["/js/cljs/onboarding.js"]
 
    ;;; Styles
    "antd.css"   ["/assets/css/antd.css"]

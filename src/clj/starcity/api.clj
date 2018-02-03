@@ -2,10 +2,7 @@
   (:require [buddy.auth.accessrules :refer [restrict]]
             [compojure.core :refer [context defroutes]]
             [customs.access :as access]
-            [starcity.api
-             [admin :as admin]
-             [onboarding :as onboarding]
-             [orders :as orders]]))
+            [starcity.api.admin :as admin]))
 
 (defn- app-restrictions
   [required-role]
@@ -19,10 +16,4 @@
 (defroutes routes
 
   (context "/admin" []
-    (restrict admin/routes (app-restrictions :account.role/admin)))
-
-  (context "/onboarding" []
-    (restrict onboarding/routes (app-restrictions :account.role/onboarding)))
-
-  (context "/orders" []
-    (restrict orders/routes authenticated-restrictions)))
+    (restrict admin/routes (app-restrictions :account.role/admin))))
